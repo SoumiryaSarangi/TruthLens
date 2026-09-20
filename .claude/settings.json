@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Glob(**)",
+      "Grep(**)",
+      "Bash(make lint)",
+      "Bash(make test)",
+      "Bash(make leakage)",
+      "Bash(make status)",
+      "Bash(make table)",
+      "Bash(make eval:*)",
+      "Bash(make fixtures)",
+      "Bash(.venv/Scripts/python.exe -m pytest:*)",
+      "Bash(.venv/bin/python -m pytest:*)",
+      "Bash(.venv/Scripts/python.exe -m ruff:*)",
+      "Bash(.venv/bin/python -m ruff:*)",
+      "Bash(.venv/Scripts/python.exe -m eval.evaluate:*)",
+      "Bash(.venv/bin/python -m eval.evaluate:*)",
+      "Bash(.venv/Scripts/python.exe scripts/build_splits.py status)",
+      "Bash(.venv/Scripts/python.exe scripts/build_splits.py verify)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(uv pip list)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)"
+    ],
+    "deny": [
+      "Write(data/splits/**)",
+      "Edit(data/splits/**)",
+      "Write(data/raw/**)",
+      "Edit(data/raw/**)",
+      "Bash(git push:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git checkout --:*)",
+      "Bash(rm -rf:*)",
+      "Bash(*TRUTHLENS_ALLOW_SPLIT_REWRITE*)",
+      "Bash(*TRUTHLENS_ALLOW_TEST*)"
+    ],
+    "ask": [
+      "Bash(uv pip install:*)",
+      "Bash(uv pip sync:*)",
+      "Bash(git commit:*)",
+      "Bash(git add:*)"
+    ]
+  },
+  "env": {
+    "PYTHONIOENCODING": "utf-8",
+    "PYTHONPATH": "src"
+  }
+}

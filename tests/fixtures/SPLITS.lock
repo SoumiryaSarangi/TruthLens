@@ -1,0 +1,29 @@
+{
+  "files": {
+    "toy_clean/dev.jsonl": {
+      "n_lines": 9,
+      "sha256": "817e022316e13facfcbdb69b983a6b15edfab9b8a78ea2a096afe6c9714bda6e"
+    },
+    "toy_clean/test.jsonl": {
+      "n_lines": 5,
+      "sha256": "e75fa169c613ef451a404b2fdddbad8f2fed84bf0ebc6d393cf3946f0fa93a3a"
+    },
+    "toy_clean/train.jsonl": {
+      "n_lines": 14,
+      "sha256": "d858e121c033ffdda4f551406fef141a65ef7913018e1637b5ae11f038e11d8d"
+    },
+    "toy_leaky/dev.jsonl": {
+      "n_lines": 13,
+      "sha256": "2d5432754f12cb8e2e5756fded4d82d36915a0179348f5baf3a34e50fc845ed8"
+    },
+    "toy_leaky/test.jsonl": {
+      "n_lines": 5,
+      "sha256": "a9de515fe84f8ba3efa5db5159e20c98df436ebfa542e463b66785e022d00a06"
+    },
+    "toy_leaky/train.jsonl": {
+      "n_lines": 14,
+      "sha256": "3e94b8b13334b55f9d6b6fa0783cbd4714c786b206e63e83b1e15205c8f1e30b"
+    }
+  },
+  "version": 1
+}

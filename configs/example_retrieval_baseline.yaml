@@ -1,0 +1,19 @@
+# The retrieval counterpart of the smoke test: same fixtures, different task
+# and metric family. Recall@k / Success@k / MRR, against a random-rank floor.
+
+experiment: example_retrieval_baseline
+task: retrieval
+split: tests/fixtures/toy_clean/dev.jsonl
+gold: tests/fixtures/toy_clean/gold_retrieval_dev.jsonl
+predictions: tests/fixtures/toy_clean/predictions_retrieval_demo.jsonl
+baseline: random_rank
+
+metrics:
+  retrieval:
+    k: [1, 5, 10]
+breakdown: [lang, script]
+seed: 42
+
+notes: >
+  Harness smoke test only. Random-rank over a 9-document pool is a far easier
+  floor than the real corpus will be; do not read anything into the delta.

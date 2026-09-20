@@ -1,0 +1,43 @@
+# Install with: pre-commit install  (or `make setup`)
+#
+# The local hooks are the ones that matter: they stop a frozen split being
+# committed without its lock being updated in the same commit.
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.8
+    hooks:
+      - id: ruff
+        args: [--fix]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+        exclude: ^(data/splits/|tests/fixtures/).*\.(jsonl|lock)$
+      - id: trailing-whitespace
+        exclude: ^(data/splits/|tests/fixtures/).*\.(jsonl|lock)$
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: [--maxkb=2048]
+      - id: check-merge-conflict
+
+  - repo: local
+    hooks:
+      # CLAUDE.md: "NEVER regenerate files in data/splits/." A split may still
+      # legitimately be ADDED. What must never happen is a split changing
+      # without SPLITS.lock changing alongside it in the same commit.
+      - id: splits-locked
+        name: frozen splits must be accompanied by an updated SPLITS.lock
+        entry: python scripts/hooks/check_splits_locked.py
+        language: system
+        files: ^data/splits/
+        pass_filenames: true
+
+      - id: no-metrics-in-notebooks
+        name: metrics belong in src/eval/, never in a notebook
+        entry: python scripts/hooks/check_no_notebook_metrics.py
+        language: system
+        files: \.ipynb$
+        pass_filenames: true

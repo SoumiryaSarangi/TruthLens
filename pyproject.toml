@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "truthlens"
+version = "0.1.0"
+description = "Multilingual claim verification for forwarded misinformation (EN / HI / PA)"
+requires-python = ">=3.11,<3.12"
+# Runtime dependencies are pinned in requirements*.txt, not here. This project
+# installs from a hash-pinned lock, never from a resolver at install time.
+dependencies = []
+
+[tool.setuptools]
+# Package root is src/, so modules import exactly as docs/build-plan.md writes
+# their paths: src/eval/evaluate.py -> `python -m eval.evaluate`.
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# -----------------------------------------------------------------------------
+# ruff
+# -----------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle
+    "F",    # pyflakes
+    "I",    # import sorting
+    "UP",   # pyupgrade
+    "B",    # bugbear
+    "SIM",  # simplify
+    "PTH",  # prefer pathlib
+    "RUF",
+]
+ignore = [
+    "E501",    # line length is handled by the formatter
+    "B905",    # zip(strict=) noise
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+# -----------------------------------------------------------------------------
+# pytest
+# -----------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra --strict-markers"
+markers = [
+    "leakage: data leakage and split-freeze checks (run after ANY data change)",
+]

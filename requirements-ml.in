@@ -1,0 +1,26 @@
+# Phase 1+ model stack. Locked now so the versions are decided while nothing
+# depends on them, installed later with `make setup-ml`.
+#
+# torch is deliberately NOT in this lock. Install it from the PyTorch index so
+# the CPU (laptop) and CUDA (Colab) builds stay explicit and are never confused
+# for one another:
+#   uv pip install torch --index-url https://download.pytorch.org/whl/cpu
+# The resolved build string is recorded in docs/environment.md and stamped into
+# every results JSON by src/common/provenance.py.
+
+-c requirements.txt
+
+transformers>=4.44
+sentence-transformers>=3.0   # BGE-M3, LaBSE, MuRIL
+datasets>=2.20
+accelerate>=0.33
+peft>=0.12                   # LoRA, per the free-tier Colab contingency
+faiss-cpu>=1.8
+rank-bm25>=0.2.2
+fasttext-wheel>=0.9.2        # language ID
+pandas>=2.2
+tqdm>=4.66
+matplotlib>=3.8              # t-SNE plot, calibration curve, abstention curve
+scikit-learn>=1.4
+fastapi>=0.112
+uvicorn>=0.30

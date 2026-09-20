@@ -1,0 +1,23 @@
+# NOTE: in .gitattributes the LAST matching pattern wins, so the catch-all
+# goes FIRST and the protections that must not be overridden go after it.
+
+# Default: normalise to LF in the repo.
+*               text=auto eol=lf
+
+# Binary
+*.png   binary
+*.jpg   binary
+*.pdf   binary
+*.gz    binary
+*.zip   binary
+
+# ---------------------------------------------------------------------------
+# Content-addressed files. Their sha256 is recorded in data/splits/SPLITS.lock
+# and in every results JSON, so git must never rewrite a byte of them or the
+# hashes stop matching between Windows and CI. These lines must stay LAST.
+# ---------------------------------------------------------------------------
+*.jsonl                 -text
+*.lock                  -text
+data/splits/**          -text
+tests/fixtures/**       -text
+results/*.json          -text

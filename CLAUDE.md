@@ -20,9 +20,15 @@ including Romanized Hindi and Punjabi. Solo student project, CSE472.
 
 ## Commands
 - Eval:    `make eval CONFIG=configs/<name>.yaml`
-- Test:    `pytest tests/ -q`
-- Lint:    `ruff check src/`
-- Leakage: `pytest tests/test_no_leakage.py`  (run after ANY data change)
+- Test:    `make test`
+- Lint:    `make lint`
+- Leakage: `make leakage`   (run after ANY data change)
+- Table:   `make table`     (renders results/*.json into docs/results.md)
+- Setup:   `make setup`     (uv provisions Python 3.11; see docs/environment.md)
+
+The harness REFUSES rather than guessing. If `make eval` exits 2, read the
+message — it is refusing for one of the reasons in this file. Do not work
+around a refusal; a plausible wrong number is worse than no number.
 
 ## Stack
 Python 3.11, PyTorch, HuggingFace transformers, sentence-transformers,
@@ -36,6 +42,22 @@ FAISS, rank_bm25, IndicXlit (AI4Bharat), fastText LID, FastAPI.
 - Target accuracy is ~50% on AVeriTeC-style data. That is competitive with
   published SOTA. Do not tune toward suspiciously high numbers.
 
+- The test split is locked. Evaluating one needs `TRUTHLENS_ALLOW_TEST=1`,
+  and that is for the final reported number only, not for model selection.
+- Python is 3.11 via uv, NOT the system 3.13. Run through `make`, which sets
+  `PYTHONIOENCODING=utf-8` — Windows consoles are cp1252 and crash on
+  Devanagari output.
+
+## Where things live
+- docs/phase-plan.md        — current phase and what is in scope. Read first.
+- docs/environment.md       — interpreter, locks, Windows gotchas
+- docs/results.md           — generated results tables (`make table`)
+- data/CLAUDE.md            — dataset provenance, split schema, leakage checks
+- src/retrieval/CLAUDE.md   — retrieval conventions
+- src/eval/evaluate.py      — the only place metrics are computed
+- src/eval/baselines.py     — the dumb baselines, which generate predictions
+                              through the same path a model does
+
 ## Decisions (see full reasoning in docs/build-plan.md)
 - Verification backbone: AVeriTeC, not FEVER
 - Claim matching: MultiClaim / SemEval-2025 Task 7, no scraping
@@ -43,3 +65,11 @@ FAISS, rank_bm25, IndicXlit (AI4Bharat), fastText LID, FastAPI.
 - Claim normalization: CheckThat! 2025 Task 2
 - Manipulation techniques: SemEval-2023 Task 3 subtask 3 label set
 - Retrieval model: BGE-M3 (fallback multilingual-E5-large)
+
+## Open decision, do not guess
+AVeriTeC's label set does not match ours. It ships
+`Conflicting Evidence/Cherrypicking`, which we have no class for; we have
+`NotAClaim`, which AVeriTeC never produces because it comes from the
+check-worthiness stage upstream. `src/data/labels.py` raises
+`UnresolvedLabelMapping` deliberately rather than picking one. Decide it in
+Session 2, write it there, and put it in the report.

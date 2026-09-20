@@ -1,0 +1,25 @@
+# Phase 0 acceptance test. Scores a stand-in predictions file against the toy
+# fixture split, purely to prove the harness runs end to end. The numbers mean
+# nothing -- the fixture is 9 invented rows.
+#
+# Copy this file to start a real experiment. The three questions from
+# docs/build-plan.md go in `notes:` before you run it:
+#   1. What is the current number for this component in results/?
+#   2. What is the dumb baseline?
+#   3. What would make this experiment invalid?
+
+experiment: example_majority_baseline
+task: classification
+split: tests/fixtures/toy_clean/dev.jsonl
+predictions: tests/fixtures/toy_clean/predictions_demo.jsonl
+label_set: verdict_4class
+baseline: majority_class
+
+breakdown: [lang, script]
+min_cell_n: 30
+sanity_ceiling: 0.85
+seed: 42
+
+notes: >
+  Harness smoke test only, not a result. Nine fixture rows, so every
+  per-language cell is flagged low_n, which is the intended demonstration.
