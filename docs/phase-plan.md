@@ -6,9 +6,12 @@ seconds without reading the whole plan.
 
 **Update the "Current phase" line at the start of every session.**
 
+> The running narrative — what was built, what was decided, why — lives in
+> [project-log.md](project-log.md). This file is just the scope pointer.
+
 ## Current phase
 
-**Phase 0 — harness before models.** Complete.
+**Phase 0 complete. Data acquired (AVeriTeC, X-CLAIM). Phase 1 not started.**
 
 In scope: repo skeleton, pinned dependencies, the frozen-splits convention,
 the eval harness, the leakage test, CI.

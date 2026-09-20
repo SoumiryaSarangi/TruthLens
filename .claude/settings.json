@@ -37,8 +37,6 @@
       "Edit(data/splits/**)",
       "Write(data/raw/**)",
       "Edit(data/raw/**)",
-      "Bash(git reset --hard:*)",
-      "Bash(git checkout --:*)",
       "Bash(rm -rf:*)",
       "Bash(*TRUTHLENS_ALLOW_SPLIT_REWRITE*)",
       "Bash(*TRUTHLENS_ALLOW_TEST*)"
@@ -47,7 +45,9 @@
       "Bash(uv pip install:*)",
       "Bash(uv pip sync:*)",
       "Bash(git commit:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git checkout --:*)"
     ]
   },
   "env": {
