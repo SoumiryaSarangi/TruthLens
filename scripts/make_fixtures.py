@@ -79,20 +79,26 @@ def make_record(dataset: str, split: str, idx: int, lang: str, script: str,
         "script": script,
         "source_id": source_id or f"src-{dataset}-{split}-{idx:04d}",
         "label": label,
-        "label_set": "verdict_4class",
+        "label_set": "verdict_5class",
         "text_sha1": sha1_text(normalised),
         "simhash64": simhash_hex(text),
         "n_chars": len(text),
     }
 
 
+TEXTS: dict[str, dict[str, str]] = {}
+
+
 def build(dataset: str, spec: dict[str, list[tuple[str, str, str, str]]]) -> dict[str, list[dict]]:
     out: dict[str, list[dict]] = {}
+    store = TEXTS.setdefault(dataset, {})
     for split, rows in spec.items():
-        out[split] = [
-            make_record(dataset, split, i, lang, script, label, text)
-            for i, (lang, script, label, text) in enumerate(rows)
-        ]
+        built = []
+        for i, (lang, script, label, text) in enumerate(rows):
+            rec = make_record(dataset, split, i, lang, script, label, text)
+            store[rec["uid"]] = text
+            built.append(rec)
+        out[split] = built
     return out
 
 
@@ -119,6 +125,7 @@ def plant_leaks(splits: dict[str, list[dict]]) -> dict[str, list[dict]]:
     forwarded = f"Forwarded many times: {original_text} \U0001f1ee\U0001f1f3"
     near = make_record("toy_leaky", "dev", 9002, "en", "latn", "Supported", forwarded)
     near["source_id"] = "src-forwarded"
+    TEXTS["toy_leaky"][near["uid"]] = forwarded
     dev.append(near)
 
     # LEAK 4 -- punctuation-only variant. Survives normalisation, so it has to
@@ -127,16 +134,25 @@ def plant_leaks(splits: dict[str, list[dict]]) -> dict[str, list[dict]]:
     punct = CLEAN["train"][5][3].replace(".", "!!")
     near2 = make_record("toy_leaky", "dev", 9003, "en", "latn", "Supported", punct)
     near2["source_id"] = "src-punctuation"
+    TEXTS["toy_leaky"][near2["uid"]] = punct
     dev.append(near2)
 
     return splits
 
 
-def emit(name: str, splits: dict[str, list[dict]]) -> None:
-    """Write one fixture dataset. The lock covering it is written once, at the end."""
+def emit(name: str, splits: dict[str, list[dict]], texts: dict[str, str]) -> None:
+    """Write one fixture dataset. The lock covering it is written once, at the end.
+
+    `texts.jsonl` carries the source text alongside the manifest. Real splits
+    never do this -- it would redistribute licensed data -- but fixture text is
+    invented, and without it the near-duplicate check cannot be CONFIRMED and
+    only warns. tests/test_leakage_detector.py needs a hard failure to assert.
+    """
     target = FIXTURES / name
     for split, rows in splits.items():
         write_jsonl(target / f"{split}.jsonl", rows)
+    write_jsonl(target / "texts.jsonl",
+                [{"uid": uid, "text": text} for uid, text in sorted(texts.items())])
     counts = ", ".join(f"{s}={len(r)}" for s, r in sorted(splits.items()))
     print(f"  {name:<12} {counts}")
 
@@ -201,8 +217,9 @@ def emit_demo_predictions(splits: dict[str, list[dict]]) -> None:
 def main() -> int:
     print("Writing fixtures to tests/fixtures/")
     clean = build("toy_clean", CLEAN)
-    emit("toy_clean", clean)
-    emit("toy_leaky", plant_leaks(build("toy_leaky", CLEAN)))
+    emit("toy_clean", clean, TEXTS["toy_clean"])
+    leaky = plant_leaks(build("toy_leaky", CLEAN))
+    emit("toy_leaky", leaky, TEXTS["toy_leaky"])
     emit_demo_predictions(clean)
     emit_lock()
     return 0

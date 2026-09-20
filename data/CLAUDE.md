@@ -84,25 +84,93 @@ This matters because it is not hypothetical: the DS@GT team on CheckThat! 2025
 found substantial claim overlap, to the point of duplication, across train,
 dev and test in this exact family of data.
 
-## Datasets (download instructions land in Session 2)
+## Datasets
 
-| Dataset | Role | Access |
+`make data` fetches everything open-access, rebuilds the splits and reprofiles.
+Sources, URLs and the sha256 of every downloaded file live in
+`data/raw/DOWNLOADS.json`. Live counts are in `docs/data-profile.md`.
+
+### Acquired
+
+**AVeriTeC** — verification backbone, 5-class verdict
+- Repo: https://github.com/MichSchli/AVeriTeC · Homepage: https://fever.ai/dataset/averitec.html
+- Paper: Schlichtkrull et al., NeurIPS 2023 Datasets & Benchmarks
+- Licence: CC BY-NC 4.0 — **non-commercial, academic use**
+- Files: `data/train.json` (3068 claims), `data/dev.json` (500)
+- **The real test split is withheld** for the FEVER shared task. We hold out
+  10% of the public train, stratified by label with seed 42, as a local test
+  set. The official dev split is used unchanged so dev numbers stay comparable
+  to published work; our train is correspondingly smaller.
+- No per-claim ID upstream. A record's **position in the file is its identity**,
+  which is only safe because the file's sha256 is pinned in `DOWNLOADS.json`
+  and in the split MANIFEST — a silent re-release changes the hash.
+- Label mapping lives in `src/data/labels.py`; the decision is recorded in the
+  root `CLAUDE.md`.
+
+**X-CLAIM** — claim span identification, EN/HI/PA
+- Repo: https://github.com/mbzuai-nlp/x-claim
+- Paper: "Lost in Translation, Found in Spans", EMNLP 2023 main (arXiv 2310.18205)
+- Files: `data/{split}-{lang}.csv`, columns `tokens`, `span_start_index`,
+  `span_end_index`. `tokens` is a **Python list literal**, not JSON.
+- Counts match the paper exactly: EN 3891/400/371, HI 1193/100/100,
+  PA 346/100/100. A mismatch here means the loader is wrong.
+- Span task, so rows carry **no verdict label**. `label` is optional in the
+  split schema for exactly this reason.
+- The `en2xx` files are **machine-translated English and are deliberately not
+  downloaded**. X-CLAIM's own finding is that joint multilingual training beats
+  training on English-translated data; pulling them in by accident would
+  undermine the ablation that replicates it.
+
+> **The language column is not the script column.** `train-pa.csv` is 249
+> Gurmukhi, 54 Devanagari and 36 Latin rows. `train-hi.csv` has 43 Latin rows.
+> Script is detected per row by `src/data/script_id.py` and never inferred from
+> the filename. Punjabi is **26.5% non-native script** in train, the largest
+> romanized share in the corpus and directly relevant to the contribution.
+
+### Not yet acquired
+
+| Dataset | Role | Status |
 | --- | --- | --- |
-| AVeriTeC | verification backbone, 4-class verdict | TBD |
-| X-CLAIM | claim span, EN/HI/PA | EN 3891/400/371, HI 1193/100/100, PA 346/100/100 |
-| CheckThat! 2025 Task 2 | claim normalization | HI has 1081 train |
-| MultiClaim / SemEval-2025 T7 | claim matching | Zenodo record is **restricted — request access early** |
+| MultiClaim / SemEval-2025 T7 | claim matching (Phase 4) | Zenodo record is restricted; **access requested, awaiting approval**. Add a loader and a `SOURCES` entry once the archive is in hand. |
+| CheckThat! 2025 Task 2 | claim normalization (Phase 3) | Not started. Requires registration; HI has 1081 train rows. |
 
-Two open items carried from `docs/build-plan.md`:
+### Still open
 
-- **AVeriTeC knowledge store size.** ~1000 articles across 4568 claims is
-  large. There are ~109 GB free on this machine, so plan on a subset and check
-  before downloading.
-- **The AVeriTeC label mismatch.** AVeriTeC ships
-  `Conflicting Evidence/Cherrypicking`; the project's scheme has no such class
-  and adds `NotAClaim`, which AVeriTeC never produces. `src/data/labels.py`
-  raises `UnresolvedLabelMapping` rather than guessing. Decide it and record
-  the decision there and in the report.
+- **AVeriTeC knowledge store.** Only the claims are downloaded so far. The
+  evidence store is ~1000 articles across 4568 claims; ~109 GB free on this
+  machine, so check size before fetching and plan on a subset.
+
+## Deduplication policy: train yields to eval
+
+Both datasets ship rows that appear in more than one official split. This is
+the DS@GT CheckThat! 2025 finding, reproduced: AVeriTeC's official train and
+dev share 4 claims and its train holds 71 internal duplicates; X-CLAIM `en`
+has 3 train-dev and 2 train-test overlaps.
+
+Two ways to resolve that, one of them honest:
+
+- Drop the row from dev/test — shrinks a published benchmark and makes our
+  numbers incomparable with everyone else's. **Rejected.**
+- Drop the row from train — costs a few training examples and nothing else.
+  **Taken.**
+
+`deduplicate()` in `scripts/build_splits.py` removes from **train** any row
+that exactly or near-duplicates a dev/test row, plus within-train duplicates.
+Dev and test are never modified, not even to remove duplicates within
+themselves; those are counted and reported instead.
+
+A row is dropped as a near-duplicate only when SimHash **and** exact Jaccard
+agree (Hamming <= 8 and Jaccard >= 0.80), so a sketch collision cannot
+silently shrink the training set.
+
+### Irreducible leakage is allowlisted, not thresholded away
+
+Two X-CLAIM rows appear in both official **dev and test** (Jaccard 0.906 and
+0.990). Neither side can be dropped without altering the benchmark, so they
+are accepted by exact uid pair in `data/splits/KNOWN_LEAKAGE.json`, each with
+a reason. Anything not on that list still fails `make leakage`. This bounds
+dev-to-test contamination at 2 of 571 test rows (0.35%), which belongs in the
+report rather than a footnote nobody reads.
 
 ## Gotchas
 

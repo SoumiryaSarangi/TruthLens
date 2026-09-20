@@ -1,0 +1,29 @@
+{
+  "files": {
+    "averitec/dev.jsonl": {
+      "n_lines": 500,
+      "sha256": "d994098e05100064fdde36e7f5c944b7c5e0c3503ec33dcf075293bf2b1cb14a"
+    },
+    "averitec/test.jsonl": {
+      "n_lines": 307,
+      "sha256": "bad8a9ca888884056510a3d53791bc7c52243cac9281a1a4c14fe36ead5911e2"
+    },
+    "averitec/train.jsonl": {
+      "n_lines": 2666,
+      "sha256": "a322259c4bcdb60fd97ceded69df8a493935592236888768d67db03a7a5d7313"
+    },
+    "x_claim/dev.jsonl": {
+      "n_lines": 600,
+      "sha256": "acc94da887669db4a256a76b3b3ed49adfa5d6d9a5e59dee7714ae3d22c69fb1"
+    },
+    "x_claim/test.jsonl": {
+      "n_lines": 571,
+      "sha256": "0fbe2005f3361b1e3d982c36d20976c9bc14fe263baa375065f2ef891eaea489"
+    },
+    "x_claim/train.jsonl": {
+      "n_lines": 5343,
+      "sha256": "f5c830f0042be394e8b994d08d34a10aab66bfa50eccbaf115e1d582e37125d9"
+    }
+  },
+  "version": 1
+}

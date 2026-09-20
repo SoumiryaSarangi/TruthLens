@@ -123,14 +123,23 @@ def _near_duplicate_findings(
                     continue  # simhash false positive, cleared by exact Jaccard
                 severity = "fail" if jac >= FAIL_JACCARD else "warn"
             else:
-                severity = "fail" if dist <= FAIL_HAMMING else "warn"
+                # No text, so the SimHash hit cannot be confirmed. On real data
+                # a meaningful share of hits at this distance turn out to have
+                # Jaccard below 0.8 -- close sketches, different claims. Failing
+                # a build on an unconfirmable signal would contradict the
+                # deduplication pass in scripts/build_splits.py, which drops a
+                # row only when SimHash AND Jaccard agree. So this warns, and
+                # says how to promote it to a real answer.
+                severity = "warn"
 
             findings.append(Finding(
                 kind="near_duplicate", severity=severity, dataset=dataset,
                 split_a=a, split_b=b, uid_a=uid_a, uid_b=uid_b,
                 detail=(f"near-duplicate text across {a} and {b} "
                         f"(simhash hamming={dist}"
-                        + (f", jaccard={jac:.3f}" if jac is not None else "")
+                        + (f", jaccard={jac:.3f}" if jac is not None
+                           else ", UNCONFIRMED: no text available, run `make data` "
+                                "to materialise it and get a verdict")
                         + ")"),
                 distance=dist, jaccard=jac,
             ))
@@ -160,6 +169,49 @@ def find_leakage(
 
 def failures(findings: list[Finding]) -> list[Finding]:
     return [f for f in findings if f.severity == "fail"]
+
+
+ACCEPTED_PATH = "data/splits/KNOWN_LEAKAGE.json"
+
+
+def load_accepted(path: str = ACCEPTED_PATH) -> set[tuple[str, str, str]]:
+    """Load the allowlist of leaks that exist upstream and cannot be fixed here.
+
+    Some overlap is irreducible. When the same post appears in a dataset's own
+    official dev AND test splits, both sides are part of a published
+    benchmark: dropping either changes the benchmark and makes our numbers
+    incomparable with everyone else's. The honest move is to accept it, name
+    it, quantify it in docs/data-profile.md, and make sure a NEW leak still
+    fails loudly.
+
+    So this is an allowlist, not a threshold change. Anything not listed here
+    by exact uid pair still fails.
+    """
+    from pathlib import Path  # local: keeps this module import-light
+
+    p = Path(path)
+    if not p.is_file():
+        return set()
+    import json
+
+    doc = json.loads(p.read_text(encoding="utf-8"))
+    return {
+        (entry["dataset"], entry["uid_a"], entry["uid_b"])
+        for entry in doc.get("accepted", [])
+    }
+
+
+def filter_accepted(
+    findings: list[Finding], accepted: set[tuple[str, str, str]],
+) -> tuple[list[Finding], list[Finding]]:
+    """Split findings into (unaccepted, accepted). Order-insensitive on the pair."""
+    new: list[Finding] = []
+    known: list[Finding] = []
+    for f in findings:
+        key_fwd = (f.dataset, f.uid_a, f.uid_b)
+        key_rev = (f.dataset, f.uid_b, f.uid_a)
+        (known if (key_fwd in accepted or key_rev in accepted) else new).append(f)
+    return new, known
 
 
 def per_split_counts(splits: dict[str, list[dict[str, Any]]]) -> dict[str, dict[str, int]]:

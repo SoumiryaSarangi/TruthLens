@@ -1,0 +1,57 @@
+{
+  "counts": {
+    "dev": {
+      "en/latn": 500,
+      "lang=en": 500,
+      "script=latn": 500,
+      "total": 500
+    },
+    "test": {
+      "en/latn": 307,
+      "lang=en": 307,
+      "script=latn": 307,
+      "total": 307
+    },
+    "train": {
+      "en/latn": 2666,
+      "lang=en": 2666,
+      "script=latn": 2666,
+      "total": 2666
+    }
+  },
+  "created_utc": "2026-09-20T11:26:20+00:00",
+  "dataset": "averitec",
+  "deduplication": {
+    "dropped_from_train": {
+      "exact_match_in_eval": 14,
+      "near_duplicate_in_eval": 24,
+      "within_train_duplicate": 56
+    },
+    "left_in_place": {
+      "dev_internal_duplicates": 9,
+      "dev_test_overlap": 0,
+      "test_internal_duplicates": 0
+    },
+    "policy": "train yields to eval; dev and test are never modified"
+  },
+  "notes": [
+    "AVeriTeC's real test split is withheld for the FEVER shared task, so 10% of the public train split was held out as a local test set, stratified by label with seed 42. The official dev split is used unchanged, so dev numbers stay comparable to published work; train is correspondingly smaller than the official train."
+  ],
+  "seed": 42,
+  "source": {
+    "files": {
+      "dev.json": {
+        "bytes": 1785475,
+        "sha256": "499793726b4a5406780928a3d9dedc48d6dd53de778f22437d129cacdb08e300",
+        "url": "https://raw.githubusercontent.com/MichSchli/AVeriTeC/main/data/dev.json"
+      },
+      "train.json": {
+        "bytes": 10184813,
+        "sha256": "ae5eda7c42ddf1695ef185a7ba1bc716928f5adf57103e4f78aae5f9afe00f9c",
+        "url": "https://raw.githubusercontent.com/MichSchli/AVeriTeC/main/data/train.json"
+      }
+    },
+    "licence": "CC BY-NC 4.0 (non-commercial; academic use)",
+    "repo": "https://github.com/MichSchli/AVeriTeC"
+  }
+}

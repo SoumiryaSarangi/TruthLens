@@ -9,6 +9,8 @@
 #   make test       full test suite
 #   make lint       ruff
 #   make leakage    leakage + frozen-split checks (run after ANY data change)
+#   make data       download raw sources and rebuild splits + profile
+#   make profile    regenerate docs/data-profile.md from the frozen splits
 #   make table      render results/*.json into markdown
 #   make status     what is in data/splits/
 #   make lock       (re)write data/splits/SPLITS.lock
@@ -27,7 +29,7 @@ export PYTHONPATH = src
 
 CONFIG ?= configs/example_majority_baseline.yaml
 
-.PHONY: setup setup-ml eval test lint fix leakage table status lock fixtures clean help
+.PHONY: setup setup-ml download data profile eval test lint fix leakage table status lock fixtures clean help
 
 help:
 	@echo "make setup | eval CONFIG=... | test | lint | leakage | table | status | lock"
@@ -60,6 +62,18 @@ fix:
 # CLAUDE.md: run after ANY data change.
 leakage:
 	$(PY) -m pytest tests/test_no_leakage.py tests/test_splits_frozen.py -q
+
+download:
+	$(PY) scripts/download_data.py
+
+# Full data pipeline: fetch, materialise into frozen splits, profile, check.
+data: download
+	$(PY) scripts/build_splits.py build
+	$(PY) scripts/profile_data.py
+	$(PY) -m pytest tests/test_no_leakage.py tests/test_splits_frozen.py -q
+
+profile:
+	$(PY) scripts/profile_data.py
 
 table:
 	$(PY) -m eval.report --out docs/results.md

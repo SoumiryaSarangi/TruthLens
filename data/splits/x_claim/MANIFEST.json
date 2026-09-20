@@ -1,0 +1,121 @@
+{
+  "counts": {
+    "dev": {
+      "en/deva": 8,
+      "en/latn": 392,
+      "hi/deva": 96,
+      "hi/latn": 4,
+      "lang=en": 400,
+      "lang=hi": 100,
+      "lang=pa": 100,
+      "pa/deva": 11,
+      "pa/guru": 76,
+      "pa/latn": 13,
+      "script=deva": 115,
+      "script=guru": 76,
+      "script=latn": 409,
+      "total": 600
+    },
+    "test": {
+      "en/deva": 1,
+      "en/latn": 370,
+      "hi/deva": 97,
+      "hi/latn": 3,
+      "lang=en": 371,
+      "lang=hi": 100,
+      "lang=pa": 100,
+      "pa/deva": 6,
+      "pa/guru": 90,
+      "pa/latn": 4,
+      "script=deva": 104,
+      "script=guru": 90,
+      "script=latn": 377,
+      "total": 571
+    },
+    "train": {
+      "en/deva": 70,
+      "en/latn": 3766,
+      "hi/deva": 1124,
+      "hi/guru": 1,
+      "hi/latn": 43,
+      "lang=en": 3836,
+      "lang=hi": 1168,
+      "lang=pa": 339,
+      "pa/deva": 54,
+      "pa/guru": 249,
+      "pa/latn": 36,
+      "script=deva": 1248,
+      "script=guru": 250,
+      "script=latn": 3845,
+      "total": 5343
+    }
+  },
+  "created_utc": "2026-09-20T11:26:33+00:00",
+  "dataset": "x_claim",
+  "deduplication": {
+    "dropped_from_train": {
+      "exact_match_in_eval": 8,
+      "near_duplicate_in_eval": 41,
+      "within_train_duplicate": 38
+    },
+    "left_in_place": {
+      "dev_internal_duplicates": 0,
+      "dev_test_overlap": 0,
+      "test_internal_duplicates": 0
+    },
+    "policy": "train yields to eval; dev and test are never modified"
+  },
+  "notes": [],
+  "seed": 42,
+  "source": {
+    "files": {
+      "dev-en.csv": {
+        "bytes": 150258,
+        "sha256": "820124a8780560017ffdc3885d199a0758bf7317915f5ad39ab4316009151a26",
+        "url": "https://raw.githubusercontent.com/mbzuai-nlp/x-claim/main/data/dev-en.csv"
+      },
+      "dev-hi.csv": {
+        "bytes": 51369,
+        "sha256": "daf1165c74bcf36f8c5497f68711de5e618d41856cf3bc705f80c64e89b57e06",
+        "url": "https://raw.githubusercontent.com/mbzuai-nlp/x-claim/main/data/dev-hi.csv"
+      },
+      "dev-pa.csv": {
+        "bytes": 40711,
+        "sha256": "9e7fe8c30d63c4c723ae159c9655415f5c18d5a960a8bbc4e061160dae222b0e",
+        "url": "https://raw.githubusercontent.com/mbzuai-nlp/x-claim/main/data/dev-pa.csv"
+      },
+      "test-en.csv": {
+        "bytes": 135042,
+        "sha256": "479d4fbfa10da3056263961b36e1f6dce265983a9de2ebcc9e71eaa314a5aba9",
+        "url": "https://raw.githubusercontent.com/mbzuai-nlp/x-claim/main/data/test-en.csv"
+      },
+      "test-hi.csv": {
+        "bytes": 43434,
+        "sha256": "fff425596ba1df8361bbadcf10b5e07b75b833bc8248f5ae6e1eb6c2662d9074",
+        "url": "https://raw.githubusercontent.com/mbzuai-nlp/x-claim/main/data/test-hi.csv"
+      },
+      "test-pa.csv": {
+        "bytes": 48564,
+        "sha256": "4fa2ba6cfa04d57d26bc8cc4331d3b61b033a0e57c885b2c2a97640d6c569c1f",
+        "url": "https://raw.githubusercontent.com/mbzuai-nlp/x-claim/main/data/test-pa.csv"
+      },
+      "train-en.csv": {
+        "bytes": 1459417,
+        "sha256": "17c4e05d85cb0bc9d22181fbca02a21ad1278a6d369b128412d163f36e0d2fef",
+        "url": "https://raw.githubusercontent.com/mbzuai-nlp/x-claim/main/data/train-en.csv"
+      },
+      "train-hi.csv": {
+        "bytes": 541453,
+        "sha256": "9de7c9350244e297258e04e9e82fef0d823a6d9fa8d145eca1230504b7e58d53",
+        "url": "https://raw.githubusercontent.com/mbzuai-nlp/x-claim/main/data/train-hi.csv"
+      },
+      "train-pa.csv": {
+        "bytes": 155359,
+        "sha256": "454eecf07915fa3767f31cc9ae6e5ea10a7124827a42581288905d447da6fd22",
+        "url": "https://raw.githubusercontent.com/mbzuai-nlp/x-claim/main/data/train-pa.csv"
+      }
+    },
+    "licence": "see repo; EMNLP 2023 research release",
+    "repo": "https://github.com/mbzuai-nlp/x-claim"
+  }
+}

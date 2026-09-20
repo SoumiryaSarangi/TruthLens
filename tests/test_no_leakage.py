@@ -18,10 +18,19 @@ from pathlib import Path
 
 import pytest
 
-from data.leakage import failures, find_leakage, format_report
+from common.io_jsonl import load_jsonl
+from data.leakage import (
+    ACCEPTED_PATH,
+    failures,
+    filter_accepted,
+    find_leakage,
+    format_report,
+    load_accepted,
+)
 from data.splits import discover_splits, load_split
 
 SPLITS_ROOT = Path("data/splits")
+INTERIM = Path("data/interim")
 REPORTS = Path("reports")
 
 DATASETS = sorted(discover_splits(SPLITS_ROOT))
@@ -46,13 +55,38 @@ def test_no_splits_built_yet():
     )
 
 
+def _split_names_on_disk(dataset: str) -> list[str]:
+    return list(discover_splits(SPLITS_ROOT)[dataset])
+
+
+def _texts(dataset: str) -> dict[str, str] | None:
+    """Materialised text from data/interim, when it has been built locally.
+
+    Supplying it makes the near-duplicate check confirm every SimHash hit with
+    an exact Jaccard, which is the same test the deduplication pass in
+    scripts/build_splits.py applies. Without it the check is SimHash-only and
+    reports pairs the build deliberately kept -- the two must agree or the
+    test contradicts the builder.
+
+    In CI, where data/interim does not exist, this returns None and the check
+    runs SimHash-only. That is stricter, not weaker.
+    """
+    out: dict[str, str] = {}
+    for split in _split_names_on_disk(dataset):
+        path = INTERIM / dataset / f"{split}.jsonl"
+        if path.is_file():
+            out.update({r["uid"]: r["text"] for r in load_jsonl(path)})
+    return out or None
+
+
 @pytest.mark.parametrize("dataset", DATASETS)
 def test_no_leakage_between_splits(dataset: str):
     splits = _load(dataset)
     if len(splits) < 2:
         pytest.skip(f"{dataset} has only one split ({list(splits)}); nothing to compare")
 
-    found = find_leakage(dataset, splits)
+    found = find_leakage(dataset, splits, texts=_texts(dataset))
+    found, accepted = filter_accepted(found, load_accepted())
     fails = failures(found)
 
     if found:
@@ -67,9 +101,13 @@ def test_no_leakage_between_splits(dataset: str):
         + "\n".join(f"  {f.kind}: {f.uid_a} <-> {f.uid_b} ({f.detail})" for f in fails[:20])
         + (f"\n  ... and {len(fails) - 20} more" if len(fails) > 20 else "")
         + (f"\nFull report: {report_path}" if report_path else "")
+        + f"\n({len(accepted)} known-upstream leak(s) were allowlisted in {ACCEPTED_PATH}"
+          " and are not counted here.)"
         + "\n\nDo NOT fix this by regenerating data/splits/. Work out where the "
           "duplicate came from upstream, then decide deliberately and record it "
-          "in docs/split-changelog.md."
+          "in docs/split-changelog.md. If it is irreducible -- the same row is in "
+          f"two official eval splits -- add it to {ACCEPTED_PATH} WITH A REASON, "
+          "so it is accepted explicitly rather than by loosening a threshold."
     )
 
 
