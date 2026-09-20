@@ -90,14 +90,20 @@ jobs:
         env:
           PYTHONIOENCODING: utf-8
 
-      - name: Rebuild splits from source
-        run: uv run python scripts/build_splits.py build
+      # Rebuilds into a TEMP directory and compares each split's sha256 against
+      # the committed SPLITS.lock. It must not rebuild in place: data/splits is
+      # committed, so freeze_split would rightly refuse, and a check that has to
+      # fight the guardrail it depends on is not a check.
+      #
+      # This also materialises the text into data/interim, so the leakage step
+      # below can confirm every SimHash hit with an exact Jaccard.
+      - name: Splits reproduce byte-for-byte from source
+        run: uv run python scripts/build_splits.py verify-reproducible
         env:
           PYTHONIOENCODING: utf-8
 
-      - name: Splits are reproducible (byte-identical to the committed lock)
-        run: |
-          git diff --exit-code -- data/splits/             || (echo "::error::Rebuilding from source did not reproduce the committed                      frozen splits. Either the upstream data changed (check the sha256                      in data/raw/DOWNLOADS.json) or the build became non-deterministic."                 && exit 1)
+      - name: Frozen splits were not modified
+        run: git diff --exit-code -- data/splits/
 
       - name: Leakage check at full strength
         run: uv run python -m pytest tests/test_no_leakage.py -q

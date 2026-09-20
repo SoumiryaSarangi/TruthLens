@@ -21,6 +21,7 @@ CLI:
     python scripts/build_splits.py status    # what exists, and its counts
     python scripts/build_splits.py verify    # splits vs SPLITS.lock
     python scripts/build_splits.py lock      # (re)write SPLITS.lock
+    python scripts/build_splits.py verify-reproducible   # rebuild and compare
 """
 
 from __future__ import annotations
@@ -38,6 +39,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from common.hashing import sha256_file  # noqa: E402
 from common.io_jsonl import load_json, write_json, write_jsonl  # noqa: E402
 from common.seeds import SEED  # noqa: E402
 from data.leakage import per_split_counts  # noqa: E402
@@ -46,6 +48,7 @@ from data.splits import (  # noqa: E402
     build_lock,
     discover_splits,
     load_split,
+    read_lock,
     validate_split_record,
     verify_lock,
 )
@@ -278,6 +281,8 @@ def cmd_build(args) -> int:
     """Materialise the raw downloads into frozen splits."""
     from data.loaders import LOADERS, code_mixed_share
 
+    out_root = Path(getattr(args, "out_dir", None) or SPLITS_ROOT)
+    interim_root = Path(getattr(args, "interim_dir", None) or "data/interim")
     datasets = [args.dataset] if args.dataset else sorted(LOADERS)
     downloads = load_json(Path("data/raw/DOWNLOADS.json")) if \
         Path("data/raw/DOWNLOADS.json").is_file() else {}
@@ -317,7 +322,7 @@ def cmd_build(args) -> int:
         manifest_counts: dict[str, dict[str, int]] = {}
         for split, rows in sorted(rows_by_split.items()):
             records = [r.record for r in rows]
-            target = SPLITS_ROOT / name / f"{split}.jsonl"
+            target = out_root / name / f"{split}.jsonl"
             n = freeze_split(
                 target, records,
                 allow_rewrite=args.allow_rewrite,
@@ -325,7 +330,7 @@ def cmd_build(args) -> int:
             )
             # Text stays local: data/interim/ is gitignored.
             write_jsonl(
-                Path("data/interim") / name / f"{split}.jsonl",
+                interim_root / name / f"{split}.jsonl",
                 [{"uid": r.record["uid"], "text": r.text} for r in rows],
             )
             counts = per_split_counts({split: records})[split]
@@ -335,7 +340,7 @@ def cmd_build(args) -> int:
                   + " ".join(f"{k}={v}" for k, v in counts.items() if "/" in k)
                   + f"  code-mixed={mixed:.1%}")
 
-        write_json(SPLITS_ROOT / name / "MANIFEST.json", {
+        write_json(out_root / name / "MANIFEST.json", {
             "dataset": name,
             "created_utc": datetime.now(UTC).isoformat(timespec="seconds"),
             "seed": SEED,
@@ -345,7 +350,69 @@ def cmd_build(args) -> int:
             "counts": manifest_counts,
         })
 
+    if out_root != SPLITS_ROOT:
+        return 0
     return cmd_lock(argparse.Namespace(force=True))
+
+
+def cmd_verify_reproducible(args) -> int:
+    """Rebuild from data/raw into a temp dir and compare against SPLITS.lock.
+
+    Proves the committed splits can be regenerated from the recorded sources.
+    It must NOT write to data/splits/: those files are committed, so
+    freeze_split would rightly refuse, and a check that fights the guardrail
+    it depends on is not a check.
+
+    Only the split .jsonl files are compared. MANIFEST.json carries a
+    created_utc timestamp and so differs on every build by design; SPLITS.lock
+    is the thing that actually pins content.
+    """
+    import tempfile
+
+    if not LOCK_PATH.is_file():
+        print(f"No {LOCK_PATH}; nothing to verify.")
+        return 0
+    locked = read_lock(LOCK_PATH)
+
+    with tempfile.TemporaryDirectory() as tmp:
+        out_root = Path(tmp) / "splits"
+        # Splits go to a temp dir so the committed ones are never touched, but
+        # the materialised text lands in data/interim, where the leakage test
+        # looks for it. That makes the near-duplicate check confirmable on a
+        # clean clone -- including in CI.
+        rc = cmd_build(argparse.Namespace(
+            dataset=args.dataset, allow_rewrite=False, reason=None,
+            out_dir=str(out_root), interim_dir="data/interim",
+        ))
+        if rc != 0:
+            return rc
+
+        problems: list[str] = []
+        for key, entry in sorted(locked.items()):
+            rebuilt = out_root / key
+            if not rebuilt.is_file():
+                if args.dataset and not key.startswith(f"{args.dataset}/"):
+                    continue
+                problems.append(f"{key}: in SPLITS.lock but the rebuild did not produce it")
+                continue
+            digest = sha256_file(rebuilt)
+            if digest != entry.sha256:
+                problems.append(
+                    f"{key}: rebuild does NOT match the committed split\n"
+                    f"    committed: {entry.sha256}\n"
+                    f"    rebuilt  : {digest}"
+                )
+
+    print()
+    if problems:
+        print("SPLITS ARE NOT REPRODUCIBLE FROM SOURCE:\n")
+        for prob in problems:
+            print(f"  - {prob}")
+        print("\nEither the upstream data changed -- compare the sha256 values in "
+              "data/raw/DOWNLOADS.json -- or the build became non-deterministic.")
+        return 1
+    print(f"OK: all {len(locked)} split file(s) reproduce byte-for-byte from data/raw/")
+    return 0
 
 
 def cmd_status(_args) -> int:
@@ -404,6 +471,15 @@ def main(argv: list[str] | None = None) -> int:
     build.add_argument("--i-know-this-regenerates-frozen-splits", dest="allow_rewrite",
                        action="store_true")
     build.add_argument("--reason", help="why an existing frozen split is being rewritten")
+    build.add_argument("--interim-dir", dest="interim_dir",
+                       help="where to write materialised text (default data/interim)")
+    build.add_argument("--out-dir", dest="out_dir",
+                       help="write splits here instead of data/splits (used by "
+                            "verify-reproducible; skips locking)")
+
+    repro = sub.add_parser("verify-reproducible",
+                           help="rebuild from data/raw in a temp dir and compare to SPLITS.lock")
+    repro.add_argument("--dataset", help="check only this dataset")
 
     sub.add_parser("status", help="show datasets and per-language counts")
     sub.add_parser("verify", help="check splits against SPLITS.lock")
@@ -413,7 +489,8 @@ def main(argv: list[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
     handlers = {"build": cmd_build, "status": cmd_status,
-                "verify": cmd_verify, "lock": cmd_lock}
+                "verify": cmd_verify, "lock": cmd_lock,
+                "verify-reproducible": cmd_verify_reproducible}
     return handlers[args.command](args)
 
 
