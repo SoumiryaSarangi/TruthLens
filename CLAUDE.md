@@ -76,3 +76,15 @@ Session 2, write it there, and put it in the report.
 
 ## Git
 Never add attribution, co-author, or session-link trailers to commit messages.
+
+Commit straight to `main`. No phase branches, no PRs to yourself — this is a
+solo repo and a two-week branch is deferred integration, not isolation. CI
+runs on every push to `main`, so a break surfaces within a minute either way.
+
+The safety net is commit frequency, not branches: small commits, one logical
+change each, committed before starting the next task, so `git reset --hard
+HEAD~1` is always a clean escape.
+
+Branch only for work you might genuinely throw away (swapping a retrieval
+backbone, a refactor across a whole package). Short-lived — hours, not weeks
+— and deleted once merged.
