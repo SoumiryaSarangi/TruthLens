@@ -16,7 +16,15 @@ class UnresolvedLabelMapping(LookupError):
 
 
 # -- The project's output scheme (CLAUDE.md, "Metric definitions") -------------
-VERDICT_4CLASS: Final[tuple[str, ...]] = ("Supported", "Refuted", "NEI", "NotAClaim")
+# Five classes. `Conflicting` is carried through from AVeriTeC rather than
+# being collapsed into NEI: "the evidence disagrees with itself" and "there is
+# no evidence" are different answers, and a system that tells a user which one
+# it is is more useful than one that says "unsure" to both. `NotAClaim` comes
+# from the Phase 3 check-worthiness stage, upstream of the verdict, so AVeriTeC
+# never produces it and it will have zero support on AVeriTeC-only evaluations.
+VERDICT_5CLASS: Final[tuple[str, ...]] = (
+    "Supported", "Refuted", "Conflicting", "NEI", "NotAClaim",
+)
 
 # -- Source dataset schemes ----------------------------------------------------
 AVERITEC_LABELS: Final[tuple[str, ...]] = (
@@ -31,7 +39,7 @@ STANCE_3CLASS: Final[tuple[str, ...]] = ("Supports", "Refutes", "Neutral")
 SPAN_BIO: Final[tuple[str, ...]] = ("B-CLAIM", "I-CLAIM", "O")
 
 LABEL_SETS: Final[dict[str, tuple[str, ...]]] = {
-    "verdict_4class": VERDICT_4CLASS,
+    "verdict_5class": VERDICT_5CLASS,
     "averitec": AVERITEC_LABELS,
     "checkworthy_binary": CHECKWORTHY_BINARY,
     "stance_3class": STANCE_3CLASS,
@@ -42,43 +50,41 @@ LABEL_SETS: Final[dict[str, tuple[str, ...]]] = {
 # -----------------------------------------------------------------------------
 # AVeriTeC -> TruthLens
 # -----------------------------------------------------------------------------
-# TODO(session-2): the two schemes do not line up and the gap is a modelling
-# decision, not a scaffolding one. It is left to fail loudly rather than be
-# guessed here.
+# RESOLVED: the verdict scheme was widened to five classes so that AVeriTeC's
+# fourth label survives the mapping intact.
 #
-#   AVeriTeC has 'Conflicting Evidence/Cherrypicking'; TruthLens has no such
-#   class. TruthLens has 'NotAClaim', which AVeriTeC never produces because it
-#   comes from the Phase 3 check-worthiness stage, upstream of the verdict.
+# The rejected alternative was collapsing Conflicting into NEI. That would have
+# thrown away a distinction AVeriTeC paid annotators to make, inflated NEI, and
+# made the per-class F1 for NEI mean two different things at once.
 #
-# The three options, to be decided and recorded in docs/build-plan.md:
-#   (a) map Conflicting -> NEI. Simple, defensible ("we cannot adjudicate"),
-#       but it discards a distinction AVeriTeC paid annotators for and inflates
-#       the NEI class.
-#   (b) drop Conflicting rows from train/eval. Cleanest metric, but changes the
-#       denominator, so published AVeriTeC numbers stop being comparable.
-#   (c) keep 5 classes internally and collapse only for the report table.
-#
-# Whichever is chosen, write it here AND in the report; the class distribution
-# it produces belongs in docs/data-profile.md.
+# Consequences to keep in mind when reading results:
+#   * `NotAClaim` has ZERO support on AVeriTeC-only evaluations, because
+#     AVeriTeC claims are all already claims. Macro-F1 averages over every
+#     declared class, so an AVeriTeC-only run carries a structural 0 for that
+#     class and its macro-F1 is bounded above by 4/5 = 0.80. This is intended:
+#     the alternative -- averaging only over classes that appear -- would make
+#     the number jump when a class happens to show up.
+#   * `Conflicting` is rare in AVeriTeC. Expect a small, noisy per-class F1 and
+#     read it with its support column, not on its own.
 _AVERITEC_TO_TRUTHLENS: Final[dict[str, str]] = {
     "Supported": "Supported",
     "Refuted": "Refuted",
     "Not Enough Evidence": "NEI",
-    # "Conflicting Evidence/Cherrypicking": UNDECIDED -- see above.
+    "Conflicting Evidence/Cherrypicking": "Conflicting",
 }
 
 
 def map_averitec_label(label: str) -> str:
-    """Map an AVeriTeC gold label into the TruthLens 4-class scheme."""
+    """Map an AVeriTeC gold label into the TruthLens 5-class scheme."""
     if label not in AVERITEC_LABELS:
         raise ValueError(f"{label!r} is not an AVeriTeC label; expected one of {AVERITEC_LABELS}")
     try:
         return _AVERITEC_TO_TRUTHLENS[label]
-    except KeyError:
+    except KeyError:  # pragma: no cover - every AVeriTeC label is now mapped
         raise UnresolvedLabelMapping(
-            f"No agreed mapping for AVeriTeC label {label!r}. This is an open project "
-            "decision, see the TODO(session-2) block in src/data/labels.py. Decide it "
-            "and record it in docs/build-plan.md before evaluating on AVeriTeC."
+            f"AVeriTeC label {label!r} has no mapping in _AVERITEC_TO_TRUTHLENS. "
+            "The upstream label set must have changed; decide the mapping "
+            "deliberately rather than defaulting it."
         ) from None
 
 

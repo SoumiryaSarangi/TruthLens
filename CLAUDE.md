@@ -14,7 +14,12 @@ including Romanized Hindi and Punjabi. Solo student project, CSE472.
 
 ## Metric definitions (do not improvise alternatives)
 - Retrieval: Recall@{1,5,10}, MRR, Success@10
-- Verdict: macro-F1 over {Supported, Refuted, NEI, NotAClaim}
+- Verdict: macro-F1 over 5 classes
+  {Supported, Refuted, Conflicting, NEI, NotAClaim}
+  Conflicting is kept from AVeriTeC, not folded into NEI: "evidence
+  disagrees" and "no evidence" are different answers.
+  NotAClaim comes from check-worthiness upstream, so AVeriTeC-only runs
+  have zero support for it and their macro-F1 is capped at 0.80.
 - Faithfulness: NLI entailment of the explanation w.r.t. retrieved evidence
 - All metrics reported per-language AND per-script (native vs romanized)
 
@@ -23,6 +28,7 @@ including Romanized Hindi and Punjabi. Solo student project, CSE472.
 - Test:    `make test`
 - Lint:    `make lint`
 - Leakage: `make leakage`   (run after ANY data change)
+- Data:    `make data`      (download, rebuild splits, profile, check)
 - Table:   `make table`     (renders results/*.json into docs/results.md)
 - Setup:   `make setup`     (uv provisions Python 3.11; see docs/environment.md)
 
@@ -41,6 +47,13 @@ FAISS, rank_bm25, IndicXlit (AI4Bharat), fastText LID, FastAPI.
 - Romanized input is the primary use case, not an edge case.
 - Target accuracy is ~50% on AVeriTeC-style data. That is competitive with
   published SOTA. Do not tune toward suspiciously high numbers.
+- BUT: AVeriTeC's majority class (Refuted) is 58-61% of every split, so
+  always-predict-Refuted "beats" published SOTA on accuracy. Accuracy is
+  nearly meaningless here. Lead with macro-F1, and never show an accuracy
+  without the majority baseline beside it.
+- The language column is NOT the script column. X-CLAIM's train-pa.csv is
+  249 Gurmukhi, 54 Devanagari, 36 Latin. Script is detected per row by
+  src/data/script_id.py; never infer it from a filename or a lang field.
 
 - The test split is locked. Evaluating one needs `TRUTHLENS_ALLOW_TEST=1`,
   and that is for the final reported number only, not for model selection.
@@ -49,7 +62,10 @@ FAISS, rank_bm25, IndicXlit (AI4Bharat), fastText LID, FastAPI.
   Devanagari output.
 
 ## Where things live
-- docs/phase-plan.md        — current phase and what is in scope. Read first.
+- docs/project-log.md       — RUNNING RECORD. Read this first in a new session
+                              or after a context compaction: what is built,
+                              what was decided and why, what is next.
+- docs/phase-plan.md        — current phase and what is in scope
 - docs/environment.md       — interpreter, locks, Windows gotchas
 - docs/results.md           — generated results tables (`make table`)
 - data/CLAUDE.md            — dataset provenance, split schema, leakage checks
@@ -66,13 +82,24 @@ FAISS, rank_bm25, IndicXlit (AI4Bharat), fastText LID, FastAPI.
 - Manipulation techniques: SemEval-2023 Task 3 subtask 3 label set
 - Retrieval model: BGE-M3 (fallback multilingual-E5-large)
 
-## Open decision, do not guess
-AVeriTeC's label set does not match ours. It ships
-`Conflicting Evidence/Cherrypicking`, which we have no class for; we have
-`NotAClaim`, which AVeriTeC never produces because it comes from the
-check-worthiness stage upstream. `src/data/labels.py` raises
-`UnresolvedLabelMapping` deliberately rather than picking one. Decide it in
-Session 2, write it there, and put it in the report.
+## Resolved: the AVeriTeC label mapping
+Settled by widening our scheme to 5 classes rather than collapsing theirs.
+
+| AVeriTeC | TruthLens |
+| --- | --- |
+| Supported | Supported |
+| Refuted | Refuted |
+| Conflicting Evidence/Cherrypicking | Conflicting |
+| Not Enough Evidence | NEI |
+| *(never produced)* | NotAClaim |
+
+Mapping lives in `src/data/labels.py`. Two consequences to state in the
+report rather than discover in the viva:
+- `NotAClaim` has zero support on AVeriTeC-only runs, so their macro-F1 is
+  structurally capped at 0.80. Intended — averaging only over classes that
+  happen to appear would make the number jump for the wrong reason.
+- `Conflicting` is rare in AVeriTeC. Read its per-class F1 next to its
+  support column, never on its own.
 
 ## Git
 Never add attribution, co-author, or session-link trailers to commit messages.

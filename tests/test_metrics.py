@@ -25,7 +25,7 @@ from eval.metrics import (
     success_at_k,
 )
 
-LABELS = ("Supported", "Refuted", "NEI", "NotAClaim")
+LABELS = ("Supported", "Refuted", "Conflicting", "NEI", "NotAClaim")
 
 
 # -----------------------------------------------------------------------------
@@ -101,8 +101,8 @@ def test_macro_f1_averages_over_absent_classes_too():
     """
     y_true = ["Supported", "Refuted"]
     y_pred = ["Supported", "Refuted"]
-    # Perfect on the two present classes, but 4 classes were declared.
-    assert macro_f1(y_true, y_pred, LABELS) == pytest.approx(0.5)
+    # Perfect on the two present classes, but 5 classes were declared.
+    assert macro_f1(y_true, y_pred, LABELS) == pytest.approx(2 / 5)
     assert macro_f1(y_true, y_pred, ("Supported", "Refuted")) == pytest.approx(1.0)
 
 

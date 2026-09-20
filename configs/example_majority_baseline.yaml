@@ -12,7 +12,7 @@ experiment: example_majority_baseline
 task: classification
 split: tests/fixtures/toy_clean/dev.jsonl
 predictions: tests/fixtures/toy_clean/predictions_demo.jsonl
-label_set: verdict_4class
+label_set: verdict_5class
 baseline: majority_class
 
 breakdown: [lang, script]
