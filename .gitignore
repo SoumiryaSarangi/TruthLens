@@ -1,0 +1,61 @@
+# --- TruthLens ---------------------------------------------------------------
+# Rule of thumb: raw data and regenerable inputs are ignored; frozen splits and
+# metrics JSONs are committed. See docs/build-plan.md "Phase 0".
+
+# Datasets. Never committed: licensing (MultiClaim is access-restricted) and size.
+data/raw/
+data/interim/
+data/gold/
+
+# Predictions are regenerable INPUTS to the harness, not results.
+results/preds/
+
+# Leakage / profiling reports written by failing tests.
+reports/
+
+# --- Python -------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.python-version
+
+# --- Tooling ------------------------------------------------------------------
+.pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# --- Notebooks ----------------------------------------------------------------
+.ipynb_checkpoints/
+
+# --- OS / editor --------------------------------------------------------------
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# --- Models / caches ----------------------------------------------------------
+*.pt
+*.bin
+*.safetensors
+*.faiss
+.cache/
+hf_cache/
+
+# Claude Code local overrides (machine-specific, not shared)
+.claude/settings.local.json
+
+# --- Force-include the frozen splits -----------------------------------------
+# These lines must stay LAST. A broad data/ pattern above must never be able to
+# silently drop the one directory the whole project's validity rests on.
+!data/splits/
+!data/splits/**

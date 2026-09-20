@@ -1,0 +1,9 @@
+{"pred":"Supported","probs":{"NEI":0.15,"NotAClaim":0.15,"Refuted":0.15,"Supported":0.55},"uid":"toy_clean:en:dev:0000"}
+{"pred":"Refuted","probs":{"NEI":0.1367,"NotAClaim":0.1367,"Refuted":0.59,"Supported":0.1367},"uid":"toy_clean:en:dev:0001"}
+{"pred":"Supported","probs":{"NEI":0.1233,"NotAClaim":0.1233,"Refuted":0.1233,"Supported":0.63},"uid":"toy_clean:en:dev:0002"}
+{"pred":"NotAClaim","probs":{"NEI":0.11,"NotAClaim":0.67,"Refuted":0.11,"Supported":0.11},"uid":"toy_clean:en:dev:0003"}
+{"pred":"Refuted","probs":{"NEI":0.0967,"NotAClaim":0.0967,"Refuted":0.71,"Supported":0.0967},"uid":"toy_clean:hi:dev:0004"}
+{"pred":"Refuted","probs":{"NEI":0.15,"NotAClaim":0.15,"Refuted":0.55,"Supported":0.15},"uid":"toy_clean:hi:dev:0005"}
+{"pred":"Refuted","probs":{"NEI":0.1367,"NotAClaim":0.1367,"Refuted":0.59,"Supported":0.1367},"uid":"toy_clean:hi:dev:0006"}
+{"pred":"Refuted","probs":{"NEI":0.1233,"NotAClaim":0.1233,"Refuted":0.63,"Supported":0.1233},"uid":"toy_clean:pa:dev:0007"}
+{"pred":"Supported","probs":{"NEI":0.11,"NotAClaim":0.11,"Refuted":0.11,"Supported":0.67},"uid":"toy_clean:pa:dev:0008"}

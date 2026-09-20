@@ -1,0 +1,12 @@
+# Development and CI. Installed alongside requirements.txt.
+
+-c requirements.txt
+
+pytest>=8.0
+pytest-cov>=5.0
+ruff>=0.6
+pre-commit>=3.7
+scikit-learn>=1.4   # independent oracle for tests/test_metrics.py ONLY.
+                    # src/eval/metrics.py implements its own macro-F1; the test
+                    # asserts the two agree. A metric checked against itself is
+                    # not checked.

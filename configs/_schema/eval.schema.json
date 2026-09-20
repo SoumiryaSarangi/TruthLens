@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "truthlens/eval-config",
+  "title": "TruthLens eval config",
+  "description": "Every experiment is one of these. Validated before a single metric is computed, so a typo'd key fails immediately instead of being silently ignored and producing a number nobody can reproduce.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["experiment", "task", "split", "predictions", "baseline"],
+  "properties": {
+    "experiment": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human name for this run. Appears in the results table."
+    },
+    "task": {
+      "enum": ["retrieval", "classification", "faithfulness"],
+      "description": "Selects the predictions schema and the metric family."
+    },
+    "split": {
+      "type": "string",
+      "description": "Path to the frozen split file being evaluated on."
+    },
+    "gold": {
+      "type": "string",
+      "description": "Path to a gold file mapping uid -> relevant_ids. Required for retrieval; classification takes gold from the split's own `label` field."
+    },
+    "predictions": {
+      "type": "string",
+      "description": "Path to the predictions JSONL under evaluation."
+    },
+    "baseline": {
+      "type": "string",
+      "minLength": 1,
+      "description": "REQUIRED. A registered dumb baseline (see src/eval/baselines.py) or a prior config_hash. CLAUDE.md: a model without a baseline comparison is not a result."
+    },
+    "label_set": {
+      "type": "string",
+      "description": "Name from src/data/labels.py. Required for classification."
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "retrieval": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "k": {
+              "type": "array",
+              "items": { "type": "integer", "minimum": 1 },
+              "minItems": 1
+            }
+          }
+        },
+        "classification": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ece_bins": { "type": "integer", "minimum": 2 },
+            "coverage_points": { "type": "integer", "minimum": 2 }
+          }
+        }
+      }
+    },
+    "breakdown": {
+      "type": "array",
+      "items": { "enum": ["lang", "script", "dataset", "split"] },
+      "description": "Metrics are emitted per cell of these fields, as well as overall."
+    },
+    "min_cell_n": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 30,
+      "description": "Cells smaller than this are flagged low_n. They are never hidden."
+    },
+    "sanity_ceiling": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "A headline metric above this writes a loud warning. CLAUDE.md: target is ~50% on AVeriTeC-style data; do not tune toward suspiciously high numbers."
+    },
+    "allow_partial": {
+      "type": "boolean",
+      "default": false,
+      "description": "Permit predictions that do not cover every gold uid. Coverage is always recorded; this only decides whether a gap is fatal."
+    },
+    "seed": { "type": "integer", "default": 42 },
+    "notes": { "type": "string" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "task": { "const": "retrieval" } }, "required": ["task"] },
+      "then": { "required": ["gold"] }
+    },
+    {
+      "if": { "properties": { "task": { "const": "classification" } }, "required": ["task"] },
+      "then": { "required": ["label_set"] }
+    }
+  ]
+}
