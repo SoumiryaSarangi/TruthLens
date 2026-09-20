@@ -73,3 +73,6 @@ AVeriTeC's label set does not match ours. It ships
 check-worthiness stage upstream. `src/data/labels.py` raises
 `UnresolvedLabelMapping` deliberately rather than picking one. Decide it in
 Session 2, write it there, and put it in the report.
+
+## Git
+Never add attribution, co-author, or session-link trailers to commit messages.

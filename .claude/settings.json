@@ -37,7 +37,6 @@
       "Edit(data/splits/**)",
       "Write(data/raw/**)",
       "Edit(data/raw/**)",
-      "Bash(git push:*)",
       "Bash(git reset --hard:*)",
       "Bash(git checkout --:*)",
       "Bash(rm -rf:*)",
@@ -54,5 +53,9 @@
   "env": {
     "PYTHONIOENCODING": "utf-8",
     "PYTHONPATH": "src"
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
   }
 }
