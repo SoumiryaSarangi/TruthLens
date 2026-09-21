@@ -74,6 +74,8 @@ If a spec contradicts the code, the spec is wrong — fix the spec, not the code
 - docs/specs/SYSTEM_DESIGN.md — stage contracts, API schema, GPU budget
 - docs/specs/UI_UX.md       — screens, states, copy, demo script
 - docs/phase-plan.md        — current phase and what is in scope
+- docs/collection-brief.md  — what to send, for people collecting
+                              hand-typed romanized forwards (FR-26)
 - docs/environment.md       — interpreter, locks, Windows gotchas
 - docs/results.md           — generated results tables (`make table`)
 - data/CLAUDE.md            — dataset provenance, split schema, leakage checks

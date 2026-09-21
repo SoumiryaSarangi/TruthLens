@@ -58,6 +58,18 @@ requirements in `specs/SRS.md`. Do not re-derive them here.
 
 Day 1 can start on code.
 
+### Needs a human, start now
+
+- **~100 hand-typed romanized forwards (FR-26, P0).** Cannot be automated and
+  cannot be substituted: MultiClaim's 501 naturally romanized Hindi posts are
+  public posts, not the messy personal typing the contribution is about. Brief
+  for collectors is `collection-brief.md` — forward it as-is. Scheduled in
+  Phase 2 but **reported separately from the synthetic set**, so Phase 2 is not
+  blocked; the real deadline is **Day 11**, before the final tables.
+  Punjabi is the priority: every other dataset here is thin on it.
+- **Native-speaker review of `app/static/i18n/{hi,pa}.json`** before any demo.
+  Those strings are unverified placeholders and are marked as such in the files.
+
 ### Open, not blocking
 
 - ~~MultiClaim access~~ **GRANTED and ingested.** 25,137 / 3,153 / 3,156
