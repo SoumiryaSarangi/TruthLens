@@ -1,0 +1,138 @@
+{
+  "baseline": {
+    "experiment": "p1_random_retrieval",
+    "kind": "prior_run",
+    "metrics": {
+      "mrr": 0.008074603174603174,
+      "n": 500.0,
+      "recall@1": 0.0022857142857142855,
+      "recall@10": 0.012138095238095238,
+      "recall@5": 0.0068047619047619055,
+      "success@1": 0.004,
+      "success@10": 0.024,
+      "success@5": 0.014
+    },
+    "name": "c76263a8c491"
+  },
+  "config_hash": "1650e52b8691",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 500,
+    "n_missing": 0,
+    "n_predicted": 500
+  },
+  "created_utc": "2026-09-21T16:16:25+00:00",
+  "delta_vs_baseline": {
+    "mrr": 0.05755714285714287,
+    "recall@1": 0.01775,
+    "recall@10": 0.08251666666666668,
+    "recall@5": 0.05451666666666667,
+    "success@1": 0.032,
+    "success@10": 0.134,
+    "success@5": 0.084
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p1_bm25_retrieval",
+  "git": {
+    "branch": "main",
+    "dirty": true,
+    "sha": "659f7215f5d26b3b4c1f9f8deaee18c39347c28b"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": true,
+      "baseline": "c76263a8c491",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p1_bm25_retrieval",
+      "gold": "data/gold/averitec_dev_retrieval.jsonl",
+      "metrics": {
+        "retrieval": {
+          "k": [
+            1,
+            5,
+            10
+          ]
+        }
+      },
+      "min_cell_n": 30,
+      "notes": "Documents truncated to 4000 chars by the KB cache (scripts/build_kb_cache.py). That is a measurable choice, not a hidden one: rebuild the cache at a different limit and rerun to see what it costs. Retrieval ranks whole documents by URL, which is the unit AVeriTeC annotates gold at.\n",
+      "predictions": "results/preds/p1_bm25_retrieval.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/averitec/dev.jsonl",
+      "task": "retrieval"
+    },
+    "config_path": "configs/p1_bm25_retrieval.yaml",
+    "predictions_path": "results/preds/p1_bm25_retrieval.jsonl",
+    "predictions_sha256": "0787848e3438c6c5a638cce41f79f248281de8062d9659030cd64adaac51a459",
+    "split_path": "data/splits/averitec/dev.jsonl",
+    "split_sha256": "d994098e05100064fdde36e7f5c944b7c5e0c3503ec33dcf075293bf2b1cb14a",
+    "splits_lock_sha256": "b18b0a6d47824a00c7a5e12239096e88c3d74de44b333294c3edfd65d4cd9451"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=latn": {
+        "mrr": 0.06563174603174604,
+        "n": 500.0,
+        "recall@1": 0.020035714285714285,
+        "recall@10": 0.09465476190476192,
+        "recall@5": 0.061321428571428575,
+        "success@1": 0.036,
+        "success@10": 0.158,
+        "success@5": 0.098
+      }
+    },
+    "overall": {
+      "mrr": 0.06563174603174604,
+      "n": 500.0,
+      "recall@1": 0.020035714285714285,
+      "recall@10": 0.09465476190476192,
+      "recall@5": 0.061321428571428575,
+      "success@1": 0.036,
+      "success@10": 0.158,
+      "success@5": 0.098
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 500.0,
+        "native": 0.06563174603174604
+      }
+    },
+    "metric": "mrr"
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "retrieval",
+  "warnings": [
+    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
+  ]
+}

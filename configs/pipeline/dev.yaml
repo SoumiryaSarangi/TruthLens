@@ -1,0 +1,29 @@
+# Which implementation runs at each stage. Phase 1 baselines only.
+# Changing a line here changes what runs -- never edit code to switch impls.
+name: p1_dev
+split: dev
+k: 10
+
+# tau_match: the fast path is not built until Phase 4, so nothing can clear it.
+tau_match: 1.0
+# tau_abstain: 0.0 disables abstention. Confidence here is an uncalibrated
+# score from the rule aggregator, so any threshold chosen against it would be
+# meaningless. Abstention gets a real threshold in Phase 6, on dev, after
+# temperature scaling (FR-13, FR-14).
+tau_abstain: 0.0
+
+stages:
+  preprocess: passthrough
+  claims: passthrough
+  matching: none
+  retrieval: bm25
+  stance: nli
+  aggregate: rule
+  generation: template
+  faithfulness: stub
+
+stage_args:
+  aggregate:
+    threshold: 0.5
+  stance:
+    batch_size: 16

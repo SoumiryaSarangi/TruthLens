@@ -1,0 +1,317 @@
+{
+  "baseline": {
+    "kind": "generated",
+    "metrics": {
+      "accuracy": 0.61,
+      "confusion": {
+        "Conflicting": {
+          "Conflicting": 0,
+          "NEI": 0,
+          "NotAClaim": 0,
+          "Refuted": 38,
+          "Supported": 0
+        },
+        "NEI": {
+          "Conflicting": 0,
+          "NEI": 0,
+          "NotAClaim": 0,
+          "Refuted": 35,
+          "Supported": 0
+        },
+        "NotAClaim": {
+          "Conflicting": 0,
+          "NEI": 0,
+          "NotAClaim": 0,
+          "Refuted": 0,
+          "Supported": 0
+        },
+        "Refuted": {
+          "Conflicting": 0,
+          "NEI": 0,
+          "NotAClaim": 0,
+          "Refuted": 305,
+          "Supported": 0
+        },
+        "Supported": {
+          "Conflicting": 0,
+          "NEI": 0,
+          "NotAClaim": 0,
+          "Refuted": 122,
+          "Supported": 0
+        }
+      },
+      "macro_f1": 0.1515527950310559,
+      "n": 500.0,
+      "per_class": {
+        "Conflicting": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 38.0
+        },
+        "NEI": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 35.0
+        },
+        "NotAClaim": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 0.0
+        },
+        "Refuted": {
+          "f1": 0.7577639751552795,
+          "precision": 0.61,
+          "recall": 1.0,
+          "support": 305.0
+        },
+        "Supported": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 122.0
+        }
+      }
+    },
+    "name": "majority_class",
+    "notes": []
+  },
+  "config_hash": "500c2f144b6d",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 500,
+    "n_missing": 0,
+    "n_predicted": 500
+  },
+  "created_utc": "2026-09-21T16:16:34+00:00",
+  "delta_vs_baseline": {
+    "accuracy": -0.25,
+    "macro_f1": 0.06314409065460011
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p1_verdict_nli",
+  "git": {
+    "branch": "main",
+    "dirty": true,
+    "sha": "659f7215f5d26b3b4c1f9f8deaee18c39347c28b"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "majority_class",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p1_verdict_nli",
+      "label_set": "verdict_5class",
+      "metrics": {},
+      "min_cell_n": 30,
+      "notes": "Uncalibrated confidence from the rule aggregator; abstention disabled (tau_abstain=0). Calibration and the abstention curve are Phase 6.\n",
+      "predictions": "results/preds/p1_verdict_nli.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/averitec/dev.jsonl",
+      "task": "classification"
+    },
+    "config_path": "configs/p1_verdict_nli.yaml",
+    "predictions_path": "results/preds/p1_verdict_nli.jsonl",
+    "predictions_sha256": "4e8e9969ec1c78981d9a4e13f22321f0a1f941b520dc059b806848302f5a1668",
+    "split_path": "data/splits/averitec/dev.jsonl",
+    "split_sha256": "d994098e05100064fdde36e7f5c944b7c5e0c3503ec33dcf075293bf2b1cb14a",
+    "splits_lock_sha256": "b18b0a6d47824a00c7a5e12239096e88c3d74de44b333294c3edfd65d4cd9451"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=latn": {
+        "accuracy": 0.36,
+        "confusion": {
+          "Conflicting": {
+            "Conflicting": 8,
+            "NEI": 9,
+            "NotAClaim": 0,
+            "Refuted": 15,
+            "Supported": 6
+          },
+          "NEI": {
+            "Conflicting": 8,
+            "NEI": 13,
+            "NotAClaim": 0,
+            "Refuted": 5,
+            "Supported": 9
+          },
+          "NotAClaim": {
+            "Conflicting": 0,
+            "NEI": 0,
+            "NotAClaim": 0,
+            "Refuted": 0,
+            "Supported": 0
+          },
+          "Refuted": {
+            "Conflicting": 82,
+            "NEI": 54,
+            "NotAClaim": 0,
+            "Refuted": 136,
+            "Supported": 33
+          },
+          "Supported": {
+            "Conflicting": 43,
+            "NEI": 20,
+            "NotAClaim": 0,
+            "Refuted": 36,
+            "Supported": 23
+          }
+        },
+        "macro_f1": 0.214696885685656,
+        "n": 500.0,
+        "per_class": {
+          "Conflicting": {
+            "f1": 0.0893854748603352,
+            "precision": 0.05673758865248227,
+            "recall": 0.21052631578947367,
+            "support": 38.0
+          },
+          "NEI": {
+            "f1": 0.19847328244274812,
+            "precision": 0.13541666666666666,
+            "recall": 0.37142857142857144,
+            "support": 35.0
+          },
+          "NotAClaim": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "Refuted": {
+            "f1": 0.5472837022132797,
+            "precision": 0.7083333333333334,
+            "recall": 0.4459016393442623,
+            "support": 305.0
+          },
+          "Supported": {
+            "f1": 0.23834196891191708,
+            "precision": 0.323943661971831,
+            "recall": 0.1885245901639344,
+            "support": 122.0
+          }
+        }
+      }
+    },
+    "overall": {
+      "accuracy": 0.36,
+      "confusion": {
+        "Conflicting": {
+          "Conflicting": 8,
+          "NEI": 9,
+          "NotAClaim": 0,
+          "Refuted": 15,
+          "Supported": 6
+        },
+        "NEI": {
+          "Conflicting": 8,
+          "NEI": 13,
+          "NotAClaim": 0,
+          "Refuted": 5,
+          "Supported": 9
+        },
+        "NotAClaim": {
+          "Conflicting": 0,
+          "NEI": 0,
+          "NotAClaim": 0,
+          "Refuted": 0,
+          "Supported": 0
+        },
+        "Refuted": {
+          "Conflicting": 82,
+          "NEI": 54,
+          "NotAClaim": 0,
+          "Refuted": 136,
+          "Supported": 33
+        },
+        "Supported": {
+          "Conflicting": 43,
+          "NEI": 20,
+          "NotAClaim": 0,
+          "Refuted": 36,
+          "Supported": 23
+        }
+      },
+      "macro_f1": 0.214696885685656,
+      "n": 500.0,
+      "per_class": {
+        "Conflicting": {
+          "f1": 0.0893854748603352,
+          "precision": 0.05673758865248227,
+          "recall": 0.21052631578947367,
+          "support": 38.0
+        },
+        "NEI": {
+          "f1": 0.19847328244274812,
+          "precision": 0.13541666666666666,
+          "recall": 0.37142857142857144,
+          "support": 35.0
+        },
+        "NotAClaim": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 0.0
+        },
+        "Refuted": {
+          "f1": 0.5472837022132797,
+          "precision": 0.7083333333333334,
+          "recall": 0.4459016393442623,
+          "support": 305.0
+        },
+        "Supported": {
+          "f1": 0.23834196891191708,
+          "precision": 0.323943661971831,
+          "recall": 0.1885245901639344,
+          "support": 122.0
+        }
+      }
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 500.0,
+        "native": 0.214696885685656
+      }
+    },
+    "metric": "macro_f1"
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "classification",
+  "warnings": [
+    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
+  ]
+}

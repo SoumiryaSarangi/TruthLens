@@ -1,0 +1,22 @@
+# Phase 1 verdict: BM25 evidence -> mDeBERTa NLI stance -> the SYSTEM_DESIGN §6
+# rule aggregator. No training, no calibration.
+#
+# Expect a modest number, and read macro-F1 rather than accuracy:
+#   - majority_class alone scores ~61% ACCURACY on this split, so accuracy is
+#     close to meaningless here (CLAUDE.md gotcha).
+#   - NotAClaim has zero support on AVeriTeC, and Phase 1's passthrough claims
+#     stage never predicts it, so macro-F1 is structurally capped at 0.80.
+experiment: p1_verdict_nli
+task: classification
+split: data/splits/averitec/dev.jsonl
+predictions: results/preds/p1_verdict_nli.jsonl
+label_set: verdict_5class
+baseline: majority_class
+
+breakdown: [lang, script]
+sanity_ceiling: 0.85
+seed: 42
+
+notes: >
+  Uncalibrated confidence from the rule aggregator; abstention disabled
+  (tau_abstain=0). Calibration and the abstention curve are Phase 6.

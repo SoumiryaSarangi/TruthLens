@@ -1,0 +1,138 @@
+{
+  "baseline": {
+    "kind": "generated",
+    "metrics": {
+      "mrr": 0.00723015873015873,
+      "n": 500.0,
+      "recall@1": 0.0014,
+      "recall@10": 0.0059833333333333336,
+      "recall@5": 0.0044,
+      "success@1": 0.004,
+      "success@10": 0.016,
+      "success@5": 0.01
+    },
+    "name": "random_rank",
+    "notes": []
+  },
+  "config_hash": "c76263a8c491",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 500,
+    "n_missing": 0,
+    "n_predicted": 500
+  },
+  "created_utc": "2026-09-21T16:12:23+00:00",
+  "delta_vs_baseline": {
+    "mrr": 0.0008444444444444437,
+    "recall@1": 0.0008857142857142855,
+    "recall@10": 0.006154761904761904,
+    "recall@5": 0.002404761904761905,
+    "success@1": 0.0,
+    "success@10": 0.008,
+    "success@5": 0.004
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p1_random_retrieval",
+  "git": {
+    "branch": "main",
+    "dirty": true,
+    "sha": "659f7215f5d26b3b4c1f9f8deaee18c39347c28b"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": true,
+      "baseline": "random_rank",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p1_random_retrieval",
+      "gold": "data/gold/averitec_dev_retrieval.jsonl",
+      "metrics": {
+        "retrieval": {
+          "k": [
+            1,
+            5,
+            10
+          ]
+        }
+      },
+      "min_cell_n": 30,
+      "notes": "Phase 1 retrieval floor. allow_partial because claims with no annotated gold document are excluded from the gold file and cannot be scored; coverage is recorded in the results JSON.\n",
+      "predictions": "results/preds/p1_random_retrieval.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/averitec/dev.jsonl",
+      "task": "retrieval"
+    },
+    "config_path": "configs/p1_random_retrieval.yaml",
+    "predictions_path": "results/preds/p1_random_retrieval.jsonl",
+    "predictions_sha256": "04bfa7b271a475f3d1d8f07cccd9f6860789b6c8e123298a82efd21a03829963",
+    "split_path": "data/splits/averitec/dev.jsonl",
+    "split_sha256": "d994098e05100064fdde36e7f5c944b7c5e0c3503ec33dcf075293bf2b1cb14a",
+    "splits_lock_sha256": "b18b0a6d47824a00c7a5e12239096e88c3d74de44b333294c3edfd65d4cd9451"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=latn": {
+        "mrr": 0.008074603174603174,
+        "n": 500.0,
+        "recall@1": 0.0022857142857142855,
+        "recall@10": 0.012138095238095238,
+        "recall@5": 0.0068047619047619055,
+        "success@1": 0.004,
+        "success@10": 0.024,
+        "success@5": 0.014
+      }
+    },
+    "overall": {
+      "mrr": 0.008074603174603174,
+      "n": 500.0,
+      "recall@1": 0.0022857142857142855,
+      "recall@10": 0.012138095238095238,
+      "recall@5": 0.0068047619047619055,
+      "success@1": 0.004,
+      "success@10": 0.024,
+      "success@5": 0.014
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 500.0,
+        "native": 0.008074603174603174
+      }
+    },
+    "metric": "mrr"
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "retrieval",
+  "warnings": [
+    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
+  ]
+}

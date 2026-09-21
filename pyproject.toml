@@ -55,7 +55,10 @@ quote-style = "double"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
-addopts = "-ra --strict-markers"
+# GPU tests are excluded by default: they need model weights and would fail in
+# CI, which installs the core lock. Run them locally with `pytest -m gpu`.
+addopts = "-ra --strict-markers -m 'not gpu'"
 markers = [
     "leakage: data leakage and split-freeze checks (run after ANY data change)",
+    "gpu: needs model weights and a GPU; skipped in CI, which has no torch",
 ]

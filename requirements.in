@@ -7,3 +7,7 @@
 pyyaml>=6.0        # eval config files
 jsonschema>=4.21   # validate every config before a single metric is computed
 numpy>=1.26        # metric arithmetic
+pydantic>=2.7      # src/pipeline/contracts.py. In the CORE lock on purpose:
+                   # CI runs without torch, and the contract tests must still
+                   # run there -- they are what keeps the pipeline's label
+                   # strings in step with src/data/labels.py.

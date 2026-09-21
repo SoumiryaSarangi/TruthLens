@@ -1,0 +1,29 @@
+# Phase 1 retrieval: BM25 over each AVeriTeC claim's own candidate pool.
+#
+# `baseline` is the config_hash of the p1_random_retrieval run, not a registered
+# baseline name. The harness supports naming a prior run, and that is the right
+# floor here: the registered `random_rank` samples from one global pool, while
+# AVeriTeC's pools are per claim. Chaining keeps the floor on the identical code
+# path this run takes.
+#
+# c76263a8c491 is the p1_random_retrieval run: Recall@10 = 0.0121 over the same
+# per-claim pools, which is the ~1% a 2-gold-in-1013 pool should give.
+experiment: p1_bm25_retrieval
+task: retrieval
+split: data/splits/averitec/dev.jsonl
+gold: data/gold/averitec_dev_retrieval.jsonl
+predictions: results/preds/p1_bm25_retrieval.jsonl
+baseline: c76263a8c491
+
+metrics:
+  retrieval:
+    k: [1, 5, 10]
+breakdown: [lang, script]
+allow_partial: true
+seed: 42
+
+notes: >
+  Documents truncated to 4000 chars by the KB cache (scripts/build_kb_cache.py).
+  That is a measurable choice, not a hidden one: rebuild the cache at a
+  different limit and rerun to see what it costs. Retrieval ranks whole
+  documents by URL, which is the unit AVeriTeC annotates gold at.

@@ -173,9 +173,30 @@ go. Verified with a real download: `hf_hub_download('ai4bharat/IndicBART',
 These caches sit **outside the project directory on purpose** — a `git clean
 -xdf` in the repo must never be able to delete 17 GB of model weights.
 
+**A shell opened before these were set does not have them.** That is not
+hypothetical: it already sent one model to `C:` after the change. If a download
+lands in the wrong place, check `echo $HF_HOME` in that shell rather than
+assuming the variable did not take.
+
 Symlinks are permitted on this machine, so the HF cache stores each blob once
 instead of duplicating it. Worth checking rather than assuming: without
 Developer Mode, Windows silently doubles the cache.
+
+## Models downloaded so far
+
+Cached under `D:\hf-cache\hub`. Sizes are what actually landed on disk, not the
+repo totals the Hub reports.
+
+| Model | Role | On disk |
+| --- | --- | --- |
+| `MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7` | Phase 1 stance, via NLI | ~0.6 GB |
+| `ai4bharat/IndicBART` | Phase 6 generation (config only so far) | config |
+
+The NLI model's label order is read from its own config at load time rather
+than assumed — `{0: entailment, 1: neutral, 2: contradiction}` — because
+getting it backwards would invert every verdict while everything still ran and
+produced plausible-looking numbers. `src/stance/nli.py` raises if the config
+carries a label it does not recognise.
 
 ## Downloading from the HuggingFace Hub is unreliable here
 

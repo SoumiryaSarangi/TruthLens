@@ -11,7 +11,7 @@ seconds without reading the whole plan.
 
 ## Current phase
 
-**Phase 0 complete. AVeriTeC and X-CLAIM acquired and frozen. Phase 1 not started.**
+**Phase 1 complete (Day 1). The vertical slice runs end to end with numbers.**
 
 The clock is **14 days**, and **Day 1 is the first day of Phase 1** — it has not
 started, so the count has not started. Target machine: Intel i7-14700HX with an

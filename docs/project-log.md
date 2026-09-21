@@ -23,16 +23,16 @@ results tables) · `docs/environment.md` (toolchain).
 
 | | |
 | --- | --- |
-| **Current phase** | Phase 0 complete; specs written; **environment and data ready**. Phase 1 not started, nothing blocking it. |
+| **Current phase** | **Phase 1 complete (Day 1).** Vertical slice runs end to end with numbers. Phase 2 next. |
 | **Clock** | 14 days. Day 1 = first day of Phase 1, which has not begun. Freeze end of Day 12. |
 | **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |
 | **Python** | 3.11.16 via uv, in `.venv`. System Python is 3.13 and is not used. |
-| **Tests** | 83 passing, 1 skipped |
+| **Tests** | 152 passing, 1 skipped, 1 gpu-deselected |
 | **Datasets in hand** | AVeriTeC, X-CLAIM |
 | **Datasets waiting** | MultiClaim (access requested), CheckThat! 2025 T2 (not started) |
 | **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
-| **Models trained** | None. No model code exists yet — this is deliberate. |
+| **Models trained** | None. Phase 1 uses off-the-shelf NLI only; training starts Phase 3. |
 
 ---
 
@@ -422,20 +422,134 @@ Two findings that change plans rather than just the budget:
   **Decide this before Phase 5, not during it.**
 
 
+## 2026-09-21 — Day 1, Phase 1: the vertical slice runs
+
+English claim in → BM25 over its AVeriTeC candidate pool → mDeBERTa NLI stance
+→ the §6 rule aggregator → template explanation → `POST /verify` → a plain HTML
+page. Ugly, working, committed. **These numbers are the floor everything later
+has to beat.**
+
+### The numbers
+
+Retrieval, BM25 against a seeded random ranking of the *same* per-claim pools:
+
+| Metric | BM25 | Random floor | Ratio |
+| --- | --- | --- | --- |
+| Recall@1 | 0.0200 | 0.0023 | 8.7x |
+| Recall@5 | 0.0613 | 0.0068 | 9.0x |
+| Recall@10 | **0.0947** | 0.0121 | 7.8x |
+| MRR | 0.0656 | 0.0081 | 8.1x |
+| Success@10 | **0.1580** | 0.0240 | 6.6x |
+
+Verdict, 5-class on AVeriTeC dev (500 claims):
+
+| Metric | Pipeline | majority_class |
+| --- | --- | --- |
+| macro-F1 | **0.2147** | 0.1516 |
+| accuracy | 0.3600 | **0.6100** |
+
+**The accuracy row is the one to read carefully.** The pipeline loses to
+always-predicting-Refuted by 25 points of accuracy while beating it by 6 points
+of macro-F1. That is exactly the trap `CLAUDE.md` warns about: 61% of dev is
+Refuted, so accuracy rewards a model for refusing to ever say anything else.
+Macro-F1 is the number that means something, and it is what gets reported.
+
+Per class, which is where the diagnosis is:
+
+| Class | P | R | F1 | support |
+| --- | --- | --- | --- | --- |
+| Refuted | 0.708 | 0.446 | 0.547 | 305 |
+| Supported | 0.324 | 0.189 | 0.238 | 122 |
+| NEI | 0.135 | 0.371 | 0.198 | 35 |
+| Conflicting | 0.057 | 0.211 | 0.089 | 38 |
+| NotAClaim | — | — | 0.000 | 0 |
+
+### Two things the numbers say, both actionable
+
+**1. Retrieval is the bottleneck, not stance.** Success@10 of 0.158 means
+roughly five claims in six have *no* gold document anywhere in the top 10, so
+the stance model is mostly reading irrelevant text and the verdict is bounded
+by that. Improving the aggregator before improving retrieval would be tuning
+against noise. Phase 5's dense retrieval is where the verdict number moves.
+
+**2. The rule aggregator over-fires `Conflicting` by 3.7x** — 141 predicted
+against 38 actual, precision 0.057. The §6 rule takes max P(Supports) and max
+P(Refutes) *across all k passages*, so with k=10 mostly-irrelevant passages, one
+stray confident-support and one stray confident-refute is enough. The rule is
+not wrong; it is being fed a pool it was not designed for. Worth an ablation on
+k, and a concrete argument for the learned aggregator in Phase 6.
+
+### Is BM25 at Recall@10 = 0.095 believable?
+
+Low, and plausibly so: ~1013 candidate documents per claim with 2.19 gold among
+them (0.2%), documents are whole scraped web pages, and claims are one short
+sentence. The random floor lands at 0.012, close to the ~1% arithmetic predicts,
+which says the pool is not filtered and the evaluation is measuring something
+real. A high number here would have meant gold leaked into the ranking.
+
+One known handicap, deliberately visible: **documents are truncated to 4000
+characters** by the KB cache. That is a config parameter, not a hidden
+simplification — rebuild the cache at a different limit and rerun to price it.
+Worth doing in Phase 5 alongside dense retrieval.
+
+### Built
+
+| Piece | Where |
+| --- | --- |
+| Contracts | `src/pipeline/contracts.py` — §4 models, labels imported from `data/labels.py` |
+| Registry | `src/pipeline/registry.py` — `(stage, impl)` to class, chosen by config |
+| Orchestrator | `src/pipeline/orchestrator.py` — the §6 flow, degradation recorded in the trace |
+| Batch runner | `src/pipeline/batch.py` — same orchestrator, over a frozen split |
+| Baselines | passthrough preprocess/claims, `none` matcher, BM25 + random retrieval, NLI + always-neutral stance, rule aggregator, template explainer, stub faithfulness |
+| API | `app/main.py` — `/verify`, `/health`, `/version` |
+| UI | `app/static/index.html` — plain, unstyled; Phase 7 styles it |
+| KB tooling | `scripts/build_kb_cache.py`, `scripts/build_retrieval_gold.py` |
+
+69 new tests (152 total). Live API verified: `/health` reports `degraded` until
+the NLI model loads, `/version` serves the tau values and confidence bands, and
+`POST /verify` on dev claim 133 returns Refuted at 0.786 with 10 passages and a
+full stage trace. **Warm latency 0.67 s mean, 0.75 s max** against NFR-1's 10 s
+target; the 14.6 s first request is model load, which is NFR-2's cold start.
+
+### Decisions worth keeping
+
+- **A one-time KB cache.** `scripts/build_kb_cache.py` flattens the 11.5 GB zip
+  into per-claim JSONL in 11.3 minutes. Retrieval runs then take seconds rather
+  than re-parsing the archive every time. 500 claims, 506,349 documents, 1,096
+  gold, 1.2 GB.
+- **The retrieval floor is a chained run, not a harness change.** The registered
+  `random_rank` samples one global pool; ours are per claim. Running the random
+  ranking through the same batch runner and naming its `config_hash` as the
+  BM25 run's baseline uses a feature `evaluate.py` already had.
+- **Retrieval ranks documents by URL**, because that is the unit AVeriTeC
+  annotates gold at. No harness change needed.
+
+### A bug the tests caught before it could mislead
+
+Paragraph selection originally used BM25 to pick which paragraph of a document
+the NLI model reads. `rank_bm25` with few documents returns **idf = 0 for every
+term** — with two paragraphs, log(1.5) minus log(1.5) — so every score came out
+0.0 and `max()` silently returned the *first* paragraph regardless of content.
+The pipeline would have kept producing verdicts, formed from the wrong text.
+Replaced with length-damped lexical overlap in `src/retrieval/passages.py`,
+which degrades sensibly at any size, and both retrievers now share it so the
+only difference between BM25 and the floor is the ranking itself.
+
+
 ## Next
 
-**Phase 1 — vertical slice, English only. This is Day 1;** the 14-day clock
-starts when it does. AVeriTeC dev → BM25 over its knowledge store →
-off-the-shelf NLI for a 5-class verdict → template explanation with source
-links → FastAPI `POST /verify` → one plain HTML page. Ugly, working,
-committed. Its numbers are the floor everything else must beat.
+**Phase 2 — the language layer (Days 2-3).** fastText language ID, script
+detection (already built), IndicXlit transliteration, the romanized eval sets,
+the embedding comparison, and the t-SNE plot. Deliverable is the native vs
+romanized table, which is the research contribution.
 
-Contracts and module layout: `docs/specs/SYSTEM_DESIGN.md` §4–5. Requirements:
-`docs/specs/SRS.md`. Do not re-derive either.
+**Day 2 opens with the IndicXlit install spike, timeboxed to 30 minutes.**
+`indic-transliteration` is already pinned and working, so Phase 2 is not
+blocked either way; IndicXlit is an upgrade to measure against it on Dakshina.
 
-**The environment is ready** — CUDA torch, the ML stack and the dev knowledge
-store are all installed and verified (see the 21 Sep entry). Day 1 starts on
-code, not setup.
+Phase 1's floor to beat: retrieval Recall@10 = 0.0947, verdict macro-F1 =
+0.2147. Retrieval is the bottleneck - improving the aggregator before
+retrieval is tuning against noise.
 
 ### Open items
 

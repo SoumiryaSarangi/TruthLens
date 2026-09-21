@@ -11,6 +11,8 @@
 #   make leakage    leakage + frozen-split checks (run after ANY data change)
 #   make data       download raw sources and rebuild splits + profile
 #   make kb         download the AVeriTeC dev knowledge store (11.5 GB, resumable)
+#   make kb-cache   flatten that zip into a fast per-claim cache (one-time, ~12 min)
+#   make serve      run the API at http://127.0.0.1:8000
 #   make profile    regenerate docs/data-profile.md from the frozen splits
 #   make table      render results/*.json into markdown
 #   make status     what is in data/splits/
@@ -30,7 +32,7 @@ export PYTHONPATH = src
 
 CONFIG ?= configs/example_majority_baseline.yaml
 
-.PHONY: setup setup-ml download kb data profile eval test lint fix leakage table status lock fixtures clean help
+.PHONY: setup setup-ml download kb kb-cache serve download-gold data profile eval test lint fix leakage table status lock fixtures clean help
 
 help:
 	@echo "make setup | eval CONFIG=... | test | lint | leakage | table | status | lock"
@@ -73,6 +75,18 @@ kb:
 
 kb-list:
 	$(PY) scripts/download_knowledge_store.py --list
+
+# One pass over the zip -> data/interim/averitec_kb_dev/. Everything downstream
+# reads the cache, which is ~50x faster than re-parsing the archive each run.
+kb-cache:
+	$(PY) scripts/build_kb_cache.py --split dev
+
+# Retrieval gold: the knowledge store's own `type == "gold"` annotations.
+gold:
+	$(PY) scripts/build_retrieval_gold.py --split dev
+
+serve:
+	$(PY) -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 # Full data pipeline: fetch, materialise into frozen splits, profile, check.
 data: download

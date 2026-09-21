@@ -1,0 +1,29 @@
+# The retrieval FLOOR. A seeded random ranking of each claim's own pool.
+#
+# Why not the harness's registered `random_rank`: that baseline samples from one
+# global pool, and AVeriTeC's pools are per claim. Running the random ranking
+# through the same batch runner instead keeps the floor on the identical code
+# path a real retriever takes, and lets the BM25 config name THIS run's
+# config_hash as its baseline.
+#
+# With ~1000 documents per claim and ~2 gold among them, Recall@10 should land
+# near 1%. A high number here means the pool has been filtered somewhere and the
+# evaluation is measuring nothing.
+experiment: p1_random_retrieval
+task: retrieval
+split: data/splits/averitec/dev.jsonl
+gold: data/gold/averitec_dev_retrieval.jsonl
+predictions: results/preds/p1_random_retrieval.jsonl
+baseline: random_rank
+
+metrics:
+  retrieval:
+    k: [1, 5, 10]
+breakdown: [lang, script]
+allow_partial: true
+seed: 42
+
+notes: >
+  Phase 1 retrieval floor. allow_partial because claims with no annotated gold
+  document are excluded from the gold file and cannot be scored; coverage is
+  recorded in the results JSON.
