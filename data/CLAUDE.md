@@ -129,9 +129,10 @@ Sources, URLs and the sha256 of every downloaded file live in
 
 **AVeriTeC knowledge store** — evidence pool for Phase 1 retrieval
 - `make kb` (`scripts/download_knowledge_store.py`). Resumable; safe to
-  interrupt and rerun. Downloaded from **`hf.co`, not `huggingface.co`** — the
-  long hostname has its TLS sessions reset on this connection (measured 0/12
-  success), the short alias works.
+  interrupt and rerun. **Connectivity to the HF Hub from here is intermittent**
+  — roughly half of requests fail, on either hostname — so the fetcher resumes
+  by HTTP Range with backoff rather than restarting. If a download dies, rerun
+  it; do not switch hostnames and do not start over.
 - Sizes, measured from the HF API rather than guessed:
 
   | Split | Size | State |

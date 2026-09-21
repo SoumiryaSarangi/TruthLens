@@ -41,11 +41,14 @@ from common.io_jsonl import load_json, write_json  # noqa: E402
 
 REPO = "chenxwh/AVeriTeC"
 
-# hf.co, not huggingface.co. Same service, but on this connection the long
-# hostname gets its TLS sessions reset almost every time (measured: 0/12
-# success) while the short alias succeeds often enough to finish a resumable
-# download. If hf.co ever starts failing too, try huggingface.co again before
-# assuming the repo moved.
+# hf.co is the official short alias for huggingface.co; either works.
+#
+# What matters is NOT the hostname. Connectivity to the Hub from here is
+# intermittent: sampled twice, huggingface.co went 0/12 then 5/10, and hf.co
+# went 4/10 over the same window. Neither is reliably better -- the connection
+# is just bad, and any download of this size WILL be interrupted several times.
+# That is why this module resumes by Range with backoff instead of retrying
+# from zero. Do not "fix" a failed download by switching hostnames.
 HOST = "https://hf.co"
 API = f"{HOST}/api/models/{REPO}"
 RESOLVE = f"{HOST}/{REPO}/resolve/main"

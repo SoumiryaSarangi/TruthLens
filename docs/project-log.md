@@ -352,6 +352,76 @@ on. Also cleaned the stale "free-tier Colab contingency" comment off `peft`.
   training retrieval on AVeriTeC train; dev covers Phase 1 and evaluation.
 
 
+## 2026-09-21 — Caches moved off C:, and a correction
+
+### C: was full, which would have broken Day 1
+
+`C:` had **1.5 GB free of 245 GB** while `HF_HOME`, the uv cache and the pip
+cache all defaulted there. The first model download — BGE-M3, 2.27 GB — would
+have failed, and the error would have looked like a network problem rather
+than a disk one.
+
+Cleared 12.6 GB of rebuildable cache (`uv cache clean` 4.9 GB, `pip cache
+purge` 7.8 GB) and redirected all three to D: as persistent user environment
+variables: `HF_HOME=D:\hf-cache`, `UV_CACHE_DIR=D:\uv-cache`,
+`PIP_CACHE_DIR=D:\pip-cache`. C: went from 1.5 GB free to 21 GB.
+
+They live outside the project directory deliberately, so `git clean -xdf` can
+never delete 17 GB of model weights. Verified with a real download:
+`hf_hub_download('ai4bharat/IndicBART', 'config.json')` landed under
+`D:\hf-cache\hub\`. Symlinks are permitted here, so the cache stores each blob
+once rather than doubling.
+
+### Correction: the hf.co advice was wrong
+
+The previous entry, `data/CLAUDE.md` and the downloader's comment all said
+`huggingface.co` fails on this connection (measured 0/12) and that `hf.co`
+should be used instead. **That was a transient observation reported as a
+property of the hostname.** Re-measured in the same session:
+
+| Endpoint | Sample 1 | Sample 2 |
+| --- | --- | --- |
+| `huggingface.co` | 0/12 | 5/10 |
+| `hf.co` | worked | 4/10 |
+
+Neither is reliably better. The connection to the Hub is simply intermittent,
+around half of requests failing either way. The right conclusion is the one
+the downloader already implements — **resume, don't retry from zero** — not a
+hostname swap. All three places are corrected. The resumable fetcher stands;
+only the reason for it changed.
+
+Worth doing before pulling the ~17 GB of models: set `HF_TOKEN`. It raises the
+rate limit, though it will not stop the dropped connections.
+
+### Space, measured
+
+Asked what the whole project needs. Real numbers rather than estimates:
+
+| Item | Size |
+| --- | --- |
+| On disk now (venv 5 GB + KB zip 11 GB + data) | 16 GB |
+| Models, 7 of them, from the HF API | ~17 GB |
+| Dakshina (confirmed 2.01 GB tar, + extracted) | ~4 GB |
+| MultiClaim | ~1–3 GB **estimated** — Zenodo record restricted, file list withheld |
+| CheckThat! T2, SemEval-2023 T3 | <1 GB |
+| Indexes, checkpoints, working headroom | ~11 GB |
+| **Realistic total** | **~50 GB**, against 112 GB free |
+
+Two findings that change plans rather than just the budget:
+
+- **Extracting the dev knowledge store is not worth it.** Reading a member
+  straight from the zip runs at **224 MB/s** (median 65.6 MB claim file in
+  0.29 s), so a full pass over all 500 claims is ~3 minutes. Extraction costs
+  36.55 GB to save a couple of minutes on a pass that happens once. There is
+  also no dedup win — URLs are 100% unique within a claim.
+- **A dense index over the full dev knowledge store is not feasible on this
+  GPU.** 30.6 G characters ≈ 15.3 M passages at ~512 tokens → **31.3 GB of
+  fp16 vectors and 14–28 GPU-hours** on the 4050. `SYSTEM_DESIGN.md` §7 budgets
+  ≤3 GB for it. The fix is standard retrieve-then-rerank: BM25 to top-100 per
+  claim, dense re-rank only those → ~150k passages, ~0.3 GB, ~15 minutes.
+  **Decide this before Phase 5, not during it.**
+
+
 ## Next
 
 **Phase 1 — vertical slice, English only. This is Day 1;** the 14-day clock

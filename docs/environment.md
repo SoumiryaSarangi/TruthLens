@@ -150,6 +150,53 @@ Practical consequences:
 - If a model will not fit, the order to try is: smaller batch, gradient
   checkpointing, then 4-bit — not a smaller model, which changes the result.
 
+## Caches live on D:, not C:
+
+**C: was 100% full (1.5 GB free of 245 GB)** while every tool cached there by
+default. The first model download would have failed on Day 1, for a reason
+nobody would have connected to disk space.
+
+Cleared 12.6 GB of rebuildable cache (`uv cache clean`, `pip cache purge`) and
+redirected all three caches to D:, set as **user environment variables** so
+they persist across shells:
+
+| Variable | Value | Was |
+| --- | --- | --- |
+| `HF_HOME` | `D:\hf-cache` | `C:\Users\ss\.cache\huggingface` |
+| `UV_CACHE_DIR` | `D:\uv-cache` | `C:\Users\ss\AppData\Local\uv\cache` |
+| `PIP_CACHE_DIR` | `D:\pip-cache` | `C:\Users\ss\AppData\Local\pip\Cache` |
+
+Models therefore land in `D:\hf-cache\hub`, where the ~17 GB of weights will
+go. Verified with a real download: `hf_hub_download('ai4bharat/IndicBART',
+'config.json')` resolved under `D:\hf-cache\hub\models--ai4bharat--IndicBART\`.
+
+These caches sit **outside the project directory on purpose** — a `git clean
+-xdf` in the repo must never be able to delete 17 GB of model weights.
+
+Symlinks are permitted on this machine, so the HF cache stores each blob once
+instead of duplicating it. Worth checking rather than assuming: without
+Developer Mode, Windows silently doubles the cache.
+
+## Downloading from the HuggingFace Hub is unreliable here
+
+Not blocked — **intermittent**. Measured twice in one session:
+
+| Endpoint | Sample 1 | Sample 2 |
+| --- | --- | --- |
+| `huggingface.co` | 0/12 | 5/10 |
+| `hf.co` | worked | 4/10 |
+
+Neither hostname is reliably better; the connection is simply bad. So:
+
+- **Expect any multi-GB download to be interrupted several times.** Use
+  something that resumes. `huggingface_hub` resumes partial downloads by
+  default, and `scripts/download_knowledge_store.py` does its own Range
+  resumption with backoff.
+- **Do not "fix" a failed download by switching hostname or starting over.**
+  Rerun and let it resume.
+- Setting `HF_TOKEN` raises the rate limit and is worth doing before pulling
+  ~17 GB of models, though it will not help with the dropped connections.
+
 ## Windows gotchas
 
 - **Console encoding.** Windows terminals default to cp1252 and raise
