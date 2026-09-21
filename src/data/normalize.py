@@ -28,6 +28,23 @@ _INVISIBLE = re.compile(
 
 _URL = re.compile(r"(?:https?://|www\.)\S+", re.IGNORECASE)
 
+# KNOWN DIVERGENCE from src/preprocess/passthrough.py, deliberate.
+#
+# The alternation below lists `forwarded` before `forwarded\s+message`, so
+# "Forwarded message: X" normalises to "message: x" rather than "x". The
+# model-facing copy in preprocess/passthrough.py has the longest alternative
+# first and does NOT have this bug.
+#
+# It is not fixed here because this function computes `text_sha1` for the
+# FROZEN splits. Measured: exactly 1 of 9,987 materialised texts starts with a
+# forward artefact, so the fix would change one hash -- and one changed hash
+# still rewrites a committed split file, invalidates SPLITS.lock, breaks the
+# CI reproducibility job, and stales every results JSON built against it. A
+# one-row dedup miss is not worth that.
+#
+# Fix it at the next legitimate split rebuild, together. tests/test_normalize_
+# frozen.py pins the current behaviour so this cannot be changed by accident.
+#
 # WhatsApp and general forward artefacts. Extend as real forwards are collected
 # in Phase 2; every addition changes text_sha1 and therefore requires a split
 # rebuild, so add deliberately and record it in docs/split-changelog.md.

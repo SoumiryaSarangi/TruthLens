@@ -23,14 +23,14 @@ results tables) · `docs/environment.md` (toolchain).
 
 | | |
 | --- | --- |
-| **Current phase** | **Phase 1 complete (Day 1).** Vertical slice runs end to end with numbers. Phase 2 next. |
+| **Current phase** | **Phase 1 complete, gaps closed.** MultiClaim ingested. Phase 2 ready to start. |
 | **Clock** | 14 days. Day 1 = first day of Phase 1, which has not begun. Freeze end of Day 12. |
 | **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |
 | **Python** | 3.11.16 via uv, in `.venv`. System Python is 3.13 and is not used. |
-| **Tests** | 152 passing, 1 skipped, 1 gpu-deselected |
-| **Datasets in hand** | AVeriTeC, X-CLAIM |
-| **Datasets waiting** | MultiClaim (access requested), CheckThat! 2025 T2 (not started) |
+| **Tests** | 197 passing, 1 skipped, 1 gpu-deselected |
+| **Datasets in hand** | AVeriTeC, X-CLAIM, **MultiClaim** |
+| **Datasets waiting** | CheckThat! 2025 T2 (not started), Dakshina (not downloaded) |
 | **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
 | **Models trained** | None. Phase 1 uses off-the-shelf NLI only; training starts Phase 3. |
 
@@ -536,12 +536,122 @@ which degrades sensibly at any size, and both retrievers now share it so the
 only difference between BM25 and the floor is the ranking itself.
 
 
+## 2026-09-22 — Phase 1 gaps closed; MultiClaim ingested
+
+### Phase 1 gaps
+
+Five gaps found by auditing Phase 1 against the specs rather than against my
+own summary of it. All closed. 194 tests, up from 152.
+
+| Gap | Closed by |
+| --- | --- |
+| `app/static/` was one file; §5 specifies `index.html`, `app.js`, `styles.css`, `i18n/` | Split out, with `i18n/{en,hi,pa}.json` carrying the verdict labels from `UI_UX.md` §6 |
+| No stage tests for preprocess, claims, generation, faithfulness | `tests/test_stage_*.py` for each |
+| **FR-2 implemented but untested** | `tests/test_stage_preprocess.py` |
+| §12 wants a golden trace per path; `fast` was missing | Stub matcher in `tests/test_orchestrator.py` — all five paths now covered |
+| `make index` in §13 does not exist | Spec corrected: Phase 1 needs no persistent index |
+
+Two specification statements were corrected rather than the code, per the
+precedence rule:
+
+- **§13 `make index`.** AVeriTeC ranks within a claim's own pool, so retrieval
+  builds a ~1000-document BM25 index, scores it and discards it in ~0.1 s. A
+  persistent index would answer a different question than the benchmark asks.
+  `make index` becomes real in Phase 4 (fact-check index) and Phase 5 (demo
+  corpus).
+- **§3 "every stage has at least two implementations"** now reads "by the phase
+  that introduces its model". Phase 1 legitimately ships one implementation for
+  stages whose model arrives in Phases 3–6.
+
+### A regex bug the new FR-2 test caught immediately
+
+The forward-artefact pattern listed `forwarded` before `forwarded\s+message`.
+Regex alternation is left-to-right, so "Forwarded message: X" matched
+`forwarded`, and the word "message" stayed glued to the claim. Every WhatsApp
+forward carrying that header would have gone into retrieval and NLI with a
+corrupted first token, and nothing would have looked broken.
+
+Fixed in `src/preprocess/passthrough.py` by putting the longest alternative
+first.
+
+**The same bug exists in `src/data/normalize.py` and was deliberately NOT
+fixed.** That function computes `text_sha1` for the frozen splits. Measured
+impact: exactly **1 of 9,987** materialised texts starts with a forward
+artefact, so the fix would change one hash — and one changed hash still
+rewrites a committed split, invalidates `SPLITS.lock`, breaks the CI
+reproducibility job and stales every results JSON built against it. A one-row
+dedup miss is not worth that. `tests/test_normalize_frozen.py` now pins the
+current behaviour and tells whoever changes it that they are signing up for a
+split rebuild, not a code fix.
+
+### MultiClaim, and what it unblocks
+
+Access granted; the three CSVs were supplied manually and live in gitignored
+`data/raw/multiclaim/` with their sha256 in `DOWNLOADS.json`. **Restricted and
+not redistributable**, so only ID manifests are committed — the same rule as
+AVeriTeC and X-CLAIM.
+
+Bigger than the paper describes: **435,252 fact-checks, 89,139 posts, 105,424
+pairs.**
+
+| Language | Pairs | Posts |
+| --- | --- | --- |
+| English | 30,993 | 24,396 |
+| Hindi | 11,271 | 8,376 |
+| **Punjabi** | **104** | **91** |
+
+**This closes Phase 2's hardest blocker.** The embedding comparison was
+specified as "scored on retrieval", but AVeriTeC is English-only and X-CLAIM is
+a span task with no relevance judgements — there was no multilingual retrieval
+task to score anything on. A MultiClaim post is now a query and its paired
+fact-checks are the gold, giving 3,153 dev and 3,156 test queries across the
+three languages.
+
+It also supplies something better than the planned synthetic romanisation:
+**501 naturally romanized Hindi posts in train, 57 in dev, 53 in test** — real
+people typing Hindi in Latin script, not transliterated output. The synthetic
+X-CLAIM romanisation is still worth building, but this is the honest half of
+the comparison.
+
+**Punjabi remains the weak point**, and worse here than anywhere: 7 dev and 7
+test posts. Any Punjabi claim-matching figure is a point estimate on single
+digits and must be reported with its denominator, never as a bare percentage.
+
+### Leakage: our split, so our bug to fix
+
+The first MultiClaim build failed `make leakage` with dev↔test overlap. That is
+handled differently from the AVeriTeC and X-CLAIM cases: those splits are
+upstream's, so irreducible overlap is allowlisted in `KNOWN_LEAKAGE.json`
+because removing it would alter a published benchmark. **MultiClaim ships no
+splits — these are ours**, so overlap is a bug in the splitter, not something
+to accept.
+
+Fixed at the source, in three passes as each revealed the next:
+
+1. Exact deduplication before splitting — 13 dev↔test pairs remained.
+2. Near-duplicate clustering (union-find over a banded SimHash index, so 32k
+   posts cost candidate pairs rather than half a billion comparisons) — 5 pairs
+   remained, at Hamming 9–11.
+3. Those five were a **threshold drift**: the clusterer gated at Hamming ≤ 8
+   while the detector fails anything at Jaccard ≥ 0.90 out to Hamming 14,
+   leaving a band the clusterer never considered. The clusterer now **imports**
+   both thresholds from `src/data/leakage.py` instead of restating them, so
+   "near duplicate" means one thing project-wide.
+
+Final: 25,137 train / 3,153 dev / 3,156 test, `make leakage` clean across all
+three datasets, and all 9 split files reproduce byte-for-byte from source.
+
+
 ## Next
 
 **Phase 2 — the language layer (Days 2-3).** fastText language ID, script
 detection (already built), IndicXlit transliteration, the romanized eval sets,
 the embedding comparison, and the t-SNE plot. Deliverable is the native vs
 romanized table, which is the research contribution.
+
+The retrieval task to score the embedding comparison on **now exists**:
+MultiClaim, 3,153 dev queries across en/hi/pa. That was the hardest blocker and
+it is gone.
 
 **Day 2 opens with the IndicXlit install spike, timeboxed to 30 minutes.**
 `indic-transliteration` is already pinned and working, so Phase 2 is not

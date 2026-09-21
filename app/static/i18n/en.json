@@ -1,0 +1,28 @@
+{
+  "title": "TruthLens",
+  "intro": "Paste a forwarded message. TruthLens checks it and shows you the sources.",
+  "placeholder": "Paste a forwarded message…",
+  "check": "Check",
+  "checking": "Checking…",
+  "claim_index": "AVeriTeC dev claim index (0–499, optional)",
+  "message_label": "Claim or forwarded message",
+  "see_evidence": "See evidence",
+  "stage_trace": "Stage trace",
+  "disclaimer": "TruthLens can be wrong. Check the sources.",
+  "unsupported": "TruthLens works with English, Hindi and Punjabi.",
+  "not_confident": "Not confident enough to judge — leaning:",
+  "models_ready": "· models ready",
+  "degraded": "· degraded",
+  "unreachable": "· API unreachable",
+  "verdict": {
+    "Supported": "Supported by evidence",
+    "Refuted": "Contradicted by evidence",
+    "Conflicting": "Evidence disagrees",
+    "NEI": "Not enough evidence",
+    "NotAClaim": "Nothing here to fact-check"
+  },
+  "icon": {
+    "Supported": "✓", "Refuted": "✕", "Conflicting": "⇄",
+    "NEI": "?", "NotAClaim": "💬", "abstained": "◌"
+  }
+}

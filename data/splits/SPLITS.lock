@@ -12,6 +12,18 @@
       "n_lines": 2666,
       "sha256": "a322259c4bcdb60fd97ceded69df8a493935592236888768d67db03a7a5d7313"
     },
+    "multiclaim/dev.jsonl": {
+      "n_lines": 3153,
+      "sha256": "b1b0ff4c1b6300e01536b80a3f084dd4938cf28d428469532a581c0a2f57b7fd"
+    },
+    "multiclaim/test.jsonl": {
+      "n_lines": 3156,
+      "sha256": "c5435d77c490dd2c41c395e2a0833376521ca19f647004985ac0013c567c7ce2"
+    },
+    "multiclaim/train.jsonl": {
+      "n_lines": 25137,
+      "sha256": "8841355161ba70e0e0a70b3eba34affc772683bd909f45e7b4f456a03e80acbd"
+    },
     "x_claim/dev.jsonl": {
       "n_lines": 600,
       "sha256": "acc94da887669db4a256a76b3b3ed49adfa5d6d9a5e59dee7714ae3d22c69fb1"

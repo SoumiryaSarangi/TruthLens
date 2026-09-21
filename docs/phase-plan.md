@@ -11,7 +11,7 @@ seconds without reading the whole plan.
 
 ## Current phase
 
-**Phase 1 complete (Day 1). The vertical slice runs end to end with numbers.**
+**Phase 1 complete, gaps closed. MultiClaim ingested. Phase 2 ready.**
 
 The clock is **14 days**, and **Day 1 is the first day of Phase 1** — it has not
 started, so the count has not started. Target machine: Intel i7-14700HX with an
@@ -60,8 +60,9 @@ Day 1 can start on code.
 
 ### Open, not blocking
 
-- **MultiClaim** — access requested on Zenodo, not yet granted. **If it is not
-  approved by Day 5, swap Phases 4 and 5** and do evidence retrieval first.
+- ~~MultiClaim access~~ **GRANTED and ingested.** 25,137 / 3,153 / 3,156
+  train/dev/test. The Phase 4-5 swap rule is moot. It also gives Phase 2 the
+  multilingual retrieval task the embedding comparison needs.
 - **IndicXlit spike, Day 2.** `ai4bharat-transliteration` depends on fairseq —
   confirmed from its PyPI metadata — which does not install cleanly on
   Windows + Python 3.11. The rule-based `indic-transliteration` is already

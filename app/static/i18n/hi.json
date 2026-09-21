@@ -1,0 +1,24 @@
+{
+  "_comment": "Phase 1 placeholder strings. UI_UX.md §6 requires a native speaker to review these before any demo — wrong Hindi in a Hindi demo is worse than English.",
+  "title": "TruthLens",
+  "intro": "कोई फ़ॉरवर्ड किया हुआ संदेश यहाँ चिपकाएँ। TruthLens उसे जाँचकर स्रोत दिखाएगा।",
+  "placeholder": "फ़ॉरवर्ड किया हुआ संदेश…",
+  "check": "जाँचें",
+  "checking": "जाँच हो रही है…",
+  "see_evidence": "सबूत देखें",
+  "stage_trace": "चरण विवरण",
+  "disclaimer": "TruthLens ग़लत हो सकता है। स्रोत ज़रूर देखें।",
+  "unsupported": "TruthLens अंग्रेज़ी, हिंदी और पंजाबी में काम करता है।",
+  "not_confident": "भरोसे से फ़ैसला नहीं कर सकते — झुकाव:",
+  "verdict": {
+    "Supported": "सबूतों से पुष्ट",
+    "Refuted": "सबूतों से खंडित",
+    "Conflicting": "सबूत आपस में टकराते हैं",
+    "NEI": "पर्याप्त सबूत नहीं",
+    "NotAClaim": "इसमें जाँचने लायक कोई दावा नहीं है"
+  },
+  "icon": {
+    "Supported": "✓", "Refuted": "✕", "Conflicting": "⇄",
+    "NEI": "?", "NotAClaim": "💬", "abstained": "◌"
+  }
+}

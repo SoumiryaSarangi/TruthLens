@@ -152,3 +152,64 @@ def test_config_selects_the_implementation(kb):
     """SYSTEM_DESIGN.md §3: impl choice is config, never a code edit."""
     orch = make(kb, stages={"retrieval": "random"})
     assert orch.retriever.impl == "random"
+
+
+# -----------------------------------------------------------------------------
+# The fast path
+#
+# SYSTEM_DESIGN.md §12 wants a golden trace per path, and `fast` is the one the
+# Phase 1 `none` matcher can never reach. Left untested it would first execute
+# in Phase 4, against real MultiClaim data, with nothing pinning its shape.
+# A stub matcher exercises it now.
+# -----------------------------------------------------------------------------
+
+
+class _StubMatcher:
+    """Always returns a match. Stands in for the Phase 4 matcher."""
+
+    name = "matching"
+    impl = "stub"
+
+    def __init__(self, score: float = 0.9):
+        self.score = score
+
+    def top1(self, claim):
+        from pipeline.contracts import FactCheckMatch
+
+        return FactCheckMatch(
+            factcheck_id="fc123", score=self.score, verdict="Refuted",
+            title="No, nursing posts were not restored",
+            url="https://factcheck.example/fc123",
+            publisher="Example FactCheck", lang="en",
+        )
+
+
+def test_fast_path_resolves_from_the_matched_fact_check(kb):
+    orch = make(kb, tau_match=0.5)
+    orch.matcher = _StubMatcher(score=0.9)
+
+    res = orch.verify("Were nursing posts restored?", claim_idx=7).results[0]
+    assert res.path == "fast"
+    assert res.verdict == "Refuted"                 # taken from the fact-check
+    assert res.match is not None
+    assert res.cited == ["fc123"]
+    assert "Example FactCheck" in res.explanation   # UI_UX.md §5: "Already checked by"
+    assert res.passages == []                       # no retrieval on the fast path
+
+
+def test_fast_path_is_skipped_when_the_match_is_below_tau(kb):
+    """τ_match is what makes the fast path a decision rather than a default."""
+    orch = make(kb, tau_match=0.95)
+    orch.matcher = _StubMatcher(score=0.9)
+
+    res = orch.verify("Were nursing posts restored?", claim_idx=7).results[0]
+    assert res.path == "evidence"
+    assert res.match is None
+
+
+def test_fast_path_does_not_run_retrieval(kb):
+    orch = make(kb, tau_match=0.5)
+    orch.matcher = _StubMatcher(score=0.9)
+
+    trace = orch.verify("Were nursing posts restored?", claim_idx=7)
+    assert not any(e.stage == "retrieval" for e in trace.events)

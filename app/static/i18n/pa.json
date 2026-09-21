@@ -1,0 +1,24 @@
+{
+  "_comment": "Phase 1 placeholder strings. UI_UX.md §6 is explicit that these NEED a native speaker's review before the demo. Treat every string here as unverified.",
+  "title": "TruthLens",
+  "intro": "ਕੋਈ ਅੱਗੇ ਭੇਜਿਆ ਸੁਨੇਹਾ ਇੱਥੇ ਪਾਓ। TruthLens ਉਸਦੀ ਜਾਂਚ ਕਰਕੇ ਸਰੋਤ ਵਿਖਾਏਗਾ।",
+  "placeholder": "ਅੱਗੇ ਭੇਜਿਆ ਸੁਨੇਹਾ…",
+  "check": "ਜਾਂਚੋ",
+  "checking": "ਜਾਂਚ ਹੋ ਰਹੀ ਹੈ…",
+  "see_evidence": "ਸਬੂਤ ਵੇਖੋ",
+  "stage_trace": "ਪੜਾਅ ਵੇਰਵਾ",
+  "disclaimer": "TruthLens ਗ਼ਲਤ ਹੋ ਸਕਦਾ ਹੈ। ਸਰੋਤ ਜ਼ਰੂਰ ਵੇਖੋ।",
+  "unsupported": "TruthLens ਅੰਗਰੇਜ਼ੀ, ਹਿੰਦੀ ਅਤੇ ਪੰਜਾਬੀ ਵਿੱਚ ਕੰਮ ਕਰਦਾ ਹੈ।",
+  "not_confident": "ਭਰੋਸੇ ਨਾਲ ਫ਼ੈਸਲਾ ਨਹੀਂ ਕਰ ਸਕਦੇ — ਝੁਕਾਅ:",
+  "verdict": {
+    "Supported": "ਸਬੂਤਾਂ ਨਾਲ ਪੁਸ਼ਟ",
+    "Refuted": "ਸਬੂਤਾਂ ਨਾਲ ਖੰਡਿਤ",
+    "Conflicting": "ਸਬੂਤ ਆਪਸ ਵਿੱਚ ਟਕਰਾਉਂਦੇ ਹਨ",
+    "NEI": "ਲੋੜੀਂਦੇ ਸਬੂਤ ਨਹੀਂ",
+    "NotAClaim": "ਇਸ ਵਿੱਚ ਜਾਂਚਣ ਯੋਗ ਕੋਈ ਦਾਅਵਾ ਨਹੀਂ"
+  },
+  "icon": {
+    "Supported": "✓", "Refuted": "✕", "Conflicting": "⇄",
+    "NEI": "?", "NotAClaim": "💬", "abstained": "◌"
+  }
+}

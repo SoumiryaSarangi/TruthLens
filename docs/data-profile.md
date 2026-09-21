@@ -67,6 +67,63 @@ Policy: **train yields to eval; dev and test are never modified**
 - accepted as irreducible upstream: **0** (see `data/splits/KNOWN_LEAKAGE.json`)
 - warnings (unconfirmed near-duplicates): 0
 
+## multiclaim
+
+Source: https://zenodo.org/records/14989177 — RESTRICTED - access granted per-request; NOT redistributable. Only ID manifests are committed.
+
+### Counts by split, language and script
+
+| split | n | en/latn | hi/deva | hi/latn | pa/deva | pa/guru | pa/latn |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| train | 25137 | 18737 | 5827 | 501 | · | 66 | 6 |
+| dev | 3153 | 2350 | 737 | 57 | · | 7 | 2 |
+| test | 3156 | 2351 | 743 | 53 | 1 | 7 | 1 |
+
+### Non-native-script share
+
+The romanized-vs-native axis. `other` is every row not in the language's own script, which for hi/pa is mostly Latin (romanized) plus some cross-script contamination in the source files.
+
+| split | lang | n | native | other | other % |
+| --- | --- | --- | --- | --- | --- |
+| train | en | 18737 | 18737 | 0 | 0.0% |
+| train | hi | 6328 | 5827 | 501 | 7.9% |
+| train | pa | 72 | 66 | 6 | 8.3% |
+| dev | en | 2350 | 2350 | 0 | 0.0% |
+| dev | hi | 794 | 737 | 57 | 7.2% |
+| dev | pa | 9 | 7 | 2 | 22.2% |
+| test | en | 2351 | 2351 | 0 | 0.0% |
+| test | hi | 796 | 743 | 53 | 6.7% |
+| test | pa | 9 | 7 | 2 | 22.2% |
+
+### Text length (characters) and code-mixing
+
+| split | n | min | median | mean | max | code-mixed |
+| --- | --- | --- | --- | --- | --- | --- |
+| train | 25137 | 8 | 149 | 307 | 28729 | 5.0% |
+| dev | 3153 | 8 | 148 | 297 | 12445 | 4.6% |
+| test | 3156 | 5 | 151 | 302 | 12158 | 4.6% |
+
+_code-mixed = share of rows whose dominant script covers under 90% of their script-bearing characters. Computed from data/interim/, so it shows `—` on a clean clone until `make data` has run._
+
+### Deduplication applied when building these splits
+
+Policy: **train yields to eval; dev and test are never modified**
+
+| action | rows |
+| --- | --- |
+| dropped from train — exact match in eval | 0 |
+| dropped from train — near duplicate in eval | 91 |
+| dropped from train — within train duplicate | 0 |
+| left in place — dev internal duplicates | 0 |
+| left in place — dev test overlap | 0 |
+| left in place — test internal duplicates | 0 |
+
+### Leakage after deduplication
+
+- unresolved failures: **0**
+- accepted as irreducible upstream: **0** (see `data/splits/KNOWN_LEAKAGE.json`)
+- warnings (unconfirmed near-duplicates): 29
+
 ## x_claim
 
 Source: https://github.com/mbzuai-nlp/x-claim — see repo; EMNLP 2023 research release

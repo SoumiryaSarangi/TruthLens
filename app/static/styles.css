@@ -1,0 +1,50 @@
+/* Phase 1: plain and functional. UI_UX.md puts the WhatsApp-styled interface in
+   Phase 7; styling it now would be polish on a pipeline whose numbers are only
+   just in. What this stylesheet must do today is keep the evidence readable.
+
+   Colour is never the only signal (UI_UX.md §6, NFR-12): every verdict carries
+   an icon and a word, and the abstained state is marked by a dashed border as
+   well as its text. */
+
+:root {
+  --fg: #111;
+  --bg: #fff;
+  --muted: #555;
+  --line: #999;
+  --err: #a00;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root { --fg: #eee; --bg: #161616; --muted: #aaa; --line: #666; --err: #f88; }
+}
+
+body {
+  font-family: system-ui, "Nirmala UI", "Noto Sans Devanagari",
+               "Noto Sans Gurmukhi", sans-serif;
+  color: var(--fg);
+  background: var(--bg);
+  max-width: 44rem;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  line-height: 1.5;
+}
+
+textarea { width: 100%; min-height: 6rem; font: inherit; padding: .5rem;
+           color: var(--fg); background: var(--bg); border: 1px solid var(--line); }
+button { font: inherit; padding: .5rem 1rem; margin-top: .5rem; }
+input { font: inherit; padding: .25rem; }
+
+.card { border: 1px solid var(--line); padding: 1rem; margin-top: 1rem; }
+.card.abstained { border-style: dashed; }
+
+.verdict { font-weight: bold; }
+.muted { color: var(--muted); font-size: .9rem; }
+.err { color: var(--err); }
+
+details { margin-top: .75rem; }
+li { margin-bottom: .5rem; }
+
+/* Respect the user's motion preference (UI_UX.md §9). */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}

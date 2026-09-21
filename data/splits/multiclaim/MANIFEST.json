@@ -1,0 +1,86 @@
+{
+  "counts": {
+    "dev": {
+      "en/latn": 2350,
+      "hi/deva": 737,
+      "hi/latn": 57,
+      "lang=en": 2350,
+      "lang=hi": 794,
+      "lang=pa": 9,
+      "pa/guru": 7,
+      "pa/latn": 2,
+      "script=deva": 737,
+      "script=guru": 7,
+      "script=latn": 2409,
+      "total": 3153
+    },
+    "test": {
+      "en/latn": 2351,
+      "hi/deva": 743,
+      "hi/latn": 53,
+      "lang=en": 2351,
+      "lang=hi": 796,
+      "lang=pa": 9,
+      "pa/deva": 1,
+      "pa/guru": 7,
+      "pa/latn": 1,
+      "script=deva": 744,
+      "script=guru": 7,
+      "script=latn": 2405,
+      "total": 3156
+    },
+    "train": {
+      "en/latn": 18737,
+      "hi/deva": 5827,
+      "hi/latn": 501,
+      "lang=en": 18737,
+      "lang=hi": 6328,
+      "lang=pa": 72,
+      "pa/guru": 66,
+      "pa/latn": 6,
+      "script=deva": 5827,
+      "script=guru": 66,
+      "script=latn": 19244,
+      "total": 25137
+    }
+  },
+  "created_utc": "2026-09-21T19:25:08+00:00",
+  "dataset": "multiclaim",
+  "deduplication": {
+    "dropped_from_train": {
+      "exact_match_in_eval": 0,
+      "near_duplicate_in_eval": 91,
+      "within_train_duplicate": 0
+    },
+    "left_in_place": {
+      "dev_internal_duplicates": 0,
+      "dev_test_overlap": 0,
+      "test_internal_duplicates": 0
+    },
+    "policy": "train yields to eval; dev and test are never modified"
+  },
+  "notes": [],
+  "seed": 42,
+  "source": {
+    "files": {
+      "fact_check_post_mapping.csv": {
+        "bytes": 2776039,
+        "sha256": "b9c86784055c1c16bbe95948032a669e2c64e1ecfb73145d9898de9526925379",
+        "url": "manual (Zenodo restricted)"
+      },
+      "fact_checks.csv": {
+        "bytes": 493207845,
+        "sha256": "d148758ae817602e05af8a87ffe1b6a98ba4df3f04990dd5ceded193f66fea54",
+        "url": "manual (Zenodo restricted)"
+      },
+      "posts.csv": {
+        "bytes": 184843213,
+        "sha256": "2f4f873b13f0dba224c8cdb91e13933706a51e801788dfb21c3ac91566c6387b",
+        "url": "manual (Zenodo restricted)"
+      }
+    },
+    "licence": "RESTRICTED - access granted per-request; NOT redistributable. Only ID manifests are committed.",
+    "note": "SemEval-2025 Task 7 / MultiClaim. Supplied manually after Zenodo approval.",
+    "repo": "https://zenodo.org/records/14989177"
+  }
+}

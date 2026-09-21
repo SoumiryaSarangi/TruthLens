@@ -24,7 +24,11 @@ _WS = re.compile(r"\s+")
 # (FR-2). Kept short on purpose: an over-eager rule that eats real content is
 # worse than one that leaves a header in.
 _ARTEFACT = re.compile(
-    r"^\s*(?:forwarded(?:\s+many\s+times)?|forwarded\s+message|sent\s+as\s+received)"
+    # Longest alternative FIRST: regex alternation is left-to-right, so
+    # `forwarded` would otherwise match inside "forwarded message" and leave
+    # the word "message" glued to the claim.
+    r"^\s*(?:forwarded\s+many\s+times|forwarded\s+message|forwarded"
+    r"|sent\s+as\s+received)"
     r"\s*[:\-\u2013\u2014]?\s*",
     re.IGNORECASE,
 )

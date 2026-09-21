@@ -59,7 +59,7 @@ Rules:
 
 - A stage **reads** only the fields earlier stages wrote and **writes** only its own field. It never mutates another stage's output.
 - A stage records its latency, and any degradation, in `trace.events`.
-- Every stage has at least two implementations: a baseline and a model. Which one runs is chosen by pipeline config, never by editing code.
+- Every stage has at least two implementations **by the phase that introduces its model** -- a baseline and the model. Which one runs is chosen by pipeline config, never by editing code. In earlier phases a stage legitimately has only its stub: Phase 1 ships two implementations for `retrieval` (bm25, random) and `stance` (nli, always_neutral), and one each for the stages whose models arrive in Phases 3-6.
 - Stages import models lazily, so the harness and CI keep running on the core lock with no torch installed.
 
 ## 4. Data contract
@@ -379,11 +379,22 @@ Tests that need model weights are marked `@pytest.mark.gpu` and skipped in CI, w
 
 ```bash
 make setup-ml                       # exists. Plus the CUDA torch build, see §10
-make index                          # NEW in Phase 1 - builds data/index/
-make serve                          # NEW in Phase 1 - uvicorn app.main:app, warms up
+make kb && make kb-cache            # exists. Evidence store + its per-claim cache
+make serve                          # exists. uvicorn app.main:app
+make index                          # PHASE 4/5, not Phase 1 -- see below
 ```
 
 Single process, models loaded once at startup, one warm-up request so the first real request isn't a cold one.
+
+**There is no `make index` in Phase 1, by design.** AVeriTeC ranks within a
+claim's own candidate pool (§7), so retrieval builds a BM25 index over ~1000
+documents, scores it and discards it -- measured at ~0.1 s per claim from the
+cache. A persistent index would answer a different question than the benchmark
+asks. `make index` becomes real when there is something global to index: the
+fact-check index in Phase 4 and the demo evidence corpus in Phase 5.
+
+What Phase 1 does need once is `make kb-cache`, which flattens the 11.5 GB
+archive into per-claim JSONL. That is a cache, not an index.
 
 ## 14. Open design decisions
 

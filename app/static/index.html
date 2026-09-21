@@ -4,25 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TruthLens</title>
+<link rel="stylesheet" href="/static/styles.css">
 <!--
-  Phase 1: plain and unstyled on purpose. UI_UX.md says the styled
-  WhatsApp-like interface is Phase 7; building it now would be polish on a
-  pipeline whose numbers are not in yet. What this page must do today is prove
-  the API works end to end and show the evidence behind a verdict.
+  Phase 1: plain and unstyled on purpose. UI_UX.md puts the WhatsApp-styled
+  interface in Phase 7; what this page must do today is prove the API works end
+  to end and show the evidence behind a verdict.
+
+  Markup, style and behaviour are split into index.html / styles.css / app.js
+  per SYSTEM_DESIGN.md §5, with copy in i18n/ so Phase 7 can translate the
+  interface without editing code.
 -->
-<style>
-  body { font-family: system-ui, sans-serif; max-width: 44rem; margin: 2rem auto;
-         padding: 0 1rem; line-height: 1.5; }
-  textarea { width: 100%; min-height: 6rem; font: inherit; padding: .5rem; }
-  button { font: inherit; padding: .5rem 1rem; margin-top: .5rem; }
-  .card { border: 1px solid #999; padding: 1rem; margin-top: 1rem; }
-  .abstained { border-style: dashed; }
-  .verdict { font-weight: bold; }
-  .muted { color: #555; font-size: .9rem; }
-  details { margin-top: .75rem; }
-  li { margin-bottom: .5rem; }
-  .err { color: #a00; }
-</style>
 </head>
 <body>
 <h1>TruthLens <span class="muted" id="health">checking…</span></h1>
@@ -39,91 +30,9 @@
 <textarea id="text" placeholder="Paste a forwarded message…"></textarea>
 <button id="go">Check</button>
 
-<div id="out"></div>
+<!-- aria-live so a screen reader announces the result (UI_UX.md §9). -->
+<div id="out" aria-live="polite"></div>
 
-<script>
-const $ = (id) => document.getElementById(id);
-
-fetch("/health").then(r => r.json())
-  .then(h => { $("health").textContent = h.status === "ok" ? "· models ready" : "· degraded"; })
-  .catch(() => { $("health").textContent = "· API unreachable"; });
-
-$("go").onclick = async () => {
-  const text = $("text").value;
-  const idx = $("idx").value;
-  $("out").innerHTML = "<p class='muted'>Checking…</p>";
-
-  const url = "/verify" + (idx !== "" ? `?claim_idx=${encodeURIComponent(idx)}` : "");
-  let res, body;
-  try {
-    res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, include_trace: true }),
-    });
-    body = await res.json();
-  } catch (e) {
-    $("out").innerHTML = `<p class="err">Request failed: ${e}</p>`;
-    return;
-  }
-  if (!res.ok) {
-    const detail = body && body.detail ? body.detail : res.statusText;
-    $("out").innerHTML = `<p class="err">${res.status}: ${JSON.stringify(detail)}</p>`;
-    return;
-  }
-  $("out").innerHTML = render(body);
-};
-
-function esc(s) {
-  return String(s ?? "").replace(/[&<>"]/g, c =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-}
-
-function render(b) {
-  const inp = b.input || {};
-  let html = `<p class="muted">Detected ${esc(inp.lang)} / ${esc(inp.script)}
-    (script purity ${Number(inp.script_purity ?? 0).toFixed(2)})</p>`;
-
-  if (!b.results || !b.results.length) {
-    html += `<div class="card"><p>No result. TruthLens works with English,
-      Hindi and Punjabi.</p></div>`;
-    return html;
-  }
-
-  for (const r of b.results) {
-    html += `<div class="card${r.abstained ? " abstained" : ""}">`;
-    // UI_UX.md §6: abstained shows the leaning, not a confident verdict.
-    html += r.abstained
-      ? `<p class="verdict">Not confident enough to judge —
-         leaning: ${esc(r.verdict)}</p>`
-      : `<p class="verdict">${esc(r.verdict)}</p>`;
-    html += `<p class="muted">confidence ${Number(r.confidence).toFixed(2)}
-      · path ${esc(r.path)}
-      · explanation ${esc(r.explanation_source)}</p>`;
-    html += `<p>${esc(r.explanation)}</p>`;
-
-    if (r.passages && r.passages.length) {
-      html += `<details><summary>See evidence (${r.passages.length})</summary><ol>`;
-      for (const p of r.passages) {
-        html += `<li><strong>${esc(p.stance ?? "—")}</strong>
-          <a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.doc_id)}</a>
-          <br><span class="muted">${esc((p.text || "").slice(0, 300))}</span></li>`;
-      }
-      html += `</ol></details>`;
-    }
-    html += `<p class="muted">TruthLens can be wrong. Check the sources.</p></div>`;
-  }
-
-  if (b.trace && b.trace.events) {
-    html += `<details><summary>Stage trace</summary><ul>`;
-    for (const e of b.trace.events) {
-      html += `<li>${esc(e.stage)} (${esc(e.impl)}) ${Number(e.ms).toFixed(1)} ms
-        ${e.note ? `— <em>${esc(e.note)}</em>` : ""}</li>`;
-    }
-    html += `</ul></details>`;
-  }
-  return html;
-}
-</script>
+<script src="/static/app.js"></script>
 </body>
 </html>

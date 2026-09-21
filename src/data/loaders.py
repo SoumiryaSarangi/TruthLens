@@ -20,8 +20,9 @@ from typing import Any, NamedTuple
 
 from common.hashing import sha1_text
 from common.io_jsonl import load_json
+from common.seeds import SEED
 from data.labels import map_averitec_label
-from data.normalize import normalize_for_hashing
+from data.normalize import char_shingles, normalize_for_hashing
 from data.script_id import detect_script, script_purity
 from data.simhash import simhash_hex
 
@@ -154,6 +155,146 @@ def load_xclaim(lang: str, split_name: str) -> Iterator[Row]:
 # -----------------------------------------------------------------------------
 
 
+# -----------------------------------------------------------------------------
+# MultiClaim / SemEval-2025 Task 7
+# -----------------------------------------------------------------------------
+
+
+MULTICLAIM_SPLIT_FRACTIONS = {"train": 0.8, "dev": 0.1, "test": 0.1}
+
+
+def load_multiclaim(langs: tuple[str, ...] = ("en", "hi", "pa")) -> dict[str, list[Row]]:
+    """Posts as retrieval queries, split 80/10/10 stratified by language.
+
+    MultiClaim ships no official split, so one is made here and frozen like any
+    other. Stratifying by language matters more than usual: Punjabi has only 91
+    posts in the entire corpus, and an unstratified random split could leave a
+    test set with almost none.
+
+    Only posts that have at least one annotated fact-check are kept. A post with
+    no pair has no gold, cannot be scored, and would silently vanish from the
+    denominator.
+    """
+    import random
+
+    from data.multiclaim import load_pairs, load_posts
+
+    posts = load_posts(langs=set(langs))
+    paired: dict[str, list[str]] = {}
+    for post_id, fc_id, _rel in load_pairs():
+        if post_id in posts:
+            paired.setdefault(post_id, []).append(fc_id)
+
+    # Deduplicate BEFORE splitting, not after.
+    #
+    # MultiClaim ships no official splits, so these are ours -- which means a
+    # duplicated post appearing in both dev and test is a bug in this function,
+    # not upstream leakage to be allowlisted. The allowlist in
+    # data/splits/KNOWN_LEAKAGE.json exists for overlap we cannot fix without
+    # altering a published benchmark; this we can fix, so we do.
+    #
+    # Measured before this: 13 posts appeared in both dev and test. Keeping the
+    # lowest post_id makes the choice deterministic rather than dependent on
+    # CSV order.
+    # Exact duplicates first, then NEAR duplicates. Exact alone is not enough:
+    # the same viral post gets reposted with an emoji changed or a URL dropped,
+    # which normalises to different text but is plainly the same item. Measured
+    # after exact-only dedup: 30 near-duplicate pairs still straddled splits,
+    # at Jaccard 0.92-0.97.
+    seen: dict[str, str] = {}
+    for post_id in sorted(paired, key=lambda x: (len(x), x)):
+        key = normalize_for_hashing(posts[post_id].text)
+        seen.setdefault(key, post_id)
+    unique_ids = _drop_near_duplicates(
+        {pid: posts[pid].text for pid in seen.values()}
+    )
+
+    by_lang: dict[str, list[str]] = {}
+    for post_id in sorted(paired):
+        if post_id not in unique_ids:
+            continue
+        by_lang.setdefault(posts[post_id].lang or "en", []).append(post_id)
+
+    out: dict[str, list[Row]] = {"train": [], "dev": [], "test": []}
+    rng = random.Random(SEED)
+    for lang in sorted(by_lang):
+        ids = sorted(by_lang[lang])
+        rng.shuffle(ids)
+        n = len(ids)
+        n_train = int(n * MULTICLAIM_SPLIT_FRACTIONS["train"])
+        n_dev = int(n * MULTICLAIM_SPLIT_FRACTIONS["dev"])
+        chunks = {"train": ids[:n_train],
+                  "dev": ids[n_train:n_train + n_dev],
+                  "test": ids[n_train + n_dev:]}
+        for split, chunk in chunks.items():
+            for i, post_id in enumerate(chunk):
+                text = posts[post_id].text
+                out[split].append(Row(
+                    record=_make_record(
+                        dataset="multiclaim", split=split, index=i, lang=lang,
+                        text=text, source_id=f"multiclaim:post:{post_id}",
+                        label=None, label_set=None,
+                    ),
+                    text=text,
+                ))
+    return out
+
+
+def _drop_near_duplicates(texts: dict[str, str]) -> set[str]:
+    """Keep one representative per near-duplicate cluster.
+
+    Reuses the same signals and thresholds as the split-building dedup pass in
+    scripts/build_splits.py -- SimHash proximity confirmed by exact Jaccard --
+    so "near duplicate" means one thing across the project.
+
+    Union-find over candidate pairs rather than an all-pairs comparison: 32k
+    posts would be half a billion comparisons, while the banded SimHash index
+    only proposes plausible ones.
+    """
+    from data.leakage import FAIL_JACCARD, WARN_HAMMING
+    from data.simhash import candidate_pairs, hamming, jaccard, simhash64
+
+    # Thresholds are IMPORTED from the detector, never redeclared. They drifted
+    # once already: this clustered at Hamming <= 8 while tests/test_no_leakage
+    # failed anything with Jaccard >= 0.90 out to Hamming 14, leaving a band the
+    # clusterer never considered and the detector rejected. Cluster exactly what
+    # the detector would fail on, and it cannot fail by construction.
+    HAMMING, JACCARD = WARN_HAMMING, FAIL_JACCARD
+
+    items = [(pid, simhash64(text)) for pid, text in sorted(texts.items())]
+    parent: dict[str, str] = {pid: pid for pid, _ in items}
+
+    def find(x: str) -> str:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    shingles: dict[str, set[str]] = {}
+    hashes = dict(items)
+    for a, b in candidate_pairs(items, items):
+        if a == b or find(a) == find(b):
+            continue
+        if hamming(hashes[a], hashes[b]) > HAMMING:
+            continue
+        for pid in (a, b):
+            if pid not in shingles:
+                shingles[pid] = char_shingles(texts[pid])
+        if jaccard(shingles[a], shingles[b]) >= JACCARD:
+            parent[find(a)] = find(b)
+
+    # Lowest id per cluster, so the choice is deterministic.
+    keep: dict[str, str] = {}
+    for pid in sorted(parent, key=lambda x: (len(x), x)):
+        root = find(pid)
+        keep.setdefault(root, pid)
+    return set(keep.values())
+
+
+def multiclaim_rows() -> dict[str, list[Row]]:
+    return load_multiclaim()
+
+
 def averitec_rows() -> dict[str, list[Row]]:
     """AVeriTeC's public release: train and dev only.
 
@@ -178,6 +319,7 @@ def xclaim_rows() -> dict[str, list[Row]]:
 LOADERS = {
     "averitec": averitec_rows,
     "x_claim": xclaim_rows,
+    "multiclaim": multiclaim_rows,
 }
 
 

@@ -167,11 +167,47 @@ Sources, URLs and the sha256 of every downloaded file live in
   one global corpus — see `../docs/specs/SYSTEM_DESIGN.md` §7 for the separate
   demo-corpus problem.
 
+**MultiClaim / SemEval-2025 Task 7** — claim matching, and the project's first
+multilingual retrieval task
+- Zenodo: https://zenodo.org/records/14989177 · **RESTRICTED, access granted
+  per request, NOT redistributable.** The three CSVs live in gitignored
+  `data/raw/multiclaim/`; only ID manifests reach `data/splits/`. Supplied
+  manually, so there is no download script — `scripts/download_data.py` would
+  imply it can be re-fetched, and it cannot.
+- sha256 of all three files is recorded in `data/raw/DOWNLOADS.json`.
+- Contents: **435,252 fact-checks, 89,139 posts, 105,424 pairs** — considerably
+  larger than the 206k the paper describes.
+- Several columns are **Python list literals, not strings**: `claim`, `title`
+  and `post_body` are `(original, english, [languages])`, and the language
+  columns are `[('eng', 1.0)]`. `src/data/multiclaim.py` parses them.
+- **The ORIGINAL text is always taken, never the English translation.** The
+  project exists to measure performance on the language as written;
+  evaluating on machine-translated English would make every multilingual
+  number meaningless.
+
+> **Punjabi is nearly absent.** The whole corpus holds **91 Punjabi posts and
+> 153 Punjabi fact-checks**, which after splitting leaves 7 dev and 7 test.
+> Any Punjabi claim-matching number is a point estimate on single digits and
+> must be reported with that denominator beside it, never as a percentage
+> alone. English has 30,993 pairs and Hindi 11,271; Punjabi has 104.
+
+**The splits here are ours, not upstream's.** MultiClaim ships none, so
+`load_multiclaim` makes an 80/10/10 split stratified by language, seed 42.
+Stratifying matters more than usual precisely because of the Punjabi counts.
+
+That ownership changes how leakage is handled. For AVeriTeC and X-CLAIM,
+dev-test overlap is upstream's and gets allowlisted in `KNOWN_LEAKAGE.json`
+because removing it would alter a published benchmark. Here it would be **our
+bug**, so it is fixed at the source: posts are deduplicated exactly and then
+clustered by near-duplication *before* splitting, so no variant of the same
+viral post can straddle two splits. The clustering imports its thresholds from
+`src/data/leakage.py` rather than restating them — they drifted once, which
+left a band the clusterer ignored and the detector rejected.
+
 ### Not yet acquired
 
 | Dataset | Role | Status |
 | --- | --- | --- |
-| MultiClaim / SemEval-2025 T7 | claim matching (Phase 4) | Zenodo record is restricted; **access requested, awaiting approval**. Add a loader and a `SOURCES` entry once the archive is in hand. |
 | CheckThat! 2025 Task 2 | claim normalization (Phase 3) | Not started. Requires registration; HI has 1081 train rows. |
 
 ### Still open

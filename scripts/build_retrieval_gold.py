@@ -62,10 +62,58 @@ def build(split: str) -> int:
     return 0
 
 
+def build_multiclaim(split: str) -> int:
+    """Gold for claim matching: the fact-checks a post was actually paired with.
+
+    This is the first MULTILINGUAL retrieval task in the project. AVeriTeC is
+    English only and X-CLAIM is a span task with no relevance judgements, so
+    until MultiClaim arrived there was nothing to score the Phase 2 embedding
+    comparison on in Hindi or Punjabi.
+    """
+    from data.multiclaim import load_pairs
+
+    split_path = Path(f"data/splits/multiclaim/{split}.jsonl")
+    if not split_path.is_file():
+        print(f"missing {split_path}; run `python scripts/build_splits.py build "
+              "--dataset multiclaim` first")
+        return 2
+
+    pairs: dict[str, list[str]] = {}
+    for post_id, fc_id, _rel in load_pairs():
+        pairs.setdefault(post_id, []).append(fc_id)
+
+    rows = load_jsonl(split_path)
+    out, missing = [], []
+    for row in rows:
+        post_id = row["source_id"].rsplit(":", 1)[1]
+        gold = sorted(set(pairs.get(post_id, [])))
+        if not gold:
+            missing.append(row["uid"])
+            continue
+        out.append({"uid": row["uid"], "relevant_ids": gold})
+
+    dest = Path(f"data/gold/multiclaim_{split}_retrieval.jsonl")
+    write_jsonl(dest, out)
+    n_gold = sum(len(r["relevant_ids"]) for r in out)
+    by_lang: dict[str, int] = {}
+    for row in rows:
+        by_lang[row["lang"]] = by_lang.get(row["lang"], 0) + 1
+    print(f"  {len(out)}/{len(rows)} posts scoreable -> {dest}")
+    print(f"  {n_gold} gold fact-checks, {n_gold / max(len(out), 1):.2f} per post")
+    print(f"  posts by language: {by_lang}")
+    if missing:
+        print(f"  {len(missing)} post(s) have no pair and are excluded")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python scripts/build_retrieval_gold.py")
     ap.add_argument("--split", default="dev")
-    return build(ap.parse_args(argv).split)
+    ap.add_argument("--dataset", default="averitec", choices=["averitec", "multiclaim"])
+    args = ap.parse_args(argv)
+    if args.dataset == "multiclaim":
+        return build_multiclaim(args.split)
+    return build(args.split)
 
 
 if __name__ == "__main__":
