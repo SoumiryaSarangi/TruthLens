@@ -4,6 +4,14 @@ Multilingual claim verification for forwarded misinformation (EN / HI / PA), inc
 
 2026-09-19 · @Someone
 
+> **Historical document.** This is the original rationale, kept because the
+> reasoning behind each decision is still the reasoning. Where it disagrees with
+> `docs/specs/` it is superseded; where it disagrees with the code, the code wins.
+> Phase timings and the Phase 6 model choice below have been updated for the
+> 14-day plan. Everything else is left as written on 19 Sep 2026, including the
+> embedded copy of `CLAUDE.md` and the session starter prompts, which describe an
+> earlier 4-class verdict scheme. The live files are the source of truth.
+
 ## Decisions locked
 
 Settled by research on 19 Sep 2026. Each carries its reason so it doesn't get re-opened mid-semester. If one changes, note why here rather than silently swapping it.
@@ -96,17 +104,19 @@ The third one is the important one. It is what stops a leaked result from shippi
 
 ## Phases 1-7
 
-Assumes roughly 13 weeks and Colab Pro-level compute. Compress proportionally if there is less of either.
+**14 days, Day 1 = the first day of Phase 1.** Target machine: Intel i7-14700HX with an RTX 4050 laptop GPU, 6 GB VRAM. No Colab, so every model has to fit that card and training is one job at a time — see `specs/SYSTEM_DESIGN.md` §10 for the budget.
 
-### Phase 1 — vertical slice, English only (weeks 1-2)
+**If MultiClaim is not approved by Day 5, swap Phases 4 and 5**: do evidence retrieval and stance first and pick up claim matching when access lands. The fast path is never cut, only reordered.
 
-AVeriTeC dev subset → BM25 over its knowledge store → an off-the-shelf NLI model for a 4-class verdict → template-string explanation with source links → FastAPI `POST /verify` → one HTML page.
+### Phase 1 — vertical slice, English only (Day 1)
+
+AVeriTeC dev subset → BM25 over its knowledge store → an off-the-shelf NLI model for a 5-class verdict → template-string explanation with source links → FastAPI `POST /verify` → one HTML page.
 
 **Deliverable:** paste an English claim, get a verdict and three source links. Ugly. Working. Committed.
 
 This is the insurance policy for the whole semester. Its numbers are the floor everything else must beat.
 
-### Phase 2 — the language layer (weeks 3-4) · Units I & II
+### Phase 2 — the language layer (Days 2-3) · Units I & II
 
 - fastText language ID → script detection → IndicXlit transliteration → code-mix normalization → emoji and forward-artifact stripping
 - Build the romanized eval sets: transliterated X-CLAIM HI/PA plus \~100 hand-typed forwards
@@ -115,31 +125,40 @@ This is the insurance policy for the whole semester. Its numbers are the floor e
 
 **Deliverable:** the native vs romanized performance table. This is Units I and II of the report *and* the research contribution. Get it done early so there is time to iterate on it.
 
-### Phase 3 — front of pipeline (week 5) · Unit V
+### Phase 3 — front of pipeline (Day 4) · Unit V
 
 Check-worthiness filter, claim span identification on X-CLAIM, normalization on CheckThat! 2025 T2. Fine-tuned XLM-R with joint multilingual training, plus monolingual and zero-shot baselines for the ablation table. The "not a factual claim" class lives here.
 
 X-CLAIM's own paper found joint multilingual training beats zero-shot transfer and beats training on English-translated data. Replicate that as a deliberate ablation rather than rediscovering it by accident.
 
-### Phase 4 — claim matching track (weeks 6-7)
+### Phase 4 — claim matching track (Days 5-6)
 
 MultiClaim / SemEval-2025 T7. Report Recall@k, MRR and Success@10, **split by language and by script**. Evaluate retrieval on its own before anything touches generation.
 
 This will be the best-performing component and it is the architectural idea that sets the project apart. Lead with it in the demo.
 
-### Phase 5 — evidence retrieval and stance (weeks 8-9) · Unit III
+### Phase 5 — evidence retrieval and stance (Days 7-8) · Unit III
 
 Hybrid BM25 plus dense retrieval over Wikipedia EN/HI/PA and live search. BiLSTM stance detector as the Unit III baseline, versus fine-tuned XLM-R. Retrieval metrics reported separately from generation metrics.
 
-### Phase 6 — verdict aggregation and grounded generation (weeks 10-11) · Units IV & VI
+### Phase 6 — verdict aggregation and grounded generation (Days 9-11) · Units IV & VI
 
-mT5 or IndicBART explanation generation with citations, decoding-strategy comparison, NLI-based faithfulness scoring, calibration curve, abstention threshold sweep.
+Grounded explanation generation with citations, decoding-strategy comparison, NLI-based faithfulness scoring, calibration curve, abstention threshold sweep.
+
+**Generator: IndicBART. Decided, not "mT5 or IndicBART".** Two reasons, in order:
+
+1. **It fits.** 244M params, ~0.5 GB in fp16, on top of ~2.3 GB of other resident weights inside a 6 GB card with a 5.5 GB ceiling (NFR-3). mT5-base is 580M and mT5-small trades away the fluency that is the whole point of generating rather than templating. IndicBART is also pretrained on Indic languages, which is what the explanations are in.
+2. **It is the right shape for the syllabus.** Unit IV wants seq2seq with attention. IndicBART is an encoder-decoder with cross-attention over the evidence, so the attention visualisation is over the actual evidence passages — the figure means something. A decoder-only model would satisfy the task but not the unit.
+
+**Considered and not adopted: a modern small instruction-tuned model** — Qwen2.5-3B via QLoRA, or similar. It would almost certainly produce more fluent Hindi explanations than IndicBART, and on a 4-bit quantised load it would physically fit. It was rejected **to protect the 14-day timeline**, not on quality: a new quantisation and adapter stack on day 9 of 14 is the kind of thing that eats two days and returns a model that generates beautifully and cites nothing. IndicBART is the known quantity.
+
+**If Days 9-11 have slack, spend it on a prompted-LLM comparison, not on mT5-small.** One table — IndicBART vs a prompted instruction-tuned model on the same claims, scored on the same NLI faithfulness metric — is a far more interesting result than a second small seq2seq baseline, and it answers the obvious viva question ("why not just prompt an LLM?") with a number instead of an opinion.
 
 **The abstention curve is the headline result.** Accuracy at 100% coverage will look mediocre. Accuracy at 60% coverage, with the system declining the rest, looks excellent — and it is the honest, deployable framing.
 
-### Phase 7 — demo, ablations, report (weeks 12-13)
+### Phase 7 — demo, ablations, report (Days 12-14)
 
-**Freeze code at the end of week 12. Week 13 is writing only.**
+**Freeze code at the end of Day 12. Days 13-14 are writing and demo polish only.**
 
 - WhatsApp-style UI, verdict card, evidence trail with highlighted spans, visible confidence
 - Error analysis: ten real failure cases per language, discussed
@@ -275,7 +294,7 @@ Fill this in as each number lands. A row without a baseline is not a result — 
 | Check-worthiness | macro-F1 | majority class | — | — |
 | Stance (BiLSTM) | macro-F1 | TF-IDF + LR | — | — |
 | Stance (XLM-R) | macro-F1 | BiLSTM | — | — |
-| Verdict, 4-class | macro-F1 | majority class | — | AVeriTeC \~47-50% acc |
+| Verdict, 5-class | macro-F1 | majority class | — | AVeriTeC \~47-50% acc |
 | Explanation faithfulness | NLI entailment rate | — | — | — |
 | Abstention | acc @ 60% coverage | acc @ 100% | — | — |
 
@@ -288,7 +307,7 @@ Every row above should eventually exist twice: once on native script, once on ro
 ### To resolve this week
 
 - [ ] **Submission deadline.** The 13-week plan is an assumption. A shorter runway means merging Phases 5 and 6 and cutting items 1 and 2 from the cut list immediately.
-- [ ] **Compute.** XLM-R-large fine-tuning and mT5 generation have very different plans on a free T4 versus an A100. If it's free-tier Colab: use XLM-R-base, IndicBART over mT5, and LoRA throughout.
+- [x] **Compute. Settled:** local RTX 4050 laptop GPU, 6 GB VRAM, no Colab. So: XLM-R-**base** not large, IndicBART not mT5, LoRA throughout, fp16, one training job at a time and never alongside the API server. Inference budget and per-model VRAM in `specs/SYSTEM_DESIGN.md` §10.
 - [ ] **MultiClaim access.** The Zenodo record is marked restricted — request access early, it may take days. The SemEval-2025 T7 release is the fallback.
 - [ ] **AVeriTeC knowledge store size.** Roughly 1000 articles per claim across 4568 claims is large. Check disk before downloading; a subset may be necessary.
 

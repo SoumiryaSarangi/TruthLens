@@ -61,10 +61,18 @@ FAISS, rank_bm25, IndicXlit (AI4Bharat), fastText LID, FastAPI.
   `PYTHONIOENCODING=utf-8` — Windows consoles are cp1252 and crash on
   Devanagari output.
 
+## Precedence when documents disagree
+code and tests > CLAUDE.md > docs/specs/ > docs/build-plan.md (historical).
+If a spec contradicts the code, the spec is wrong — fix the spec, not the code.
+
 ## Where things live
 - docs/project-log.md       — RUNNING RECORD. Read this first in a new session
                               or after a context compaction: what is built,
                               what was decided and why, what is next.
+- docs/specs/PRD.md         — why and for whom; scope priorities, success bars
+- docs/specs/SRS.md         — numbered requirements, each with how it is verified
+- docs/specs/SYSTEM_DESIGN.md — stage contracts, API schema, GPU budget
+- docs/specs/UI_UX.md       — screens, states, copy, demo script
 - docs/phase-plan.md        — current phase and what is in scope
 - docs/environment.md       — interpreter, locks, Windows gotchas
 - docs/results.md           — generated results tables (`make table`)

@@ -13,7 +13,9 @@ instructions and the JSON is the record.
 | uv | `uv 0.12.17 (635500036 2026-09-18 x86_64-pc-windows-msvc)` |
 | GNU Make | `GNU Make 3.81` |
 | Platform | Windows 11, x86_64 |
-| torch | not installed yet — Phase 1 |
+| GPU | NVIDIA RTX 4050 laptop, **6 GB VRAM** (inference ceiling 5.5 GB, NFR-3) |
+| CPU | Intel i7-14700HX |
+| torch | **not installed yet** — Phase 1. Install the **CUDA** build, then record the resolved build string here |
 
 The system Python on this machine is 3.13, which the stack does not support.
 `uv python install 3.11` fetches its own interpreter, so the system one is
@@ -66,22 +68,51 @@ uv pip compile requirements-dev.in -o requirements-dev.txt --generate-hashes --p
 uv pip compile requirements-ml.in  -o requirements-ml.txt  --generate-hashes --python-version 3.11
 ```
 
-## torch is deliberately not in any lock
+## torch: install the CUDA build
 
-CPU and CUDA wheels come from different indexes and are different builds. If
-torch were pinned in the lock, a laptop run and a Colab run would silently be
-different software under the same version string.
+This machine has an **NVIDIA RTX 4050 laptop GPU, 6 GB VRAM**. Install the CUDA
+build. Installing the CPU build is the expensive mistake here: everything still
+works, nothing errors, training is just twenty times slower, and on a 14-day
+timeline that is most of the project.
 
 ```bash
-# laptop
-uv pip install torch --index-url https://download.pytorch.org/whl/cpu
-# Colab (CUDA already present)
-uv pip install torch
+# NOT YET INSTALLED - this is the Phase 1 setup step
+uv pip install torch --index-url https://download.pytorch.org/whl/cu124
 ```
 
-`src/common/provenance.py` records `torch.__version__` and
-`torch.cuda.is_available()` into every results JSON, so two runs can always be
-told apart after the fact.
+Pick the `cuXXX` index that matches the driver; check with `nvidia-smi`. If the
+driver is older than the wheel's CUDA runtime, step down one minor version rather
+than upgrading the driver mid-project.
+
+**Verify it, don't assume it.** A CPU wheel installs perfectly happily:
+
+```bash
+python -c "import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available(), torch.cuda.get_device_name(0))"
+```
+
+`cuda.is_available()` must be `True` and the device name must say RTX 4050. Then
+**record the resolved build string in the table at the top of this file** — the
+exact `torch.__version__` (e.g. `2.x.x+cu124`) — so a number produced today can
+be told apart from one produced after an upgrade.
+
+`src/common/provenance.py` already stamps `torch.__version__` and
+`torch.cuda.is_available()` into every results JSON, so the record is automatic
+per run; this file is the human-readable copy.
+
+### Why torch is in no lock file
+
+CPU and CUDA wheels come from different indexes and are genuinely different
+builds. Pinning one would mean this laptop and CI run different software under
+the same version string — and CI deliberately has no torch at all, since the
+fast job installs the core lock only.
+
+### VRAM budget
+
+`SRS.md` NFR-3 sets an inference ceiling of **5.5 GB**, leaving headroom on the
+6 GB card. `SYSTEM_DESIGN.md` §10 estimates ~2.8 GB of resident weights. That is
+an estimate, not a measurement: once models load, measure with
+`torch.cuda.max_memory_allocated()` and write the real figure into this file.
+Training runs one model at a time, with the API server stopped (NFR-4).
 
 ## Windows gotchas
 

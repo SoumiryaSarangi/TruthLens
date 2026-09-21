@@ -8,10 +8,14 @@ Append to it; do not rewrite history. Every entry is dated. If a decision is
 reversed, add a new entry saying so rather than editing the old one — the
 reasoning that turned out wrong is still evidence.
 
-**Related files:** `CLAUDE.md` (rules and conventions) · `docs/build-plan.md`
-(the original plan and its reasoning) · `docs/phase-plan.md` (where we are in
-the phase order) · `docs/data-profile.md` (generated counts) ·
-`docs/results.md` (generated results tables) · `docs/environment.md` (toolchain).
+**Related files:** `CLAUDE.md` (rules and conventions) · `docs/specs/` (PRD,
+SRS, SYSTEM_DESIGN, UI_UX — what is being built) · `docs/phase-plan.md` (where
+we are in the phase order) · `docs/build-plan.md` (historical rationale) ·
+`docs/data-profile.md` (generated counts) · `docs/results.md` (generated
+results tables) · `docs/environment.md` (toolchain).
+
+**Precedence when they disagree:** code and tests > `CLAUDE.md` > `docs/specs/`
+> `docs/build-plan.md`.
 
 ---
 
@@ -19,7 +23,9 @@ the phase order) · `docs/data-profile.md` (generated counts) ·
 
 | | |
 | --- | --- |
-| **Current phase** | Phase 0 complete; data acquisition done. Phase 1 not started. |
+| **Current phase** | Phase 0 complete; data acquired; specs written. Phase 1 not started. |
+| **Clock** | 14 days. Day 1 = first day of Phase 1, which has not begun. Freeze end of Day 12. |
+| **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |
 | **Python** | 3.11.16 via uv, in `.venv`. System Python is 3.13 and is not used. |
 | **Tests** | 83 passing, 1 skipped |
@@ -166,15 +172,110 @@ list still fails. Bounds dev→test contamination at 2/571 = **0.35%**.
 
 ---
 
+## 2026-09-21 — Specs added; 14-day timeline; hardware settled
+
+Four specification documents landed in `docs/specs/`. This entry records what
+they own, what changed around them, and every place they disagreed with the code.
+
+### What each document owns
+
+| Document | Owns | Does not own |
+| --- | --- | --- |
+| `PRD.md` | Why and for whom: problem, users, scenarios, scope priorities, success bars | Testable requirements |
+| `SRS.md` | Numbered requirements (FR-1…FR-27, NFR-1…NFR-12), each with a verification method | Why they exist; how they are built |
+| `SYSTEM_DESIGN.md` | Stage contracts, data models, API schema, GPU budget, failure handling | Requirements; screens |
+| `UI_UX.md` | Screens, states, verdict card, copy, accessibility, demo script | Response fields |
+
+**Precedence, now written into `CLAUDE.md`:** code and tests > `CLAUDE.md` >
+`docs/specs/` > `docs/build-plan.md`. The build plan is reclassified as
+historical rationale and carries a header note saying so. Its embedded copy of
+an older `CLAUDE.md` and its session starter prompts still describe the 4-class
+scheme; they are left as written rather than back-dated.
+
+### Timeline and hardware
+
+13 weeks became **14 days**, Day 1 = the first day of Phase 1. Phase 1 Day 1 ·
+Phase 2 Days 2-3 · Phase 3 Day 4 · Phase 4 Days 5-6 · Phase 5 Days 7-8 ·
+Phase 6 Days 9-11 · Phase 7 Days 12-14, **code freeze end of Day 12**.
+
+Added rule: **if MultiClaim is not approved by Day 5, swap Phases 4 and 5** and
+do evidence retrieval first. The fast path is reordered, never cut.
+
+Hardware settled: **i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM, no Colab.**
+That closes the build plan's open "Compute" question and fixes the model sizes:
+XLM-R-base not large, LoRA throughout, fp16, one training job at a time.
+
+### Phase 6 generator: IndicBART, decided
+
+Was "mT5 or IndicBART". Now IndicBART, for two reasons in order: it fits
+(244M, ~0.5 GB fp16, inside a 5.5 GB inference ceiling alongside ~2.3 GB of
+other resident weights), and it is an encoder-decoder, so the Unit IV
+seq2seq-with-attention requirement is satisfied by attention over the actual
+evidence passages rather than by a figure that means nothing.
+
+**Considered and rejected: a modern small instruction-tuned model** (Qwen2.5-3B
+via QLoRA). It would likely produce more fluent Hindi explanations and would
+physically fit at 4-bit. Rejected **to protect the timeline, not on quality** —
+a new quantisation and adapter stack on day 9 of 14 can eat two days and return
+a model that generates beautifully and cites nothing.
+
+If Days 9-11 have slack, spend it on a **prompted-LLM comparison** rather than
+on mT5-small. It answers the obvious viva question ("why not just prompt an
+LLM?") with a number instead of an opinion.
+
+### Conflicts found, and how each was resolved
+
+Spec vs code — the code won every time, per the precedence rule:
+
+| Conflict | Resolution |
+| --- | --- |
+| `Script` Literal included `"mixed"`, and FR-4 claimed `script_id.py` detects it. It does not — `detect_script()` returns `deva`/`guru`/`latn` only | Dropped `"mixed"`. Added `script_purity: float` to `Preprocessed`, reusing the existing `script_id.script_purity()`. A fourth enum value would have created a new per-script cell and changed the native-vs-romanized table |
+| `Lang` includes `"other"`; `splits.py LANGS` does not | Not a real conflict — `other` is runtime-only, never a split row. Stated explicitly so nobody "fixes" the split schema to match |
+| `SYSTEM_DESIGN` §13 presented `make index` and `make serve` as existing | Marked both new-in-Phase-1. `make setup-ml` does exist |
+
+Spec vs spec:
+
+| Conflict | Resolution |
+| --- | --- |
+| `UI_UX` §7 requires the confidence-band cut points from `/version` and forbids hard-coding them; `SYSTEM_DESIGN` §8 and FR-21 both omitted them, leaving the UI no legal source | Added `confidence_bands: {high, medium}` to the `/version` payload and to FR-21 |
+| The abstain → template-explanation rule was in `SYSTEM_DESIGN` §2 prose and the diagram, but missing from §11's failure table where every other degradation rule lives | Added the row to §11 |
+
+Docs vs reality:
+
+| Conflict | Resolution |
+| --- | --- |
+| `environment.md` said to install the **CPU** torch build | Corrected to the CUDA build, with a verification snippet and an instruction to record the resolved build string. A CPU wheel installs silently and trains ~20x slower — on 14 days that is most of the project |
+| `phase-plan.md` said loaders were not started, splits had no data, and the AVeriTeC label mapping was undecided | All four were done. Rewritten |
+| `build-plan.md` Phase 1 and its results-log row still said 4-class | Both now 5-class |
+
+### Carried forward as open questions
+
+- **`mixed` as a fourth script value** — decided against for now (it would change
+  the harness breakdown vocabulary), but it is a product question as much as a
+  technical one and can be revisited in Phase 2.
+- **No transliteration package is pinned.** `CLAUDE.md` promises IndicXlit;
+  `requirements-ml.txt` contains nothing that can transliterate. FR-5 is P0 and
+  all of Phase 2 depends on it. The Day-2 install spike is scheduled, but the
+  lock needs an entry either way.
+- **`requirements-ml.in` still has Colab comments** (`peft ... free-tier Colab
+  contingency`). Cosmetic, left alone in a docs-only change.
+
+
 ## Next
 
-**Phase 1 — vertical slice, English only.** AVeriTeC dev → BM25 over its
-knowledge store → off-the-shelf NLI for a 5-class verdict → template
-explanation with source links → FastAPI `POST /verify` → one HTML page. Ugly,
-working, committed. Its numbers are the floor everything else must beat.
+**Phase 1 — vertical slice, English only. This is Day 1;** the 14-day clock
+starts when it does. AVeriTeC dev → BM25 over its knowledge store →
+off-the-shelf NLI for a 5-class verdict → template explanation with source
+links → FastAPI `POST /verify` → one plain HTML page. Ugly, working,
+committed. Its numbers are the floor everything else must beat.
 
-Before starting it: `make setup-ml`, then install torch for this machine
-(CPU vs CUDA are different builds — see `docs/environment.md`).
+Contracts and module layout: `docs/specs/SYSTEM_DESIGN.md` §4–5. Requirements:
+`docs/specs/SRS.md`. Do not re-derive either.
+
+Before starting it: `make setup-ml`, then install the **CUDA** torch build for
+the RTX 4050 and verify `torch.cuda.is_available()` — see
+`docs/environment.md`. A CPU wheel installs silently and costs most of the
+timeline.
 
 ### Open items
 
@@ -184,10 +285,15 @@ Before starting it: `make setup-ml`, then install torch for this machine
 - **CheckThat! 2025 Task 2** — not started; needed for Phase 3.
 - **AVeriTeC knowledge store** — only claims are downloaded. The evidence
   store is ~1000 articles × 4568 claims; ~109 GB free here, so check size and
-  plan on a subset. Phase 1 needs this.
-- **CI has never been observed green.** The GitHub API returns 403
-  unauthenticated, so CI status has not been verified from this machine.
-  `gh` is now installed; run `gh run list` to check.
+  plan on a subset. **Phase 1 is blocked on this.**
+- **No transliteration package is pinned** in `requirements-ml.txt`, though
+  `CLAUDE.md` promises IndicXlit and FR-5 is P0. Day-2 install spike is
+  scheduled; the lock needs an entry either way.
+- **MultiClaim swap rule** — if access is not granted by **Day 5**, swap
+  Phases 4 and 5 and do evidence retrieval first.
+- ~~CI has never been observed green.~~ **Resolved 2026-09-21: it has.**
+  `gh` is authenticated; `gh run list` shows 4 of 5 runs green including the
+  latest, and run #6 was checked job by job (`check` 18s, `data` 27s).
 
 ### Standing rules that are easy to forget
 

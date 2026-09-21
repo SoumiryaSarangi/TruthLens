@@ -11,57 +11,80 @@ seconds without reading the whole plan.
 
 ## Current phase
 
-**Phase 0 complete. Data acquired (AVeriTeC, X-CLAIM). Phase 1 not started.**
+**Phase 0 complete. AVeriTeC and X-CLAIM acquired and frozen. Phase 1 not started.**
 
-In scope: repo skeleton, pinned dependencies, the frozen-splits convention,
-the eval harness, the leakage test, CI.
+The clock is **14 days**, and **Day 1 is the first day of Phase 1** — it has not
+started, so the count has not started. Target machine: Intel i7-14700HX with an
+**RTX 4050 laptop GPU, 6 GB VRAM**. No Colab. Every model choice is constrained by
+that card; see `specs/SYSTEM_DESIGN.md` §10 for the GPU budget.
 
-Out of scope, deliberately: **all model code**. Nothing in `src/` imports
-torch, transformers, sentence-transformers or FAISS yet.
+Out of scope until Phase 1 opens: **all model code**. Nothing in `src/` imports
+torch, transformers, sentence-transformers or FAISS yet, and CI depends on that
+staying true — the fast job installs the core lock only.
 
 ## What exists
 
 | Piece | Where | State |
 | --- | --- | --- |
-| Eval harness | `src/eval/evaluate.py` | Works: classification + retrieval |
+| Eval harness | `src/eval/evaluate.py` | Works: classification + retrieval. 5 guardrails |
 | Metrics | `src/eval/metrics.py` | Cross-checked against scikit-learn |
 | Dumb baselines | `src/eval/baselines.py` | majority_class, stratified_random, random_rank |
+| Results tables | `src/eval/report.py` | `make table` → `docs/results.md` |
 | Leakage detection | `src/data/leakage.py` | 4 checks, proven against planted leaks |
-| Frozen splits | `data/splits/` | Convention + lock in place; **no data yet** |
-| Dataset loaders | `src/data/` | Not started — Session 2 |
+| Dataset loaders | `src/data/loaders.py` | **Done** — AVeriTeC, X-CLAIM |
+| Script detection | `src/data/script_id.py` | **Done** — per row, never from the lang label |
+| Frozen splits | `data/splits/` | **Done** — averitec 2666/500/307, x_claim 5343/600/571 |
+| Profiling | `scripts/profile_data.py` | **Done** — `make profile` → `docs/data-profile.md` |
+| CI | `.github/workflows/ci.yml` | Green. `check` + `data` (proves splits reproduce from source) |
+| Pipeline, API, UI | `src/pipeline/`, `app/` | **Not started** — Phase 1 |
 
-## Next: Session 2 — data
+## Next: Phase 1 — vertical slice, English only (Day 1)
 
-Write `src/data/` loaders for AVeriTeC, X-CLAIM and CheckThat! 2025 Task 2.
-For each: download instructions in `data/CLAUDE.md`, a loader returning the
-common schema, and a profiling script reporting per-language and per-split
-counts into `docs/data-profile.md`. Then build the frozen splits and make
-`make leakage` pass on real data. Do not touch models.
+AVeriTeC dev → BM25 over its knowledge store → off-the-shelf NLI for a 5-class
+verdict → template explanation with source links → `POST /verify` → one plain HTML
+page. Ugly, working, committed. Its numbers are the floor everything else beats.
 
-Two decisions are blocking and must be made during that session, not after:
+Contracts and module layout are specified in `specs/SYSTEM_DESIGN.md` §4–5;
+requirements in `specs/SRS.md`. Do not re-derive them here.
 
-- **The AVeriTeC label mapping.** `src/data/labels.py` raises
-  `UnresolvedLabelMapping` for `Conflicting Evidence/Cherrypicking` on
-  purpose. Pick one of the three options documented there and record why.
-- **AVeriTeC knowledge store size.** ~109 GB free on this machine. Check
-  before downloading; a subset is likely necessary.
+### Blocking before or during Phase 1
 
-## Phase order
+- **AVeriTeC knowledge store is not downloaded.** Only the claims are. Phase 1's
+  retrieval needs it: ~1000 articles across 4568 claims, ~109 GB free on this
+  machine. Check the size and subset to dev + train before pulling anything.
+- **CUDA torch is not installed.** `docs/environment.md` has the command. The
+  wrong build silently trains on CPU and burns days.
 
-| Phase | Weeks | What |
+### Open, not yet blocking
+
+- **MultiClaim** — access requested on Zenodo, not yet granted. **If it is not
+  approved by Day 5, swap Phases 4 and 5** and do evidence retrieval first.
+- **IndicXlit install spike, Day 2.** Its package has historically needed fairseq,
+  which is awkward on Windows + Python 3.11. Timebox 30 minutes; fall back to WSL
+  or a rule-based transliterator with the accuracy loss measured, not hidden.
+  Note that **no transliteration package is pinned in `requirements-ml.txt` yet**.
+- **CheckThat! 2025 Task 2** — not started; needed for Phase 3.
+
+## Phase order — 14 days
+
+Day 1 is the first day of Phase 1.
+
+| Phase | Days | What |
 | --- | --- | --- |
-| 0 | — | Harness. **Done.** |
-| 1 | 1–2 | Vertical slice, English only |
-| 2 | 3–4 | Language layer; the native vs romanized table |
-| 3 | 5 | Front of pipeline: check-worthiness, span ID, normalization |
-| 4 | 6–7 | Claim matching |
-| 5 | 8–9 | Evidence retrieval and stance |
-| 6 | 10–11 | Verdict aggregation and grounded generation |
-| 7 | 12–13 | Demo, ablations, report. **Code freezes end of week 12.** |
+| 0 | — | Harness and data. **Done.** |
+| 1 | 1 | Vertical slice, English only |
+| 2 | 2–3 | Language layer; the native vs romanized table |
+| 3 | 4 | Front of pipeline: check-worthiness, span ID, normalization |
+| 4 | 5–6 | Claim matching *(swaps with Phase 5 if MultiClaim is not approved by Day 5)* |
+| 5 | 7–8 | Evidence retrieval and stance |
+| 6 | 9–11 | Verdict aggregation, calibration, grounded generation |
+| 7 | 12–14 | Demo, ablations, report. **Code freezes end of Day 12.** |
+
+Days 13–14 are writing and demo polish only. Nothing new ships in them.
 
 ## The cut list, in order
 
-Decided in advance so it is not decided in panic at week 11.
+Decided in advance so it is not decided in panic on Day 11.
 
 1. Manipulation detection as a trained classifier -> zero-shot prompt + rules
 2. Live search API -> static corpus, recency limitation reported honestly
