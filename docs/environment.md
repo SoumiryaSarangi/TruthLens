@@ -15,7 +15,7 @@ instructions and the JSON is the record.
 | Platform | Windows 11, x86_64 |
 | GPU | NVIDIA RTX 4050 laptop, **6 GB VRAM** (inference ceiling 5.5 GB, NFR-3) |
 | CPU | Intel i7-14700HX |
-| torch | **not installed yet** — Phase 1. Install the **CUDA** build, then record the resolved build string here |
+| torch | **`2.9.1+cu128`** — CUDA build, verified on the RTX 4050 (installed 21 Sep 2026) |
 
 The system Python on this machine is 3.13, which the stack does not support.
 `uv python install 3.11` fetches its own interpreter, so the system one is
@@ -106,13 +106,49 @@ builds. Pinning one would mean this laptop and CI run different software under
 the same version string — and CI deliberately has no torch at all, since the
 fast job installs the core lock only.
 
-### VRAM budget
+This was **not actually true until 21 Sep 2026**: `requirements-ml.txt` pinned
+`torch==2.14.0`, pulled in as a dependency of `sentence-transformers` and
+`transformers`. On Windows the PyPI wheel is CPU-only, so `uv pip install -r
+requirements-ml.txt` would have silently replaced the CUDA build with a CPU one
+— the exact failure this section warns about, sitting inside the lock that was
+supposed to prevent it. The lock is now compiled with:
 
-`SRS.md` NFR-3 sets an inference ceiling of **5.5 GB**, leaving headroom on the
-6 GB card. `SYSTEM_DESIGN.md` §10 estimates ~2.8 GB of resident weights. That is
-an estimate, not a measurement: once models load, measure with
-`torch.cuda.max_memory_allocated()` and write the real figure into this file.
-Training runs one model at a time, with the API server stopped (NFR-4).
+```bash
+uv pip compile requirements-ml.in -o requirements-ml.txt     --generate-hashes --python-version 3.11 --no-emit-package torch
+```
+
+Keep the `--no-emit-package torch` flag on every recompile. After any
+`uv pip install -r requirements-ml.txt`, check that torch is still a `+cu` build:
+
+```bash
+python -c "import torch; assert '+cu' in torch.__version__, torch.__version__"
+```
+
+### VRAM budget — measured, and smaller than the spec assumes
+
+`SRS.md` NFR-3 sets an inference ceiling of **5.5 GB** on a 6 GB card.
+**Measured on an idle desktop, only 4.96 GiB of the 6.00 GiB is actually
+free** — Windows WDDM reserves roughly 1 GiB for desktop compositing, and that
+reservation grows with a browser or a second monitor.
+
+So treat **~4.9 GiB as the real ceiling**, not 5.5 GB. `SYSTEM_DESIGN.md` §10
+estimates ~2.8 GB of resident weights, which still fits, but the headroom is
+about 2 GiB rather than the 2.7 GB the spec implies. That is the margin
+activations have to live in.
+
+```bash
+python -c "import torch; f,t=torch.cuda.mem_get_info(); print(f'free {f/1024**3:.2f} / {t/1024**3:.2f} GiB')"
+```
+
+Practical consequences:
+
+- Close the browser before a training run. It is worth several hundred MB.
+- Measure with `torch.cuda.max_memory_allocated()` once models actually load,
+  and write the real figure here rather than trusting §10's estimate.
+- Training runs one model at a time with the API server stopped (NFR-4). On
+  this card that is a hard requirement, not hygiene.
+- If a model will not fit, the order to try is: smaller batch, gradient
+  checkpointing, then 4-bit — not a smaller model, which changes the result.
 
 ## Windows gotchas
 

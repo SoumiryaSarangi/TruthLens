@@ -23,7 +23,7 @@ results tables) · `docs/environment.md` (toolchain).
 
 | | |
 | --- | --- |
-| **Current phase** | Phase 0 complete; data acquired; specs written. Phase 1 not started. |
+| **Current phase** | Phase 0 complete; specs written; **environment and data ready**. Phase 1 not started, nothing blocking it. |
 | **Clock** | 14 days. Day 1 = first day of Phase 1, which has not begun. Freeze end of Day 12. |
 | **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |
@@ -31,6 +31,7 @@ results tables) · `docs/environment.md` (toolchain).
 | **Tests** | 83 passing, 1 skipped |
 | **Datasets in hand** | AVeriTeC, X-CLAIM |
 | **Datasets waiting** | MultiClaim (access requested), CheckThat! 2025 T2 (not started) |
+| **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
 | **Models trained** | None. No model code exists yet — this is deliberate. |
 
 ---
@@ -261,6 +262,96 @@ Docs vs reality:
   contingency`). Cosmetic, left alone in a docs-only change.
 
 
+## 2026-09-21 — Phase 1 unblocked: GPU stack, knowledge store, transliteration
+
+Everything listed as blocking Phase 1 is cleared. Nothing here is model code;
+this is the environment and the data Phase 1 will consume.
+
+### AVeriTeC knowledge store
+
+`make kb` → `scripts/download_knowledge_store.py`. Downloaded the **dev** store,
+**11.54 GB**, sha256 recorded in `data/raw/averitec_kb/DOWNLOADS.json`.
+
+Sizes, measured from the HF API rather than estimated:
+
+| Split | Size |
+| --- | --- |
+| dev | 11.54 GB ← downloaded, all Phase 1 needs |
+| train | 63.52 GB |
+| test | 40.71 GB |
+| **all** | **115.78 GB — would not have fit in 112 GB free** |
+
+The old note said "check size before downloading; a subset is likely
+necessary". It was: the full store does not fit on this disk, and dev being a
+separate file is what makes Phase 1 possible at all.
+
+**Do not extract it.** 11.54 GB compressed → **36.55 GB** uncompressed (x3.2).
+It holds 500 members, `output_dev/{0..499}.json`, one per dev claim, so a
+claim's candidates are read straight from the archive. Extracting buys nothing.
+
+Verified end to end before trusting it: all 500 ids present, `claim_id` inside
+each file agrees with its filename, and our split's `source_id`
+(`averitec:dev.json:133`) parses directly to `output_dev/133.json`. Each claim
+carries ~800–1500 candidate documents, of which **`type == "gold"` (2–4 per
+claim) is the annotated evidence** — Phase 1's retrieval gold, free.
+
+Retrieval ranks **within one claim's pool**, which is AVeriTeC's own protocol
+and what keeps our Recall@k comparable with published numbers.
+
+### The download had to be written, not run
+
+`huggingface.co` fails on this connection: **0 of 12 attempts** succeeded, TLS
+reset mid-handshake. The short alias **`hf.co` works**, and serves HTTP 206, so
+the fetcher uses it with Range resumption and backoff. It survived several
+reconnects across 11.5 GB. This applies to model downloads too — use `hf.co`.
+
+### GPU stack
+
+`torch==2.9.1+cu128`, verified: `cuda.is_available() == True`, device "NVIDIA
+GeForce RTX 4050 Laptop GPU", 6.00 GiB, `sm_89`, a real matmul on device.
+Driver 610.62 / CUDA UMD 13.3, so cu121–cu128 were all viable; cu128 is the
+newest with Windows py311 wheels.
+
+**A trap found and closed.** `requirements-ml.txt` pinned `torch==2.14.0`,
+pulled in by `sentence-transformers` and `transformers`. On Windows the PyPI
+wheel is CPU-only, so `uv pip install -r requirements-ml.txt` would have
+silently replaced the CUDA build with a CPU one — the exact failure
+`environment.md` warns about, sitting inside the lock meant to prevent it, and
+the document claimed "torch is deliberately not in any lock" while it was.
+Now compiled with `--no-emit-package torch`, and `make setup-ml` asserts
+`'+cu' in torch.__version__` after installing so a regression fails loudly.
+
+### Measured: real VRAM is ~4.9 GiB, not 5.5 GB
+
+On an idle desktop only **4.96 of the 6.00 GiB is free** — Windows WDDM holds
+about 1 GiB for compositing, and a browser takes more. NFR-3's 5.5 GB ceiling
+is not reachable in practice. SYSTEM_DESIGN §10's ~2.8 GB of resident weights
+still fits, but the headroom for activations is ~2 GiB, not 2.7 GB. Recorded in
+`environment.md` with the consequences: close the browser before training, one
+model at a time, and if something does not fit try batch size and gradient
+checkpointing before reaching for a smaller model.
+
+### Transliteration is no longer an open gap
+
+`ai4bharat-transliteration` (IndicXlit) **depends on fairseq** — confirmed from
+its PyPI metadata, not assumed — which does not install cleanly on Windows +
+Python 3.11. So `indic-transliteration` 2.3.82 (pure Python, no heavy deps) and
+`indic-nlp-library` are pinned as the **baseline**, not as a contingency.
+Verified working: `namaste bharat` → `नमस्ते भरत्`.
+
+The Day-2 spike now tries IndicXlit as an **upgrade** measured against a
+working baseline on Dakshina, rather than as a dependency Phase 2 is blocked
+on. Also cleaned the stale "free-tier Colab contingency" comment off `peft`.
+
+### Still open
+
+- **MultiClaim** — awaiting Zenodo approval. Swap Phases 4 and 5 if not
+  granted by Day 5.
+- **CheckThat! 2025 Task 2** — not started, needed for Phase 3.
+- **Knowledge store train split** (63.52 GB) — not downloaded. Only needed if
+  training retrieval on AVeriTeC train; dev covers Phase 1 and evaluation.
+
+
 ## Next
 
 **Phase 1 — vertical slice, English only. This is Day 1;** the 14-day clock
@@ -272,10 +363,9 @@ committed. Its numbers are the floor everything else must beat.
 Contracts and module layout: `docs/specs/SYSTEM_DESIGN.md` §4–5. Requirements:
 `docs/specs/SRS.md`. Do not re-derive either.
 
-Before starting it: `make setup-ml`, then install the **CUDA** torch build for
-the RTX 4050 and verify `torch.cuda.is_available()` — see
-`docs/environment.md`. A CPU wheel installs silently and costs most of the
-timeline.
+**The environment is ready** — CUDA torch, the ML stack and the dev knowledge
+store are all installed and verified (see the 21 Sep entry). Day 1 starts on
+code, not setup.
 
 ### Open items
 
@@ -283,14 +373,10 @@ timeline.
   lands: add a `SOURCES` entry in `scripts/download_data.py`, a loader in
   `src/data/loaders.py`, then `make data`.
 - **CheckThat! 2025 Task 2** — not started; needed for Phase 3.
-- **AVeriTeC knowledge store** — only claims are downloaded. The evidence
-  store is ~1000 articles × 4568 claims; ~109 GB free here, so check size and
-  plan on a subset. **Phase 1 is blocked on this.**
-- **No transliteration package is pinned** in `requirements-ml.txt`, though
-  `CLAUDE.md` promises IndicXlit and FR-5 is P0. Day-2 install spike is
-  scheduled; the lock needs an entry either way.
 - **MultiClaim swap rule** — if access is not granted by **Day 5**, swap
   Phases 4 and 5 and do evidence retrieval first.
+- **Knowledge store train split** (63.52 GB) not downloaded; dev is enough for
+  Phase 1 and for evaluation.
 - ~~CI has never been observed green.~~ **Resolved 2026-09-21: it has.**
   `gh` is authenticated; `gh run list` shows 4 of 5 runs green including the
   latest, and run #6 was checked job by job (`check` 18s, `data` 27s).

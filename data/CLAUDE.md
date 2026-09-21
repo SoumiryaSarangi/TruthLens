@@ -127,6 +127,45 @@ Sources, URLs and the sha256 of every downloaded file live in
 > the filename. Punjabi is **26.5% non-native script** in train, the largest
 > romanized share in the corpus and directly relevant to the contribution.
 
+**AVeriTeC knowledge store** — evidence pool for Phase 1 retrieval
+- `make kb` (`scripts/download_knowledge_store.py`). Resumable; safe to
+  interrupt and rerun. Downloaded from **`hf.co`, not `huggingface.co`** — the
+  long hostname has its TLS sessions reset on this connection (measured 0/12
+  success), the short alias works.
+- Sizes, measured from the HF API rather than guessed:
+
+  | Split | Size | State |
+  | --- | --- | --- |
+  | dev | **11.54 GB** | **downloaded** — all Phase 1 needs |
+  | train | 63.52 GB (3 files) | not downloaded |
+  | test | 40.71 GB | not downloaded, and not wanted |
+  | *all* | *115.78 GB* | *does not fit — 112 GB free* |
+
+- **Do not extract it.** The zip is 11.54 GB and expands to **36.55 GB** (x3.2).
+  It holds 500 members, `output_dev/{0..499}.json`, **one per dev claim**, so a
+  single claim's candidates can be read straight out of the archive with
+  `zipfile.ZipFile(...).open(f"output_dev/{idx}.json")`. Extracting all of it
+  buys nothing and costs 36 GB.
+- Each member is JSONL, one candidate document per line:
+
+  ```json
+  {"claim_id": "133", "type": "gold", "query": "...", "url": "https://...",
+   "url2text": ["paragraph 1", "paragraph 2", "..."]}
+  ```
+
+- **`type` marks provenance, and `type == "gold"` is the annotated evidence** —
+  2-4 per claim. That is the retrieval gold for Phase 1's Recall@k, free, with
+  no extra annotation. The other ~800-1500 documents per claim (`question`,
+  `gpt_url_only`, `most_similar`, `NER`, …) are the distractor pool.
+- **The join key is the dev.json index.** Verified end to end: all 500 files
+  present for ids 0-499, `claim_id` inside each file agrees with its filename,
+  and our split's `source_id` (`averitec:dev.json:133`) parses straight to
+  `output_dev/133.json`.
+- Retrieval is ranked **within one claim's pool**, which is AVeriTeC's own
+  protocol and what makes our numbers comparable to published ones. It is not
+  one global corpus — see `../docs/specs/SYSTEM_DESIGN.md` §7 for the separate
+  demo-corpus problem.
+
 ### Not yet acquired
 
 | Dataset | Role | Status |
@@ -135,10 +174,6 @@ Sources, URLs and the sha256 of every downloaded file live in
 | CheckThat! 2025 Task 2 | claim normalization (Phase 3) | Not started. Requires registration; HI has 1081 train rows. |
 
 ### Still open
-
-- **AVeriTeC knowledge store.** Only the claims are downloaded so far. The
-  evidence store is ~1000 articles across 4568 claims; ~109 GB free on this
-  machine, so check size before fetching and plan on a subset.
 
 ## Deduplication policy: train yields to eval
 

@@ -10,6 +10,7 @@
 #   make lint       ruff
 #   make leakage    leakage + frozen-split checks (run after ANY data change)
 #   make data       download raw sources and rebuild splits + profile
+#   make kb         download the AVeriTeC dev knowledge store (11.5 GB, resumable)
 #   make profile    regenerate docs/data-profile.md from the frozen splits
 #   make table      render results/*.json into markdown
 #   make status     what is in data/splits/
@@ -29,7 +30,7 @@ export PYTHONPATH = src
 
 CONFIG ?= configs/example_majority_baseline.yaml
 
-.PHONY: setup setup-ml download data profile eval test lint fix leakage table status lock fixtures clean help
+.PHONY: setup setup-ml download kb data profile eval test lint fix leakage table status lock fixtures clean help
 
 help:
 	@echo "make setup | eval CONFIG=... | test | lint | leakage | table | status | lock"
@@ -43,9 +44,9 @@ setup:
 
 # Phase 1+. torch is installed separately so the CPU and CUDA builds stay explicit.
 setup-ml:
+	uv pip install "torch==2.9.1" --index-url https://download.pytorch.org/whl/cu128
 	uv pip install -r requirements-ml.txt
-	@echo "Now install torch for THIS machine, e.g.:"
-	@echo "  uv pip install torch --index-url https://download.pytorch.org/whl/cpu"
+	$(PY) -c "import torch; assert '+cu' in torch.__version__, 'CPU torch got installed: ' + torch.__version__; print('OK', torch.__version__, 'cuda', torch.cuda.is_available())"
 
 eval:
 	$(PY) -m eval.evaluate --config $(CONFIG)
@@ -65,6 +66,13 @@ leakage:
 
 download:
 	$(PY) scripts/download_data.py
+
+# 11.5 GB, resumable. Safe to interrupt and rerun. Phase 1 evidence retrieval.
+kb:
+	$(PY) scripts/download_knowledge_store.py --split dev
+
+kb-list:
+	$(PY) scripts/download_knowledge_store.py --list
 
 # Full data pipeline: fetch, materialise into frozen splits, profile, check.
 data: download

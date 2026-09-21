@@ -47,23 +47,33 @@ page. Ugly, working, committed. Its numbers are the floor everything else beats.
 Contracts and module layout are specified in `specs/SYSTEM_DESIGN.md` §4–5;
 requirements in `specs/SRS.md`. Do not re-derive them here.
 
-### Blocking before or during Phase 1
+### Nothing is blocking. Cleared 21 Sep 2026
 
-- **AVeriTeC knowledge store is not downloaded.** Only the claims are. Phase 1's
-  retrieval needs it: ~1000 articles across 4568 claims, ~109 GB free on this
-  machine. Check the size and subset to dev + train before pulling anything.
-- **CUDA torch is not installed.** `docs/environment.md` has the command. The
-  wrong build silently trains on CPU and burns days.
+| Was blocking | State |
+| --- | --- |
+| AVeriTeC knowledge store | **Downloaded** — dev, 11.54 GB, `make kb`. 500 per-claim files, hashed, join to `dev.json` verified |
+| CUDA torch | **Installed** — `2.9.1+cu128`, `cuda.is_available() == True` on the RTX 4050 |
+| ML stack | **Installed** — transformers 5.17, sentence-transformers 6.1, faiss 1.15, FastAPI 0.141 |
+| Transliteration not pinned | **Pinned** — `indic-transliteration` 2.3.82 as the baseline |
 
-### Open, not yet blocking
+Day 1 can start on code.
+
+### Open, not blocking
 
 - **MultiClaim** — access requested on Zenodo, not yet granted. **If it is not
   approved by Day 5, swap Phases 4 and 5** and do evidence retrieval first.
-- **IndicXlit install spike, Day 2.** Its package has historically needed fairseq,
-  which is awkward on Windows + Python 3.11. Timebox 30 minutes; fall back to WSL
-  or a rule-based transliterator with the accuracy loss measured, not hidden.
-  Note that **no transliteration package is pinned in `requirements-ml.txt` yet**.
+- **IndicXlit spike, Day 2.** `ai4bharat-transliteration` depends on fairseq —
+  confirmed from its PyPI metadata — which does not install cleanly on
+  Windows + Python 3.11. The rule-based `indic-transliteration` is already
+  pinned and working, so Phase 2 is not blocked either way. Timebox the spike to
+  30 minutes and treat IndicXlit as an upgrade, measured against the baseline on
+  Dakshina.
 - **CheckThat! 2025 Task 2** — not started; needed for Phase 3.
+- **Real VRAM is ~4.9 GiB, not 5.5 GB.** Windows reserves ~1 GiB of the 6 GiB
+  for the desktop. NFR-3's ceiling is optimistic; see `environment.md`.
+- **`hf.co`, not `huggingface.co`.** The long hostname is reset on this
+  connection (0/12 in a measured test); the alias works. Applies to model
+  downloads too.
 
 ## Phase order — 14 days
 
