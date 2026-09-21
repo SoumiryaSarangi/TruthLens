@@ -279,7 +279,7 @@ def deduplicate(rows_by_split: dict[str, list]) -> tuple[dict[str, list], dict[s
 
 def cmd_build(args) -> int:
     """Materialise the raw downloads into frozen splits."""
-    from data.loaders import LOADERS, code_mixed_share
+    from data.loaders import LOADERS, code_mixed_share, missing_sources, sources_available
 
     out_root = Path(getattr(args, "out_dir", None) or SPLITS_ROOT)
     interim_root = Path(getattr(args, "interim_dir", None) or "data/interim")
@@ -287,8 +287,16 @@ def cmd_build(args) -> int:
     downloads = load_json(Path("data/raw/DOWNLOADS.json")) if \
         Path("data/raw/DOWNLOADS.json").is_file() else {}
 
+    skipped: list[str] = []
     for name in datasets:
         print(f"\n{name}")
+        # A dataset whose source is absent is skipped, not fatal. MultiClaim is
+        # access-restricted and can never be present in CI, so the build has to
+        # do what it can and say what it could not.
+        if not sources_available(name):
+            print(f"  SKIPPED: source data not present ({', '.join(missing_sources(name))})")
+            skipped.append(name)
+            continue
         rows_by_split = LOADERS[name]()
 
         notes: list[str] = []
@@ -350,7 +358,12 @@ def cmd_build(args) -> int:
             "counts": manifest_counts,
         })
 
+    if skipped:
+        print(f"\n  skipped (no source data): {', '.join(skipped)}")
     if out_root != SPLITS_ROOT:
+        return 0
+    if skipped and not args.dataset:
+        print("  NOT re-locking: a skipped dataset would be dropped from SPLITS.lock")
         return 0
     return cmd_lock(argparse.Namespace(force=True))
 
@@ -387,12 +400,19 @@ def cmd_verify_reproducible(args) -> int:
         if rc != 0:
             return rc
 
+        from data.loaders import sources_available
+
         problems: list[str] = []
+        unverifiable: list[str] = []
         for key, entry in sorted(locked.items()):
+            dataset = key.split("/")[0]
+            if args.dataset and dataset != args.dataset:
+                continue
+            if not sources_available(dataset):
+                unverifiable.append(key)
+                continue
             rebuilt = out_root / key
             if not rebuilt.is_file():
-                if args.dataset and not key.startswith(f"{args.dataset}/"):
-                    continue
                 problems.append(f"{key}: in SPLITS.lock but the rebuild did not produce it")
                 continue
             digest = sha256_file(rebuilt)
@@ -411,7 +431,13 @@ def cmd_verify_reproducible(args) -> int:
         print("\nEither the upstream data changed -- compare the sha256 values in "
               "data/raw/DOWNLOADS.json -- or the build became non-deterministic.")
         return 1
-    print(f"OK: all {len(locked)} split file(s) reproduce byte-for-byte from data/raw/")
+    if unverifiable:
+        print(f"  {len(unverifiable)} split file(s) could NOT be checked -- their source "
+              "data is not present here (restricted datasets are never in CI):")
+        for key in unverifiable:
+            print(f"    - {key}")
+    checked = len(locked) - len(unverifiable)
+    print(f"OK: all {checked} checkable split file(s) reproduce byte-for-byte from data/raw/")
     return 0
 
 

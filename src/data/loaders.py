@@ -322,6 +322,29 @@ LOADERS = {
     "multiclaim": multiclaim_rows,
 }
 
+# What each loader needs on disk. Used to skip a dataset whose source is not
+# present rather than crash on it.
+#
+# This is not hypothetical tidiness: MultiClaim is access-restricted and cannot
+# ever exist in CI, so the reproducibility job must be able to verify the
+# datasets it CAN fetch and report the rest as unverifiable -- not fail, and not
+# quietly pass either.
+LOADER_SOURCES: dict[str, tuple[Path, ...]] = {
+    "averitec": (RAW / "averitec" / "train.json", RAW / "averitec" / "dev.json"),
+    "x_claim": (RAW / "x_claim" / "train-en.csv",),
+    "multiclaim": (RAW / "multiclaim" / "posts.csv",
+                   RAW / "multiclaim" / "fact_checks.csv",
+                   RAW / "multiclaim" / "fact_check_post_mapping.csv"),
+}
+
+
+def sources_available(dataset: str) -> bool:
+    return all(p.is_file() for p in LOADER_SOURCES.get(dataset, ()))
+
+
+def missing_sources(dataset: str) -> list[str]:
+    return [p.as_posix() for p in LOADER_SOURCES.get(dataset, ()) if not p.is_file()]
+
 
 def code_mixed_share(rows: list[Row], threshold: float = 0.9) -> float:
     """Share of rows whose dominant script covers less than `threshold`.
