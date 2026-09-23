@@ -18,9 +18,14 @@ romanization land in the same place?
 
   handtyped   The 33 Punjabi forwards whose writer typed the same message twice,
               once in Latin letters and once in Gurmukhi. Real informal typing.
-              Small, and the whole point: if these scatter further apart than
-              the Dakshina pairs, the gap between elicited and real romanization
-              is visible rather than argued.
+              These land CLOSER together than the Dakshina pairs (cosine 0.79
+              against 0.63), which is the opposite of what you would expect and
+              is largely an artefact: a WhatsApp forward is code-mixed, so
+              "KYC", "UPI", "48" and the emoji survive verbatim into the
+              Gurmukhi version and anchor the two embeddings to each other.
+              `shared_latin_token_overlap` below measures exactly that, and it
+              is 3-4x higher for these than for Dakshina. Read the cosine next
+              to it, never on its own.
 
   multiclaim  Posts in different languages that a fact-checker matched to the
               SAME fact-check. Not translations -- genuinely different posts
@@ -31,6 +36,29 @@ romanization land in the same place?
 The distance numbers printed and saved are what the report should quote. The
 picture is for the reader; t-SNE distances are not metric and no conclusion
 should rest on how far apart two dots look.
+
+## The finding this figure exists to produce
+
+`script_confound` in the output JSON. Every number in it is the mean cosine
+between UNRELATED sentences, so a model encoding meaning should score them all
+low and roughly equally. LaBSE does not:
+
+    unrelated Hindi-native   vs unrelated Punjabi-native      0.3773
+    unrelated Hindi-native   vs unrelated Hindi-romanized     0.3856
+    unrelated Punjabi-native vs unrelated Punjabi-romanized   0.4553
+    unrelated Hindi-ROMANIZED vs unrelated Punjabi-ROMANIZED  0.6900   <--
+
+Two sentences with nothing in common, in two different languages, score 0.6900
+simply because both are written in Latin letters. For comparison, the SAME
+sentence in native and romanized form scores 0.5613. Romanization puts text into
+a cluster of its own, and that cluster is a stronger signal than the content.
+
+This is why romanized retrieval underperforms, and it predicts the fix:
+transliterating out of Latin script should help. It currently does not
+(-0.0789 Recall@10 on the hi/latn cell) because the rule-based transliterator is
+too inaccurate to land in the right place. An accurate transliterator is
+therefore the highest-value thing to build next, and now there is a number
+saying so.
 """
 
 from __future__ import annotations
@@ -38,6 +66,7 @@ from __future__ import annotations
 import argparse
 import json
 import random
+import re
 import sys
 from pathlib import Path
 
@@ -117,6 +146,60 @@ def cosine_pairs(vectors_a: np.ndarray, vectors_b: np.ndarray) -> np.ndarray:
     return np.sum(vectors_a * vectors_b, axis=1)
 
 
+_LATIN_TOKEN = re.compile(r"[A-Za-z]+|\d+")
+
+
+def shared_latin_overlap(pairs: list[tuple[str, str]]) -> float:
+    """Jaccard over Latin words and digits shared by the two halves of a pair.
+
+    The confound behind the cosine figures. Two versions of a code-mixed message
+    keep the same English words and numbers verbatim, so a high cosine can mean
+    "these share the token KYC" rather than "the model understands romanized
+    Punjabi". Reported beside every cosine so the two cannot be confused.
+    """
+    if not pairs:
+        return 0.0
+    shares = []
+    for first, second in pairs:
+        a = {t.lower() for t in _LATIN_TOKEN.findall(first)}
+        b = {t.lower() for t in _LATIN_TOKEN.findall(second)}
+        shares.append(len(a & b) / max(len(a | b), 1))
+    return float(np.mean(shares))
+
+
+def script_confound(encoder, per_lang: int) -> dict:
+    """Does LaBSE cluster by SCRIPT rather than by content?
+
+    The question the left panel of the figure raises: romanized Hindi and
+    romanized Punjabi sit on top of each other, away from their own
+    native-script twins. This measures it instead of eyeballing it.
+
+    Every number here is between UNRELATED sentences -- different content, so a
+    content-driven embedding should score them all low and roughly equally. If
+    one pairing stands out, that pairing is being driven by something other than
+    meaning.
+    """
+    sets: dict[tuple[str, str], np.ndarray] = {}
+    for lang in ("hi", "pa"):
+        pairs = dakshina_pairs(lang, per_lang)
+        if not pairs:
+            return {}
+        sets[(lang, "native")] = encoder.encode([p[0] for p in pairs])
+        sets[(lang, "romanized")] = encoder.encode([p[1] for p in pairs])
+
+    def cross(a, b) -> float:
+        return float((sets[a] @ sets[b].T).mean())
+
+    return {
+        "note": "Mean cosine between UNRELATED sentences. All four should be "
+                "low and similar if the model encodes meaning. They are not.",
+        "hi_native_vs_pa_native": cross(("hi", "native"), ("pa", "native")),
+        "hi_romanized_vs_pa_romanized": cross(("hi", "romanized"), ("pa", "romanized")),
+        "hi_native_vs_hi_romanized": cross(("hi", "native"), ("hi", "romanized")),
+        "pa_native_vs_pa_romanized": cross(("pa", "native"), ("pa", "romanized")),
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python scripts/plot_tsne.py")
     parser.add_argument("--per-lang", type=int, default=150,
@@ -142,6 +225,7 @@ def main(argv: list[str] | None = None) -> int:
         summary[f"dakshina_{lang}"] = {
             "n": len(pairs), "mean_cosine": float(sims.mean()),
             "median_cosine": float(np.median(sims)), "std": float(sims.std()),
+            "shared_latin_token_overlap": shared_latin_overlap(pairs),
         }
         print(f"  dakshina {lang}: n={len(pairs)} mean cosine(native, romanized) "
               f"= {sims.mean():.4f}")
@@ -159,6 +243,7 @@ def main(argv: list[str] | None = None) -> int:
         summary["handtyped_pa"] = {
             "n": len(pairs), "mean_cosine": float(sims.mean()),
             "median_cosine": float(np.median(sims)), "std": float(sims.std()),
+            "shared_latin_token_overlap": shared_latin_overlap(pairs),
         }
         print(f"  handtyped pa: n={len(pairs)} mean cosine(native, romanized) "
               f"= {sims.mean():.4f}")
@@ -246,14 +331,24 @@ def main(argv: list[str] | None = None) -> int:
     fig.savefig(OUT_PNG, dpi=150)
     print(f"wrote {OUT_PNG}")
 
+    confound = script_confound(encoder, args.per_lang)
+    if confound:
+        print("\n  script confound -- mean cosine between UNRELATED sentences:")
+        for key, value in confound.items():
+            if isinstance(value, float):
+                print(f"    {key:32s} {value:.4f}")
+
     write_json(OUT_JSON, {
         "note": "t-SNE distances are not metric. Quote the cosine figures, not "
-                "the picture.",
+                "the picture -- and quote each cosine beside its "
+                "shared_latin_token_overlap, because a code-mixed pair can score "
+                "high simply by sharing English words verbatim.",
         "encoder": "sentence-transformers/LaBSE",
         "seed": SEED,
         "perplexity": args.perplexity,
         "n_points": len(points),
         "cosine_similarity_between_parallel_pairs": summary,
+        "script_confound": confound,
     })
     print(f"wrote {OUT_JSON}")
     print(json.dumps(summary, indent=2))

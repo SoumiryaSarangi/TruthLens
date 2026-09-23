@@ -11,10 +11,14 @@ seconds without reading the whole plan.
 
 ## Current phase
 
-**Phase 1 complete. Phase 2 (Days 2-3) not started, nothing blocking it.**
+**Phase 2 complete (Days 2-3). Phase 3 not started, nothing blocking it.**
 
-The clock is **14 days**. **Day 1 is done** — Phase 1 shipped the vertical
-slice with real numbers. Day 2 opens Phase 2. Code freezes at the end of Day 12.
+The clock is **14 days**. **Days 1-3 are done.** Phase 1 shipped the vertical
+slice; Phase 2 shipped the language layer and the native-vs-romanized table,
+which is the research contribution. Code freezes at the end of Day 12.
+
+**The FR-26 hand-typed forwards arrived early** — 100 rows, ahead of their
+Day 11 deadline — so they are already a measured eval set rather than a risk.
 
 Target machine: Intel i7-14700HX with an **RTX 4050 laptop GPU, 6 GB VRAM**
 (~4.9 GiB usable — Windows holds the rest). No Colab. Every model choice is
@@ -55,41 +59,100 @@ statically. Stages import their models lazily inside methods.
 top 10, so the stance model mostly reads irrelevant text. Improving the
 aggregator before retrieval is tuning against noise.
 
-## Next: Phase 2 — the language layer (Days 2-3) · Units I & II
+## Phase 2 results (Days 2-3) — the floor for everything after
 
-fastText language ID, IndicXlit transliteration, code-mix normalisation, the
-romanized eval sets, the embedding comparison (TF-IDF → Word2Vec → MuRIL →
-LaBSE → BGE-M3), and the t-SNE plot. **Deliverable: the native vs romanized
-table** — Units I and II of the report *and* the research contribution.
+**The deliverable: native vs romanized.** MultiClaim dev, MRR, Hindi
+(n=737 native / 57 romanized):
 
-Script detection already exists and is reused, not rebuilt.
+| rung | native | romanized | gap |
+| --- | --- | --- | --- |
+| TF-IDF | 0.0379 | 0.0877 | **-0.0498** |
+| Word2Vec | 0.0585 | 0.0575 | 0.0010 |
+| MuRIL | 0.1218 | 0.0439 | 0.0779 |
+| LaBSE | 0.3648 | 0.1926 | 0.1722 |
+| **BGE-M3** | **0.4981** | **0.3585** | 0.1396 |
 
-**The retrieval task to score the embedding comparison on now exists:**
-MultiClaim, 3,153 dev / 3,156 test queries across en/hi/pa. Before it landed
-there was none — AVeriTeC is English-only and X-CLAIM has no relevance
-judgements. That was Phase 2's hardest blocker.
+Romanized Hindi runs at **72% of native** under BGE-M3. TF-IDF's gap is
+*negative* because romanized Hindi shares Latin characters with a largely
+English fact-check corpus while Devanagari shares none — the only rung where
+romanizing helps, and for a reason unrelated to understanding.
 
-**Day 2 opens with the IndicXlit install spike, timeboxed to 30 minutes.**
-`ai4bharat-transliteration` depends on fairseq, which does not install cleanly
-on Windows + Python 3.11 — confirmed from its PyPI metadata, not assumed.
-`indic-transliteration` 2.3.82 is already pinned and working, so Phase 2 is not
-blocked either way; IndicXlit is an upgrade to measure against it on Dakshina.
+**The embedding ladder**, MultiClaim dev, 3,153 queries over 78,077
+fact-checks:
 
-### Still to download for Phase 2
+| rung | MRR | R@10 |
+| --- | --- | --- |
+| random floor | 0.0002 | 0.0008 |
+| Word2Vec (in-domain) | 0.0920 | 0.1186 |
+| MuRIL | 0.1127 | 0.1369 |
+| TF-IDF | 0.2311 | 0.3045 |
+| LaBSE | 0.3216 | 0.4170 |
+| **BGE-M3** | **0.5244** | **0.6688** |
 
-Dakshina (2.01 GB), fastText `lid.176`, and the embedding models (BGE-M3, LaBSE,
-MuRIL, ~7.6 GB). Hub connectivity here is intermittent — roughly half of
-requests fail — so use something that resumes and do not restart from zero.
+**TF-IDF beats Word2Vec and MuRIL.** Without the lexical rung in the table,
+MuRIL's 0.1127 would have read as a result instead of a warning.
+
+**Language ID (FR-3)** and **transliteration (FR-5)**:
+
+| | script heuristic | fastText | hybrid |
+| --- | --- | --- | --- |
+| MultiClaim hi/latn (n=57) | 0.0000 | 0.3158 | **0.7719** |
+| hand-typed forwards (n=100) | 0.0000 | 0.0000 | **0.8700** |
+
+| transliteration, 33 Punjabi pairs | CER | WER |
+| --- | --- | --- |
+| identity (do nothing) | 0.8518 | 0.9290 |
+| rule-based, real language ID | 0.4281 | 0.7253 |
+| rule-based, oracle language | 0.3810 | 0.7130 |
+
+### The finding that should drive Phase 3+
+
+`docs/figures/tsne_parallel_claims.json`, `script_confound`. Mean cosine between
+**unrelated** sentences under LaBSE:
+
+    unrelated hi-native   vs unrelated pa-native       0.3773
+    unrelated hi-native   vs unrelated hi-romanized    0.3856
+    unrelated pa-native   vs unrelated pa-romanized    0.4553
+    unrelated hi-ROMANIZED vs unrelated pa-ROMANIZED   0.6900  <--
+
+Two sentences with nothing in common, in two different languages, score 0.6900
+because both are in Latin letters. The same sentence in native and romanized
+form scores 0.5613. **Romanization forms a cluster of its own, and it is a
+stronger signal than content.** That is why romanized retrieval underperforms.
+
+It also predicts the fix and then rules out the cheap version of it:
+transliterating out of Latin script should help, but doing it with the
+rule-based transliterator *hurts* — Recall@10 on the hi/latn cell falls
+0.1988 → 0.1199 — because a CER of 0.38 lands the query in the wrong place.
+**An accurate transliterator is the highest-value thing to build next**, and
+there is now a number saying so rather than an intuition.
+
+Second-order caveat, recorded so it is not misread: the hand-typed pairs score
+a *higher* native-vs-romanized cosine (0.7942) than Dakshina's (0.5613-0.6298).
+That is not evidence that real typing is easier. It is code-mixing — "KYC",
+"UPI", "48" survive verbatim into the Gurmukhi version. Shared-Latin-token
+overlap is 0.0513 for the hand-typed pairs against 0.0119-0.0173 for Dakshina,
+and it is recorded beside every cosine in the JSON.
+
+## Next: Phase 3 — front of the pipeline (Days 4-5)
+
+Check-worthiness, claim normalisation (CheckThat! 2025 Task 2), span
+identification (X-CLAIM). See [build-plan.md](build-plan.md).
+
+**CheckThat! 2025 Task 2 is not downloaded** and is needed for Phase 3.
+
+Two assets Phase 2 built that Phase 3 inherits: the hand-typed set already
+carries **check-worthiness labels** (15 `No` / 85 `Yes`), and
+`whole_post_span` is registered but still raises `NotImplementedError`.
 
 ### Needs a human — I cannot do these
 
-- **~100 hand-typed romanized forwards (FR-26, P0).** Cannot be automated and
-  cannot be substituted: MultiClaim's 501 naturally romanized Hindi posts are
-  public posts, not the messy personal typing the contribution is about. Brief
-  for collectors is `collection-brief.md` — forward it as-is. Scheduled in
-  Phase 2 but **reported separately from the synthetic set**, so Phase 2 is not
-  blocked; the real deadline is **Day 11**, before the final tables.
-  Punjabi is the priority: every other dataset here is thin on it.
+- ~~**~100 hand-typed romanized forwards (FR-26, P0).**~~ **DONE, Day 3.**
+  100 rows, 64 hi / 36 pa, all Latin script, 15 deliberate no-claim rows, and
+  33 Punjabi rows carrying a matched Gurmukhi rewrite. Ingested as
+  `data/splits/handtyped/dev.jsonl`; the messages themselves stay in gitignored
+  `data/raw/`. Leakage-clean against all four datasets, and checked directly
+  against the LID classifier's training pool (0 verbatim, 0 substring).
 - **Native-speaker review of `app/static/i18n/{hi,pa}.json`** before any demo.
   Those strings are unverified placeholders and are marked as such in the files.
 
@@ -98,18 +161,29 @@ requests fail — so use something that resumes and do not restart from zero.
 - ~~MultiClaim access~~ **GRANTED and ingested.** 25,137 / 3,153 / 3,156
   train/dev/test. The Phase 4-5 swap rule is moot. It also gives Phase 2 the
   multilingual retrieval task the embedding comparison needs.
-- **IndicXlit spike, Day 2.** `ai4bharat-transliteration` depends on fairseq —
-  confirmed from its PyPI metadata — which does not install cleanly on
-  Windows + Python 3.11. The rule-based `indic-transliteration` is already
-  pinned and working, so Phase 2 is not blocked either way. Timebox the spike to
-  30 minutes and treat IndicXlit as an upgrade, measured against the baseline on
-  Dakshina.
+- ~~IndicXlit spike~~ **RUN, Day 3. Ruled out**, and not for the expected
+  reason. fairseq 0.12.2 needs MSVC build tools, which is fixable — but
+  resolving `ai4bharat-transliteration` also pulls `tensorflow` 2.21, `tf2crf`,
+  `urduhack` and **`torch` 2.14, the CPU build**, which would silently replace
+  the CUDA torch every other stage depends on. A transliterator must not cost
+  the project its GPU. If it is wanted later it goes in its own venv behind a
+  subprocess boundary, or through WSL. The spike took 43 seconds.
 - **CheckThat! 2025 Task 2** — not started; needed for Phase 3.
 - **Real VRAM is ~4.9 GiB, not 5.5 GB.** Windows reserves ~1 GiB of the 6 GiB
   for the desktop. NFR-3's ceiling is optimistic; see `environment.md`.
-- **`hf.co`, not `huggingface.co`.** The long hostname is reset on this
-  connection (0/12 in a measured test); the alias works. Applies to model
-  downloads too.
+- ~~**`hf.co`, not `huggingface.co`.**~~ **Withdrawn.** That was a transient
+  observation reported as a property of the hostname. Re-measured at 5/10
+  against 4/10 — neither is reliably better. The real lesson is **resume, don't
+  retry from zero**: every large download in `scripts/` uses HTTP Range, and on
+  Day 3 that carried 9.6 GB (fastText, Dakshina, MuRIL, LaBSE, BGE-M3) with no
+  manual intervention.
+- **`uv` can vanish.** It was absent from this machine on Day 3 and the venv
+  still worked, so nothing failed until something needed installing. Reinstalled
+  (0.12.18). If `make setup` reports `uv: command not found`, that is this.
+- **`fasttext-wheel` 0.9.2 is broken under NumPy 2.** Its `predict()` ends in
+  `np.array(probs, copy=False)`, which NumPy 2 raises on instead of copying.
+  `src/preprocess/lid.py` calls the C++ predictor directly to get round it. Do
+  not "simplify" that back to the documented API.
 
 ## Phase order — 14 days
 

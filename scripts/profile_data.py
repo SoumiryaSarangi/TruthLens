@@ -198,13 +198,26 @@ def main() -> int:
     for name, paths in found.items():
         parts.append(profile_dataset(name, paths))
 
+    # Checked on disk, not asserted. A hardcoded status is how a document ends
+    # up telling a future reader to acquire something they already have.
+    dakshina = Path("data/raw/dakshina/extracted")
+    dakshina_langs = sorted(p.name for p in dakshina.glob("*") if p.is_dir())
     parts += [
+        "## Supporting corpora (not split, so not profiled above)",
+        "",
+        "| Dataset | Status |",
+        "| --- | --- |",
+        (f"| Dakshina | Downloaded and extracted for {', '.join(dakshina_langs)}. "
+         "Its TEST half trains the romanized language-ID classifier; its DEV half "
+         "is reserved for transliteration evaluation, so no row is both trained on "
+         "and evaluated on. |") if dakshina_langs else
+        "| Dakshina | Not downloaded. Needed to evaluate transliteration in Phase 2. |",
+        "",
         "## Not yet acquired",
         "",
         "| Dataset | Status |",
         "| --- | --- |",
         "| CheckThat! 2025 Task 2 | Not started. Needed for Phase 3 claim normalization. |",
-        "| Dakshina | Not downloaded. Needed to evaluate transliteration in Phase 2. |",
         "",
     ]
     OUT.write_text("\n".join(parts) + "\n", encoding="utf-8")

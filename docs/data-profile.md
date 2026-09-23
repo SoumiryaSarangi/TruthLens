@@ -67,6 +67,59 @@ Policy: **train yields to eval; dev and test are never modified**
 - accepted as irreducible upstream: **0** (see `data/splits/KNOWN_LEAKAGE.json`)
 - warnings (unconfirmed near-duplicates): 0
 
+## handtyped
+
+Source: n/a - collected by hand, 2026-09-23 — Collected for this project with the writers' consent. NOT redistributable and NOT published: only uids, hashes and counts are committed.
+
+### Counts by split, language and script
+
+| split | n | hi/latn | pa/latn |
+| --- | --- | --- | --- |
+| dev | 100 | 64 | 36 |
+
+### Non-native-script share
+
+The romanized-vs-native axis. `other` is every row not in the language's own script, which for hi/pa is mostly Latin (romanized) plus some cross-script contamination in the source files.
+
+| split | lang | n | native | other | other % |
+| --- | --- | --- | --- | --- | --- |
+| dev | hi | 64 | 0 | 64 | 100.0% |
+| dev | pa | 36 | 0 | 36 | 100.0% |
+
+### Label distribution
+
+`majority %` is the dumb baseline: a classifier that always predicts the most frequent class. Any model must beat it to be a result.
+
+| split | n | No | Yes | majority % |
+| --- | --- | --- | --- | --- |
+| dev | 100 | 15 (15%) | 85 (85%) | 85.0% |
+
+### Text length (characters) and code-mixing
+
+| split | n | min | median | mean | max | code-mixed |
+| --- | --- | --- | --- | --- | --- | --- |
+| dev | 100 | 58 | 84 | 96 | 203 | 0.0% |
+
+_code-mixed = share of rows whose dominant script covers under 90% of their script-bearing characters. Computed from data/interim/, so it shows `—` on a clean clone until `make data` has run._
+
+### Deduplication applied when building these splits
+
+Policy: **train yields to eval; dev and test are never modified**
+
+| action | rows |
+| --- | --- |
+| dropped from train — exact match in eval | 0 |
+| dropped from train — near duplicate in eval | 0 |
+| dropped from train — within train duplicate | 0 |
+| left in place — dev internal duplicates | 0 |
+| left in place — dev test overlap | 0 |
+
+### Leakage after deduplication
+
+- unresolved failures: **0**
+- accepted as irreducible upstream: **0** (see `data/splits/KNOWN_LEAKAGE.json`)
+- warnings (unconfirmed near-duplicates): 0
+
 ## multiclaim
 
 Source: https://zenodo.org/records/14989177 — RESTRICTED - access granted per-request; NOT redistributable. Only ID manifests are committed.
@@ -184,10 +237,15 @@ Policy: **train yields to eval; dev and test are never modified**
   - `x_claim:en:dev:00163` ↔ `x_claim:en:test:00352` (dev/test, jaccard 0.906)
   - `x_claim:en:dev:00325` ↔ `x_claim:en:test:00160` (dev/test, jaccard 0.990)
 
+## Supporting corpora (not split, so not profiled above)
+
+| Dataset | Status |
+| --- | --- |
+| Dakshina | Downloaded and extracted for hi, pa. Its TEST half trains the romanized language-ID classifier; its DEV half is reserved for transliteration evaluation, so no row is both trained on and evaluated on. |
+
 ## Not yet acquired
 
 | Dataset | Status |
 | --- | --- |
 | CheckThat! 2025 Task 2 | Not started. Needed for Phase 3 claim normalization. |
-| Dakshina | Not downloaded. Needed to evaluate transliteration in Phase 2. |
 

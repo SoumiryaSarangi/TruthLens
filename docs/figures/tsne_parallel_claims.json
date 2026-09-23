@@ -1,0 +1,41 @@
+{
+  "cosine_similarity_between_parallel_pairs": {
+    "dakshina_hi": {
+      "mean_cosine": 0.5613245368003845,
+      "median_cosine": 0.5668042898178101,
+      "n": 150,
+      "shared_latin_token_overlap": 0.014066091843785562,
+      "std": 0.14040760695934296
+    },
+    "dakshina_pa": {
+      "mean_cosine": 0.6297741532325745,
+      "median_cosine": 0.6345276832580566,
+      "n": 150,
+      "shared_latin_token_overlap": 0.0152479593128251,
+      "std": 0.11829432100057602
+    },
+    "handtyped_pa": {
+      "mean_cosine": 0.794150173664093,
+      "median_cosine": 0.8016305565834045,
+      "n": 33,
+      "shared_latin_token_overlap": 0.051312575363060796,
+      "std": 0.06753241270780563
+    },
+    "multiclaim_crosslingual": {
+      "n_groups": 17,
+      "n_posts": 36
+    }
+  },
+  "encoder": "sentence-transformers/LaBSE",
+  "n_points": 702,
+  "note": "t-SNE distances are not metric. Quote the cosine figures, not the picture -- and quote each cosine beside its shared_latin_token_overlap, because a code-mixed pair can score high simply by sharing English words verbatim.",
+  "perplexity": 30.0,
+  "script_confound": {
+    "hi_native_vs_hi_romanized": 0.38562238216400146,
+    "hi_native_vs_pa_native": 0.377302348613739,
+    "hi_romanized_vs_pa_romanized": 0.6899774074554443,
+    "note": "Mean cosine between UNRELATED sentences. All four should be low and similar if the model encodes meaning. They are not.",
+    "pa_native_vs_pa_romanized": 0.4553035497665405
+  },
+  "seed": 42
+}

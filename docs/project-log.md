@@ -47,7 +47,17 @@ historical rationale, lowest precedence.
 4. **CI has no torch.** Nothing under `src/` may import a model library at
    module scope; stages import lazily inside methods.
 5. **The harness refuses rather than guessing.** If `make eval` exits 2, read
-   the message — do not work around it.
+   the message — do not work around it. When it only *warns* (the sanity
+   ceiling), do the check it names; Phase 2's 0.87 language-ID figure was
+   verified that way rather than by raising the threshold.
+6. **An aggregate will hide the finding.** Every headline number here is
+   dominated by English or native script. The per-script breakdown is where the
+   result is: fastText looks *worse* than a free script check overall (0.9756 vs
+   0.9813) and is 0.3158 vs 0.0000 on the cell that matters.
+7. **Two environment traps.** `fasttext-wheel` 0.9.2's `predict()` raises under
+   NumPy 2, so `src/preprocess/lid.py` calls the C++ predictor directly — do not
+   "simplify" it back. And `uv` has gone missing from this machine once; the
+   venv keeps working, so nothing fails until something needs installing.
 
 **To get running:** `make setup` then `make test`. The environment is already
 built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
@@ -58,17 +68,17 @@ built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
 
 | | |
 | --- | --- |
-| **Current phase** | **Phase 1 complete, gaps closed, MultiClaim ingested.** Phase 2 not started, nothing blocking it. |
-| **Clock** | 14 days. **Day 1 done** (Phase 1). Day 2 = Phase 2, not started. Freeze end of Day 12. |
+| **Current phase** | **Phase 2 complete.** Language layer, embedding ladder and the native-vs-romanized table all shipped. Phase 3 not started, nothing blocking it. |
+| **Clock** | 14 days. **Days 1-3 done** (Phases 1 and 2). Day 4 = Phase 3. Freeze end of Day 12. |
 | **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |
 | **Python** | 3.11.16 via uv, in `.venv`. System Python is 3.13 and is not used. |
-| **Tests** | 204 passing, 1 skipped, 1 gpu-deselected |
-| **Datasets in hand** | AVeriTeC, X-CLAIM, **MultiClaim** |
-| **Datasets waiting** | CheckThat! 2025 T2 (not started), Dakshina (not downloaded) |
+| **Tests** | 261 passing, 2 skipped, 2 gpu-deselected |
+| **Datasets in hand** | AVeriTeC, X-CLAIM, MultiClaim, **handtyped (FR-26, 100 rows)**, **Dakshina** |
+| **Datasets waiting** | CheckThat! 2025 T2 (not started) — needed for Phase 3 |
 | **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
-| **Models trained** | None. Phase 1 uses off-the-shelf NLI only; training starts Phase 3. |
-| **Numbers so far** | Retrieval Recall@10 0.0947 (floor 0.0121) · verdict macro-F1 0.2147 (majority 0.1516) |
+| **Models trained** | Romanized LID (char n-gram) and in-domain Word2Vec, both ours. Everything else is off the shelf. |
+| **Numbers so far** | Claim matching MRR 0.5244 / R@10 0.6688 (BGE-M3, floor 0.0002) · LID 0.8700 on the hand-typed set (was 0.0000) · transliteration CER 0.4281 (identity 0.8518) · AVeriTeC retrieval R@10 0.0947, verdict macro-F1 0.2147 |
 | **CI** | Green. Last verified run 29s, both jobs. |
 
 ---
@@ -724,51 +734,286 @@ Scheduled in Phase 2 by SRS traceability, but FR-26 reports the hand-typed set
 synthetic half. **The binding deadline is Day 11**, before the final tables.
 
 
+## 2026-09-23 — Phase 2: the language layer, and what romanization does to an embedding
+
+Days 2-3 in one sitting. Everything below is measured through `make eval`; the
+config hashes are in `results/` and the tables in `docs/results.md`.
+
+### The hand-typed forwards arrived early
+
+100 rows, against a Day 11 deadline. Clean: UTF-8 with no encoding damage, no
+duplicates, 15 deliberate no-claim rows, and **33 Punjabi rows carrying a
+matched Gurmukhi rewrite of the same message**. Leakage-clean against all four
+datasets.
+
+Two decisions worth recording. Seven rows were declared `lang=mixed`, which the
+split schema does not have and `SYSTEM_DESIGN.md` §4 refuses to add for the same
+reason it refuses a `mixed` *script* value: code-mixing is continuous and
+`script_purity` already reports it, while a fourth category would add a cell to
+every breakdown the contribution rests on. Each was assigned its dominant
+language **by hand, by grammatical marker rather than vocabulary** — English and
+Hindi nouns are shared, case markers and verb endings are not — with the
+declaration kept in `notes`. Done by hand deliberately: deriving them from
+fastText would have made them useless as gold for scoring fastText. `hw012` is
+the one close call and is recorded as such in `loaders.MIXED_UNCERTAIN`.
+
+They are `dev`, not `test`. A measurement set that lives behind
+`TRUTHLENS_ALLOW_TEST=1` cannot be looked at while building, which is the
+opposite of what this set is for. Nothing trains on them.
+
+### FR-3: fastText cannot do the one thing this project needs
+
+`lid.176` scores **0 of 100** on the hand-typed forwards — 43 called English, 57
+refused, none correct. On MultiClaim's naturally romanized Hindi it manages
+0.3158.
+
+The aggregate hides this completely. On MultiClaim overall fastText scores 0.9756
+against a *free script check's* 0.9813, which reads as "fastText is worse". It
+is not: 94% of that split is English or native-script Hindi, which the alphabet
+already answers. Everything that matters is in two small cells.
+
+| accuracy | script | fastText | hybrid |
+| --- | --- | --- | --- |
+| MultiClaim hi/latn (n=57) | 0.0000 | 0.3158 | **0.7719** |
+| MultiClaim overall (n=3153) | 0.9813 | 0.9756 | 0.9908 |
+| hand-typed (n=100) | 0.0000 | 0.0000 | **0.8700** |
+
+The hybrid keeps `lid.176` in front — it is genuinely excellent at *rejecting* a
+language we do not support, French at 0.992 — and puts a character n-gram
+classifier behind it. Characters, not words: romanized Hindi and Punjabi are not
+separable by vocabulary, since both borrow from English and forwards code-mix
+constantly, but they are separable by endings (`-nde`, `-diyan`, `nu`, `te`
+against `-ta hai`, `-ne`, `ko`), which are 3-to-5 character patterns.
+
+**Dakshina is what made Punjabi work.** Our train splits hold 42 genuinely
+romanized Punjabi rows; Dakshina adds ~4,700. Punjabi on the hand-typed set went
+5/36 → 29/36. Dakshina ships only dev and test, so its **test** half trains the
+classifier and its **dev** half is reserved for transliteration evaluation — no
+row is both trained on and evaluated on, for any task.
+
+The harness fired its sanity ceiling at 0.87 and the right response was to do the
+check it asks for, not to raise the threshold: **0 of the 100 rows appear
+verbatim or as a substring anywhere in the training pool**, which reads
+`train.jsonl` files only and never opens a dev file. The ceiling is now set
+per-config with that justification written beside it.
+
+### FR-5: the failures compound
+
+Transliteration only fires when language ID says `hi` or `pa`. Language ID
+failed on exactly the inputs that need transliterating, so for a while the
+measured "transliteration" number was the identity baseline to four decimal
+places — the stage had never run once.
+
+| 33 matched Punjabi pairs | CER | WER |
+| --- | --- | --- |
+| identity (do nothing) | 0.8518 | 0.9290 |
+| rule-based, fastText routing | 0.8518 | 0.9290 |
+| rule-based, hybrid routing | **0.4281** | 0.7253 |
+| rule-based, oracle language | 0.3810 | 0.7130 |
+
+`force_lang` exists to separate the two, or FR-5's number would really be FR-3's.
+The remaining 0.047 to the oracle is the cost of the 7 Punjabi rows LID misses.
+
+The rule-based transliterator's limit is sharp and worth stating: a word-FINAL
+vowel is recoverable (`sach` → सच, `kaha` → कहा), a word-MEDIAL long vowel is
+not (`sarkar` → सरकर, never सरकार) because choosing needs a lexicon.
+
+### IndicXlit: ruled out, and not for the expected reason
+
+The spike finally ran once `uv` was reinstalled, and failed in 43 seconds.
+fairseq 0.12.2 needs MSVC build tools — fixable — but resolving
+`ai4bharat-transliteration` also pulls **tensorflow 2.21, tf2crf, urduhack and
+torch 2.14, the CPU build**, which would silently replace the CUDA torch every
+other stage depends on. A transliterator must not cost the project its GPU.
+
+### The embedding ladder
+
+3,153 MultiClaim dev posts against **78,077 fact-checks** — every fact-check in
+at least one annotated pair, the MultiClaim / SemEval-2025 Task 7 setup. Not the
+3,943 the dev queries point at: retrieving only from documents that are already
+somebody's answer is not retrieval.
+
+| rung | MRR | R@10 |
+| --- | --- | --- |
+| random floor | 0.0002 | 0.0008 |
+| Word2Vec (in-domain) | 0.0920 | 0.1186 |
+| MuRIL | 0.1127 | 0.1369 |
+| TF-IDF | 0.2311 | 0.3045 |
+| LaBSE | 0.3216 | 0.4170 |
+| **BGE-M3** | **0.5244** | **0.6688** |
+
+**TF-IDF beats Word2Vec and MuRIL.** Without the lexical rung in the table,
+MuRIL's 0.1127 would have read as a result rather than a warning. This is
+exactly what CLAUDE.md's baseline rule is for.
+
+TF-IDF's average is itself misleading: 0.3901 Recall@10 on English, **0.0521 on
+Devanagari**. A Devanagari post and a mostly-English fact-check corpus share no
+characters at all. That pair of numbers is the clearest possible argument for
+why this project needs embeddings.
+
+Three correctness points that were worth the extra code:
+
+- `random_rank` was drawing candidates from the **gold** ids — a lottery among
+  correct answers, not a floor. Configs now name `corpus_ids` and the baseline
+  draws from the same 78,077 the model searched, which moved the floor to MRR
+  0.0002.
+- BGE-M3 is **CLS-pooled**, not mean-pooled. It is trained contrastively on the
+  CLS position; mean pooling measures something it was never optimised for and
+  is an easy way to conclude the best model is the worst.
+- TF-IDF is **fitted state, not weights** — the vectoriser and SVD basis *are*
+  the vector space — so it is saved beside the index it built.
+
+### The native vs romanized table — the deliverable
+
+MRR, Hindi, n=737 native / 57 romanized:
+
+| rung | native | romanized | gap |
+| --- | --- | --- | --- |
+| TF-IDF | 0.0379 | 0.0877 | **-0.0498** |
+| Word2Vec | 0.0585 | 0.0575 | 0.0010 |
+| MuRIL | 0.1218 | 0.0439 | 0.0779 |
+| LaBSE | 0.3648 | 0.1926 | 0.1722 |
+| BGE-M3 | 0.4981 | 0.3585 | 0.1396 |
+
+Romanized Hindi runs at **72% of native** under BGE-M3. TF-IDF's gap is
+*negative* — romanized scores better than Devanagari — because romanized Hindi
+shares Latin characters with a largely English corpus while Devanagari shares
+none. The only rung where romanizing helps, and for a reason unrelated to
+understanding.
+
+The gap metric had to be fixed before this table meant anything. For language ID
+the breakdown cells are split by language and the classes *are* languages, so
+every cell holds one gold class and its macro-F1 is pinned at 1/n_classes
+however right the model is. Per-cell accuracy is the honest measure there.
+
+Punjabi is n=7 and n=2. The harness flags both `low_n`, which is correct, and
+every Punjabi figure is reported as a fraction.
+
+### FR-27, and the finding that should drive Phase 3+
+
+The t-SNE figure showed romanized Hindi and romanized Punjabi sitting on top of
+each other, away from their own native-script twins. Measured rather than
+eyeballed — mean cosine between **unrelated** sentences under LaBSE:
+
+    unrelated hi-native    vs unrelated pa-native       0.3773
+    unrelated hi-native    vs unrelated hi-romanized    0.3856
+    unrelated pa-native    vs unrelated pa-romanized    0.4553
+    unrelated hi-ROMANIZED vs unrelated pa-ROMANIZED    0.6900   <--
+
+Two sentences with nothing in common, in two different languages, score 0.6900
+because both are written in Latin letters. The *same* sentence in native and
+romanized form scores 0.5613. **Romanization forms a cluster of its own, and it
+is a stronger signal than content.** That is the mechanism behind the retrieval
+gap, stated as a number instead of a hypothesis.
+
+It predicts the fix and then rules out the cheap version. Transliterating out of
+Latin script should help — but doing it with the rule-based transliterator
+*hurts*: Recall@10 on the hi/latn cell falls **0.1988 → 0.1199**, because a CER
+of 0.38 lands the query in the wrong place. So **an accurate transliterator is
+the highest-value thing to build next**, and transliteration output should be
+shown to the user, not fed to retrieval, until it is.
+
+One caveat recorded so it cannot be misread: the hand-typed pairs score a
+*higher* native-vs-romanized cosine (0.7942) than Dakshina's (0.5613-0.6298).
+That is not evidence that real typing is easier. It is code-mixing — "KYC",
+"UPI", "48" survive verbatim into the Gurmukhi version and anchor the two
+embeddings together. Shared-Latin-token overlap is 0.0513 for the hand-typed
+pairs against 0.0119-0.0173 for Dakshina, and is now recorded beside every
+cosine in `docs/figures/tsne_parallel_claims.json`.
+
+### Three bugs, all caught by something refusing rather than guessing
+
+- **`fasttext-wheel` 0.9.2 is broken under NumPy 2.** Its `predict()` ends in
+  `np.array(probs, copy=False)`, which NumPy 2 raises on. Every call was
+  throwing, `LanguagePreprocess` was catching it and falling back to the script
+  heuristic, and **the fallback looked exactly like a result** — the first
+  "finding" of the day was the fallback, not fastText. `lid.py` now calls the
+  C++ predictor directly, and `batch.py` prints a loud warning when any row ran
+  degraded.
+- **Language ID scanned the top-5 for a supported language**, so confidently
+  French text came back as English. Takes the top prediction only.
+- **`majority_class` read `label` while being scored against `lang`.** Caught
+  only because the two label sets are disjoint.
+
+And one design bug: `build_splits` wrote an empty `train.jsonl` for an eval-only
+dataset and locked it. "An empty train split exists" is a different claim from
+"this dataset has no train split".
+
+### Environment
+
+`uv` had vanished from this machine entirely — the venv still worked, so nothing
+failed until something needed installing. Reinstalled (0.12.18); `gensim` 4.4.0
+added to `requirements-ml`; torch verified still `2.9.1+cu128` afterwards.
+
+Measured on the RTX 4050, encoding 78,077 fact-checks: **BGE-M3 12.1 min (peak
+1.11 GiB), LaBSE 2.4 min, MuRIL 3.7 min**, against 4.96 GiB free. The "long
+pole" risk flagged in the Phase 2 plan did not materialise.
+
 ## Next
 
-**Phase 2 — the language layer (Days 2-3).** fastText language ID, script
-detection (already built), IndicXlit transliteration, the romanized eval sets,
-the embedding comparison, and the t-SNE plot. Deliverable is the native vs
-romanized table, which is the research contribution.
+**Phase 3 — front of the pipeline (Days 4-5).** Check-worthiness, claim
+normalisation (CheckThat! 2025 Task 2), span identification (X-CLAIM).
 
-The retrieval task to score the embedding comparison on **now exists**:
-MultiClaim, 3,153 dev / 3,156 test queries across en/hi/pa. That was the hardest
-blocker and it is gone — MultiClaim is ingested, split, leakage-clean and
-reproducible.
+**Phase 2 built two things Phase 3 inherits.** The hand-typed set already
+carries check-worthiness labels (15 `No` / 85 `Yes`) from its `no claim` rows,
+so FR-6 has a small but real eval set on romanized input from day one. And
+`whole_post_span` is registered in `eval/baselines.py` but still raises
+`NotImplementedError` — it needs the tokenised X-CLAIM loaders.
 
-**Day 2 opens with the IndicXlit install spike, timeboxed to 30 minutes.**
-`indic-transliteration` is already pinned and working, so Phase 2 is not
-blocked either way; IndicXlit is an upgrade to measure against it on Dakshina.
+**The floor to beat, per component:**
 
-Phase 1's floor to beat: retrieval Recall@10 = 0.0947, verdict macro-F1 =
-0.2147. Retrieval is the bottleneck - improving the aggregator before
-retrieval is tuning against noise.
+| component | metric | current | baseline |
+| --- | --- | --- | --- |
+| Claim matching | MRR / R@10 | **0.5244 / 0.6688** (BGE-M3) | 0.0002 / 0.0008 random |
+| Language ID, hand-typed | accuracy | **0.8700** | 0.6400 majority |
+| Language ID, MultiClaim hi/latn | accuracy | **0.7719** | 0.0000 script |
+| Transliteration, 33 pa pairs | CER | **0.4281** | 0.8518 identity |
+| AVeriTeC retrieval | R@10 | 0.0947 | 0.0121 random |
+| AVeriTeC verdict | macro-F1 | 0.2147 | 0.1516 majority |
+
+**The highest-value open engineering task is an accurate transliterator**, and
+Phase 2 produced the number that says so: romanized text sits in a spurious
+Latin-script cluster (unrelated romanized hi vs pa = cosine 0.6900, against
+0.5613 for the *same* sentence across scripts), so moving queries out of it
+should help — but doing it with the rule-based transliterator costs 0.0789
+Recall@10 on the hi/latn cell, because CER 0.38 lands them in the wrong place.
+Until that improves, transliteration output is for the user to read, not for
+retrieval to consume.
 
 ### Open items
 
-- **CheckThat! 2025 Task 2** — not started; needed for Phase 3.
-- **Dakshina** (2.01 GB, confirmed reachable) — not downloaded; needed to
-  evaluate transliteration in Phase 2.
-- **fastText `lid.176`** — not downloaded; needed for FR-3 language ID.
-- **Embedding models** for the Phase 2 comparison — BGE-M3, LaBSE, MuRIL,
-  ~7.6 GB, not downloaded. Hub connectivity is intermittent, so expect retries.
+- **CheckThat! 2025 Task 2** — not started; needed for Phase 3. The only
+  dataset gap left.
+- **An accurate transliterator.** IndicXlit is ruled out in this environment
+  (it would install CPU torch over the CUDA build). Options: a character-level
+  seq2seq trained on Dakshina's word pairs, or IndicXlit behind a subprocess
+  boundary in its own venv. See the Phase 2 entry for why it matters.
 - **Knowledge store train split** (63.52 GB) not downloaded. Dev is enough for
-  Phase 1 and for evaluation; only needed if training retrieval on AVeriTeC.
+  evaluation; only needed if training retrieval on AVeriTeC.
 - **A dense index over the full dev knowledge store is not feasible** on this
-  GPU: 15.3 M passages, 31.3 GB of fp16 vectors, 14–28 GPU-hours.
+  GPU: 15.3 M passages, 31.3 GB of fp16 vectors, 14-28 GPU-hours.
   `SYSTEM_DESIGN.md` §7 budgets 3 GB. Use retrieve-then-rerank — BM25 to top-100
   per claim, dense over only those (~0.3 GB, ~15 min). **Settle this before
-  Phase 5, not during it.**
+  Phase 5, not during it.** Phase 2 makes this easier than it looked: the
+  fact-check index took 12 minutes and 1.11 GiB for 78,077 documents, so the
+  machinery exists and only the scale is the question.
+- **`data/interim/index/` is ~1.1 GB** and `tfidf.state.joblib` alone is
+  606 MB. Gitignored, but it is there if disk gets tight.
 
 ### Needs a human — I cannot do these
 
-- **~100 hand-typed romanized forwards (FR-26, P0).** See
-  `collection-brief.md`; forward it as-is. Binding deadline **Day 11**.
-  Punjabi is the priority — every dataset here is thin on it.
+- ~~**~100 hand-typed romanized forwards (FR-26, P0).**~~ **DONE, Day 3**, eight
+  days before the deadline. 100 rows, 64 hi / 36 pa, 15 no-claim, 33 matched
+  Gurmukhi pairs. The single most valuable input to Phase 2.
 - **Native-speaker review of `app/static/i18n/{hi,pa}.json`** before any demo.
-  Those strings are unverified placeholders, marked as such in the files.
-- **Optional: set `HF_TOKEN`** before Phase 2 pulls ~7.6 GB of models. Raises the
-  rate limit; will not help with dropped connections.
+  Those strings are unverified placeholders, marked as such in the files. This
+  is now the only outstanding human task.
+- **Optional: check `hw012`.** Of the seven rows declared `lang=mixed`, six were
+  clear; `hw012` ("...24 ghante **ch** gone") has one Punjabi postposition in an
+  otherwise Hindi sentence and was assigned `hi`. One row in 100, recorded in
+  `loaders.MIXED_UNCERTAIN`, and easy to flip if it is wrong.
+- **Optional: set `HF_TOKEN`.** Phase 2's ~9.6 GB of downloads completed without
+  it, so this is a rate-limit convenience, not a blocker.
 
 ### Standing rules that are easy to forget
 
@@ -777,3 +1022,4 @@ retrieval is tuning against noise.
 - Every experiment needs a dumb baseline in the same table.
 - Before every experiment: what is the current number, what is the dumb
   baseline, and what would make this experiment invalid?
+

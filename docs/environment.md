@@ -10,7 +10,13 @@ instructions and the JSON is the record.
 | | |
 | --- | --- |
 | Python | `Python 3.11.16` (provisioned by uv, not the system Python) |
-| uv | `uv 0.12.17 (635500036 2026-09-18 x86_64-pc-windows-msvc)` |
+| uv | `uv 0.12.18 (01cb90c1a 2026-09-22 x86_64-pc-windows-msvc)` |
+
+> **`uv` went missing from this machine once** (Day 3), and nothing failed
+> until something needed installing -- the existing `.venv` keeps working
+> without it. If `make setup` reports `uv: command not found`, reinstall with
+> `irm https://astral.sh/uv/install.ps1 | iex` and check that
+> `%USERPROFILE%\.localin` is on PATH.
 | GNU Make | `GNU Make 3.81` |
 | Platform | Windows 11, x86_64 |
 | GPU | NVIDIA RTX 4050 laptop, **6 GB VRAM** (inference ceiling 5.5 GB, NFR-3) |
@@ -191,6 +197,47 @@ repo totals the Hub reports.
 | --- | --- | --- |
 | `MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7` | Phase 1 stance, via NLI | ~0.6 GB |
 | `ai4bharat/IndicBART` | Phase 6 generation (config only so far) | config |
+| `google/muril-base-cased` | Phase 2 embedding ladder, rung 3 | ~1.0 GB |
+| `sentence-transformers/LaBSE` | Bitext alignment + the t-SNE figure only | ~1.9 GB |
+| `BAAI/bge-m3` | Retrieval and claim matching (the winner) | ~2.3 GB |
+
+Total HF cache after Phase 2: **8.3 GB**. Two more model files live outside it,
+under gitignored `data/raw/`, because they are *data* the splits and evals are
+built from and `DOWNLOADS.json` records their sha256:
+
+| File | Role | On disk |
+| --- | --- | --- |
+| `data/raw/fasttext/lid.176.bin` | Language ID (FR-3) | 131 MB |
+| `data/raw/dakshina/dakshina_dataset_v1.0.tar` | Transliteration benchmark | 2.01 GB |
+
+Two models are **ours**, trained here and written to gitignored
+`data/interim/models/`:
+
+| Model | Built by | On disk |
+| --- | --- | --- |
+| `roman_lid.joblib` -- char n-gram language ID for Latin script | `scripts/train_roman_lid.py` | 4.5 MB |
+| `word2vec.kv` -- in-domain static embeddings | `scripts/train_word2vec.py` | 80 MB |
+
+### Measured encoder throughput (RTX 4050, 78,077 documents, fp16, batch 32)
+
+| Encoder | Time | Peak VRAM | Index |
+| --- | --- | --- | --- |
+| BGE-M3 (1024-d) | 12.1 min | 1.11 GiB | 160 MB |
+| LaBSE (768-d) | 2.4 min | 0.97 GiB | 120 MB |
+| MuRIL (768-d) | 3.7 min | 0.52 GiB | 120 MB |
+| TF-IDF (512-d) | 4.0 min (CPU, SVD) | -- | 80 MB + 606 MB state |
+| Word2Vec (300-d) | 0.1 min (CPU) | -- | 47 MB |
+
+Against **4.96 GiB free** of the card's 6.00 GiB. Comfortably inside
+`SYSTEM_DESIGN.md` 7's 3 GB index budget and 10's VRAM ceiling.
+
+### `fasttext-wheel` 0.9.2 is broken under NumPy 2
+
+Its `predict()` ends in `np.array(probs, copy=False)`, which NumPy 2 raises on
+instead of silently copying -- so every call through the documented API throws.
+`src/preprocess/lid.py` calls the C++ predictor (`model.f.predict`) directly.
+The alternative was pinning NumPy back for the whole project because of one
+wrapper line. Do not "simplify" it back.
 
 The NLI model's label order is read from its own config at load time rather
 than assumed — `{0: entailment, 1: neutral, 2: contradiction}` — because
