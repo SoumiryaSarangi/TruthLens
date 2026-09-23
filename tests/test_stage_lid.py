@@ -7,6 +7,7 @@ when the 131 MB binary is absent, which is always the case in CI.
 
 from __future__ import annotations
 
+import importlib.util
 from pathlib import Path
 
 import pytest
@@ -22,8 +23,15 @@ from preprocess.lid import (
 )
 from preprocess.roman_lid import MODEL_PATH as ROMAN_MODEL
 
-HAVE_MODEL = Path(MODEL_PATH).is_file()
-needs_model = pytest.mark.skipif(not HAVE_MODEL, reason="lid.176.bin not downloaded")
+# BOTH halves matter. The weights live under gitignored data/raw/ and the
+# `fasttext-wheel` package is in the ML lock, which CI does not install -- so a
+# guard on the file alone passes locally and fails in CI, which is exactly what
+# happened the first time.
+HAVE_FASTTEXT = importlib.util.find_spec("fasttext") is not None
+HAVE_MODEL = HAVE_FASTTEXT and Path(MODEL_PATH).is_file()
+needs_model = pytest.mark.skipif(
+    not HAVE_MODEL, reason="needs fasttext-wheel (ML lock) and lid.176.bin"
+)
 
 
 def test_native_script_decides_without_the_model():
@@ -93,9 +101,10 @@ def test_romanized_hindi_is_not_identified_and_that_is_the_finding():
 # The hybrid: lid.176 in front, a char n-gram model behind (FR-3)
 # -----------------------------------------------------------------------------
 
-HAVE_BOTH = HAVE_MODEL and Path(ROMAN_MODEL).is_file()
+HAVE_SKLEARN = importlib.util.find_spec("sklearn") is not None
+HAVE_BOTH = HAVE_MODEL and HAVE_SKLEARN and Path(ROMAN_MODEL).is_file()
 needs_both = pytest.mark.skipif(
-    not HAVE_BOTH, reason="lid.176 and/or the romanized classifier are not built"
+    not HAVE_BOTH, reason="needs lid.176, scikit-learn and a trained roman_lid"
 )
 
 

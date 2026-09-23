@@ -1,9 +1,15 @@
 """Transliteration (FR-5).
 
-No model and no download, so all of this runs in CI.
+No model and no download -- but `indic-transliteration` is in the ML lock, not
+the core or dev locks CI installs, so anything that actually converts script is
+skipped there. The pre-normalisation rules are pure Python and always run,
+which is deliberate: they are where the informal-spelling logic lives and so
+where the bugs are.
 """
 
 from __future__ import annotations
+
+import importlib.util
 
 import pytest
 
@@ -14,6 +20,13 @@ from preprocess.translit import (
 )
 
 DEVA_YE_SACH = "ये सच है क्या"
+
+
+# Anything that calls into indic_transliteration needs it present.
+needs_indic = pytest.mark.skipif(
+    importlib.util.find_spec("indic_transliteration") is None,
+    reason="indic-transliteration is in the ML lock, which CI does not install",
+)
 
 
 @pytest.fixture
@@ -38,22 +51,26 @@ def test_doubled_vowels_become_long_vowels():
     assert _prepare("doodh") == "dUdha"
 
 
+@needs_indic
 def test_romanized_hindi_becomes_devanagari(translit):
     assert translit.to_native("ye sach hai kya", "hi") == DEVA_YE_SACH
 
 
+@needs_indic
 def test_romanized_punjabi_becomes_gurmukhi(translit):
     out = translit.to_native("sat sri akal ji", "pa")
     assert out != "sat sri akal ji"
     assert any("਀" <= ch <= "੿" for ch in out)
 
 
+@needs_indic
 def test_english_is_left_alone(translit):
     """`en` has no native script to convert to, and mangling it would be worse."""
     assert translit.to_native("The government said this", "en") == "The government said this"
     assert translit.to_native("anything", "other") == "anything"
 
 
+@needs_indic
 def test_non_letters_pass_through_untouched(translit):
     """Code-mixed forwards are full of digits, emoji and English."""
     out = translit.to_native("6000 rupaye \U0001f64f https://example.com", "hi")
@@ -61,11 +78,13 @@ def test_non_letters_pass_through_untouched(translit):
     assert "\U0001f64f" in out
 
 
+@needs_indic
 def test_empty_input_is_returned_unchanged(translit):
     assert translit.to_native("", "hi") == ""
     assert translit.to_roman("", "pa") == ""
 
 
+@needs_indic
 def test_to_roman_produces_lowercase_latin(translit):
     """The synthetic romanized sets must look like something a person typed."""
     out = translit.to_roman(DEVA_YE_SACH, "hi")
@@ -73,6 +92,7 @@ def test_to_roman_produces_lowercase_latin(translit):
     assert all(ord(ch) < 128 for ch in out)
 
 
+@needs_indic
 def test_medial_long_vowels_are_not_recoverable(translit):
     """Pins the documented limitation, so it is not mistaken for a bug later.
 
