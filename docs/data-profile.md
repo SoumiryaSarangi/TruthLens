@@ -242,10 +242,5 @@ Policy: **train yields to eval; dev and test are never modified**
 | Dataset | Status |
 | --- | --- |
 | Dakshina | Downloaded and extracted for hi, pa. Its TEST half trains the romanized language-ID classifier; its DEV half is reserved for transliteration evaluation, so no row is both trained on and evaluated on. |
-
-## Not yet acquired
-
-| Dataset | Status |
-| --- | --- |
-| CheckThat! 2025 Task 2 | Not started. Needed for Phase 3 claim normalization. |
+| CheckThat! 2025 Task 2 | Downloaded (12 files), not yet split. Claim normalization for Phase 3. Use `test_gold-*.csv`, not `test-*.csv` -- the latter ships without labels. |
 

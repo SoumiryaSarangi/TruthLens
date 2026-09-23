@@ -40,6 +40,17 @@ GH = "https://raw.githubusercontent.com"
 XCLAIM_LANGS = ("en", "hi", "pa")
 XCLAIM_SPLITS = ("train", "dev", "test")
 
+# CheckThat! 2025 Task 2 is claim normalization: a noisy social-media post in,
+# a single clean checkable claim out. Distributed as a plain public GitLab repo
+# -- no registration, despite what an earlier note in docs/specs/SRS.md said.
+#
+# Only en/hi/pa of the 20 languages, matching the X-CLAIM policy: English is
+# taken because the X-CLAIM paper's own finding is that JOINT multilingual
+# training beats zero-shot transfer, and reproducing that needs the English half.
+CT_LANGS = {"en": "eng", "hi": "hi", "pa": "pa"}
+CT_RAW = ("https://gitlab.com/checkthat_lab/clef2025-checkthat-lab/-/raw/main/"
+          "task2/data")
+
 SOURCES: dict[str, dict] = {
     "averitec": {
         "homepage": "https://fever.ai/dataset/averitec.html",
@@ -50,6 +61,25 @@ SOURCES: dict[str, dict] = {
         "files": {
             "train.json": f"{GH}/MichSchli/AVeriTeC/main/data/train.json",
             "dev.json": f"{GH}/MichSchli/AVeriTeC/main/data/dev.json",
+        },
+    },
+    "checkthat25_t2": {
+        "homepage": "https://checkthat.gitlab.io/clef2025/task2/",
+        "repo": "https://gitlab.com/checkthat_lab/clef2025-checkthat-lab",
+        "licence": "CLEF CheckThat! 2025 shared-task release; research use. "
+                   "Publicly distributed -- no registration required.",
+        "note": "Task 2, claim normalization. Two columns: `post` and "
+                "`normalized claim`. Punjabi has 445 training rows, the most "
+                "Punjabi supervision in this project. Test GOLD is published "
+                "too, under task2/data/test-outputs/.",
+        "files": {
+            **{f"{split}-{code}.csv": f"{CT_RAW}/{split}/{split}-{code}.csv"
+               for split in ("train", "dev", "test")
+               for code in CT_LANGS.values()},
+            # The test split ships without its answers; the gold lives in a
+            # separate directory under a different naming convention.
+            **{f"test_gold-{code}.csv": f"{CT_RAW}/test-outputs/task2_{code}_gold.csv"
+               for code in CT_LANGS.values()},
         },
     },
     "x_claim": {

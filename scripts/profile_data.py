@@ -202,6 +202,7 @@ def main() -> int:
     # up telling a future reader to acquire something they already have.
     dakshina = Path("data/raw/dakshina/extracted")
     dakshina_langs = sorted(p.name for p in dakshina.glob("*") if p.is_dir())
+    checkthat = len(list(Path("data/raw/checkthat25_t2").glob("*.csv")))
     parts += [
         "## Supporting corpora (not split, so not profiled above)",
         "",
@@ -212,12 +213,10 @@ def main() -> int:
          "is reserved for transliteration evaluation, so no row is both trained on "
          "and evaluated on. |") if dakshina_langs else
         "| Dakshina | Not downloaded. Needed to evaluate transliteration in Phase 2. |",
-        "",
-        "## Not yet acquired",
-        "",
-        "| Dataset | Status |",
-        "| --- | --- |",
-        "| CheckThat! 2025 Task 2 | Not started. Needed for Phase 3 claim normalization. |",
+        (f"| CheckThat! 2025 Task 2 | Downloaded ({checkthat} files), not yet split. "
+         "Claim normalization for Phase 3. Use `test_gold-*.csv`, not `test-*.csv` "
+         "-- the latter ships without labels. |") if checkthat else
+        "| CheckThat! 2025 Task 2 | Not downloaded. Needed for Phase 3. |",
         "",
     ]
     OUT.write_text("\n".join(parts) + "\n", encoding="utf-8")

@@ -75,7 +75,7 @@ built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
 | **Python** | 3.11.16 via uv, in `.venv`. System Python is 3.13 and is not used. |
 | **Tests** | 261 passing, 2 skipped, 2 gpu-deselected |
 | **Datasets in hand** | AVeriTeC, X-CLAIM, MultiClaim, **handtyped (FR-26, 100 rows)**, **Dakshina** |
-| **Datasets waiting** | CheckThat! 2025 T2 (not started) — needed for Phase 3 |
+| **Datasets waiting** | None. CheckThat! 2025 T2 downloaded 2026-09-24; its loader and splits are Phase 3. |
 | **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
 | **Models trained** | Romanized LID (char n-gram) and in-domain Word2Vec, both ours. Everything else is off the shelf. |
 | **Numbers so far** | Claim matching MRR 0.5244 / R@10 0.6688 (BGE-M3, floor 0.0002) · LID 0.8700 on the hand-typed set (was 0.0000) · transliteration CER 0.4281 (identity 0.8518) · AVeriTeC retrieval R@10 0.0947, verdict macro-F1 0.2147 |
@@ -949,6 +949,54 @@ Measured on the RTX 4050, encoding 78,077 fact-checks: **BGE-M3 12.1 min (peak
 1.11 GiB), LaBSE 2.4 min, MuRIL 3.7 min**, against 4.96 GiB free. The "long
 pole" risk flagged in the Phase 2 plan did not materialise.
 
+## 2026-09-24 — CheckThat! 2025 Task 2 downloaded; two docs were wrong about it
+
+Phase 3's only dataset gap, closed. Wired into `scripts/download_data.py` beside
+AVeriTeC and X-CLAIM rather than fetched by hand, so all twelve files' sha256s
+are in `DOWNLOADS.json` and a Phase 3 number can be traced to exact bytes.
+
+**It needs no registration.** `docs/specs/SRS.md` called it a "Research release"
+and `data/CLAUDE.md` said "Requires registration". Both were wrong -- it is a
+plain public GitLab repo. Corrected in place, and the correction is worth more
+than the data: an unchecked "you need permission for this" note is how a
+dataset stays unacquired for a week.
+
+en/hi/pa only, matching the X-CLAIM policy. English is taken because X-CLAIM's
+own finding is that joint multilingual training beats zero-shot transfer, and
+reproducing that needs the English half.
+
+| split | en | hi | pa |
+| --- | --- | --- | --- |
+| train | 11,374 | 1,081 | **445** |
+| dev | 1,171 | 50 | 50 |
+| test (gold) | 1,285 | 100 | 100 |
+
+**445 Punjabi training rows is the most Punjabi supervision this project has**,
+ahead of X-CLAIM's ~346 and unlike MultiClaim's 7 dev posts it is a real
+training set.
+
+Two things found by looking at the files rather than trusting the filenames.
+
+**The test split ships without answers.** `test-*.csv` has a `post` column only;
+the labels are in `test-outputs/task2_*_gold.csv` under a different naming
+convention. Both are downloaded, and `test_gold-*.csv` is the superset -- same
+posts, plus the normalized claim. A loader that reaches for `test-*.csv` will
+get a file with no gold in it and no error.
+
+**The language column is not the script column, for the third dataset running.**
+`train-pa.csv` is 300 Gurmukhi, 74 Devanagari and 71 Latin -- only 67% of the
+"Punjabi" file is actually in Punjabi's script. `train-hi.csv` carries 71 Latin
+rows, and even `train-eng.csv` has 139 Devanagari ones. `src/data/script_id.py`
+handles this already; the point is that the gotcha keeps being real.
+
+Those 142 genuinely romanized hi/pa rows are also **more real romanized training
+data for the language-ID classifier**, which currently has only 42 real Punjabi
+rows plus Dakshina. Retraining on them would likely improve FR-3 further, but it
+would move a number that is already measured and reported, so it belongs in
+Phase 3 as a deliberate step with a before-and-after, not as a quiet rebuild.
+
+Not built yet: the loader and the frozen splits. That is Phase 3 work.
+
 ## Next
 
 **Phase 3 — front of the pipeline (Days 4-5).** Check-worthiness, claim
@@ -982,8 +1030,9 @@ retrieval to consume.
 
 ### Open items
 
-- **CheckThat! 2025 Task 2** — not started; needed for Phase 3. The only
-  dataset gap left.
+- ~~CheckThat! 2025 Task 2~~ **Downloaded 2026-09-24.** No dataset gaps left.
+  Still to build: its loader and frozen splits (Phase 3). Use
+  `test_gold-*.csv`, not `test-*.csv` — the latter has no labels.
 - **An accurate transliterator.** IndicXlit is ruled out in this environment
   (it would install CPU torch over the CUDA build). Options: a character-level
   seq2seq trained on Dakshina's word pairs, or IndicXlit behind a subprocess

@@ -208,7 +208,7 @@ left a band the clusterer ignored and the detector rejected.
 
 | Dataset | Role | Status |
 | --- | --- | --- |
-| CheckThat! 2025 Task 2 | claim normalization (Phase 3) | Not started. Requires registration; HI has 1081 train rows. |
+| CheckThat! 2025 Task 2 | claim normalization (Phase 3) | **Downloaded.** Public GitLab repo, NO registration -- an earlier note here said otherwise and was wrong. `post` -> `normalized claim`. 11,374 / 1,081 / 445 train rows for en/hi/pa. |
 
 ### Still open
 

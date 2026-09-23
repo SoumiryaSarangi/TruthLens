@@ -81,7 +81,8 @@ This is not paranoia. The DS@GT team working on CheckThat! 2025 found substantia
 
 - [ ] Repo skeleton, pinned `requirements.txt`, Python 3.11
 - [ ] Seeds fixed at 42 across numpy, torch, random, transformers — set in one place, imported everywhere
-- [ ] Dataset loaders for AVeriTeC, X-CLAIM, CheckThat! 2025 T2, MultiClaim, returning one common schema
+- [x] Dataset loaders for AVeriTeC, X-CLAIM, MultiClaim, handtyped — one common schema
+- [ ] CheckThat! 2025 T2 loader (downloaded 2026-09-24; loader is Phase 3)
 - [ ] Profiling script: per-language, per-split counts printed and committed to `docs/data-profile.md`
 - [ ] **Frozen splits committed to git as `.jsonl` in `data/splits/`** — never regenerated after this
 - [ ] `src/eval/evaluate.py` — takes a predictions JSONL and a config YAML, emits a metrics JSON

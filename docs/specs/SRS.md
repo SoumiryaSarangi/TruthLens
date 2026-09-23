@@ -146,7 +146,7 @@ A standalone local system: a Python pipeline in `src/`, served by FastAPI in `ap
 | --- | --- | --- | --- |
 | AVeriTeC | Verdict, evidence retrieval | CC BY-NC 4.0 | Claims in `data/splits/averitec/` · knowledge store not yet downloaded |
 | X-CLAIM | Claim spans, EN/HI/PA | Research release | In `data/splits/x_claim/` |
-| CheckThat! 2025 Task 2 | Claim normalization, HI/PA | Research release | Not started |
+| CheckThat! 2025 Task 2 | Claim normalization, EN/HI/PA | Public GitLab repo, no registration | Downloaded 2026-09-24 |
 | MultiClaim v2 | Claim matching | Restricted, not redistributable | **Acquired.** ID manifests in `data/splits/multiclaim/`; CSVs stay in gitignored `data/raw/` |
 | SemEval-2023 Task 3 | Manipulation labels (P2) | Registration | Not started |
 | Dakshina | Transliteration evaluation | Open | Not started |
