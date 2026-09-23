@@ -308,7 +308,7 @@ Every row above should eventually exist twice: once on native script, once on ro
 
 - [ ] **Submission deadline.** The 13-week plan is an assumption. A shorter runway means merging Phases 5 and 6 and cutting items 1 and 2 from the cut list immediately.
 - [x] **Compute. Settled:** local RTX 4050 laptop GPU, 6 GB VRAM, no Colab. So: XLM-R-**base** not large, IndicBART not mT5, LoRA throughout, fp16, one training job at a time and never alongside the API server. Inference budget and per-model VRAM in `specs/SYSTEM_DESIGN.md` §10.
-- [ ] **MultiClaim access.** The Zenodo record is marked restricted — request access early, it may take days. The SemEval-2025 T7 release is the fallback.
+- [x] **MultiClaim access. Granted 22 Sep 2026 and ingested** — 435,252 fact-checks, 89,139 posts, 105,424 pairs. The Phase 4/5 swap rule is moot. Punjabi is the weak point: 104 pairs in the whole corpus.
 - [ ] **AVeriTeC knowledge store size.** Roughly 1000 articles per claim across 4568 claims is large. Check disk before downloading; a subset may be necessary.
 
 ### Standing risks

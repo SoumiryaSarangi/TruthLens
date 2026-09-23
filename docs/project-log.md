@@ -19,20 +19,57 @@ results tables) · `docs/environment.md` (toolchain).
 
 ---
 
+## Resuming cold — read this first
+
+If you have just been handed this project with no memory of it, this section is
+enough to start work without re-deriving anything.
+
+**What it is.** TruthLens checks forwarded WhatsApp messages in English, Hindi
+and Punjabi, including Hindi/Punjabi typed in Latin letters. Solo student
+project, CSE472, 14 days.
+
+**Where to look, in order.** `CLAUDE.md` (rules, precedence, gotchas) →
+`docs/phase-plan.md` (where we are, what is next) → `docs/specs/` (what is being
+built) → this log (why things are the way they are). `docs/build-plan.md` is
+historical rationale, lowest precedence.
+
+**Precedence when documents disagree:** code and tests > `CLAUDE.md` >
+`docs/specs/` > `docs/build-plan.md`.
+
+**Five things that are easy to get wrong here:**
+
+1. **Accuracy is close to meaningless on AVeriTeC.** Majority class scores 61%.
+   Lead with macro-F1, always beside its baseline.
+2. **The language column is not the script column.** Script is detected per row
+   by `src/data/script_id.py`, never inferred from a filename or lang field.
+3. **Never regenerate a committed split.** Frozen means committed. If one looks
+   wrong, stop and ask — `make leakage` after any data change.
+4. **CI has no torch.** Nothing under `src/` may import a model library at
+   module scope; stages import lazily inside methods.
+5. **The harness refuses rather than guessing.** If `make eval` exits 2, read
+   the message — do not work around it.
+
+**To get running:** `make setup` then `make test`. The environment is already
+built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
+
+---
+
 ## Status at a glance
 
 | | |
 | --- | --- |
-| **Current phase** | **Phase 1 complete, gaps closed.** MultiClaim ingested. Phase 2 ready to start. |
-| **Clock** | 14 days. Day 1 = first day of Phase 1, which has not begun. Freeze end of Day 12. |
+| **Current phase** | **Phase 1 complete, gaps closed, MultiClaim ingested.** Phase 2 not started, nothing blocking it. |
+| **Clock** | 14 days. **Day 1 done** (Phase 1). Day 2 = Phase 2, not started. Freeze end of Day 12. |
 | **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |
 | **Python** | 3.11.16 via uv, in `.venv`. System Python is 3.13 and is not used. |
-| **Tests** | 197 passing, 1 skipped, 1 gpu-deselected |
+| **Tests** | 204 passing, 1 skipped, 1 gpu-deselected |
 | **Datasets in hand** | AVeriTeC, X-CLAIM, **MultiClaim** |
 | **Datasets waiting** | CheckThat! 2025 T2 (not started), Dakshina (not downloaded) |
 | **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
 | **Models trained** | None. Phase 1 uses off-the-shelf NLI only; training starts Phase 3. |
+| **Numbers so far** | Retrieval Recall@10 0.0947 (floor 0.0121) · verdict macro-F1 0.2147 (majority 0.1516) |
+| **CI** | Green. Last verified run 29s, both jobs. |
 
 ---
 
@@ -642,6 +679,51 @@ Final: 25,137 train / 3,153 dev / 3,156 test, `make leakage` clean across all
 three datasets, and all 9 split files reproduce byte-for-byte from source.
 
 
+## 2026-09-22 — CI fix, and the collection brief
+
+Two smaller pieces of work that followed the MultiClaim commit.
+
+### CI went red on MultiClaim, and the fix is a principle
+
+The reproducibility job rebuilds every split from `data/raw/` and compares it to
+`SPLITS.lock`. MultiClaim is access-restricted: its CSVs are gitignored, handed
+over manually, and **can never exist on a CI runner**. The job crashed on a
+missing `posts.csv`.
+
+Loaders now declare their source files (`LOADER_SOURCES`), and the build skips a
+dataset whose sources are absent instead of failing. `verify-reproducible`
+reports those splits as unverifiable **by name** and checks the rest. Both halves
+matter: it must not fail on data it cannot have, and it must not quietly pass as
+though everything were verified.
+
+One related guard: when a dataset is skipped, a full build no longer re-locks
+`SPLITS.lock` — that would drop the skipped dataset's entries and turn an absent
+source into deleted provenance.
+
+Verified by simulating the CI condition rather than trusting it: 3 MultiClaim
+files reported unchecked, the other 6 confirmed byte-identical, exit 0.
+`tests/test_missing_sources.py` is the regression cover.
+
+### docs/collection-brief.md
+
+FR-26 needs ~100 romanized Hindi and Punjabi forwards typed by real people. It
+is the one requirement in this project that cannot be automated, and MultiClaim
+does not substitute for it: those 501 naturally romanized Hindi posts are public
+posts, while the contribution is about messy personal typing.
+
+The brief is written for the collectors, not for the repo, so it can be
+forwarded as-is. It specifies the mix (including ~15 messages with **no**
+checkable claim, to test that the system says "nothing to check" rather than
+inventing a verdict), gives worked examples in both languages, and leads with
+the instruction that actually matters: **do not correct your spelling** —
+inconsistent romanization is the signal being measured, so a spellchecked set is
+worthless.
+
+Scheduled in Phase 2 by SRS traceability, but FR-26 reports the hand-typed set
+*separately* from the synthetic transliterated one, so Phase 2 proceeds on the
+synthetic half. **The binding deadline is Day 11**, before the final tables.
+
+
 ## Next
 
 **Phase 2 — the language layer (Days 2-3).** fastText language ID, script
@@ -650,8 +732,9 @@ the embedding comparison, and the t-SNE plot. Deliverable is the native vs
 romanized table, which is the research contribution.
 
 The retrieval task to score the embedding comparison on **now exists**:
-MultiClaim, 3,153 dev queries across en/hi/pa. That was the hardest blocker and
-it is gone.
+MultiClaim, 3,153 dev / 3,156 test queries across en/hi/pa. That was the hardest
+blocker and it is gone — MultiClaim is ingested, split, leakage-clean and
+reproducible.
 
 **Day 2 opens with the IndicXlit install spike, timeboxed to 30 minutes.**
 `indic-transliteration` is already pinned and working, so Phase 2 is not
@@ -663,17 +746,29 @@ retrieval is tuning against noise.
 
 ### Open items
 
-- **MultiClaim** — access requested on Zenodo, awaiting approval. When it
-  lands: add a `SOURCES` entry in `scripts/download_data.py`, a loader in
-  `src/data/loaders.py`, then `make data`.
 - **CheckThat! 2025 Task 2** — not started; needed for Phase 3.
-- **MultiClaim swap rule** — if access is not granted by **Day 5**, swap
-  Phases 4 and 5 and do evidence retrieval first.
-- **Knowledge store train split** (63.52 GB) not downloaded; dev is enough for
-  Phase 1 and for evaluation.
-- ~~CI has never been observed green.~~ **Resolved 2026-09-21: it has.**
-  `gh` is authenticated; `gh run list` shows 4 of 5 runs green including the
-  latest, and run #6 was checked job by job (`check` 18s, `data` 27s).
+- **Dakshina** (2.01 GB, confirmed reachable) — not downloaded; needed to
+  evaluate transliteration in Phase 2.
+- **fastText `lid.176`** — not downloaded; needed for FR-3 language ID.
+- **Embedding models** for the Phase 2 comparison — BGE-M3, LaBSE, MuRIL,
+  ~7.6 GB, not downloaded. Hub connectivity is intermittent, so expect retries.
+- **Knowledge store train split** (63.52 GB) not downloaded. Dev is enough for
+  Phase 1 and for evaluation; only needed if training retrieval on AVeriTeC.
+- **A dense index over the full dev knowledge store is not feasible** on this
+  GPU: 15.3 M passages, 31.3 GB of fp16 vectors, 14–28 GPU-hours.
+  `SYSTEM_DESIGN.md` §7 budgets 3 GB. Use retrieve-then-rerank — BM25 to top-100
+  per claim, dense over only those (~0.3 GB, ~15 min). **Settle this before
+  Phase 5, not during it.**
+
+### Needs a human — I cannot do these
+
+- **~100 hand-typed romanized forwards (FR-26, P0).** See
+  `collection-brief.md`; forward it as-is. Binding deadline **Day 11**.
+  Punjabi is the priority — every dataset here is thin on it.
+- **Native-speaker review of `app/static/i18n/{hi,pa}.json`** before any demo.
+  Those strings are unverified placeholders, marked as such in the files.
+- **Optional: set `HF_TOKEN`** before Phase 2 pulls ~7.6 GB of models. Raises the
+  rate limit; will not help with dropped connections.
 
 ### Standing rules that are easy to forget
 

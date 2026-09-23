@@ -11,54 +11,77 @@ seconds without reading the whole plan.
 
 ## Current phase
 
-**Phase 1 complete, gaps closed. MultiClaim ingested. Phase 2 ready.**
+**Phase 1 complete. Phase 2 (Days 2-3) not started, nothing blocking it.**
 
-The clock is **14 days**, and **Day 1 is the first day of Phase 1** — it has not
-started, so the count has not started. Target machine: Intel i7-14700HX with an
-**RTX 4050 laptop GPU, 6 GB VRAM**. No Colab. Every model choice is constrained by
-that card; see `specs/SYSTEM_DESIGN.md` §10 for the GPU budget.
+The clock is **14 days**. **Day 1 is done** — Phase 1 shipped the vertical
+slice with real numbers. Day 2 opens Phase 2. Code freezes at the end of Day 12.
 
-Out of scope until Phase 1 opens: **all model code**. Nothing in `src/` imports
-torch, transformers, sentence-transformers or FAISS yet, and CI depends on that
-staying true — the fast job installs the core lock only.
+Target machine: Intel i7-14700HX with an **RTX 4050 laptop GPU, 6 GB VRAM**
+(~4.9 GiB usable — Windows holds the rest). No Colab. Every model choice is
+constrained by that card; see `specs/SYSTEM_DESIGN.md` §10.
+
+**CI runs the core lock, which has no torch.** Nothing under `src/` may import
+a model library at module scope; `tests/test_contracts.py` enforces it
+statically. Stages import their models lazily inside methods.
 
 ## What exists
 
 | Piece | Where | State |
 | --- | --- | --- |
-| Eval harness | `src/eval/evaluate.py` | Works: classification + retrieval. 5 guardrails |
+| Eval harness | `src/eval/evaluate.py` | 5 guardrails; classification + retrieval |
 | Metrics | `src/eval/metrics.py` | Cross-checked against scikit-learn |
 | Dumb baselines | `src/eval/baselines.py` | majority_class, stratified_random, random_rank |
-| Results tables | `src/eval/report.py` | `make table` → `docs/results.md` |
 | Leakage detection | `src/data/leakage.py` | 4 checks, proven against planted leaks |
-| Dataset loaders | `src/data/loaders.py` | **Done** — AVeriTeC, X-CLAIM |
-| Script detection | `src/data/script_id.py` | **Done** — per row, never from the lang label |
-| Frozen splits | `data/splits/` | **Done** — averitec 2666/500/307, x_claim 5343/600/571 |
-| Profiling | `scripts/profile_data.py` | **Done** — `make profile` → `docs/data-profile.md` |
-| CI | `.github/workflows/ci.yml` | Green. `check` + `data` (proves splits reproduce from source) |
-| Pipeline, API, UI | `src/pipeline/`, `app/` | **Not started** — Phase 1 |
+| Dataset loaders | `src/data/loaders.py` | **AVeriTeC, X-CLAIM, MultiClaim** |
+| Script detection | `src/data/script_id.py` | Per row, never from the lang label |
+| Frozen splits | `data/splits/` | averitec 2666/500/307 · x_claim 5343/600/571 · multiclaim 25137/3153/3156 |
+| Knowledge store | `data/raw/averitec_kb/` + cache | dev, 11.54 GB zip; per-claim cache in `data/interim/` |
+| **Pipeline** | `src/pipeline/` | **Done** — contracts, registry, orchestrator, batch |
+| **Stage baselines** | `src/{preprocess,claims,matching,retrieval,stance,generation,faithfulness}/` | **Done** — 8 impls |
+| **API + UI** | `app/` | **Done** — `/verify`, `/health`, `/version`, plain page |
+| Tests | `tests/` | 204 passing, 1 skipped, 1 gpu-deselected |
+| CI | `.github/workflows/ci.yml` | Green — `check` + `data` (splits reproduce from source) |
 
-## Next: Phase 1 — vertical slice, English only (Day 1)
+## Phase 1 results — the floor everything must beat
 
-AVeriTeC dev → BM25 over its knowledge store → off-the-shelf NLI for a 5-class
-verdict → template explanation with source links → `POST /verify` → one plain HTML
-page. Ugly, working, committed. Its numbers are the floor everything else beats.
+| Component | Score | Baseline |
+| --- | --- | --- |
+| Retrieval Recall@10 | **0.0947** | 0.0121 (seeded random over the same pools) |
+| Retrieval Success@10 | 0.1580 | 0.0240 |
+| Verdict macro-F1 | **0.2147** | 0.1516 (majority_class) |
+| Verdict accuracy | 0.3600 | 0.6100 (majority_class **wins** — read macro-F1) |
 
-Contracts and module layout are specified in `specs/SYSTEM_DESIGN.md` §4–5;
-requirements in `specs/SRS.md`. Do not re-derive them here.
+**Retrieval is the bottleneck.** Five claims in six have no gold document in the
+top 10, so the stance model mostly reads irrelevant text. Improving the
+aggregator before retrieval is tuning against noise.
 
-### Nothing is blocking. Cleared 21 Sep 2026
+## Next: Phase 2 — the language layer (Days 2-3) · Units I & II
 
-| Was blocking | State |
-| --- | --- |
-| AVeriTeC knowledge store | **Downloaded** — dev, 11.54 GB, `make kb`. 500 per-claim files, hashed, join to `dev.json` verified |
-| CUDA torch | **Installed** — `2.9.1+cu128`, `cuda.is_available() == True` on the RTX 4050 |
-| ML stack | **Installed** — transformers 5.17, sentence-transformers 6.1, faiss 1.15, FastAPI 0.141 |
-| Transliteration not pinned | **Pinned** — `indic-transliteration` 2.3.82 as the baseline |
+fastText language ID, IndicXlit transliteration, code-mix normalisation, the
+romanized eval sets, the embedding comparison (TF-IDF → Word2Vec → MuRIL →
+LaBSE → BGE-M3), and the t-SNE plot. **Deliverable: the native vs romanized
+table** — Units I and II of the report *and* the research contribution.
 
-Day 1 can start on code.
+Script detection already exists and is reused, not rebuilt.
 
-### Needs a human, start now
+**The retrieval task to score the embedding comparison on now exists:**
+MultiClaim, 3,153 dev / 3,156 test queries across en/hi/pa. Before it landed
+there was none — AVeriTeC is English-only and X-CLAIM has no relevance
+judgements. That was Phase 2's hardest blocker.
+
+**Day 2 opens with the IndicXlit install spike, timeboxed to 30 minutes.**
+`ai4bharat-transliteration` depends on fairseq, which does not install cleanly
+on Windows + Python 3.11 — confirmed from its PyPI metadata, not assumed.
+`indic-transliteration` 2.3.82 is already pinned and working, so Phase 2 is not
+blocked either way; IndicXlit is an upgrade to measure against it on Dakshina.
+
+### Still to download for Phase 2
+
+Dakshina (2.01 GB), fastText `lid.176`, and the embedding models (BGE-M3, LaBSE,
+MuRIL, ~7.6 GB). Hub connectivity here is intermittent — roughly half of
+requests fail — so use something that resumes and do not restart from zero.
+
+### Needs a human — I cannot do these
 
 - **~100 hand-typed romanized forwards (FR-26, P0).** Cannot be automated and
   cannot be substituted: MultiClaim's 501 naturally romanized Hindi posts are

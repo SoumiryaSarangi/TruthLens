@@ -203,9 +203,8 @@ def main() -> int:
         "",
         "| Dataset | Status |",
         "| --- | --- |",
-        "| MultiClaim / SemEval-2025 T7 | Access requested on Zenodo; not yet granted. "
-        "Needed for Phase 4 claim matching. |",
         "| CheckThat! 2025 Task 2 | Not started. Needed for Phase 3 claim normalization. |",
+        "| Dakshina | Not downloaded. Needed to evaluate transliteration in Phase 2. |",
         "",
     ]
     OUT.write_text("\n".join(parts) + "\n", encoding="utf-8")
