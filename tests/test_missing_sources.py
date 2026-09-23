@@ -45,7 +45,18 @@ def test_multiclaim_sources_are_declared_and_restricted():
     assert all(p.startswith("data/raw/") for p in declared)
 
 
-@pytest.mark.parametrize("dataset", ["averitec", "x_claim", "multiclaim"])
+def test_handtyped_sources_are_declared_and_unpublishable():
+    """The hand-typed forwards are people's own writing.
+
+    They were collected for this project and are not a public dataset, so they
+    are in exactly the same position as MultiClaim: they cannot be committed,
+    cannot reach CI, and the build must skip them rather than fail.
+    """
+    declared = [p.as_posix() for p in loaders.LOADER_SOURCES["handtyped"]]
+    assert declared == ["data/raw/handtyped/forwards.csv"]
+
+
+@pytest.mark.parametrize("dataset", ["averitec", "x_claim", "multiclaim", "handtyped"])
 def test_declared_sources_live_under_gitignored_raw(dataset):
     """Source data must never be inside a committed directory."""
     for path in loaders.LOADER_SOURCES[dataset]:

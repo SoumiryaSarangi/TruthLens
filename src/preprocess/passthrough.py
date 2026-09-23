@@ -5,33 +5,15 @@ no transliteration -- both arrive in Phase 2 as separate implementations
 registered alongside this one. Phase 1 is English only, so this stage's job is
 to fill `Preprocessed` honestly and get out of the way.
 
-It does NOT use `data.normalize.normalize_for_hashing`: that function is for
-deduplication and strips zero-width joiners, which are meaningful in
-Devanagari and Gurmukhi. Feeding its output to a model would be wrong. This is
-the model-facing path and keeps the text intact.
+Forward-artefact stripping (FR-2) lives in `preprocess.clean` so this and the
+Phase 2 implementation share exactly one copy of it.
 """
 
 from __future__ import annotations
 
-import re
-
 from data.script_id import detect_script, script_purity
 from pipeline.contracts import Preprocessed, Trace
-
-_WS = re.compile(r"\s+")
-
-# Forward artefacts stripped for processing while `original` keeps the raw text
-# (FR-2). Kept short on purpose: an over-eager rule that eats real content is
-# worse than one that leaves a header in.
-_ARTEFACT = re.compile(
-    # Longest alternative FIRST: regex alternation is left-to-right, so
-    # `forwarded` would otherwise match inside "forwarded message" and leave
-    # the word "message" glued to the claim.
-    r"^\s*(?:forwarded\s+many\s+times|forwarded\s+message|forwarded"
-    r"|sent\s+as\s+received)"
-    r"\s*[:\-\u2013\u2014]?\s*",
-    re.IGNORECASE,
-)
+from preprocess.clean import strip_artefacts
 
 
 class PassthroughPreprocess:
@@ -39,12 +21,7 @@ class PassthroughPreprocess:
     impl = "passthrough"
 
     def run(self, trace: Trace, text: str) -> Trace:
-        cleaned = text
-        for _ in range(4):                      # real forwards stack the header
-            cleaned, n = _ARTEFACT.subn("", cleaned)
-            if not n:
-                break
-        cleaned = _WS.sub(" ", cleaned).strip()
+        cleaned = strip_artefacts(text)
 
         trace.pre = Preprocessed(
             original=text,

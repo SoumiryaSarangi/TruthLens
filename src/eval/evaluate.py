@@ -171,11 +171,20 @@ def guard_split_frozen(split_path: Path) -> tuple[str, str | None]:
 
 def check_coverage(
     gold_uids: list[str], pred_by_uid: dict[str, Any], *, allow_partial: bool,
+    universe: set[str] | None = None,
 ) -> dict[str, Any]:
-    """Guardrail 5."""
+    """Guardrail 5.
+
+    `gold_uids` is what must be predicted; `universe` is what may be. They are
+    the same set for classification and retrieval. They differ for
+    transliteration, where the split has 100 rows but only 33 carry a reference:
+    predicting all 100 is correct and must not be reported as 67 stray uids,
+    while failing to predict one of the 33 still has to be caught.
+    """
     gold_set = set(gold_uids)
+    allowed = universe if universe is not None else gold_set
     missing = sorted(gold_set - set(pred_by_uid))
-    unknown = sorted(set(pred_by_uid) - gold_set)
+    unknown = sorted(set(pred_by_uid) - allowed)
 
     if unknown:
         raise EvalRefused(
@@ -203,6 +212,10 @@ def collect_sanity_warnings(metrics: dict[str, Any], ceiling: float) -> list[str
     for name, value in metrics.get("overall", {}).items():
         if not isinstance(value, (int, float)) or name in {"n", "n_skipped_no_relevant"}:
             continue
+        # CER and WER are error rates: high is bad, not suspicious. Warning on
+        # them would train the reader to ignore this warning.
+        if name in {"cer", "wer"}:
+            continue
         if value > ceiling:
             warnings.append(
                 f"SUSPICIOUSLY HIGH: overall {name}={value:.4f} exceeds sanity_ceiling "
@@ -225,6 +238,7 @@ def load_predictions(path: str | Path, task: str) -> dict[str, dict[str, Any]]:
         raise EvalRefused(f"predictions not found: {p}")
     required = {"retrieval": ("uid", "ranked_ids"),
                 "classification": ("uid", "pred"),
+                "transliteration": ("uid", "transliterated"),
                 "faithfulness": ("uid", "explanation")}[task]
 
     by_uid: dict[str, dict[str, Any]] = {}
@@ -248,9 +262,20 @@ def load_gold_retrieval(path: str | Path) -> dict[str, list[str]]:
         raise EvalRefused(f"gold file not found: {p}")
     gold: dict[str, list[str]] = {}
     for i, row in enumerate(load_jsonl(p), start=1):
-        if "uid" not in row or "relevant_ids" not in row:
-            raise EvalRefused(f"{p}:{i}: gold rows need `uid` and `relevant_ids`")
-        gold[row["uid"]] = list(row["relevant_ids"])
+        if "uid" not in row:
+            raise EvalRefused(f"{p}:{i}: gold rows need a `uid`")
+        # Retrieval gold is a SET of relevant ids; transliteration gold is one
+        # reference string. Both are carried as a list so everything downstream
+        # -- coverage, breakdown, refusals -- has exactly one shape to handle.
+        if "relevant_ids" in row:
+            gold[row["uid"]] = list(row["relevant_ids"])
+        elif "reference" in row:
+            gold[row["uid"]] = [row["reference"]]
+        else:
+            raise EvalRefused(
+                f"{p}:{i}: gold rows need `relevant_ids` (retrieval) or "
+                f"`reference` (transliteration)"
+            )
     return gold
 
 
@@ -266,16 +291,21 @@ def score_classification(
 ) -> dict[str, Any]:
     label_set_name = cfg["label_set"]
     labels = get_label_set(label_set_name)
+    # Which split column holds the gold. Almost always `label`; `lang` is what
+    # makes language identification (FR-3) scoreable, since the answer for a row
+    # is the language the row already declares. Restricted to real split fields
+    # so a typo cannot silently score against nothing.
+    gold_field = cfg.get("gold_field", "label")
 
     scored = [r for r in split_rows if r["uid"] in pred_by_uid]
-    missing_gold = [r["uid"] for r in scored if r.get("label") is None]
+    missing_gold = [r["uid"] for r in scored if r.get(gold_field) is None]
     if missing_gold:
         raise EvalRefused(
-            f"{len(missing_gold)} split row(s) have no gold `label`, e.g. {missing_gold[:5]}. "
-            "A classification split must carry its gold labels."
+            f"{len(missing_gold)} split row(s) have no gold `{gold_field}`, e.g. "
+            f"{missing_gold[:5]}. A classification split must carry its gold labels."
         )
 
-    y_true = [r["label"] for r in scored]
+    y_true = [r[gold_field] for r in scored]
     y_pred = [pred_by_uid[r["uid"]]["pred"] for r in scored]
     try:
         validate_labels(y_true, label_set_name, where=f"{cfg['split']} (gold)")
@@ -314,6 +344,32 @@ def score_retrieval(
     )
 
 
+def score_transliteration(
+    split_rows: list[dict[str, Any]],
+    pred_by_uid: dict[str, dict[str, Any]],
+    gold: dict[str, list[str]],
+    cfg: dict[str, Any],
+) -> dict[str, Any]:
+    """CER / WER / exact match against a native-script reference (FR-5).
+
+    Only rows that HAVE a reference are scored; a romanized message nobody
+    rewrote in Gurmukhi cannot be marked right or wrong. Those rows are absent
+    from the gold file, so `check_coverage` already reports the denominator.
+    """
+    scored = [r for r in split_rows if r["uid"] in pred_by_uid and r["uid"] in gold]
+    hypotheses = [pred_by_uid[r["uid"]]["transliterated"] for r in scored]
+    references = [gold[r["uid"]][0] for r in scored]
+
+    def compute(indices) -> dict[str, Any]:
+        return M.transliteration_metrics(
+            [hypotheses[i] for i in indices], [references[i] for i in indices],
+        )
+
+    return compute_with_breakdown(
+        scored, cfg["breakdown"], compute, min_cell_n=cfg["min_cell_n"],
+    )
+
+
 def score(
     task: str,
     split_rows: list[dict[str, Any]],
@@ -326,8 +382,30 @@ def score(
     if task == "retrieval":
         assert gold is not None
         return score_retrieval(split_rows, pred_by_uid, gold, cfg)
+    if task == "transliteration":
+        assert gold is not None
+        return score_transliteration(split_rows, pred_by_uid, gold, cfg)
     # Unreachable: evaluate() rejects unsupported tasks before reaching here.
     raise EvalRefused(f"no scorer registered for task {task!r}")
+
+
+def load_interim_texts(split_path: Path) -> dict[str, str]:
+    """uid -> source text, from the gitignored materialised copy.
+
+    Split files hold ids, not text (the Phase 0 decision), so a baseline that
+    needs the input itself has to resolve it the same way the batch runner does.
+    """
+    interim = Path("data/interim") / split_path.parent.name / f"{split_path.stem}.jsonl"
+    # Fixtures keep their text beside the split as `texts.jsonl` rather than
+    # under data/interim/, so the harness stays testable without a built dataset.
+    sibling = split_path.parent / "texts.jsonl"
+    path = interim if interim.is_file() else sibling
+    if not path.is_file():
+        raise EvalRefused(
+            f"no materialised text at {interim}, which this baseline needs. "
+            "Run `make data` to rebuild data/interim/."
+        )
+    return {r["uid"]: r["text"] for r in load_jsonl(path)}
 
 
 def run_baseline(
@@ -351,8 +429,13 @@ def run_baseline(
                 "metrics": doc.get("metrics", {}).get("overall", {})}
 
     fn = baselines_mod.get_baseline(name)
-    kwargs: dict[str, Any] = {"seed": cfg["seed"]}
+    # The baseline must read gold from the same column the model is scored
+    # against, or it answers a different question than the one being asked.
+    kwargs: dict[str, Any] = {"seed": cfg["seed"],
+                              "gold_field": cfg.get("gold_field", "label")}
     notes: list[str] = []
+    if name == "identity_transliteration":
+        kwargs["texts"] = load_interim_texts(Path(cfg["split"]))
     if name == "random_rank":
         pool = sorted({doc for ids in (gold or {}).values() for doc in ids})
         kwargs["candidate_ids"] = pool
@@ -417,10 +500,19 @@ def evaluate(config_path: str | Path, out_dir: str | Path = DEFAULT_OUT_DIR,
     pred_by_uid = load_predictions(pred_path, cfg["task"])
     pred_sha = sha256_file(pred_path)
 
-    gold = load_gold_retrieval(cfg["gold"]) if cfg["task"] == "retrieval" else None
+    needs_gold = cfg["task"] in ("retrieval", "transliteration")
+    gold = load_gold_retrieval(cfg["gold"]) if needs_gold else None
 
+    # Transliteration gold covers only the rows somebody wrote a reference for --
+    # 33 of the 100 hand-typed forwards. Requiring a prediction for every split
+    # row would refuse a run that is complete; requiring one for every GOLD row
+    # is the check that actually matters.
+    expected_uids = (sorted(gold) if cfg["task"] == "transliteration"
+                     else [r["uid"] for r in split_rows])
     coverage = check_coverage(
-        [r["uid"] for r in split_rows], pred_by_uid, allow_partial=cfg["allow_partial"],
+        expected_uids, pred_by_uid,
+        allow_partial=cfg["allow_partial"],
+        universe={r["uid"] for r in split_rows},
     )
 
     scored = score(cfg["task"], split_rows, pred_by_uid, cfg, gold)
@@ -440,8 +532,12 @@ def evaluate(config_path: str | Path, out_dir: str | Path = DEFAULT_OUT_DIR,
             "reproduce this number."
         )
 
-    headline = "macro_f1" if cfg["task"] == "classification" else "mrr"
-    gaps = script_gap(scored.get("by", {}), headline)
+    headline = {"classification": "macro_f1", "retrieval": "mrr",
+                "transliteration": "cer"}[cfg["task"]]
+    # `script_gap` subtracts romanized from native, which only reads as "native
+    # is better" for a higher-is-better metric. Transliteration gold exists only
+    # for romanized rows, so there is no native cell and the gap would be noise.
+    gaps = {} if cfg["task"] == "transliteration" else script_gap(scored.get("by", {}), headline)
 
     config_hash = sha256_bytes(
         canonical_json(cfg) + pred_sha.encode() + (lock_sha or "nolock").encode()
@@ -499,7 +595,14 @@ def main(argv: list[str] | None = None) -> int:
     headline = doc["metrics"]["overall"]
     print(f"\n{doc['experiment']}  [{doc['config_hash']}]  task={doc['task']}")
     print(f"  written  : {doc['_written_to']}")
-    print(f"  coverage : {doc['coverage']['n_predicted']}/{doc['coverage']['n_gold']}")
+    # Scored / required, not predicted / required. A transliteration run
+    # predicts on all 100 split rows while only 33 carry a reference, and
+    # "100/33" reads like over-coverage when it is in fact complete.
+    cov = doc["coverage"]
+    scored = cov["n_gold"] - cov["n_missing"]
+    extra = (f"  ({cov['n_predicted']} predicted)"
+             if cov["n_predicted"] != cov["n_gold"] else "")
+    print(f"  coverage : {scored}/{cov['n_gold']} scored{extra}")
     base_name = doc["baseline"]["name"]
     for key, value in sorted(headline.items()):
         if not isinstance(value, (int, float)) or key in {"n", "n_skipped_no_relevant"}:

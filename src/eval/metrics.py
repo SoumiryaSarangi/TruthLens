@@ -195,3 +195,64 @@ def coverage_accuracy_curve(
             "threshold": kept[-1][0],
         })
     return curve
+
+
+# -----------------------------------------------------------------------------
+# Transliteration (FR-5)
+# -----------------------------------------------------------------------------
+# Character error rate is the metric the transliteration literature reports, so
+# ours has to be comparable with published Dakshina numbers rather than
+# something invented here. WER is kept beside it because a transliterator can
+# have a respectable CER while getting most whole words wrong, and a user reads
+# words.
+
+
+def _levenshtein(a: Sequence[str], b: Sequence[str]) -> int:
+    """Edit distance over any sequence -- characters for CER, words for WER."""
+    if not a:
+        return len(b)
+    if not b:
+        return len(a)
+    previous = list(range(len(b) + 1))
+    for i, item_a in enumerate(a, start=1):
+        current = [i]
+        for j, item_b in enumerate(b, start=1):
+            current.append(min(
+                previous[j] + 1,                                  # deletion
+                current[j - 1] + 1,                               # insertion
+                previous[j - 1] + (item_a != item_b),             # substitution
+            ))
+        previous = current
+    return previous[-1]
+
+
+def _rate(hypotheses: Sequence[str], references: Sequence[str], *, words: bool) -> float:
+    """Corpus-level error rate: total edits / total reference length.
+
+    Corpus-level, NOT the mean of per-sentence rates. Averaging per-sentence
+    rates lets a three-character reference weigh as much as a 200-character one,
+    which on a set with wildly uneven lengths is a different and much noisier
+    number than the one papers report.
+    """
+    edits = length = 0
+    for hyp, ref in zip(hypotheses, references, strict=True):
+        h = hyp.split() if words else list(hyp)
+        r = ref.split() if words else list(ref)
+        edits += _levenshtein(h, r)
+        length += len(r)
+    return edits / length if length else 0.0
+
+
+def transliteration_metrics(
+    hypotheses: Sequence[str], references: Sequence[str],
+) -> dict[str, float]:
+    """CER, WER and exact match. Lower is better for the first two."""
+    if not references:
+        return {"cer": 0.0, "wer": 0.0, "exact_match": 0.0, "n": 0.0}
+    exact = sum(1 for h, r in zip(hypotheses, references, strict=True) if h.strip() == r.strip())
+    return {
+        "cer": _rate(hypotheses, references, words=False),
+        "wer": _rate(hypotheses, references, words=True),
+        "exact_match": exact / len(references),
+        "n": float(len(references)),
+    }

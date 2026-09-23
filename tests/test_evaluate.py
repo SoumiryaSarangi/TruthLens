@@ -8,12 +8,14 @@ reason Phase 0 exists.
 
 from __future__ import annotations
 
+import json
 import shutil
 from pathlib import Path
 
 import pytest
 import yaml
 
+from common.io_jsonl import load_jsonl
 from eval.evaluate import EvalRefused, evaluate, main
 
 BASE_CONFIG = Path("configs/example_majority_baseline.yaml")
@@ -282,3 +284,162 @@ def test_faithfulness_task_is_registered_but_not_yet_implemented(tmp_path):
 def test_cli_returns_two_on_refusal(tmp_path):
     cfg = write_config(tmp_path, baseline=None)
     assert main(["--config", str(cfg), "--out", str(tmp_path)]) == 2
+
+
+# -----------------------------------------------------------------------------
+# gold_field: scoring against a split column other than `label` (FR-3)
+# -----------------------------------------------------------------------------
+
+
+def test_gold_field_scores_against_the_language_column(tmp_path):
+    """Language ID gold is the language each row already declares.
+
+    Without this the only way to measure FR-3 would be a purpose-built split,
+    which would mean measuring it on 100 rows instead of every dataset we have.
+    """
+    preds = tmp_path / "lang_preds.jsonl"
+    rows = load_jsonl(Path("tests/fixtures/toy_clean/dev.jsonl"))
+    preds.write_text(
+        "".join(json.dumps({"uid": r["uid"], "pred": r["lang"]}) + "\n" for r in rows),
+        encoding="utf-8",
+    )
+    cfg = write_config(
+        tmp_path, predictions=str(preds).replace("\\", "/"),
+        gold_field="lang", label_set="lang_4class", baseline="majority_class",
+    )
+    doc = evaluate(cfg, tmp_path)
+    assert doc["metrics"]["overall"]["accuracy"] == 1.0
+
+
+def test_gold_field_also_moves_the_baseline(tmp_path):
+    """The bug this pins: a baseline reading `label` while scored on `lang`.
+
+    It predicted the majority VERDICT against LANGUAGE gold. The harness caught
+    it only because the two label sets happen to be disjoint -- if the split had
+    ever held a label called `en` it would have scored silently and wrongly.
+    """
+    preds = tmp_path / "lang_preds.jsonl"
+    rows = load_jsonl(Path("tests/fixtures/toy_clean/dev.jsonl"))
+    preds.write_text(
+        "".join(json.dumps({"uid": r["uid"], "pred": r["lang"]}) + "\n" for r in rows),
+        encoding="utf-8",
+    )
+    cfg = write_config(
+        tmp_path, predictions=str(preds).replace("\\", "/"),
+        gold_field="lang", label_set="lang_4class", baseline="majority_class",
+    )
+    doc = evaluate(cfg, tmp_path)
+    assert doc["baseline"]["kind"] == "generated"
+    assert "accuracy" in doc["baseline"]["metrics"]
+
+
+def test_an_unknown_gold_field_is_refused(tmp_path):
+    cfg = write_config(tmp_path, gold_field="not_a_column")
+    with pytest.raises(EvalRefused, match="invalid config"):
+        evaluate(cfg, tmp_path)
+
+
+# -----------------------------------------------------------------------------
+# task: transliteration (FR-5)
+# -----------------------------------------------------------------------------
+
+
+def _translit_setup(tmp_path: Path, hypothesis: str):
+    """A one-row transliteration task against the toy fixture."""
+    rows = load_jsonl(Path("tests/fixtures/toy_clean/dev.jsonl"))
+    uid = rows[0]["uid"]
+    gold = tmp_path / "gold.jsonl"
+    gold.write_text(json.dumps({"uid": uid, "reference": "abcd"}) + "\n", encoding="utf-8")
+    preds = tmp_path / "preds.jsonl"
+    preds.write_text(
+        json.dumps({"uid": uid, "transliterated": hypothesis}) + "\n", encoding="utf-8",
+    )
+    return gold, preds
+
+
+def test_transliteration_scores_cer_wer_and_exact_match(tmp_path):
+    gold, preds = _translit_setup(tmp_path, "abcd")
+    cfg = write_config(
+        tmp_path, task="transliteration", label_set=None,
+        gold=str(gold).replace("\\", "/"), predictions=str(preds).replace("\\", "/"),
+        baseline="identity_transliteration",
+    )
+    doc = evaluate(cfg, tmp_path)
+    overall = doc["metrics"]["overall"]
+    assert overall["cer"] == 0.0
+    assert overall["wer"] == 0.0
+    assert overall["exact_match"] == 1.0
+
+
+def test_transliteration_gold_may_cover_only_some_split_rows(tmp_path):
+    """33 of 100 hand-typed forwards carry a Gurmukhi reference.
+
+    Predicting on all 100 is correct and must not be reported as 67 stray uids;
+    failing to predict one of the 33 still has to be caught.
+    """
+    gold, _ = _translit_setup(tmp_path, "abcd")
+    rows = load_jsonl(Path("tests/fixtures/toy_clean/dev.jsonl"))
+    preds = tmp_path / "all_preds.jsonl"
+    preds.write_text(
+        "".join(json.dumps({"uid": r["uid"], "transliterated": "abcd"}) + "\n" for r in rows),
+        encoding="utf-8",
+    )
+    cfg = write_config(
+        tmp_path, task="transliteration", label_set=None,
+        gold=str(gold).replace("\\", "/"), predictions=str(preds).replace("\\", "/"),
+        baseline="identity_transliteration",
+    )
+    doc = evaluate(cfg, tmp_path)
+    assert doc["coverage"]["n_gold"] == 1
+    assert doc["coverage"]["n_missing"] == 0
+    assert doc["coverage"]["n_predicted"] == len(rows)
+
+
+def test_transliteration_still_refuses_a_uid_outside_the_split(tmp_path):
+    gold, _ = _translit_setup(tmp_path, "abcd")
+    preds = tmp_path / "bad_preds.jsonl"
+    preds.write_text(
+        json.dumps({"uid": "not-in-the-split", "transliterated": "abcd"}) + "\n",
+        encoding="utf-8",
+    )
+    cfg = write_config(
+        tmp_path, task="transliteration", label_set=None,
+        gold=str(gold).replace("\\", "/"), predictions=str(preds).replace("\\", "/"),
+        baseline="identity_transliteration",
+    )
+    with pytest.raises(EvalRefused, match="not in the split"):
+        evaluate(cfg, tmp_path)
+
+
+def test_error_rates_do_not_trip_the_sanity_ceiling(tmp_path):
+    """CER above 0.85 is a bad transliterator, not a suspicious result.
+
+    Warning on it would train the reader to ignore this warning, which is the
+    one that catches leakage.
+    """
+    gold, preds = _translit_setup(tmp_path, "zzzzzzzzzz")
+    cfg = write_config(
+        tmp_path, task="transliteration", label_set=None,
+        gold=str(gold).replace("\\", "/"), predictions=str(preds).replace("\\", "/"),
+        baseline="identity_transliteration",
+    )
+    doc = evaluate(cfg, tmp_path)
+    assert doc["metrics"]["overall"]["cer"] > 0.85
+    assert not [w for w in doc["warnings"] if "SUSPICIOUSLY HIGH" in w]
+
+
+def test_transliteration_gold_needs_a_reference_field(tmp_path):
+    rows = load_jsonl(Path("tests/fixtures/toy_clean/dev.jsonl"))
+    gold = tmp_path / "gold.jsonl"
+    gold.write_text(json.dumps({"uid": rows[0]["uid"]}) + "\n", encoding="utf-8")
+    preds = tmp_path / "preds.jsonl"
+    preds.write_text(
+        json.dumps({"uid": rows[0]["uid"], "transliterated": "x"}) + "\n", encoding="utf-8",
+    )
+    cfg = write_config(
+        tmp_path, task="transliteration", label_set=None,
+        gold=str(gold).replace("\\", "/"), predictions=str(preds).replace("\\", "/"),
+        baseline="identity_transliteration",
+    )
+    with pytest.raises(EvalRefused, match=r"relevant_ids.*reference"):
+        evaluate(cfg, tmp_path)

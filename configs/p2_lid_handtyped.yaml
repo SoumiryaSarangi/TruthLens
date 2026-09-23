@@ -1,0 +1,16 @@
+# FR-3: fastText lid.176 on the hand-typed forwards.
+#
+# The hardest language-ID case this project has, and the one that matters most:
+# 100 messages of romanized Hindi and Punjabi, typed by people, with no native
+# script to fall back on. lid.176 was trained on native-script web text.
+experiment: p2_lid_handtyped
+task: classification
+split: data/splits/handtyped/dev.jsonl
+predictions: results/preds/p2_lid_handtyped.jsonl
+gold_field: lang
+label_set: lang_4class
+baseline: majority_class
+breakdown: [lang, script]
+notes: >
+  Hand-typed romanized forwards (FR-26), n=100, all Latin script.
+  Implementation: preprocess=full (fastText lid.176, floor 0.30).

@@ -12,6 +12,10 @@
       "n_lines": 2666,
       "sha256": "a322259c4bcdb60fd97ceded69df8a493935592236888768d67db03a7a5d7313"
     },
+    "handtyped/dev.jsonl": {
+      "n_lines": 100,
+      "sha256": "d74288f9df6836036f14b0d98765b37f551930fa2c61370e3d027fe926a1bbd9"
+    },
     "multiclaim/dev.jsonl": {
       "n_lines": 3153,
       "sha256": "b1b0ff4c1b6300e01536b80a3f084dd4938cf28d428469532a581c0a2f57b7fd"

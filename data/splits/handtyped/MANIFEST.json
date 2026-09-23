@@ -1,0 +1,40 @@
+{
+  "counts": {
+    "dev": {
+      "hi/latn": 64,
+      "lang=hi": 64,
+      "lang=pa": 36,
+      "pa/latn": 36,
+      "script=latn": 100,
+      "total": 100
+    }
+  },
+  "created_utc": "2026-09-23T14:19:34+00:00",
+  "dataset": "handtyped",
+  "deduplication": {
+    "dropped_from_train": {
+      "exact_match_in_eval": 0,
+      "near_duplicate_in_eval": 0,
+      "within_train_duplicate": 0
+    },
+    "left_in_place": {
+      "dev_internal_duplicates": 0,
+      "dev_test_overlap": 0
+    },
+    "policy": "train yields to eval; dev and test are never modified"
+  },
+  "notes": [],
+  "seed": 42,
+  "source": {
+    "files": {
+      "forwards.csv": {
+        "bytes": 24326,
+        "sha256": "deb85c6306658168277df3101b0fe2b3c077b74d57fa181f166a50d39dc60089",
+        "url": "manual (collected)"
+      }
+    },
+    "licence": "Collected for this project with the writers' consent. NOT redistributable and NOT published: only uids, hashes and counts are committed.",
+    "note": "~100 hand-typed romanized Hindi/Punjabi WhatsApp forwards (FR-26). Collected to docs/collection-brief.md. Spelling is deliberately uncorrected -- the inconsistency is the signal being measured. 34 Punjabi rows carry a matched Gurmukhi rewrite, used as transliteration gold.",
+    "repo": "n/a - collected by hand, 2026-09-23"
+  }
+}

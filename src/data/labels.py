@@ -35,6 +35,13 @@ AVERITEC_LABELS: Final[tuple[str, ...]] = (
 )
 
 CHECKWORTHY_BINARY: Final[tuple[str, ...]] = ("Yes", "No")
+
+# Language ID output (FR-3). `other` is the refusal: an input in a language this
+# project does not cover gets an explicit unsupported answer, never a verdict.
+# It is a RUNTIME value only -- no split row is ever labelled `other`, so on any
+# of our datasets this class has zero support and macro-F1 over it is capped at
+# 0.75, for the same structural reason `NotAClaim` caps the verdict metric.
+LANG_4CLASS: Final[tuple[str, ...]] = ("en", "hi", "pa", "other")
 STANCE_3CLASS: Final[tuple[str, ...]] = ("Supports", "Refutes", "Neutral")
 SPAN_BIO: Final[tuple[str, ...]] = ("B-CLAIM", "I-CLAIM", "O")
 
@@ -42,6 +49,7 @@ LABEL_SETS: Final[dict[str, tuple[str, ...]]] = {
     "verdict_5class": VERDICT_5CLASS,
     "averitec": AVERITEC_LABELS,
     "checkworthy_binary": CHECKWORTHY_BINARY,
+    "lang_4class": LANG_4CLASS,
     "stance_3class": STANCE_3CLASS,
     "span_bio": SPAN_BIO,
 }

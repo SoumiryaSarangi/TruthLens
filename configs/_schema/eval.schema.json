@@ -5,7 +5,13 @@
   "description": "Every experiment is one of these. Validated before a single metric is computed, so a typo'd key fails immediately instead of being silently ignored and producing a number nobody can reproduce.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["experiment", "task", "split", "predictions", "baseline"],
+  "required": [
+    "experiment",
+    "task",
+    "split",
+    "predictions",
+    "baseline"
+  ],
   "properties": {
     "experiment": {
       "type": "string",
@@ -13,7 +19,12 @@
       "description": "Human name for this run. Appears in the results table."
     },
     "task": {
-      "enum": ["retrieval", "classification", "faithfulness"],
+      "enum": [
+        "retrieval",
+        "classification",
+        "transliteration",
+        "faithfulness"
+      ],
       "description": "Selects the predictions schema and the metric family."
     },
     "split": {
@@ -22,7 +33,7 @@
     },
     "gold": {
       "type": "string",
-      "description": "Path to a gold file mapping uid -> relevant_ids. Required for retrieval; classification takes gold from the split's own `label` field."
+      "description": "Path to a gold file. Retrieval: uid -> relevant_ids. Transliteration: uid -> reference (the native-script text). Classification takes gold from the split's own `label` field, or from `gold_field`."
     },
     "predictions": {
       "type": "string",
@@ -47,7 +58,10 @@
           "properties": {
             "k": {
               "type": "array",
-              "items": { "type": "integer", "minimum": 1 },
+              "items": {
+                "type": "integer",
+                "minimum": 1
+              },
               "minItems": 1
             }
           }
@@ -56,15 +70,28 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "ece_bins": { "type": "integer", "minimum": 2 },
-            "coverage_points": { "type": "integer", "minimum": 2 }
+            "ece_bins": {
+              "type": "integer",
+              "minimum": 2
+            },
+            "coverage_points": {
+              "type": "integer",
+              "minimum": 2
+            }
           }
         }
       }
     },
     "breakdown": {
       "type": "array",
-      "items": { "enum": ["lang", "script", "dataset", "split"] },
+      "items": {
+        "enum": [
+          "lang",
+          "script",
+          "dataset",
+          "split"
+        ]
+      },
       "description": "Metrics are emitted per cell of these fields, as well as overall."
     },
     "min_cell_n": {
@@ -84,17 +111,74 @@
       "default": false,
       "description": "Permit predictions that do not cover every gold uid. Coverage is always recorded; this only decides whether a gap is fatal."
     },
-    "seed": { "type": "integer", "default": 42 },
-    "notes": { "type": "string" }
+    "gold_field": {
+      "type": "string",
+      "enum": [
+        "label",
+        "lang"
+      ],
+      "default": "label",
+      "description": "Which split column holds the gold for a classification task. `label` is the normal case. `lang` scores language identification (FR-3) against the language each split row already declares, which is what lets FR-3 be measured on every dataset rather than only on a purpose-built one."
+    },
+    "seed": {
+      "type": "integer",
+      "default": 42
+    },
+    "notes": {
+      "type": "string"
+    }
   },
   "allOf": [
     {
-      "if": { "properties": { "task": { "const": "retrieval" } }, "required": ["task"] },
-      "then": { "required": ["gold"] }
+      "if": {
+        "properties": {
+          "task": {
+            "const": "retrieval"
+          }
+        },
+        "required": [
+          "task"
+        ]
+      },
+      "then": {
+        "required": [
+          "gold"
+        ]
+      }
     },
     {
-      "if": { "properties": { "task": { "const": "classification" } }, "required": ["task"] },
-      "then": { "required": ["label_set"] }
+      "if": {
+        "properties": {
+          "task": {
+            "const": "classification"
+          }
+        },
+        "required": [
+          "task"
+        ]
+      },
+      "then": {
+        "required": [
+          "label_set"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "task": {
+            "const": "transliteration"
+          }
+        },
+        "required": [
+          "task"
+        ]
+      },
+      "then": {
+        "required": [
+          "gold"
+        ]
+      }
     }
   ]
 }

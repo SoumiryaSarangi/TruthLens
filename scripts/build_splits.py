@@ -262,7 +262,12 @@ def deduplicate(rows_by_split: dict[str, list]) -> tuple[dict[str, list], dict[s
         kept.append(row)
 
     out = dict(rows_by_split)
-    out["train"] = kept
+    # Only if the dataset HAS a train split. Writing the key unconditionally
+    # gave the eval-only handtyped set an empty train.jsonl, which the lock then
+    # recorded -- and "a train split exists and is empty" is a different claim
+    # from "this dataset has no train split".
+    if "train" in rows_by_split:
+        out["train"] = kept
 
     # Count, but do not touch, what remains in the evaluation splits.
     for name, rows in rows_by_split.items():
@@ -318,7 +323,8 @@ def cmd_build(args) -> int:
             )
 
         rows_by_split, dedup = deduplicate(rows_by_split)
-        rows_by_split["train"] = _renumber(rows_by_split["train"], "train")
+        if "train" in rows_by_split:
+            rows_by_split["train"] = _renumber(rows_by_split["train"], "train")
         dropped = dedup["dropped_from_train"]
         if sum(dropped.values()):
             print(f"  dedup: dropped {sum(dropped.values())} train rows "

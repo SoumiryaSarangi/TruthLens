@@ -1,0 +1,109 @@
+{
+  "baseline": {
+    "kind": "generated",
+    "metrics": {
+      "cer": 0.851790450928382,
+      "exact_match": 0.0,
+      "n": 33.0,
+      "wer": 0.9290123456790124
+    },
+    "name": "identity_transliteration",
+    "notes": []
+  },
+  "config_hash": "d26d1f6e9c74",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 33,
+    "n_missing": 0,
+    "n_predicted": 100
+  },
+  "created_utc": "2026-09-23T14:36:21+00:00",
+  "delta_vs_baseline": {
+    "cer": 0.0,
+    "exact_match": 0.0,
+    "wer": 0.0
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p2_translit_handtyped",
+  "git": {
+    "branch": "main",
+    "dirty": true,
+    "sha": "93fa1b1080662febcd1f036af990582c7ef45342"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "identity_transliteration",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p2_translit_handtyped",
+      "gold": "data/gold/handtyped_dev_translit.jsonl",
+      "metrics": {},
+      "min_cell_n": 30,
+      "notes": "Implementation: preprocess=full, transliterator=rulebased (indic-transliteration 2.3.82 with informal-spelling pre-normalisation). Baseline leaves the romanized text untouched, so its CER is the size of the gap between how people type and how Punjabi is written.\n",
+      "predictions": "results/preds/p2_translit_handtyped.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/handtyped/dev.jsonl",
+      "task": "transliteration"
+    },
+    "config_path": "configs/p2_translit_handtyped.yaml",
+    "predictions_path": "results/preds/p2_translit_handtyped.jsonl",
+    "predictions_sha256": "ee290dc4530c6a492cf7b5badc8555387db4cf930ff040613e90ecea4a519ad9",
+    "split_path": "data/splits/handtyped/dev.jsonl",
+    "split_sha256": "d74288f9df6836036f14b0d98765b37f551930fa2c61370e3d027fe926a1bbd9",
+    "splits_lock_sha256": "123ce39421f2caea998759ab90825b0a6aa625e11e8339fe2131c1d3734a1786"
+  },
+  "metrics": {
+    "by": {
+      "lang=pa,script=latn": {
+        "cer": 0.851790450928382,
+        "exact_match": 0.0,
+        "n": 33.0,
+        "wer": 0.9290123456790124
+      }
+    },
+    "overall": {
+      "cer": 0.851790450928382,
+      "exact_match": 0.0,
+      "n": 33.0,
+      "wer": 0.9290123456790124
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {},
+    "metric": "cer"
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "transliteration",
+  "warnings": [
+    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
+  ]
+}

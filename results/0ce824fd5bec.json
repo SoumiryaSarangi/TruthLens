@@ -1,0 +1,328 @@
+{
+  "baseline": {
+    "kind": "generated",
+    "metrics": {
+      "accuracy": 0.64,
+      "confusion": {
+        "en": {
+          "en": 0,
+          "hi": 0,
+          "other": 0,
+          "pa": 0
+        },
+        "hi": {
+          "en": 0,
+          "hi": 64,
+          "other": 0,
+          "pa": 0
+        },
+        "other": {
+          "en": 0,
+          "hi": 0,
+          "other": 0,
+          "pa": 0
+        },
+        "pa": {
+          "en": 0,
+          "hi": 36,
+          "other": 0,
+          "pa": 0
+        }
+      },
+      "macro_f1": 0.19512195121951217,
+      "n": 100.0,
+      "per_class": {
+        "en": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 0.0
+        },
+        "hi": {
+          "f1": 0.7804878048780487,
+          "precision": 0.64,
+          "recall": 1.0,
+          "support": 64.0
+        },
+        "other": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 0.0
+        },
+        "pa": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 36.0
+        }
+      }
+    },
+    "name": "majority_class",
+    "notes": []
+  },
+  "config_hash": "0ce824fd5bec",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 100,
+    "n_missing": 0,
+    "n_predicted": 100
+  },
+  "created_utc": "2026-09-23T14:27:52+00:00",
+  "delta_vs_baseline": {
+    "accuracy": -0.64,
+    "macro_f1": -0.19512195121951217
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p2_lid_handtyped_script",
+  "git": {
+    "branch": "main",
+    "dirty": true,
+    "sha": "93fa1b1080662febcd1f036af990582c7ef45342"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "majority_class",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p2_lid_handtyped_script",
+      "gold_field": "lang",
+      "label_set": "lang_4class",
+      "metrics": {},
+      "min_cell_n": 30,
+      "notes": "Hand-typed romanized forwards (FR-26), n=100, all Latin script. Baseline implementation: preprocess=passthrough.\n",
+      "predictions": "results/preds/p2_lid_handtyped_script.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/handtyped/dev.jsonl",
+      "task": "classification"
+    },
+    "config_path": "configs/p2_lid_handtyped_script.yaml",
+    "predictions_path": "results/preds/p2_lid_handtyped_script.jsonl",
+    "predictions_sha256": "5cc833e4fa267bda8d83599fcbe8fc8727a1b1d061bb7cebb48a71ebd59229ac",
+    "split_path": "data/splits/handtyped/dev.jsonl",
+    "split_sha256": "d74288f9df6836036f14b0d98765b37f551930fa2c61370e3d027fe926a1bbd9",
+    "splits_lock_sha256": "123ce39421f2caea998759ab90825b0a6aa625e11e8339fe2131c1d3734a1786"
+  },
+  "metrics": {
+    "by": {
+      "lang=hi,script=latn": {
+        "accuracy": 0.0,
+        "confusion": {
+          "en": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "hi": {
+            "en": 64,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "other": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "pa": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          }
+        },
+        "macro_f1": 0.0,
+        "n": 64.0,
+        "per_class": {
+          "en": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "hi": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 64.0
+          },
+          "other": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "pa": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          }
+        }
+      },
+      "lang=pa,script=latn": {
+        "accuracy": 0.0,
+        "confusion": {
+          "en": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "hi": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "other": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "pa": {
+            "en": 36,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          }
+        },
+        "macro_f1": 0.0,
+        "n": 36.0,
+        "per_class": {
+          "en": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "hi": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "other": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "pa": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 36.0
+          }
+        }
+      }
+    },
+    "overall": {
+      "accuracy": 0.0,
+      "confusion": {
+        "en": {
+          "en": 0,
+          "hi": 0,
+          "other": 0,
+          "pa": 0
+        },
+        "hi": {
+          "en": 64,
+          "hi": 0,
+          "other": 0,
+          "pa": 0
+        },
+        "other": {
+          "en": 0,
+          "hi": 0,
+          "other": 0,
+          "pa": 0
+        },
+        "pa": {
+          "en": 36,
+          "hi": 0,
+          "other": 0,
+          "pa": 0
+        }
+      },
+      "macro_f1": 0.0,
+      "n": 100.0,
+      "per_class": {
+        "en": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 0.0
+        },
+        "hi": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 64.0
+        },
+        "other": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 0.0
+        },
+        "pa": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 36.0
+        }
+      }
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "hi": {
+        "n_romanized": 64.0,
+        "romanized": 0.0
+      },
+      "pa": {
+        "n_romanized": 36.0,
+        "romanized": 0.0
+      }
+    },
+    "metric": "macro_f1"
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "classification",
+  "warnings": [
+    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
+  ]
+}

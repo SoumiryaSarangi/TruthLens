@@ -295,6 +295,92 @@ def multiclaim_rows() -> dict[str, list[Row]]:
     return load_multiclaim()
 
 
+# The seven rows their collector labelled `lang=mixed`. The split schema has no
+# such value, and SYSTEM_DESIGN 4 refuses to add one for the same reason it
+# refuses a `mixed` SCRIPT value: code-mixing is a continuous property that
+# `script_purity` already reports, and a fourth category would add a cell to
+# every per-language breakdown the research contribution rests on.
+#
+# So each is assigned its DOMINANT language here, by grammatical markers rather
+# than vocabulary -- English and Hindi/Punjabi nouns are shared, but case
+# markers and verb endings are not. The declaration is kept in `notes` so the
+# row can still be found later. Assigned by hand, deliberately: deriving these
+# from fastText would make them useless as gold for scoring fastText (FR-3).
+MIXED_LANG: dict[str, tuple[str, str]] = {
+    # id:      (lang, the marker that decided it)
+    "hw012": ("hi", "Hindi throughout ('roz 3 bar'); one Punjabi postposition, 'ghante ch'"),
+    "hw035": ("hi", "Hindi case and verb: 'ko ... se ... karte hi ... milta hai'"),
+    "hw060": ("hi", "Hindi ergative and past: 'ne ... likh diya tha'"),
+    "hw069": ("hi", "Hindi frame ('hote hain', 'nahi hota') around one Punjabi clause"),
+    "hw073": ("pa", "Punjabi verbs: 'rehnde', 'milde ne', 'sakdi'; conjunction 'te'"),
+    "hw088": ("pa", "Punjabi copula 'aa', 'jinna marzi', dative 'sab nu'"),
+    "hw094": ("hi", "Hindi adjective and copula: 'pehla chhota sa ... hai'"),
+}
+
+# hw012 is the one genuinely close call: its only grammatical marker is Punjabi
+# ('ch'), while everything else about it reads Hindi. It is one row in 100 and
+# it is recorded here rather than smoothed over.
+MIXED_UNCERTAIN = ("hw012",)
+
+
+def load_handtyped() -> Iterator[Row]:
+    """The ~100 hand-typed romanized forwards collected for FR-26.
+
+    The only dataset here that was not published by someone else: real people
+    typing Hindi and Punjabi in Latin script, with their own spelling. That is
+    the point -- MultiClaim's naturally romanized posts are public posts, and a
+    transliterator's output is consistent by construction. Neither is a
+    substitute for messy personal typing, which is what the system actually
+    receives and what this project's contribution is about.
+
+    `label` is CHECK-WORTHINESS, not a verdict: these forwards have no verified
+    answer, and inventing one would be worse than having none. The 15 rows whose
+    claim summary is "no claim" are the negatives, and they are the reason the
+    set exists in this shape -- a system that returns a confident verdict for a
+    good-morning blessing is broken in a way no accuracy number would show.
+
+    The Gurmukhi rewrites in `native_script` are NOT loaded here. They are
+    transliteration references, so they become gold in data/gold/ via
+    scripts/build_translit_gold.py, the same way retrieval gold is built.
+    """
+    path = RAW / "handtyped" / "forwards.csv"
+    with path.open("r", encoding="utf-8", newline="") as fh:
+        for item in csv.DictReader(fh):
+            text = (item.get("message") or "").strip()
+            row_id = (item.get("id") or "").strip()
+            if not text or not row_id:
+                continue
+            declared = (item.get("lang") or "").strip()
+            lang, note = MIXED_LANG.get(row_id, (declared, ""))
+            checkworthy = "No" if item["claim_summary"].strip().lower() == "no claim" else "Yes"
+            record = _make_record(
+                dataset="handtyped",
+                split="dev",
+                # The index is the collector's own id, not a running counter, so
+                # a uid survives rows being added, removed or relabelled later.
+                index=int(row_id[2:]),
+                lang=lang,
+                text=text,
+                source_id=f"handtyped:{row_id}",
+                label=checkworthy,
+                label_set="checkworthy_binary",
+            )
+            if note:
+                record["notes"] = f"declared mixed; assigned {lang} -- {note}"
+            yield Row(record=record, text=text)
+
+
+def handtyped_rows() -> dict[str, list[Row]]:
+    """One split only.
+
+    All 100 rows are `dev`, not `test`. They are a measurement set reported
+    while building, and `test` would lock them behind TRUTHLENS_ALLOW_TEST=1 --
+    correct for a final held-out number, wrong for the set whose whole job is to
+    be looked at during development. Nothing is ever trained on them.
+    """
+    return {"dev": list(load_handtyped())}
+
+
 def averitec_rows() -> dict[str, list[Row]]:
     """AVeriTeC's public release: train and dev only.
 
@@ -320,6 +406,7 @@ LOADERS = {
     "averitec": averitec_rows,
     "x_claim": xclaim_rows,
     "multiclaim": multiclaim_rows,
+    "handtyped": handtyped_rows,
 }
 
 # What each loader needs on disk. Used to skip a dataset whose source is not
@@ -335,6 +422,9 @@ LOADER_SOURCES: dict[str, tuple[Path, ...]] = {
     "multiclaim": (RAW / "multiclaim" / "posts.csv",
                    RAW / "multiclaim" / "fact_checks.csv",
                    RAW / "multiclaim" / "fact_check_post_mapping.csv"),
+    # Collected by hand and never published: it contains people's own writing,
+    # so like MultiClaim it can never exist on a CI runner.
+    "handtyped": (RAW / "handtyped" / "forwards.csv",),
 }
 
 

@@ -27,35 +27,42 @@ class UnknownBaseline(ValueError):
 
 
 def majority_class(
-    split_rows: Sequence[dict[str, Any]], *, seed: int = SEED, **_: Any,
+    split_rows: Sequence[dict[str, Any]], *, seed: int = SEED,
+    gold_field: str = "label", **_: Any,
 ) -> list[dict[str, Any]]:
     """Predict the most frequent gold label for everything.
 
     The honest floor for any classification result. If a model cannot beat
     this, it has learned nothing, whatever its accuracy looks like on a skewed
     label distribution.
+
+    `gold_field` must match the config's, or the baseline predicts from one
+    column while being scored against another -- which the harness catches as an
+    unknown label, but only because the two label sets happen to be disjoint.
     """
-    labels = [r["label"] for r in split_rows if r.get("label") is not None]
+    labels = [r[gold_field] for r in split_rows if r.get(gold_field) is not None]
     if not labels:
         raise ValueError(
-            "majority_class needs gold labels in the split file, but none of the "
-            "rows carry a `label` field."
+            f"majority_class needs gold labels in the split file, but none of the "
+            f"rows carry a `{gold_field}` field."
         )
     winner = Counter(labels).most_common(1)[0][0]
     return [{"uid": r["uid"], "pred": winner} for r in split_rows]
 
 
 def stratified_random(
-    split_rows: Sequence[dict[str, Any]], *, seed: int = SEED, **_: Any,
+    split_rows: Sequence[dict[str, Any]], *, seed: int = SEED,
+    gold_field: str = "label", **_: Any,
 ) -> list[dict[str, Any]]:
     """Sample predictions from the gold label distribution.
 
     Harder to beat than majority class on macro-F1, because it at least
     predicts every class sometimes.
     """
-    labels = [r["label"] for r in split_rows if r.get("label") is not None]
+    labels = [r[gold_field] for r in split_rows if r.get(gold_field) is not None]
     if not labels:
-        raise ValueError("stratified_random needs gold labels in the split file")
+        raise ValueError(f"stratified_random needs gold labels in the split file "
+                         f"(`{gold_field}`)")
     rng = random.Random(seed)
     return [{"uid": r["uid"], "pred": rng.choice(labels)} for r in split_rows]
 
@@ -104,11 +111,36 @@ def whole_post_span(*_args: Any, **_kwargs: Any) -> list[dict[str, Any]]:
     )
 
 
+def identity_transliteration(
+    split_rows: Sequence[dict[str, Any]], *, seed: int = SEED,
+    texts: dict[str, str] | None = None, **_: Any,
+) -> list[dict[str, Any]]:
+    """Do nothing: hand the romanized text back unchanged.
+
+    The honest floor for FR-5. Its CER is the distance between how people type
+    and how the language is written, so it is not just a control -- it is the
+    size of the problem, and any transliterator that cannot beat it is adding
+    latency and nothing else.
+
+    `texts` is injected by the harness from data/interim/, the same place the
+    batch runner reads claim text from. A baseline cannot resolve it alone
+    because split files hold ids, not text.
+    """
+    if not texts:
+        raise ValueError(
+            "identity_transliteration needs the source text, which lives in "
+            "data/interim/. Run `make data` if that directory is missing."
+        )
+    return [{"uid": r["uid"], "transliterated": texts.get(r["uid"], "")}
+            for r in split_rows]
+
+
 REGISTRY = {
     "majority_class": majority_class,
     "stratified_random": stratified_random,
     "random_rank": random_rank,
     "whole_post_span": whole_post_span,
+    "identity_transliteration": identity_transliteration,
 }
 
 

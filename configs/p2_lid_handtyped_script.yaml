@@ -1,0 +1,17 @@
+# FR-3 baseline: the Phase 1 script-derived guess, on the hand-typed forwards.
+#
+# Every row here is Latin script, so this baseline answers "en" for all 100 --
+# which is exactly the Phase 1 behaviour Phase 2 exists to replace. It is the
+# floor the real language ID has to beat, and its config_hash is what
+# p2_lid_handtyped.yaml names as its baseline.
+experiment: p2_lid_handtyped_script
+task: classification
+split: data/splits/handtyped/dev.jsonl
+predictions: results/preds/p2_lid_handtyped_script.jsonl
+gold_field: lang
+label_set: lang_4class
+baseline: majority_class
+breakdown: [lang, script]
+notes: >
+  Hand-typed romanized forwards (FR-26), n=100, all Latin script.
+  Baseline implementation: preprocess=passthrough.
