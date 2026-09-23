@@ -23,6 +23,8 @@
         "retrieval",
         "classification",
         "transliteration",
+        "span",
+        "normalization",
         "faithfulness"
       ],
       "description": "Selects the predictions schema and the metric family."
@@ -33,7 +35,7 @@
     },
     "gold": {
       "type": "string",
-      "description": "Path to a gold file. Retrieval: uid -> relevant_ids. Transliteration: uid -> reference (the native-script text). Classification takes gold from the split's own `label` field, or from `gold_field`."
+      "description": "Path to a gold file. Retrieval: uid -> relevant_ids. Transliteration and normalization: uid -> reference. Span: uid -> bio (one tag per token). Classification takes gold from the split's own `label`, or from `gold_field`."
     },
     "predictions": {
       "type": "string",
@@ -172,6 +174,40 @@
         "properties": {
           "task": {
             "const": "transliteration"
+          }
+        },
+        "required": [
+          "task"
+        ]
+      },
+      "then": {
+        "required": [
+          "gold"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "task": {
+            "const": "span"
+          }
+        },
+        "required": [
+          "task"
+        ]
+      },
+      "then": {
+        "required": [
+          "gold"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "task": {
+            "const": "normalization"
           }
         },
         "required": [

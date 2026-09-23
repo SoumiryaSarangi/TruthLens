@@ -1,0 +1,183 @@
+{
+  "baseline": {
+    "kind": "generated",
+    "metrics": {
+      "exact_span_match": 0.25833333333333336,
+      "n": 600.0,
+      "token_f1": 0.6850797085308812,
+      "token_precision": 0.5210047430064854,
+      "token_recall": 1.0
+    },
+    "name": "whole_post_span",
+    "notes": []
+  },
+  "config_hash": "c108ee694a53",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 600,
+    "n_missing": 0,
+    "n_predicted": 600
+  },
+  "created_utc": "2026-09-23T23:07:43+00:00",
+  "delta_vs_baseline": {
+    "exact_span_match": 0.0,
+    "token_f1": 0.0,
+    "token_precision": 0.0,
+    "token_recall": 0.0
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p3_span_whole_post",
+  "git": {
+    "branch": "main",
+    "dirty": true,
+    "sha": "b363f7db40aa1f785bf9c358013e1270859fed34"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "whole_post_span",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p3_span_whole_post",
+      "gold": "data/gold/x_claim_dev_span.jsonl",
+      "metrics": {},
+      "min_cell_n": 30,
+      "notes": "Baseline scored against itself so the row exists in the table with its own config_hash; the model runs then chain to that hash. Token F1 over claim tokens only -- `O` is not scored as a class, because about half of every X-CLAIM post is not the claim and an all-`O` prediction would otherwise look respectable.\n",
+      "predictions": "results/preds/p3_span_whole_post.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/x_claim/dev.jsonl",
+      "task": "span"
+    },
+    "config_path": "configs/p3_span_whole_post.yaml",
+    "predictions_path": "results/preds/p3_span_whole_post.jsonl",
+    "predictions_sha256": "056cdb95e7ffbd14eece0a821f5c00c650036ce9f7bbe242363c22caec8bc530",
+    "split_path": "data/splits/x_claim/dev.jsonl",
+    "split_sha256": "acc94da887669db4a256a76b3b3ed49adfa5d6d9a5e59dee7714ae3d22c69fb1",
+    "splits_lock_sha256": "ffe1ec3aab908c905035f7c1614b5fdd2c06dc655a6abd22e2bbf620327ab08b"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=deva": {
+        "exact_span_match": 0.125,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 8.0,
+        "token_f1": 0.5616291532690246,
+        "token_precision": 0.39046199701937406,
+        "token_recall": 1.0
+      },
+      "lang=en,script=latn": {
+        "exact_span_match": 0.21173469387755103,
+        "n": 392.0,
+        "token_f1": 0.6646545626031597,
+        "token_precision": 0.49773979375618027,
+        "token_recall": 1.0
+      },
+      "lang=hi,script=deva": {
+        "exact_span_match": 0.3125,
+        "n": 96.0,
+        "token_f1": 0.7384924623115577,
+        "token_precision": 0.5854047163798598,
+        "token_recall": 1.0
+      },
+      "lang=hi,script=latn": {
+        "exact_span_match": 0.75,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 4.0,
+        "token_f1": 0.8737864077669902,
+        "token_precision": 0.7758620689655172,
+        "token_recall": 1.0
+      },
+      "lang=pa,script=deva": {
+        "exact_span_match": 0.36363636363636365,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 11.0,
+        "token_f1": 0.7037861915367484,
+        "token_precision": 0.5429553264604811,
+        "token_recall": 1.0
+      },
+      "lang=pa,script=guru": {
+        "exact_span_match": 0.3684210526315789,
+        "n": 76.0,
+        "token_f1": 0.7445168938944872,
+        "token_precision": 0.5930122757318225,
+        "token_recall": 1.0
+      },
+      "lang=pa,script=latn": {
+        "exact_span_match": 0.46153846153846156,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 13.0,
+        "token_f1": 0.8247422680412371,
+        "token_precision": 0.7017543859649122,
+        "token_recall": 1.0
+      }
+    },
+    "overall": {
+      "exact_span_match": 0.25833333333333336,
+      "n": 600.0,
+      "token_f1": 0.6850797085308812,
+      "token_precision": 0.5210047430064854,
+      "token_recall": 1.0
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 392.0,
+        "native": 0.6646545626031597
+      },
+      "hi": {
+        "gap": -0.1352939454554325,
+        "n_native": 96.0,
+        "n_romanized": 4.0,
+        "native": 0.7384924623115577,
+        "romanized": 0.8737864077669902
+      },
+      "pa": {
+        "gap": -0.0802253741467499,
+        "n_native": 76.0,
+        "n_romanized": 13.0,
+        "native": 0.7445168938944872,
+        "romanized": 0.8247422680412371
+      }
+    },
+    "metric": "token_f1"
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "span",
+  "warnings": [
+    "SUSPICIOUSLY HIGH: overall token_recall=1.0000 exceeds sanity_ceiling 0.85. docs/build-plan.md puts competitive AVeriTeC accuracy at ~47-50%. Before believing this, check: is the test set leaking into training, is the baseline scoring just as high, is the gold file the one you think it is?",
+    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
+  ]
+}

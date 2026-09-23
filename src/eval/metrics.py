@@ -19,6 +19,7 @@ Definitional choices that are easy to get silently wrong, fixed here once:
 from __future__ import annotations
 
 import math
+from collections import Counter
 from collections.abc import Collection, Sequence
 from typing import Any
 
@@ -256,3 +257,102 @@ def transliteration_metrics(
         "exact_match": exact / len(references),
         "n": float(len(references)),
     }
+
+
+# -----------------------------------------------------------------------------
+# Claim spans (FR-7)
+# -----------------------------------------------------------------------------
+# Token-level F1 over the claim tokens, which is what PRD 8 asks for and what
+# the X-CLAIM paper reports. `O` is not a class here: it is the absence of one.
+# Scoring O as a third class would let a model that predicts O everywhere score
+# well on a post that is mostly not a claim, and about half of every X-CLAIM
+# post is not.
+
+
+def span_metrics(
+    predicted: Sequence[Sequence[str]], reference: Sequence[Sequence[str]],
+) -> dict[str, float]:
+    """Token P/R/F1 over claim tokens, plus whole-span exact match.
+
+    Corpus-level, not the mean of per-post F1s. A three-token post and a
+    two-hundred-token one are different amounts of evidence, and averaging
+    per-post rates would weigh them the same.
+    """
+    if not reference:
+        return {"token_precision": 0.0, "token_recall": 0.0, "token_f1": 0.0,
+                "exact_span_match": 0.0, "n": 0.0}
+
+    tp = fp = fn = exact = 0
+    for hyp, ref in zip(predicted, reference, strict=True):
+        # A length mismatch means the prediction is not aligned to the same
+        # tokenisation as the gold, which makes every position meaningless.
+        if len(hyp) != len(ref):
+            raise ValueError(
+                f"span prediction has {len(hyp)} tags but gold has {len(ref)}. "
+                "Predictions must be one tag per gold token."
+            )
+        hyp_claim = [t != "O" for t in hyp]
+        ref_claim = [t != "O" for t in ref]
+        tp += sum(1 for h, r in zip(hyp_claim, ref_claim) if h and r)
+        fp += sum(1 for h, r in zip(hyp_claim, ref_claim) if h and not r)
+        fn += sum(1 for h, r in zip(hyp_claim, ref_claim) if not h and r)
+        exact += hyp_claim == ref_claim
+
+    precision = tp / (tp + fp) if tp + fp else 0.0
+    recall = tp / (tp + fn) if tp + fn else 0.0
+    f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
+    return {"token_precision": precision, "token_recall": recall, "token_f1": f1,
+            "exact_span_match": exact / len(reference), "n": float(len(reference))}
+
+
+# -----------------------------------------------------------------------------
+# Claim normalization (FR-7)
+# -----------------------------------------------------------------------------
+# chrF rather than METEOR, which is what the CheckThat! shared task reports.
+# METEOR's synonym matching runs through WordNet and is English-only, so an
+# English METEOR and a Punjabi METEOR are not the same measurement and must not
+# share a column. chrF is character n-gram F-score: language-agnostic, standard
+# for multilingual generation, and short enough to verify by hand.
+
+
+def _char_ngrams(text: str, n: int) -> Counter[str]:
+    stripped = "".join(text.split())
+    return Counter(stripped[i:i + n] for i in range(len(stripped) - n + 1))
+
+
+def chrf(hypothesis: str, reference: str, max_n: int = 6, beta: float = 2.0) -> float:
+    """chrF with recall weighted `beta` times precision (the standard beta=2)."""
+    precisions, recalls = [], []
+    for n in range(1, max_n + 1):
+        hyp_grams, ref_grams = _char_ngrams(hypothesis, n), _char_ngrams(reference, n)
+        overlap = sum((hyp_grams & ref_grams).values())
+        hyp_total, ref_total = sum(hyp_grams.values()), sum(ref_grams.values())
+        # An order with no n-grams on either side is skipped, not scored zero:
+        # a 3-character reference has no 6-grams, and counting that as a miss
+        # would punish short references for being short.
+        if hyp_total:
+            precisions.append(overlap / hyp_total)
+        if ref_total:
+            recalls.append(overlap / ref_total)
+    if not precisions or not recalls:
+        return 0.0
+    avg_p = sum(precisions) / len(precisions)
+    avg_r = sum(recalls) / len(recalls)
+    if avg_p + avg_r == 0:
+        return 0.0
+    beta_sq = beta ** 2
+    return (1 + beta_sq) * avg_p * avg_r / (beta_sq * avg_p + avg_r)
+
+
+def normalization_metrics(
+    hypotheses: Sequence[str], references: Sequence[str],
+) -> dict[str, float]:
+    """chrF and exact match. Higher is better for both."""
+    if not references:
+        return {"chrf": 0.0, "exact_match": 0.0, "n": 0.0}
+    scores = [chrf(h, r) for h, r in zip(hypotheses, references, strict=True)]
+    exact = sum(1 for h, r in zip(hypotheses, references, strict=True)
+                if h.strip() == r.strip())
+    return {"chrf": sum(scores) / len(scores),
+            "exact_match": exact / len(references),
+            "n": float(len(references))}

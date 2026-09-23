@@ -309,6 +309,39 @@
       "text_b": "BREAKING: Elon Musk appoints Donald Trump Jr as the new Twitter CEO after stepping down from the post.",
       "uid_a": "x_claim:en:dev:00325",
       "uid_b": "x_claim:en:test:00160"
+    },
+    {
+      "dataset": "xclaim_cw",
+      "jaccard": 0.9062,
+      "kind": "near_duplicate",
+      "reason": "Both rows are in evaluation splits INHERITED FROM X-CLAIM. xclaim_cw is derived from X-CLAIM and keeps X-CLAIM's own split assignment, so this pair is the same upstream dev/test overlap already allowlisted for x_claim itself -- surfacing again in the derived set because the derivation is faithful. Removing either row would mean departing from X-CLAIM's published splits, which is the thing the allowlist exists to avoid. Quantified: 3 pair(s) out of 970 test rows.",
+      "simhash_hamming": 3,
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "xclaim_cw:en:dev:00326",
+      "uid_b": "xclaim_cw:en:test:00704"
+    },
+    {
+      "dataset": "xclaim_cw",
+      "jaccard": 0.9897,
+      "kind": "near_duplicate",
+      "reason": "Both rows are in evaluation splits INHERITED FROM X-CLAIM. xclaim_cw is derived from X-CLAIM and keeps X-CLAIM's own split assignment, so this pair is the same upstream dev/test overlap already allowlisted for x_claim itself -- surfacing again in the derived set because the derivation is faithful. Removing either row would mean departing from X-CLAIM's published splits, which is the thing the allowlist exists to avoid. Quantified: 3 pair(s) out of 970 test rows.",
+      "simhash_hamming": 2,
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "xclaim_cw:en:dev:00650",
+      "uid_b": "xclaim_cw:en:test:00320"
+    },
+    {
+      "dataset": "xclaim_cw",
+      "jaccard": 0.975,
+      "kind": "near_duplicate",
+      "reason": "Both rows are in evaluation splits INHERITED FROM X-CLAIM. xclaim_cw is derived from X-CLAIM and keeps X-CLAIM's own split assignment, so this pair is the same upstream dev/test overlap already allowlisted for x_claim itself -- surfacing again in the derived set because the derivation is faithful. Removing either row would mean departing from X-CLAIM's published splits, which is the thing the allowlist exists to avoid. Quantified: 3 pair(s) out of 970 test rows.",
+      "simhash_hamming": 4,
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "xclaim_cw:en:dev:00651",
+      "uid_b": "xclaim_cw:en:test:00321"
     }
   ],
   "policy": "Allowlist of leaks that exist in the SOURCE datasets and cannot be resolved without altering a published benchmark. This is an explicit, per-pair exception list, NOT a loosened threshold: any leak not listed here by exact uid pair still fails tests/test_no_leakage.py. Every entry carries a reason. Leaks that CAN be fixed are fixed instead, by dropping the row from train (see deduplicate() in scripts/build_splits.py).",

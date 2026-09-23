@@ -239,6 +239,8 @@ def load_predictions(path: str | Path, task: str) -> dict[str, dict[str, Any]]:
     required = {"retrieval": ("uid", "ranked_ids"),
                 "classification": ("uid", "pred"),
                 "transliteration": ("uid", "transliterated"),
+                "span": ("uid", "bio"),
+                "normalization": ("uid", "normalized"),
                 "faithfulness": ("uid", "explanation")}[task]
 
     by_uid: dict[str, dict[str, Any]] = {}
@@ -271,10 +273,14 @@ def load_gold_retrieval(path: str | Path) -> dict[str, list[str]]:
             gold[row["uid"]] = list(row["relevant_ids"])
         elif "reference" in row:
             gold[row["uid"]] = [row["reference"]]
+        elif "bio" in row:
+            # A BIO tag sequence is already a list of strings, which is why span
+            # gold needed no new shape here.
+            gold[row["uid"]] = list(row["bio"])
         else:
             raise EvalRefused(
-                f"{p}:{i}: gold rows need `relevant_ids` (retrieval) or "
-                f"`reference` (transliteration)"
+                f"{p}:{i}: gold rows need `relevant_ids` (retrieval), "
+                f"`reference` (transliteration/normalization) or `bio` (span)"
             )
     return gold
 
@@ -370,6 +376,59 @@ def score_transliteration(
     )
 
 
+def score_span(
+    split_rows: list[dict[str, Any]],
+    pred_by_uid: dict[str, dict[str, Any]],
+    gold: dict[str, list[str]],
+    cfg: dict[str, Any],
+) -> dict[str, Any]:
+    """Token F1 over claim tokens, against a BIO gold sequence (FR-7).
+
+    `O` is deliberately not scored as a class. About half of every X-CLAIM post
+    is not the claim, so a model that predicted `O` everywhere would look
+    respectable on a three-class average while finding nothing.
+    """
+    scored = [r for r in split_rows if r["uid"] in pred_by_uid and r["uid"] in gold]
+    hypotheses = [list(pred_by_uid[r["uid"]]["bio"]) for r in scored]
+    references = [gold[r["uid"]] for r in scored]
+    try:
+        validate_labels([t for tags in hypotheses for t in tags], "span_bio",
+                        where=f"{cfg['predictions']} (predicted)")
+    except ValueError as exc:
+        raise EvalRefused(str(exc)) from None
+
+    def compute(indices) -> dict[str, Any]:
+        try:
+            return M.span_metrics([hypotheses[i] for i in indices],
+                                  [references[i] for i in indices])
+        except ValueError as exc:
+            raise EvalRefused(str(exc)) from None
+
+    return compute_with_breakdown(
+        scored, cfg["breakdown"], compute, min_cell_n=cfg["min_cell_n"],
+    )
+
+
+def score_normalization(
+    split_rows: list[dict[str, Any]],
+    pred_by_uid: dict[str, dict[str, Any]],
+    gold: dict[str, list[str]],
+    cfg: dict[str, Any],
+) -> dict[str, Any]:
+    """chrF and exact match against the reference normalized claim (FR-7)."""
+    scored = [r for r in split_rows if r["uid"] in pred_by_uid and r["uid"] in gold]
+    hypotheses = [pred_by_uid[r["uid"]]["normalized"] for r in scored]
+    references = [gold[r["uid"]][0] for r in scored]
+
+    def compute(indices) -> dict[str, Any]:
+        return M.normalization_metrics([hypotheses[i] for i in indices],
+                                       [references[i] for i in indices])
+
+    return compute_with_breakdown(
+        scored, cfg["breakdown"], compute, min_cell_n=cfg["min_cell_n"],
+    )
+
+
 def score(
     task: str,
     split_rows: list[dict[str, Any]],
@@ -385,6 +444,12 @@ def score(
     if task == "transliteration":
         assert gold is not None
         return score_transliteration(split_rows, pred_by_uid, gold, cfg)
+    if task == "span":
+        assert gold is not None
+        return score_span(split_rows, pred_by_uid, gold, cfg)
+    if task == "normalization":
+        assert gold is not None
+        return score_normalization(split_rows, pred_by_uid, gold, cfg)
     # Unreachable: evaluate() rejects unsupported tasks before reaching here.
     raise EvalRefused(f"no scorer registered for task {task!r}")
 
@@ -453,8 +518,11 @@ def run_baseline(
     kwargs: dict[str, Any] = {"seed": cfg["seed"],
                               "gold_field": cfg.get("gold_field", "label")}
     notes: list[str] = []
-    if name == "identity_transliteration":
+    if name in ("identity_transliteration", "longest_sentence"):
         kwargs["texts"] = load_interim_texts(Path(cfg["split"]))
+    if name == "whole_post_span":
+        # It needs the token count per row, which only the gold carries.
+        kwargs["gold"] = gold
     if name == "random_rank":
         # Prefer the REAL corpus when the run names one. Sampling from the gold
         # documents alone would draw every candidate from the set of things that
@@ -525,14 +593,17 @@ def evaluate(config_path: str | Path, out_dir: str | Path = DEFAULT_OUT_DIR,
     pred_by_uid = load_predictions(pred_path, cfg["task"])
     pred_sha = sha256_file(pred_path)
 
-    needs_gold = cfg["task"] in ("retrieval", "transliteration")
+    needs_gold = cfg["task"] in ("retrieval", "transliteration", "span", "normalization")
     gold = load_gold_retrieval(cfg["gold"]) if needs_gold else None
 
     # Transliteration gold covers only the rows somebody wrote a reference for --
     # 33 of the 100 hand-typed forwards. Requiring a prediction for every split
     # row would refuse a run that is complete; requiring one for every GOLD row
     # is the check that actually matters.
-    expected_uids = (sorted(gold) if cfg["task"] == "transliteration"
+    # These tasks' gold covers only the rows somebody annotated, so the split is
+    # the universe of what MAY be predicted and the gold is what MUST be.
+    partial_gold = cfg["task"] in ("transliteration", "span", "normalization")
+    expected_uids = (sorted(gold) if partial_gold
                      else [r["uid"] for r in split_rows])
     coverage = check_coverage(
         expected_uids, pred_by_uid,
@@ -558,7 +629,8 @@ def evaluate(config_path: str | Path, out_dir: str | Path = DEFAULT_OUT_DIR,
         )
 
     headline = {"classification": "macro_f1", "retrieval": "mrr",
-                "transliteration": "cer"}[cfg["task"]]
+                "transliteration": "cer", "span": "token_f1",
+                "normalization": "chrf"}[cfg["task"]]
     # The native-vs-romanized gap needs a metric that MEANS something inside one
     # cell. For language identification it cannot be macro-F1: the cells are
     # split by language and the classes ARE languages, so every cell holds a

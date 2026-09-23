@@ -103,6 +103,100 @@ def run_preprocess(
     return counts
 
 
+def run_claims(
+    split_path: Path,
+    cfg: PipelineConfig,
+    stage: str,
+    out: Path,
+    limit: int | None = None,
+) -> dict[str, int]:
+    """Score the claims stage: `--stage checkworthy`, `span` or `normalize`.
+
+    Stops after claims, for the same reason `run_preprocess` stops after
+    preprocess: the later stages want an AVeriTeC evidence pool that X-CLAIM
+    rows do not have, and running retrieval to find out whether a post contains
+    a claim would burn GPU to produce nothing.
+
+    `span` emits one BIO tag per WHITESPACE token, because that is X-CLAIM's
+    tokenisation and the gold is aligned to it. Any model that tokenises
+    differently has to project back onto these tokens before emitting.
+    """
+    set_all_seeds()
+    rows = load_jsonl(split_path)
+    if limit:
+        rows = rows[:limit]
+    texts = load_texts(split_path)
+    orch = Orchestrator(cfg)
+
+    predictions: list[dict] = []
+    counts = {"n": 0, "checkworthy": 0, "capped": 0}
+
+    for row in rows:
+        uid = row["uid"]
+        text = texts.get(uid)
+        if text is None:
+            raise KeyError(f"{uid} has no text in data/interim/")
+
+        trace = Trace(request_id=f"batch:{uid}")
+        orch.preprocess.run(trace, text)
+        worthy = orch.claims.check_worthy(trace)
+        trace.checkworthy = worthy
+        counts["n"] += 1
+        counts["checkworthy"] += bool(worthy)
+
+        if stage == "checkworthy":
+            predictions.append({"uid": uid, "pred": "Yes" if worthy else "No"})
+            continue
+
+        if worthy:
+            orch.claims.extract(trace)
+        if trace.unchecked_claims:
+            counts["capped"] += 1
+
+        if stage == "span":
+            predictions.append({"uid": uid, "bio": _bio_over_tokens(text, trace)})
+        else:
+            best = max((c.text for c in trace.claims), key=len, default="")
+            predictions.append({"uid": uid, "normalized": best or text})
+
+    write_jsonl(out, predictions)
+    print(f"  wrote {len(predictions)} rows -> {out}")
+    return counts
+
+
+def _bio_over_tokens(text: str, trace: Trace) -> list[str]:
+    """Project the extracted claims onto the post's whitespace tokens.
+
+    The gold is one tag per whitespace token of the ORIGINAL text, so the tags
+    have to be indexed by that tokenisation and not by whatever the model used.
+    Preprocessing may have rewritten the text (artefact stripping), so the
+    claim's character offsets are located in the original by search rather than
+    trusted from the preprocessed copy.
+    """
+    tokens = text.split()
+    tags = ["O"] * len(tokens)
+    if not trace.claims:
+        return tags
+
+    # Character offset of each token in the original text.
+    offsets, cursor = [], 0
+    for token in tokens:
+        start = text.index(token, cursor)
+        offsets.append((start, start + len(token)))
+        cursor = start + len(token)
+
+    for claim in trace.claims:
+        found = text.find(claim.text)
+        if found < 0:
+            continue
+        lo, hi = found, found + len(claim.text)
+        covered = [i for i, (s, e) in enumerate(offsets) if s < hi and e > lo]
+        for n, i in enumerate(covered):
+            tags[i] = "B-CLAIM" if n == 0 and tags[i] == "O" else (
+                tags[i] if tags[i] != "O" else "I-CLAIM")
+    return tags
+
+
 def run_match(
     split_path: Path,
     cfg: PipelineConfig,
@@ -232,10 +326,12 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m pipeline.batch")
     ap.add_argument("--split", required=True)
     ap.add_argument("--stage", default="both",
-                    choices=["retrieval", "verdict", "both", "lang", "translit", "match"])
+                    choices=["retrieval", "verdict", "both", "lang", "translit",
+                             "match", "checkworthy", "span", "normalize"])
     ap.add_argument("--impl", default=None, help="override the retrieval impl")
     ap.add_argument("--stance-impl", default=None, help="override the stance impl")
     ap.add_argument("--preprocess-impl", default=None, help="override the preprocess impl")
+    ap.add_argument("--claims-impl", default=None, help="override the claims impl")
     ap.add_argument("--encoder", default=None,
                     help="dense retrieval encoder: tfidf|word2vec|muril|labse|bge_m3")
     ap.add_argument("--use-transliterated", action="store_true",
@@ -259,6 +355,8 @@ def main(argv: list[str] | None = None) -> int:
         cfg.stages["stance"] = args.stance_impl
     if args.preprocess_impl:
         cfg.stages["preprocess"] = args.preprocess_impl
+    if args.claims_impl:
+        cfg.stages["claims"] = args.claims_impl
     if args.force_lang:
         cfg.stage_args.setdefault("preprocess", {})["force_lang"] = args.force_lang
     if args.encoder:
@@ -266,6 +364,15 @@ def main(argv: list[str] | None = None) -> int:
         cfg.stage_args.setdefault("retrieval", {})["encoder"] = args.encoder
     if args.k:
         cfg.k = args.k
+
+    if args.stage in ("checkworthy", "span", "normalize"):
+        out = Path(args.out or f"results/preds/{args.stage}.jsonl")
+        print(f"pipeline: preprocess={cfg.stages['preprocess']} "
+              f"claims={cfg.stages['claims']} stage={args.stage}")
+        counts = run_claims(Path(args.split), cfg, args.stage, out, args.limit)
+        print(f"  {counts['n']} rows | {counts['checkworthy']} check-worthy "
+              f"| {counts['capped']} capped at MAX_CLAIMS")
+        return 0
 
     if args.stage == "match":
         out = Path(args.out or "results/preds/match.jsonl")

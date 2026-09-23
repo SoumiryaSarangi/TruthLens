@@ -1,0 +1,73 @@
+{
+  "counts": {
+    "dev": {
+      "en/deva": 13,
+      "en/latn": 643,
+      "hi/deva": 148,
+      "hi/latn": 5,
+      "lang=en": 656,
+      "lang=hi": 153,
+      "lang=pa": 154,
+      "pa/deva": 17,
+      "pa/guru": 119,
+      "pa/latn": 18,
+      "script=deva": 178,
+      "script=guru": 119,
+      "script=latn": 666,
+      "total": 963
+    },
+    "test": {
+      "en/deva": 2,
+      "en/latn": 634,
+      "hi/deva": 161,
+      "hi/latn": 5,
+      "lang=en": 636,
+      "lang=hi": 166,
+      "lang=pa": 168,
+      "pa/deva": 9,
+      "pa/guru": 153,
+      "pa/latn": 6,
+      "script=deva": 172,
+      "script=guru": 153,
+      "script=latn": 645,
+      "total": 970
+    },
+    "train": {
+      "en/deva": 102,
+      "en/latn": 5512,
+      "hi/deva": 1675,
+      "hi/guru": 1,
+      "hi/latn": 67,
+      "lang=en": 5614,
+      "lang=hi": 1743,
+      "lang=pa": 517,
+      "pa/deva": 82,
+      "pa/guru": 384,
+      "pa/latn": 51,
+      "script=deva": 1859,
+      "script=guru": 385,
+      "script=latn": 5630,
+      "total": 7874
+    }
+  },
+  "created_utc": "2026-09-23T23:09:31+00:00",
+  "dataset": "xclaim_cw",
+  "deduplication": {
+    "cross_dataset_near_duplicates_reported_not_dropped": 1506,
+    "dropped_from_train": {
+      "exact_match_in_eval": 12,
+      "in_another_dataset_eval_split": 884,
+      "near_duplicate_in_eval": 51,
+      "within_train_duplicate": 52
+    },
+    "left_in_place": {
+      "dev_internal_duplicates": 0,
+      "dev_test_overlap": 0,
+      "test_internal_duplicates": 0
+    },
+    "policy": "train yields to eval; dev and test are never modified"
+  },
+  "notes": [],
+  "seed": 42,
+  "source": {}
+}

@@ -15,6 +15,7 @@ results table is reproducible.
 from __future__ import annotations
 
 import random
+import re
 from collections import Counter
 from collections.abc import Sequence
 from typing import Any
@@ -99,16 +100,54 @@ def random_rank(
     return out
 
 
-def whole_post_span(*_args: Any, **_kwargs: Any) -> list[dict[str, Any]]:
+def whole_post_span(
+    split_rows: Sequence[dict[str, Any]], *, seed: int = SEED,
+    gold: dict[str, list[str]] | None = None, **_: Any,
+) -> list[dict[str, Any]]:
     """Predict the entire post as the claim span (the X-CLAIM baseline).
 
-    Registered now so the name is reserved and configs can reference it, but it
-    needs tokenised text which arrives with the Phase 3 loaders.
+    Not a straw man. Measured on X-CLAIM dev, 25.8% of gold spans ARE the whole
+    post and 52.1% of all tokens are claim tokens -- so this scores recall 1.0
+    and precision ~0.52 by construction, for a token F1 near 0.69. A span model
+    that merely ties it has learned nothing, which is why PRD 8 requires beating
+    it PER LANGUAGE rather than on the average.
+
+    It needs the gold only for its token COUNT per row, not for its tags: the
+    prediction is "every token is a claim token", and the harness requires one
+    tag per gold token.
     """
-    raise NotImplementedError(
-        "whole_post_span lands in Phase 3 with the X-CLAIM span loaders "
-        "(docs/build-plan.md, 'Phase 3 - front of pipeline')."
-    )
+    if not gold:
+        raise ValueError(
+            "whole_post_span needs the span gold to know how many tokens each "
+            "post has. It is injected by the harness for task: span."
+        )
+    return [{"uid": r["uid"], "bio": ["B-CLAIM"] + ["I-CLAIM"] * (len(gold[r["uid"]]) - 1)}
+            for r in split_rows if r["uid"] in gold and gold[r["uid"]]]
+
+
+def longest_sentence(
+    split_rows: Sequence[dict[str, Any]], *, seed: int = SEED,
+    texts: dict[str, str] | None = None, **_: Any,
+) -> list[dict[str, Any]]:
+    """Normalization baseline: return the post's longest sentence.
+
+    The dumb version of "find the claim and state it plainly". A forward's
+    longest sentence is very often its substantive one, and any normalizer that
+    cannot beat this is doing nothing a `split('.')` could not.
+    """
+    if not texts:
+        raise ValueError(
+            "longest_sentence needs the source text, which lives in "
+            "data/interim/. Run `make data` if that directory is missing."
+        )
+    out = []
+    for row in split_rows:
+        text = texts.get(row["uid"], "")
+        # Devanagari/Gurmukhi sentences end in a danda (U+0964), not a full stop.
+        parts = [p.strip() for p in re.split(r"[.!?।\n]+", text) if p.strip()]
+        out.append({"uid": row["uid"],
+                    "normalized": max(parts, key=len) if parts else text.strip()})
+    return out
 
 
 def identity_transliteration(
@@ -141,6 +180,7 @@ REGISTRY = {
     "random_rank": random_rank,
     "whole_post_span": whole_post_span,
     "identity_transliteration": identity_transliteration,
+    "longest_sentence": longest_sentence,
 }
 
 

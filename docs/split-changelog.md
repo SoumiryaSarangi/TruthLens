@@ -73,3 +73,7 @@ Cross-dataset dedup is now EXACT-MATCH only. Confirming a near-duplicate needs t
 ## 2026-09-23T22:09:56+00:00 — data/splits/multiclaim/train.jsonl
 
 Rebuilt under the exact-match cross-dataset rule, the same change applied to x_claim and checkthat25_t2. multiclaim/train had been built while cross-dataset dedup still used near-duplicate matching, so it no longer reproduced from source. Only train changes; dev and test are untouched.
+
+## 2026-09-23T23:10:59+00:00 — data/splits/checkthat25_t2/train.jsonl
+
+Adding the derived check-worthiness dataset (xclaim_cw) gave every other dataset a new eval split to be deduped against, and checkthat25_t2/train had 1 row sitting in it. Only train changes. This is the cascade the global cross-dataset rule implies: a new dataset invalidates the dedup of every previously built train split, so the build has to be re-run until it reaches a fixed point.

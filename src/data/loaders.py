@@ -122,6 +122,30 @@ def _join_tokens(raw: str) -> str:
     return str(tokens).strip()
 
 
+def _parse_span_row(item: dict[str, str]) -> tuple[list[str], int, int] | None:
+    """(tokens, start, end_INCLUSIVE) for one raw X-CLAIM row, or None.
+
+    The end index being inclusive is measured, not assumed: across all of
+    X-CLAIM, `span_end_index == len(tokens)` occurs 0 times while
+    `== len(tokens) - 1` occurs 2,897 times. `scripts/build_span_gold.py`
+    re-checks it on every build and refuses if it ever flips.
+    """
+    try:
+        tokens = ast.literal_eval(item["tokens"])
+        starts = ast.literal_eval(item["span_start_index"])
+        ends = ast.literal_eval(item["span_end_index"])
+    except (ValueError, SyntaxError, KeyError):
+        return None
+    if not isinstance(tokens, list) or not tokens:
+        return None
+    if len(starts) != 1 or len(ends) != 1:
+        return None
+    start, end = int(starts[0]), int(ends[0])
+    if not (0 <= start <= end < len(tokens)):
+        return None
+    return [str(t) for t in tokens], start, end
+
+
 def load_xclaim(lang: str, split_name: str) -> Iterator[Row]:
     """Load one X-CLAIM language/split CSV.
 
@@ -381,6 +405,85 @@ def handtyped_rows() -> dict[str, list[Row]]:
     return {"dev": list(load_handtyped())}
 
 
+# -----------------------------------------------------------------------------
+# Check-worthiness, derived from X-CLAIM's span annotations
+# -----------------------------------------------------------------------------
+
+# A negative shorter than this is a fragment, not a message. Three tokens is
+# where "Jai Hind" and "Forward to all" stop being plausible standalone forwards
+# and start being debris.
+MIN_NEGATIVE_TOKENS = 3
+
+
+def load_xclaim_checkworthy(lang: str, split_name: str) -> Iterator[Row]:
+    """Check-worthy / not, derived from where X-CLAIM says the claim IS.
+
+    FR-6 has no training data anywhere and none can be acquired. X-CLAIM rows all
+    contain a claim and CheckThat! Task 2 posts all have a normalized claim, so
+    both are 100% positive; CheckThat!'s Task 1 is a subjectivity task but covers
+    no Indic language. The only real gold in the project is 100 hand-typed rows,
+    which are `dev`.
+
+    So the negatives are constructed, from the one annotation that can support
+    them: X-CLAIM marked exactly which token range is the claim, which means the
+    REMAINDER of that post demonstrably is not. A post reading "Good morning all.
+    The govt announced X. Forward this" with the middle sentence annotated yields
+    a genuine no-claim message from the other two.
+
+    Two things this is not, both stated wherever the number appears:
+
+    - It is not naturally occurring. The negatives are fragments of posts that
+      did contain a claim, so they share vocabulary and register with their own
+      positives -- which makes this set EASIER than reality. The 100 hand-typed
+      forwards remain the honest held-out test.
+    - It is not every post. Only posts whose span is a strict subset can yield a
+      negative; a post that is entirely claim has no remainder.
+
+    Split assignment is inherited from X-CLAIM's own, so a post's positive and
+    its negative can never straddle train and eval.
+    """
+    path = RAW / "x_claim" / f"{split_name}-{lang}.csv"
+    with path.open("r", encoding="utf-8", newline="") as fh:
+        for i, item in enumerate(csv.DictReader(fh)):
+            parsed = _parse_span_row(item)
+            if parsed is None:
+                continue
+            tokens, start, end = parsed
+            positive = " ".join(tokens).strip()
+            if positive:
+                yield Row(
+                    record=_make_record(
+                        dataset="xclaim_cw", split=split_name, index=i * 2,
+                        lang=lang, text=positive,
+                        source_id=f"xclaim_cw:{split_name}-{lang}:{i}:pos",
+                        label="Yes", label_set="checkworthy_binary",
+                    ),
+                    text=positive,
+                )
+            # `end` is INCLUSIVE -- measured, see scripts/build_span_gold.py.
+            remainder = tokens[:start] + tokens[end + 1:]
+            if len(remainder) >= MIN_NEGATIVE_TOKENS:
+                negative = " ".join(remainder).strip()
+                if negative:
+                    yield Row(
+                        record=_make_record(
+                            dataset="xclaim_cw", split=split_name, index=i * 2 + 1,
+                            lang=lang, text=negative,
+                            source_id=f"xclaim_cw:{split_name}-{lang}:{i}:neg",
+                            label="No", label_set="checkworthy_binary",
+                        ),
+                        text=negative,
+                    )
+
+
+def xclaim_checkworthy_rows() -> dict[str, list[Row]]:
+    out: dict[str, list[Row]] = {"train": [], "dev": [], "test": []}
+    for split in out:
+        for lang in XCLAIM_LANGS:
+            out[split].extend(load_xclaim_checkworthy(lang, split))
+    return out
+
+
 # CheckThat! ships each language under its own code, and they are not uniform:
 # English is `eng` while Hindi and Punjabi are `hi` and `pa`.
 CHECKTHAT_LANGS = {"en": "eng", "hi": "hi", "pa": "pa"}
@@ -457,6 +560,7 @@ LOADERS = {
     "multiclaim": multiclaim_rows,
     "handtyped": handtyped_rows,
     "checkthat25_t2": checkthat_rows,
+    "xclaim_cw": xclaim_checkworthy_rows,
 }
 
 # What each loader needs on disk. Used to skip a dataset whose source is not
@@ -475,6 +579,8 @@ LOADER_SOURCES: dict[str, tuple[Path, ...]] = {
     # Collected by hand and never published: it contains people's own writing,
     # so like MultiClaim it can never exist on a CI runner.
     "handtyped": (RAW / "handtyped" / "forwards.csv",),
+    # Derived from X-CLAIM's own CSVs, so it depends on exactly those files.
+    "xclaim_cw": (RAW / "x_claim" / "train-en.csv",),
     "checkthat25_t2": (RAW / "checkthat25_t2" / "train-eng.csv",
                        RAW / "checkthat25_t2" / "train-hi.csv",
                        RAW / "checkthat25_t2" / "train-pa.csv"),
