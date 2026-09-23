@@ -312,13 +312,27 @@ def deduplicate(rows_by_split: dict[str, list],
 
     # Which train uids are near-duplicates of an eval row?
     near_uids: set[str] = set()
+    unverifiable = 0
     for eval_uid, train_uid in candidate_pairs(eval_items, train_items):
         a, b = dict(eval_items)[eval_uid], dict(train_items)[train_uid]
         if hamming(a, b) > DEDUP_HAMMING:
             continue
-        if jaccard(char_shingles(eval_text[eval_uid]),
-                   char_shingles(train_text[train_uid])) >= DEDUP_JACCARD:
+        # A committed split always has its ids; its TEXT only exists where the
+        # source data does. MultiClaim is access-restricted, so on a CI runner
+        # its split files are present and data/interim/multiclaim/ is not --
+        # which means a SimHash candidate against it cannot be confirmed by
+        # Jaccard. Counted and reported rather than treated as a non-match: the
+        # exact-hash check above still catches identical text, so what is lost
+        # here is only near-duplicate detection against data we cannot read.
+        eval_side = eval_text.get(eval_uid)
+        train_side = train_text.get(train_uid)
+        if eval_side is None or train_side is None:
+            unverifiable += 1
+            continue
+        if jaccard(char_shingles(eval_side), char_shingles(train_side)) >= DEDUP_JACCARD:
             near_uids.add(train_uid)
+    if unverifiable:
+        report["near_duplicate_candidates_unverifiable_no_text"] = unverifiable
 
     kept: list = []
     seen: set[str] = set()

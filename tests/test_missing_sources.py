@@ -61,3 +61,47 @@ def test_declared_sources_live_under_gitignored_raw(dataset):
     """Source data must never be inside a committed directory."""
     for path in loaders.LOADER_SOURCES[dataset]:
         assert Path(path).as_posix().startswith("data/raw/")
+
+
+def test_dedup_survives_an_eval_split_whose_text_is_not_readable():
+    """The CI condition: split ids committed, source text absent.
+
+    MultiClaim is access-restricted. Its split files are committed, so another
+    dataset's build sees its uids and SimHash values, but `data/interim/multiclaim/`
+    does not exist on a runner -- so a near-duplicate candidate against it cannot
+    be confirmed by Jaccard. This used to raise KeyError and fail the whole
+    reproducibility job.
+
+    Skipping the pair is right rather than merely convenient: the exact-hash
+    check still catches identical text, so what is lost is near-duplicate
+    detection against data the runner is not allowed to read, and the build says
+    so instead of pretending it checked.
+    """
+    import importlib.util
+    from pathlib import Path
+
+    spec = importlib.util.spec_from_file_location(
+        "build_splits", Path("scripts/build_splits.py")
+    )
+    build_splits = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(build_splits)
+
+    def row(uid, text, simhash):
+        return loaders.Row(
+            record={"uid": uid, "dataset": "toy", "split": "train", "lang": "en",
+                    "script": "latn", "source_id": uid,
+                    "text_sha1": "a" * 40, "simhash64": simhash, "n_chars": len(text)},
+            text=text,
+        )
+
+    rows = {"train": [row("toy:en:train:00000", "a claim about vaccines", "0000000000000000")]}
+    # An external eval row with an identical SimHash -- so it IS a candidate --
+    # but no text on hand to confirm it with.
+    external = {
+        "hashes": set(),
+        "items": [("multiclaim:en:test:00352", 0)],
+        "texts": {},
+    }
+    kept, report = build_splits.deduplicate(rows, external_eval=external)
+    assert len(kept["train"]) == 1, "an unconfirmable candidate must not be dropped"
+    assert report["near_duplicate_candidates_unverifiable_no_text"] == 1
