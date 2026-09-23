@@ -103,6 +103,67 @@ def run_preprocess(
     return counts
 
 
+def run_match(
+    split_path: Path,
+    cfg: PipelineConfig,
+    out: Path,
+    limit: int | None = None,
+    use_transliterated: bool = False,
+) -> dict[str, int]:
+    """Claim matching against the global fact-check index (`--stage match`).
+
+    Preprocess runs per row, so the language layer applies exactly as it does in
+    the API -- which matters, because whether the query is romanized or native
+    script is the variable the whole Phase 2 table is about. Encoding is then
+    batched in one call: a transformer's per-row cost is mostly launch overhead,
+    and 3,153 single-row passes take minutes where one batched pass takes
+    seconds. Same stage object, same encoder, same index; only the cost differs.
+    """
+    set_all_seeds()
+    rows = load_jsonl(split_path)
+    if limit:
+        rows = rows[:limit]
+    texts = load_texts(split_path)
+    orch = Orchestrator(cfg)
+
+    counts = {"n": 0, "degraded": 0, "transliterated": 0}
+    queries: list[str] = []
+    uids: list[str] = []
+
+    started = time.time()
+    for row in rows:
+        uid = row["uid"]
+        text = texts.get(uid)
+        if text is None:
+            raise KeyError(f"{uid} has no text in data/interim/")
+        trace = Trace(uid=uid, request_id=f"batch:{uid}")
+        orch.preprocess.run(trace, text)
+        counts["n"] += 1
+        if any(e.note and "degraded" in e.note for e in trace.events):
+            counts["degraded"] += 1
+        pre = trace.pre
+        if pre.transliterated is not None:
+            counts["transliterated"] += 1
+        query = (pre.transliterated if use_transliterated and pre.transliterated
+                 else pre.normalized)
+        queries.append(query)
+        uids.append(uid)
+    print(f"  preprocessed {len(queries)} rows in {time.time() - started:.1f}s", flush=True)
+
+    started = time.time()
+    ranked = orch.retriever.rank_batch(queries, k=cfg.k)
+    print(f"  ranked in {(time.time() - started) / 60:.1f} min", flush=True)
+
+    write_jsonl(out, [
+        {"uid": uid,
+         "ranked_ids": [d.doc_id for d in docs],
+         "scores": [d.score for d in docs]}
+        for uid, docs in zip(uids, ranked, strict=True)
+    ])
+    print(f"  wrote {len(uids)} rows -> {out}")
+    return counts
+
+
 def run(
     split_path: Path,
     cfg: PipelineConfig,
@@ -171,10 +232,14 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m pipeline.batch")
     ap.add_argument("--split", required=True)
     ap.add_argument("--stage", default="both",
-                    choices=["retrieval", "verdict", "both", "lang", "translit"])
+                    choices=["retrieval", "verdict", "both", "lang", "translit", "match"])
     ap.add_argument("--impl", default=None, help="override the retrieval impl")
     ap.add_argument("--stance-impl", default=None, help="override the stance impl")
     ap.add_argument("--preprocess-impl", default=None, help="override the preprocess impl")
+    ap.add_argument("--encoder", default=None,
+                    help="dense retrieval encoder: tfidf|word2vec|muril|labse|bge_m3")
+    ap.add_argument("--use-transliterated", action="store_true",
+                    help="query with the transliterated text instead of what was typed")
     ap.add_argument("--force-lang", default=None,
                     help="skip language ID and assert this language; isolates the "
                          "transliterator from the language ID that feeds it")
@@ -196,8 +261,21 @@ def main(argv: list[str] | None = None) -> int:
         cfg.stages["preprocess"] = args.preprocess_impl
     if args.force_lang:
         cfg.stage_args.setdefault("preprocess", {})["force_lang"] = args.force_lang
+    if args.encoder:
+        cfg.stages["retrieval"] = "dense"
+        cfg.stage_args.setdefault("retrieval", {})["encoder"] = args.encoder
     if args.k:
         cfg.k = args.k
+
+    if args.stage == "match":
+        out = Path(args.out or "results/preds/match.jsonl")
+        print(f"pipeline: preprocess={cfg.stages['preprocess']} "
+              f"retrieval={cfg.stages['retrieval']} "
+              f"encoder={cfg.stage_args.get('retrieval', {}).get('encoder')} k={cfg.k}")
+        counts = run_match(Path(args.split), cfg, out, args.limit, args.use_transliterated)
+        print(f"  {counts['n']} rows | {counts['degraded']} degraded "
+              f"| {counts['transliterated']} transliterated")
+        return 0
 
     if args.stage in ("lang", "translit"):
         out = Path(args.out or f"results/preds/{args.stage}.jsonl")

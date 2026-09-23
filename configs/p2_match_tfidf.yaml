@@ -1,0 +1,24 @@
+# Phase 2 embedding ladder, rung: tfidf
+#
+# Claim matching on MultiClaim dev: 3,153 posts in en/hi/pa queried against
+# 78,077 fact-checks -- every fact-check appearing in at least one annotated
+# pair, which is the MultiClaim / SemEval-2025 Task 7 setup. Gold covers 3,943
+# of those, so the random floor is near zero and the numbers are honest.
+#
+# The cell that matters is the per-script breakdown, not the overall figure:
+# 2,350 of these queries are English and would swamp any average.
+experiment: p2_match_tfidf
+task: retrieval
+split: data/splits/multiclaim/dev.jsonl
+gold: data/gold/multiclaim_dev_retrieval.jsonl
+corpus_ids: data/interim/index/ids.json
+predictions: results/preds/p2_match_tfidf.jsonl
+baseline: random_rank
+breakdown: [lang, script]
+metrics:
+  retrieval:
+    k: [1, 5, 10]
+notes: >
+  Encoder tfidf, fact-check pool 78,077, k=10, L2-normalised inner product.
+  Punjabi cells are n=7 (guru) and n=2 (latn) and are flagged low_n by the
+  harness -- report them with their denominator, never as a bare percentage.

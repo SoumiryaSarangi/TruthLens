@@ -389,6 +389,25 @@ def score(
     raise EvalRefused(f"no scorer registered for task {task!r}")
 
 
+def _corpus_ids(cfg: dict[str, Any]) -> list[str]:
+    """Every id a retrieval run could have returned, if the config names one.
+
+    `corpus_ids:` points at the id list the index was built from, so the random
+    baseline draws from the same population the model searched. Without it a
+    "random" ranking is drawn only from correct answers.
+    """
+    path = cfg.get("corpus_ids")
+    if not path:
+        return []
+    p = Path(path)
+    if not p.is_file():
+        raise EvalRefused(
+            f"corpus_ids file not found: {p}. It is what the random baseline "
+            "draws from; without it the baseline is not comparable."
+        )
+    return list(load_json(p)["ids"])
+
+
 def load_interim_texts(split_path: Path) -> dict[str, str]:
     """uid -> source text, from the gitignored materialised copy.
 
@@ -437,7 +456,13 @@ def run_baseline(
     if name == "identity_transliteration":
         kwargs["texts"] = load_interim_texts(Path(cfg["split"]))
     if name == "random_rank":
-        pool = sorted({doc for ids in (gold or {}).values() for doc in ids})
+        # Prefer the REAL corpus when the run names one. Sampling from the gold
+        # documents alone would draw every candidate from the set of things that
+        # are somebody's correct answer, which is a far easier lottery than the
+        # retriever faces and would overstate the floor it has to beat.
+        pool = _corpus_ids(cfg) or sorted(
+            {doc for ids in (gold or {}).values() for doc in ids}
+        )
         kwargs["candidate_ids"] = pool
         depth = max(cfg.get("metrics", {}).get("retrieval", {}).get("k", [10]))
         if len(pool) <= depth * 2:
@@ -534,10 +559,17 @@ def evaluate(config_path: str | Path, out_dir: str | Path = DEFAULT_OUT_DIR,
 
     headline = {"classification": "macro_f1", "retrieval": "mrr",
                 "transliteration": "cer"}[cfg["task"]]
+    # The native-vs-romanized gap needs a metric that MEANS something inside one
+    # cell. For language identification it cannot be macro-F1: the cells are
+    # split by language and the classes ARE languages, so every cell holds a
+    # single gold class and its macro-F1 is pinned at 1/n_classes no matter how
+    # right or wrong the model is. Per-cell accuracy is the honest measure there.
+    gap_metric = "accuracy" if cfg.get("gold_field") == "lang" else headline
     # `script_gap` subtracts romanized from native, which only reads as "native
     # is better" for a higher-is-better metric. Transliteration gold exists only
     # for romanized rows, so there is no native cell and the gap would be noise.
-    gaps = {} if cfg["task"] == "transliteration" else script_gap(scored.get("by", {}), headline)
+    gaps = ({} if cfg["task"] == "transliteration"
+            else script_gap(scored.get("by", {}), gap_metric))
 
     config_hash = sha256_bytes(
         canonical_json(cfg) + pred_sha.encode() + (lock_sha or "nolock").encode()
@@ -563,7 +595,7 @@ def evaluate(config_path: str | Path, out_dir: str | Path = DEFAULT_OUT_DIR,
         },
         "coverage": coverage,
         "metrics": scored,
-        "native_vs_romanized": {"metric": headline, "by_lang": gaps},
+        "native_vs_romanized": {"metric": gap_metric, "by_lang": gaps},
         "baseline": base,
         "delta_vs_baseline": delta_vs_baseline(scored["overall"], base["metrics"]),
         "warnings": warnings,

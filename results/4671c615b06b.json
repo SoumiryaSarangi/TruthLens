@@ -1,0 +1,197 @@
+{
+  "baseline": {
+    "kind": "generated",
+    "metrics": {
+      "mrr": 0.0002378686964795433,
+      "n": 3153.0,
+      "recall@1": 0.0,
+      "recall@10": 0.000792895654931811,
+      "recall@5": 0.0004757373929590866,
+      "success@1": 0.0,
+      "success@10": 0.0009514747859181732,
+      "success@5": 0.0006343165239454488
+    },
+    "name": "random_rank",
+    "notes": []
+  },
+  "config_hash": "4671c615b06b",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 3153,
+    "n_missing": 0,
+    "n_predicted": 3153
+  },
+  "created_utc": "2026-09-23T15:27:02+00:00",
+  "delta_vs_baseline": {
+    "mrr": 0.09176068143717993,
+    "recall@1": 0.06392589068611905,
+    "recall@10": 0.11776879162702186,
+    "recall@5": 0.09977534623110262,
+    "success@1": 0.0754836663495084,
+    "success@10": 0.13384078655248968,
+    "success@5": 0.11290834126228988
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p2_match_word2vec",
+  "git": {
+    "branch": "main",
+    "dirty": true,
+    "sha": "74fa817b3a639e4e051735902468c28d9197f4ab"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "random_rank",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "corpus_ids": "data/interim/index/ids.json",
+      "experiment": "p2_match_word2vec",
+      "gold": "data/gold/multiclaim_dev_retrieval.jsonl",
+      "metrics": {
+        "retrieval": {
+          "k": [
+            1,
+            5,
+            10
+          ]
+        }
+      },
+      "min_cell_n": 30,
+      "notes": "Encoder word2vec, fact-check pool 78,077, k=10, L2-normalised inner product. Punjabi cells are n=7 (guru) and n=2 (latn) and are flagged low_n by the harness -- report them with their denominator, never as a bare percentage.\n",
+      "predictions": "results/preds/p2_match_word2vec.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/multiclaim/dev.jsonl",
+      "task": "retrieval"
+    },
+    "config_path": "configs/p2_match_word2vec.yaml",
+    "predictions_path": "results/preds/p2_match_word2vec.jsonl",
+    "predictions_sha256": "4a4f0adf656efc70b1c0a5f09c7c77212c3b503488f32d01c158dbbca06ccd2b",
+    "split_path": "data/splits/multiclaim/dev.jsonl",
+    "split_sha256": "b1b0ff4c1b6300e01536b80a3f084dd4938cf28d428469532a581c0a2f57b7fd",
+    "splits_lock_sha256": "123ce39421f2caea998759ab90825b0a6aa625e11e8339fe2131c1d3734a1786"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=latn": {
+        "mrr": 0.10368355285376561,
+        "n": 2350.0,
+        "recall@1": 0.07250709219858156,
+        "recall@10": 0.13559929078014185,
+        "recall@5": 0.11479078014184396,
+        "success@1": 0.0851063829787234,
+        "success@10": 0.15106382978723404,
+        "success@5": 0.12723404255319148
+      },
+      "lang=hi,script=deva": {
+        "mrr": 0.05853093838168466,
+        "n": 737.0,
+        "recall@1": 0.040479421076436005,
+        "recall@10": 0.07033016734509272,
+        "recall@5": 0.0610583446404342,
+        "success@1": 0.04748982360922659,
+        "success@10": 0.08819538670284939,
+        "success@5": 0.07598371777476255
+      },
+      "lang=hi,script=latn": {
+        "mrr": 0.05750487329434698,
+        "n": 57.0,
+        "recall@1": 0.023391812865497075,
+        "recall@10": 0.05847953216374269,
+        "recall@5": 0.023391812865497075,
+        "success@1": 0.05263157894736842,
+        "success@10": 0.08771929824561403,
+        "success@5": 0.05263157894736842
+      },
+      "lang=pa,script=guru": {
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "mrr": 0.0,
+        "n": 7.0,
+        "recall@1": 0.0,
+        "recall@10": 0.0,
+        "recall@5": 0.0,
+        "success@1": 0.0,
+        "success@10": 0.0,
+        "success@5": 0.0
+      },
+      "lang=pa,script=latn": {
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "mrr": 0.0,
+        "n": 2.0,
+        "recall@1": 0.0,
+        "recall@10": 0.0,
+        "recall@5": 0.0,
+        "success@1": 0.0,
+        "success@10": 0.0,
+        "success@5": 0.0
+      }
+    },
+    "overall": {
+      "mrr": 0.09199855013365947,
+      "n": 3153.0,
+      "recall@1": 0.06392589068611905,
+      "recall@10": 0.11856168728195367,
+      "recall@5": 0.10025108362406171,
+      "success@1": 0.0754836663495084,
+      "success@10": 0.13479226133840785,
+      "success@5": 0.11354265778623533
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 2350.0,
+        "native": 0.10368355285376561
+      },
+      "hi": {
+        "gap": 0.0010260650873376784,
+        "n_native": 737.0,
+        "n_romanized": 57.0,
+        "native": 0.05853093838168466,
+        "romanized": 0.05750487329434698
+      },
+      "pa": {
+        "gap": 0.0,
+        "n_native": 7.0,
+        "n_romanized": 2.0,
+        "native": 0.0,
+        "romanized": 0.0
+      }
+    },
+    "metric": "mrr"
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "retrieval",
+  "warnings": [
+    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
+  ]
+}

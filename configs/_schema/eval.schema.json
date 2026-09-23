@@ -126,6 +126,10 @@
     },
     "notes": {
       "type": "string"
+    },
+    "corpus_ids": {
+      "type": "string",
+      "description": "Path to the id list the retrieval index was built from. The random baseline draws from this instead of from the gold ids, so the floor reflects the population the model actually searched."
     }
   },
   "allOf": [

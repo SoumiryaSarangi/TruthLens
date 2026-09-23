@@ -68,7 +68,7 @@
     "n_missing": 0,
     "n_predicted": 3153
   },
-  "created_utc": "2026-09-23T14:28:42+00:00",
+  "created_utc": "2026-09-23T15:28:24+00:00",
   "delta_vs_baseline": {
     "accuracy": 0.23596574690770689,
     "macro_f1": 0.4928230690703812
@@ -97,7 +97,7 @@
   "git": {
     "branch": "main",
     "dirty": true,
-    "sha": "93fa1b1080662febcd1f036af990582c7ef45342"
+    "sha": "74fa817b3a639e4e051735902468c28d9197f4ab"
   },
   "inputs": {
     "config": {
@@ -480,24 +480,24 @@
     "by_lang": {
       "en": {
         "n_native": 2350.0,
-        "native": 0.25
+        "native": 1.0
       },
       "hi": {
-        "gap": 0.25,
+        "gap": 1.0,
         "n_native": 737.0,
         "n_romanized": 57.0,
-        "native": 0.25,
+        "native": 1.0,
         "romanized": 0.0
       },
       "pa": {
-        "gap": 0.25,
+        "gap": 1.0,
         "n_native": 7.0,
         "n_romanized": 2.0,
-        "native": 0.25,
+        "native": 1.0,
         "romanized": 0.0
       }
     },
-    "metric": "macro_f1"
+    "metric": "accuracy"
   },
   "seed": 42,
   "seeded_libraries": {

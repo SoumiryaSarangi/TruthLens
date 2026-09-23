@@ -43,6 +43,16 @@ def _fmt(value: Any) -> str:
     return str(value)
 
 
+# The metric each task leads with. Kept here rather than inlined so a new task
+# type cannot silently fall through to `mrr` and report a blank column.
+HEADLINE = {
+    "classification": "macro_f1",
+    "retrieval": "mrr",
+    "transliteration": "cer",
+}
+LOWER_IS_BETTER = {"cer", "wer"}
+
+
 def results_table(docs: list[dict[str, Any]]) -> str:
     lines = [
         "| Experiment | Task | Headline | Score | Baseline | Base score | Delta | n | Flags |",
@@ -50,12 +60,16 @@ def results_table(docs: list[dict[str, Any]]) -> str:
     ]
     for doc in docs:
         overall = doc.get("metrics", {}).get("overall", {})
-        headline = "macro_f1" if doc.get("task") == "classification" else "mrr"
+        headline = HEADLINE.get(doc.get("task"), "mrr")
         score = overall.get(headline)
         delta = doc.get("delta_vs_baseline", {}).get(headline)
         base_score = score - delta if (score is not None and delta is not None) else None
 
         flags = []
+        if headline in LOWER_IS_BETTER:
+            # CER and WER are error rates, so a NEGATIVE delta is the model
+            # winning. Without this the ladder reads upside down.
+            flags.append("lower is better")
         if doc.get("warnings"):
             flags.append(f"{len(doc['warnings'])} warning(s)")
         if doc.get("git", {}).get("dirty"):
