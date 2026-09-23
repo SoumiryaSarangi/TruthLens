@@ -240,6 +240,8 @@ def load_external_evals(exclude: str, splits_root: Path, interim_root: Path) -> 
     hashes: set[str] = set()
     items: list[tuple[str, int]] = []
     texts: dict[str, str] = {}
+    if not splits_root.is_dir():
+        return {"hashes": hashes, "items": items, "texts": texts}
     for dataset_dir in sorted(splits_root.iterdir()):
         if not dataset_dir.is_dir() or dataset_dir.name == exclude:
             continue
@@ -399,7 +401,12 @@ def cmd_build(args) -> int:
                 "train is correspondingly smaller than the official train."
             )
 
-        external = load_external_evals(name, out_root, interim_root)
+        # Always the REAL committed splits, never `out_root`. A reproducibility
+        # check builds into a temp directory, and reading eval splits from there
+        # would find none -- so the rebuild would skip cross-dataset dedup and
+        # fail to reproduce the very files it is checking. Eval splits are
+        # committed by definition, so this is always the right source.
+        external = load_external_evals(name, SPLITS_ROOT, Path("data/interim"))
         if external["hashes"]:
             print(f"  checking against {len(external['hashes'])} eval rows from "
                   f"other datasets")
