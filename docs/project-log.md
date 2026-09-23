@@ -73,12 +73,12 @@ built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
 | **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |
 | **Python** | 3.11.16 via uv, in `.venv`. System Python is 3.13 and is not used. |
-| **Tests** | 265 passing, 2 skipped, 2 gpu-deselected |
+| **Tests** | 266 passing, 2 skipped, 2 gpu-deselected |
 | **Datasets in hand** | AVeriTeC, X-CLAIM, MultiClaim, handtyped (FR-26), Dakshina, **CheckThat! 2025 T2** |
 | **Datasets waiting** | None. CheckThat! 2025 T2 downloaded 2026-09-24; its loader and splits are Phase 3. |
 | **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
 | **Models trained** | Romanized LID (char n-gram) and in-domain Word2Vec, both ours. Everything else is off the shelf. |
-| **Numbers so far** | Claim matching MRR 0.5244 / R@10 0.6688 (BGE-M3, floor 0.0002) · LID 0.8600 on the hand-typed set (was 0.0000) · transliteration CER 0.4281 (identity 0.8518) · AVeriTeC retrieval R@10 0.0947, verdict macro-F1 0.2147 |
+| **Numbers so far** | Claim matching MRR 0.5244 / R@10 0.6688 (BGE-M3, floor 0.0002) · LID ~0.86 on the hand-typed set (was 0.0000; n=100, +/-3 rows across retrains) · transliteration CER 0.4281 (identity 0.8518) · AVeriTeC retrieval R@10 0.0947, verdict macro-F1 0.2147 |
 | **CI** | Green. Last verified run 29s, both jobs. |
 
 ---
@@ -776,7 +776,7 @@ already answers. Everything that matters is in two small cells.
 | --- | --- | --- | --- |
 | MultiClaim hi/latn (n=57) | 0.0000 | 0.3158 | **0.7368** |
 | MultiClaim overall (n=3153) | 0.9813 | 0.9756 | 0.9892 |
-| hand-typed (n=100) | 0.0000 | 0.0000 | **0.8600** |
+| hand-typed (n=100) | 0.0000 | 0.0000 | **0.8500** |
 
 The hybrid keeps `lid.176` in front — it is genuinely excellent at *rejecting* a
 language we do not support, French at 0.992 — and puts a character n-gram
@@ -836,7 +836,7 @@ somebody's answer is not retrieval.
 | rung | MRR | R@10 |
 | --- | --- | --- |
 | random floor | 0.0002 | 0.0008 |
-| Word2Vec (in-domain) | 0.0901 | 0.1164 |
+| Word2Vec (in-domain) | 0.0915 | 0.1197 |
 | MuRIL | 0.1127 | 0.1369 |
 | TF-IDF | 0.2311 | 0.3045 |
 | LaBSE | 0.3216 | 0.4170 |
@@ -870,7 +870,7 @@ MRR, Hindi, n=737 native / 57 romanized:
 | rung | native | romanized | gap |
 | --- | --- | --- | --- |
 | TF-IDF | 0.0379 | 0.0877 | **-0.0498** |
-| Word2Vec | 0.0602 | 0.0570 | 0.0032 |
+| Word2Vec | 0.0618 | 0.0581 | 0.0038 |
 | MuRIL | 0.1218 | 0.0439 | 0.0779 |
 | LaBSE | 0.3648 | 0.1926 | 0.1722 |
 | BGE-M3 | 0.4981 | 0.3585 | 0.1396 |
@@ -1050,11 +1050,21 @@ this commit. The shifts are small and no conclusion moves:
 
 | | before | after |
 | --- | --- | --- |
-| LID, hand-typed forwards | 0.8700 | **0.8600** |
+| LID, hand-typed forwards | 0.8700 | **0.8500** |
 | LID, MultiClaim overall | 0.9908 | **0.9892** |
 | LID, MultiClaim hi/latn | 0.7719 | **0.7368** |
-| Word2Vec rung, MRR | 0.0920 | **0.0901** |
+| Word2Vec rung, MRR | 0.0920 | **0.0915** |
 | transliteration CER | 0.4281 | **0.4281** (unchanged) |
+
+**The hand-typed figure is not stable to three decimal places, and should not
+be quoted as though it were.** Across four retrains today, driven only by
+changes to the TRAINING pool and never to this eval set, it read 0.8700,
+0.8600, 0.8800 and 0.8500. That is a swing of three rows out of 100. Report it
+as **~0.86 on n=100**, and lead with the MultiClaim hi/latn cell (0.7368,
+n=57) where the denominator is larger and the number is steadier. What is not
+in doubt is the comparison: the two baselines score 0.0000 on this set, and
+they do so by construction rather than by luck.
+
 
 The transliteration number did not move because the one hand-typed row language
 ID now gets wrong is not among the 33 that carry a Gurmukhi reference.
@@ -1106,7 +1116,7 @@ so FR-6 has a small but real eval set on romanized input from day one. And
 | component | metric | current | baseline |
 | --- | --- | --- | --- |
 | Claim matching | MRR / R@10 | **0.5244 / 0.6688** (BGE-M3) | 0.0002 / 0.0008 random |
-| Language ID, hand-typed | accuracy | **0.8600** | 0.6400 majority |
+| Language ID, hand-typed | accuracy | **0.8500** (see caveat) | 0.6400 majority |
 | Language ID, MultiClaim hi/latn | accuracy | **0.7368** | 0.0000 script |
 | Transliteration, 33 pa pairs | CER | **0.4281** | 0.8518 identity |
 | AVeriTeC retrieval | R@10 | 0.0947 | 0.0121 random |

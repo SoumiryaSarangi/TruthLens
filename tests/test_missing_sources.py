@@ -63,19 +63,19 @@ def test_declared_sources_live_under_gitignored_raw(dataset):
         assert Path(path).as_posix().startswith("data/raw/")
 
 
-def test_dedup_survives_an_eval_split_whose_text_is_not_readable():
-    """The CI condition: split ids committed, source text absent.
+def test_cross_dataset_dedup_is_exact_match_only():
+    """A public split must be rebuildable from public data.
 
-    MultiClaim is access-restricted. Its split files are committed, so another
-    dataset's build sees its uids and SimHash values, but `data/interim/multiclaim/`
-    does not exist on a runner -- so a near-duplicate candidate against it cannot
-    be confirmed by Jaccard. This used to raise KeyError and fail the whole
-    reproducibility job.
+    Confirming a near-duplicate needs the text on both sides, and a committed
+    split carries ids and hashes, not text. MultiClaim's text can never exist on
+    a CI runner, so letting near-duplicates decide cross-dataset drops made
+    x_claim/train's CONTENT depend on data CI cannot read -- the same build gave
+    4,398 rows locally and 4,446 on the runner, and the reproducibility job
+    caught it.
 
-    Skipping the pair is right rather than merely convenient: the exact-hash
-    check still catches identical text, so what is lost is near-duplicate
-    detection against data the runner is not allowed to read, and the build says
-    so instead of pretending it checked.
+    So the cross-dataset rule is exact match, which reproduces everywhere.
+    A SimHash-identical external row must NOT drop a train row; an exact hash
+    match must.
     """
     import importlib.util
     from pathlib import Path
@@ -86,22 +86,31 @@ def test_dedup_survives_an_eval_split_whose_text_is_not_readable():
     build_splits = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(build_splits)
 
-    def row(uid, text, simhash):
+    def row(uid, text, sha, simhash):
         return loaders.Row(
             record={"uid": uid, "dataset": "toy", "split": "train", "lang": "en",
                     "script": "latn", "source_id": uid,
-                    "text_sha1": "a" * 40, "simhash64": simhash, "n_chars": len(text)},
+                    "text_sha1": sha, "simhash64": simhash, "n_chars": len(text)},
             text=text,
         )
 
-    rows = {"train": [row("toy:en:train:00000", "a claim about vaccines", "0000000000000000")]}
-    # An external eval row with an identical SimHash -- so it IS a candidate --
-    # but no text on hand to confirm it with.
-    external = {
-        "hashes": set(),
-        "items": [("multiclaim:en:test:00352", 0)],
-        "texts": {},
-    }
-    kept, report = build_splits.deduplicate(rows, external_eval=external)
-    assert len(kept["train"]) == 1, "an unconfirmable candidate must not be dropped"
-    assert report["near_duplicate_candidates_unverifiable_no_text"] == 1
+    rows = {"train": [row("toy:en:train:00000", "a claim about vaccines",
+                          "a" * 40, "0000000000000000")]}
+
+    # Same SimHash as a restricted dataset's eval row, and no text to confirm
+    # it with. Must be kept: dropping it would make this split unreproducible
+    # wherever that text is absent.
+    near_only = {"hashes": set(), "items": [("multiclaim:en:test:00352", 0)], "texts": {}}
+    kept, report = build_splits.deduplicate(rows, external_eval=near_only)
+    assert len(kept["train"]) == 1, (
+        "a cross-dataset NEAR duplicate must not be dropped -- it cannot be "
+        "reproduced where the other dataset's text is unavailable"
+    )
+    assert report["dropped_from_train"]["in_another_dataset_eval_split"] == 0
+
+    # An EXACT hash match is in the committed split file, so it reproduces
+    # everywhere and must drop the row.
+    exact = {"hashes": {"a" * 40}, "items": [], "texts": {}}
+    kept, report = build_splits.deduplicate(rows, external_eval=exact)
+    assert kept["train"] == []
+    assert report["dropped_from_train"]["in_another_dataset_eval_split"] == 1

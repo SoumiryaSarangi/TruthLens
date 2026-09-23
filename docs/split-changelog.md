@@ -61,3 +61,15 @@ recorded as a change. Entries are left in place rather than deleted, because an
 append-only log that gets edited is not an audit trail.
 
 **No results/*.json produced before those entries is invalidated.**
+
+## 2026-09-23T21:42:52+00:00 — data/splits/x_claim/train.jsonl
+
+Cross-dataset dedup is now EXACT-MATCH only. Confirming a near-duplicate needs text on both sides, and a committed split carries ids and hashes, not text -- so using near-duplicates across datasets made x_claim/train's content depend on MultiClaim's restricted text. The same build produced 4398 rows locally and 4446 on the CI runner. A public split has to be rebuildable from public data, so the ~48 cross-dataset near-duplicates are now REPORTED rather than dropped. Exact match still catches 884 of the 932 leaking rows, and near-duplicate detection within each dataset is unchanged.
+
+## 2026-09-23T21:43:51+00:00 — data/splits/checkthat25_t2/train.jsonl
+
+Cross-dataset dedup is now EXACT-MATCH only. Confirming a near-duplicate needs text on both sides, and a committed split carries ids and hashes, not text -- so using near-duplicates across datasets made x_claim/train's content depend on MultiClaim's restricted text. The same build produced 4398 rows locally and 4446 on the CI runner. A public split has to be rebuildable from public data, so the ~48 cross-dataset near-duplicates are now REPORTED rather than dropped. Exact match still catches 884 of the 932 leaking rows, and near-duplicate detection within each dataset is unchanged.
+
+## 2026-09-23T22:09:56+00:00 — data/splits/multiclaim/train.jsonl
+
+Rebuilt under the exact-match cross-dataset rule, the same change applied to x_claim and checkthat25_t2. multiclaim/train had been built while cross-dataset dedup still used near-duplicate matching, so it no longer reproduced from source. Only train changes; dev and test are untouched.

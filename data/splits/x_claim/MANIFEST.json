@@ -34,29 +34,30 @@
     },
     "train": {
       "en/deva": 59,
-      "en/latn": 2867,
-      "hi/deva": 1094,
+      "en/latn": 2918,
+      "hi/deva": 1115,
       "hi/guru": 1,
       "hi/latn": 42,
-      "lang=en": 2926,
-      "lang=hi": 1137,
-      "lang=pa": 335,
+      "lang=en": 2977,
+      "lang=hi": 1158,
+      "lang=pa": 337,
       "pa/deva": 54,
       "pa/guru": 249,
-      "pa/latn": 32,
-      "script=deva": 1207,
+      "pa/latn": 34,
+      "script=deva": 1228,
       "script=guru": 250,
-      "script=latn": 2941,
-      "total": 4398
+      "script=latn": 2994,
+      "total": 4472
     }
   },
-  "created_utc": "2026-09-23T20:22:00+00:00",
+  "created_utc": "2026-09-23T21:42:53+00:00",
   "dataset": "x_claim",
   "deduplication": {
+    "cross_dataset_near_duplicates_reported_not_dropped": 1346,
     "dropped_from_train": {
       "exact_match_in_eval": 8,
       "in_another_dataset_eval_split": 884,
-      "near_duplicate_in_eval": 108,
+      "near_duplicate_in_eval": 34,
       "within_train_duplicate": 32
     },
     "left_in_place": {

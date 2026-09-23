@@ -75,7 +75,7 @@ Source: https://gitlab.com/checkthat_lab/clef2025-checkthat-lab — CLEF CheckTh
 
 | split | n | en/deva | en/latn | hi/deva | hi/latn | pa/deva | pa/guru | pa/latn |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| train | 8318 | 87 | 6880 | 930 | 53 | 64 | 254 | 50 |
+| train | 8624 | 87 | 7165 | 949 | 53 | 64 | 254 | 52 |
 | dev | 1271 | 11 | 1160 | 47 | 3 | 5 | 37 | 8 |
 | test | 1485 | 1 | 1284 | 96 | 4 | 8 | 86 | 6 |
 
@@ -85,9 +85,9 @@ The romanized-vs-native axis. `other` is every row not in the language's own scr
 
 | split | lang | n | native | other | other % |
 | --- | --- | --- | --- | --- | --- |
-| train | en | 6967 | 6880 | 87 | 1.2% |
-| train | hi | 983 | 930 | 53 | 5.4% |
-| train | pa | 368 | 254 | 114 | 31.0% |
+| train | en | 7252 | 7165 | 87 | 1.2% |
+| train | hi | 1002 | 949 | 53 | 5.3% |
+| train | pa | 370 | 254 | 116 | 31.4% |
 | dev | en | 1171 | 1160 | 11 | 0.9% |
 | dev | hi | 50 | 47 | 3 | 6.0% |
 | dev | pa | 50 | 37 | 13 | 26.0% |
@@ -99,7 +99,7 @@ The romanized-vs-native axis. `other` is every row not in the language's own scr
 
 | split | n | min | median | mean | max | code-mixed |
 | --- | --- | --- | --- | --- | --- | --- |
-| train | 8318 | 4 | 223 | 558 | 31843 | 1.7% |
+| train | 8624 | 4 | 229 | 582 | 31843 | 1.7% |
 | dev | 1271 | 5 | 236 | 540 | 16930 | 1.2% |
 | test | 1485 | 12 | 259 | 611 | 24790 | 1.1% |
 
@@ -113,8 +113,8 @@ Policy: **train yields to eval; dev and test are never modified**
 | --- | --- |
 | dropped from train — exact match in eval | 982 |
 | dropped from train — in another dataset eval split | 1232 |
-| dropped from train — near duplicate in eval | 491 |
-| dropped from train — within train duplicate | 1877 |
+| dropped from train — near duplicate in eval | 135 |
+| dropped from train — within train duplicate | 1927 |
 | left in place — dev internal duplicates | 27 |
 | left in place — dev test overlap | 22 |
 | left in place — test internal duplicates | 321 |
@@ -217,7 +217,7 @@ Source: https://zenodo.org/records/14989177 — RESTRICTED - access granted per-
 
 | split | n | en/latn | hi/deva | hi/latn | pa/deva | pa/guru | pa/latn |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| train | 24642 | 18288 | 5794 | 492 | · | 62 | 6 |
+| train | 24971 | 18594 | 5809 | 499 | · | 63 | 6 |
 | dev | 3153 | 2350 | 737 | 57 | · | 7 | 2 |
 | test | 3156 | 2351 | 743 | 53 | 1 | 7 | 1 |
 
@@ -227,9 +227,9 @@ The romanized-vs-native axis. `other` is every row not in the language's own scr
 
 | split | lang | n | native | other | other % |
 | --- | --- | --- | --- | --- | --- |
-| train | en | 18288 | 18288 | 0 | 0.0% |
-| train | hi | 6286 | 5794 | 492 | 7.8% |
-| train | pa | 68 | 62 | 6 | 8.8% |
+| train | en | 18594 | 18594 | 0 | 0.0% |
+| train | hi | 6308 | 5809 | 499 | 7.9% |
+| train | pa | 69 | 63 | 6 | 8.7% |
 | dev | en | 2350 | 2350 | 0 | 0.0% |
 | dev | hi | 794 | 737 | 57 | 7.2% |
 | dev | pa | 9 | 7 | 2 | 22.2% |
@@ -241,7 +241,7 @@ The romanized-vs-native axis. `other` is every row not in the language's own scr
 
 | split | n | min | median | mean | max | code-mixed |
 | --- | --- | --- | --- | --- | --- | --- |
-| train | 24642 | 8 | 148 | 304 | 28729 | 5.1% |
+| train | 24971 | 8 | 149 | 307 | 28729 | 5.0% |
 | dev | 3153 | 8 | 148 | 297 | 12445 | 4.6% |
 | test | 3156 | 5 | 151 | 302 | 12158 | 4.6% |
 
@@ -255,7 +255,7 @@ Policy: **train yields to eval; dev and test are never modified**
 | --- | --- |
 | dropped from train — exact match in eval | 0 |
 | dropped from train — in another dataset eval split | 167 |
-| dropped from train — near duplicate in eval | 419 |
+| dropped from train — near duplicate in eval | 90 |
 | dropped from train — within train duplicate | 0 |
 | left in place — dev internal duplicates | 0 |
 | left in place — dev test overlap | 0 |
@@ -265,7 +265,7 @@ Policy: **train yields to eval; dev and test are never modified**
 
 - unresolved failures: **0**
 - accepted as irreducible upstream: **0** (see `data/splits/KNOWN_LEAKAGE.json`)
-- warnings (unconfirmed near-duplicates): 28
+- warnings (unconfirmed near-duplicates): 29
 
 ## x_claim
 
@@ -275,7 +275,7 @@ Source: https://github.com/mbzuai-nlp/x-claim — see repo; EMNLP 2023 research 
 
 | split | n | en/deva | en/latn | hi/deva | hi/guru | hi/latn | pa/deva | pa/guru | pa/latn |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| train | 4398 | 59 | 2867 | 1094 | 1 | 42 | 54 | 249 | 32 |
+| train | 4472 | 59 | 2918 | 1115 | 1 | 42 | 54 | 249 | 34 |
 | dev | 600 | 8 | 392 | 96 | · | 4 | 11 | 76 | 13 |
 | test | 571 | 1 | 370 | 97 | · | 3 | 6 | 90 | 4 |
 
@@ -285,9 +285,9 @@ The romanized-vs-native axis. `other` is every row not in the language's own scr
 
 | split | lang | n | native | other | other % |
 | --- | --- | --- | --- | --- | --- |
-| train | en | 2926 | 2867 | 59 | 2.0% |
-| train | hi | 1137 | 1094 | 43 | 3.8% |
-| train | pa | 335 | 249 | 86 | 25.7% |
+| train | en | 2977 | 2918 | 59 | 2.0% |
+| train | hi | 1158 | 1115 | 43 | 3.7% |
+| train | pa | 337 | 249 | 88 | 26.1% |
 | dev | en | 400 | 392 | 8 | 2.0% |
 | dev | hi | 100 | 96 | 4 | 4.0% |
 | dev | pa | 100 | 76 | 24 | 24.0% |
@@ -299,7 +299,7 @@ The romanized-vs-native axis. `other` is every row not in the language's own scr
 
 | split | n | min | median | mean | max | code-mixed |
 | --- | --- | --- | --- | --- | --- | --- |
-| train | 4398 | 20 | 145 | 194 | 1639 | 2.7% |
+| train | 4472 | 20 | 145 | 196 | 1639 | 2.7% |
 | dev | 600 | 23 | 150 | 199 | 1218 | 3.3% |
 | test | 571 | 23 | 151 | 198 | 1326 | 2.5% |
 
@@ -313,7 +313,7 @@ Policy: **train yields to eval; dev and test are never modified**
 | --- | --- |
 | dropped from train — exact match in eval | 8 |
 | dropped from train — in another dataset eval split | 884 |
-| dropped from train — near duplicate in eval | 108 |
+| dropped from train — near duplicate in eval | 34 |
 | dropped from train — within train duplicate | 32 |
 | left in place — dev internal duplicates | 0 |
 | left in place — dev test overlap | 0 |

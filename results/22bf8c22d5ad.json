@@ -10,18 +10,18 @@
     "name": "identity_transliteration",
     "notes": []
   },
-  "config_hash": "98847069b632",
+  "config_hash": "22bf8c22d5ad",
   "coverage": {
     "coverage": 1.0,
     "n_gold": 33,
     "n_missing": 0,
     "n_predicted": 100
   },
-  "created_utc": "2026-09-23T20:31:41+00:00",
+  "created_utc": "2026-09-23T22:30:42+00:00",
   "delta_vs_baseline": {
-    "cer": -0.4237400530503979,
+    "cer": 0.0,
     "exact_match": 0.0,
-    "wer": -0.20370370370370372
+    "wer": 0.0
   },
   "env": {
     "packages": {
@@ -43,11 +43,11 @@
     "python": "3.11.16",
     "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
   },
-  "experiment": "p2_translit_handtyped_hybrid",
+  "experiment": "p2_translit_handtyped",
   "git": {
     "branch": "main",
     "dirty": true,
-    "sha": "711bce0cbc7e822a2c5e0e1603d047ffa05c8b96"
+    "sha": "074c8c923ab66dae5425bd86cb55c42306c83d9a"
   },
   "inputs": {
     "config": {
@@ -57,38 +57,38 @@
         "lang",
         "script"
       ],
-      "experiment": "p2_translit_handtyped_hybrid",
+      "experiment": "p2_translit_handtyped",
       "gold": "data/gold/handtyped_dev_translit.jsonl",
       "metrics": {},
       "min_cell_n": 30,
       "notes": "Implementation: preprocess=full, transliterator=rulebased (indic-transliteration 2.3.82 with informal-spelling pre-normalisation). Baseline leaves the romanized text untouched, so its CER is the size of the gap between how people type and how Punjabi is written.\n",
-      "predictions": "results/preds/p2_translit_handtyped_hybrid.jsonl",
+      "predictions": "results/preds/p2_translit_handtyped.jsonl",
       "sanity_ceiling": 0.85,
       "seed": 42,
       "split": "data/splits/handtyped/dev.jsonl",
       "task": "transliteration"
     },
-    "config_path": "configs/p2_translit_handtyped_hybrid.yaml",
-    "predictions_path": "results/preds/p2_translit_handtyped_hybrid.jsonl",
-    "predictions_sha256": "3d235854b23e9488d360976d460d5de30dfa1447f31bbc548fddc68df7000cc7",
+    "config_path": "configs/p2_translit_handtyped.yaml",
+    "predictions_path": "results/preds/p2_translit_handtyped.jsonl",
+    "predictions_sha256": "ee290dc4530c6a492cf7b5badc8555387db4cf930ff040613e90ecea4a519ad9",
     "split_path": "data/splits/handtyped/dev.jsonl",
     "split_sha256": "d74288f9df6836036f14b0d98765b37f551930fa2c61370e3d027fe926a1bbd9",
-    "splits_lock_sha256": "bb1308ef8883c4dec72c4f463871dac5b3a03b9ff1599cb02f8394a942398bf4"
+    "splits_lock_sha256": "ffe1ec3aab908c905035f7c1614b5fdd2c06dc655a6abd22e2bbf620327ab08b"
   },
   "metrics": {
     "by": {
       "lang=pa,script=latn": {
-        "cer": 0.4280503978779841,
+        "cer": 0.851790450928382,
         "exact_match": 0.0,
         "n": 33.0,
-        "wer": 0.7253086419753086
+        "wer": 0.9290123456790124
       }
     },
     "overall": {
-      "cer": 0.4280503978779841,
+      "cer": 0.851790450928382,
       "exact_match": 0.0,
       "n": 33.0,
-      "wer": 0.7253086419753086
+      "wer": 0.9290123456790124
     }
   },
   "native_vs_romanized": {

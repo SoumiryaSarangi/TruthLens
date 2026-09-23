@@ -21,8 +21,8 @@
       "sha256": "7f2e4b1120482e988f7eec13a68cf5b1ac1ef3d8bf5729ff2e10af16fd736c6d"
     },
     "checkthat25_t2/train.jsonl": {
-      "n_lines": 8318,
-      "sha256": "8809e2ec237150287f6f7b48f184e4f2724439b4fd61309bf072eaf1c6742bd3"
+      "n_lines": 8624,
+      "sha256": "75f59de26f5e95ba9b6158a224246e7fb87aa55b0420687817cde01c0fe52566"
     },
     "handtyped/dev.jsonl": {
       "n_lines": 100,
@@ -37,8 +37,8 @@
       "sha256": "c5435d77c490dd2c41c395e2a0833376521ca19f647004985ac0013c567c7ce2"
     },
     "multiclaim/train.jsonl": {
-      "n_lines": 24642,
-      "sha256": "10e48d98fcc2479fdc62f33227b70cea2ea3fac2bc9acdd4cd0be4ff6f8f17e6"
+      "n_lines": 24971,
+      "sha256": "56fcc2f2b9cb2ceee8e85c9ab1a548b15a98a4996370126f530d8a5e5f1773ac"
     },
     "x_claim/dev.jsonl": {
       "n_lines": 600,
@@ -49,8 +49,8 @@
       "sha256": "0fbe2005f3361b1e3d982c36d20976c9bc14fe263baa375065f2ef891eaea489"
     },
     "x_claim/train.jsonl": {
-      "n_lines": 4398,
-      "sha256": "31c8737cacbc9cfe38dbf1bcf610a95a0bdbbf85b4172660cb32e1d04479bdf2"
+      "n_lines": 4472,
+      "sha256": "1458b53334eecb091846dbc9f763ffc41ea021a1033fe1ebce96d7027d211106"
     }
   },
   "version": 1

@@ -61,14 +61,14 @@
     "name": "majority_class",
     "notes": []
   },
-  "config_hash": "26e282881217",
+  "config_hash": "f6dd0bf76097",
   "coverage": {
     "coverage": 1.0,
     "n_gold": 100,
     "n_missing": 0,
     "n_predicted": 100
   },
-  "created_utc": "2026-09-23T20:29:23+00:00",
+  "created_utc": "2026-09-23T22:25:29+00:00",
   "delta_vs_baseline": {
     "accuracy": -0.64,
     "macro_f1": -0.19512195121951217
@@ -93,11 +93,11 @@
     "python": "3.11.16",
     "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
   },
-  "experiment": "p2_lid_handtyped",
+  "experiment": "p2_lid_handtyped_script",
   "git": {
     "branch": "main",
     "dirty": true,
-    "sha": "711bce0cbc7e822a2c5e0e1603d047ffa05c8b96"
+    "sha": "074c8c923ab66dae5425bd86cb55c42306c83d9a"
   },
   "inputs": {
     "config": {
@@ -107,24 +107,24 @@
         "lang",
         "script"
       ],
-      "experiment": "p2_lid_handtyped",
+      "experiment": "p2_lid_handtyped_script",
       "gold_field": "lang",
       "label_set": "lang_4class",
       "metrics": {},
       "min_cell_n": 30,
-      "notes": "Hand-typed romanized forwards (FR-26), n=100, all Latin script. Implementation: preprocess=full (fastText lid.176, floor 0.30). macro-F1 is over 4 classes while gold contains only hi and pa, so it is structurally capped at 0.50 here. Read it against that ceiling, not against 1.0.\n",
-      "predictions": "results/preds/p2_lid_handtyped.jsonl",
+      "notes": "Hand-typed romanized forwards (FR-26), n=100, all Latin script. Baseline implementation: preprocess=passthrough. macro-F1 is over 4 classes while gold contains only hi and pa, so it is structurally capped at 0.50 here. Read it against that ceiling, not against 1.0.\n",
+      "predictions": "results/preds/p2_lid_handtyped_script.jsonl",
       "sanity_ceiling": 0.995,
       "seed": 42,
       "split": "data/splits/handtyped/dev.jsonl",
       "task": "classification"
     },
-    "config_path": "configs/p2_lid_handtyped.yaml",
-    "predictions_path": "results/preds/p2_lid_handtyped.jsonl",
-    "predictions_sha256": "bf83b7dc9e6e182f968d27a7d80bbf239936e2358731fa1af4a8143aed4abbb7",
+    "config_path": "configs/p2_lid_handtyped_script.yaml",
+    "predictions_path": "results/preds/p2_lid_handtyped_script.jsonl",
+    "predictions_sha256": "5cc833e4fa267bda8d83599fcbe8fc8727a1b1d061bb7cebb48a71ebd59229ac",
     "split_path": "data/splits/handtyped/dev.jsonl",
     "split_sha256": "d74288f9df6836036f14b0d98765b37f551930fa2c61370e3d027fe926a1bbd9",
-    "splits_lock_sha256": "bb1308ef8883c4dec72c4f463871dac5b3a03b9ff1599cb02f8394a942398bf4"
+    "splits_lock_sha256": "ffe1ec3aab908c905035f7c1614b5fdd2c06dc655a6abd22e2bbf620327ab08b"
   },
   "metrics": {
     "by": {
@@ -138,9 +138,9 @@
             "pa": 0
           },
           "hi": {
-            "en": 30,
+            "en": 64,
             "hi": 0,
-            "other": 34,
+            "other": 0,
             "pa": 0
           },
           "other": {
@@ -207,9 +207,9 @@
             "pa": 0
           },
           "pa": {
-            "en": 13,
+            "en": 36,
             "hi": 0,
-            "other": 23,
+            "other": 0,
             "pa": 0
           }
         },
@@ -253,9 +253,9 @@
           "pa": 0
         },
         "hi": {
-          "en": 30,
+          "en": 64,
           "hi": 0,
-          "other": 34,
+          "other": 0,
           "pa": 0
         },
         "other": {
@@ -265,9 +265,9 @@
           "pa": 0
         },
         "pa": {
-          "en": 13,
+          "en": 36,
           "hi": 0,
-          "other": 23,
+          "other": 0,
           "pa": 0
         }
       },

@@ -299,11 +299,27 @@ def deduplicate(rows_by_split: dict[str, list],
     eval_items = [(r.record["uid"], int(r.record["simhash64"], 16)) for r in eval_rows]
     eval_text = {r.record["uid"]: r.text for r in eval_rows}
 
-    # Other datasets' eval splits count too. Same rule, wider scope.
+    # Other datasets' eval splits count too -- but by EXACT hash only.
+    #
+    # Near-duplicate detection needs the text on both sides to confirm a SimHash
+    # candidate with Jaccard, and a committed split carries ids and hashes, not
+    # text. MultiClaim's text can never exist on a CI runner, so using it here
+    # would make x_claim/train's CONTENT depend on data CI cannot read: the same
+    # build produced 4,398 rows locally and 4,446 on the runner, and the
+    # reproducibility job caught it.
+    #
+    # A public split has to be rebuildable from public data. So the cross-dataset
+    # rule is exact-match, which is reproducible everywhere because `text_sha1`
+    # is committed. That catches 884 of the 932 leaking rows; the remaining ~48
+    # near-duplicates are REPORTED below rather than silently dropped, so the gap
+    # is visible instead of being a comfortable assumption.
+    #
+    # Within a dataset, near-duplicate detection is unchanged -- if the dataset is
+    # buildable at all, its own text is present.
     external = external_eval or {"hashes": set(), "items": [], "texts": {}}
     external_hashes = set(external["hashes"])
-    eval_items = eval_items + list(external["items"])
-    eval_text = {**eval_text, **external["texts"]}
+    external_items = list(external["items"])
+    external_text = dict(external["texts"])
     report["dropped_from_train"]["in_another_dataset_eval_split"] = 0
 
     train = rows_by_split.get("train", [])
@@ -333,6 +349,25 @@ def deduplicate(rows_by_split: dict[str, list],
             near_uids.add(train_uid)
     if unverifiable:
         report["near_duplicate_candidates_unverifiable_no_text"] = unverifiable
+
+    # Cross-dataset NEAR duplicates: reported, never acted on. Acting on them
+    # would make this split unreproducible wherever the other dataset's text is
+    # absent. Counted only when the text happens to be readable, so this number
+    # is environment-dependent -- which is exactly why it must not change what
+    # gets written.
+    cross_near = 0
+    if external_items and external_text:
+        train_by_uid = dict(train_items)
+        ext_by_uid = dict(external_items)
+        for eval_uid, train_uid in candidate_pairs(external_items, train_items):
+            if hamming(ext_by_uid[eval_uid], train_by_uid[train_uid]) > DEDUP_HAMMING:
+                continue
+            a, b = external_text.get(eval_uid), train_text.get(train_uid)
+            if a is None or b is None:
+                continue
+            if jaccard(char_shingles(a), char_shingles(b)) >= DEDUP_JACCARD:
+                cross_near += 1
+    report["cross_dataset_near_duplicates_reported_not_dropped"] = cross_near
 
     kept: list = []
     seen: set[str] = set()

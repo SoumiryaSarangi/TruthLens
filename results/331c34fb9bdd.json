@@ -10,14 +10,14 @@
     "name": "identity_transliteration",
     "notes": []
   },
-  "config_hash": "61a4fc931dee",
+  "config_hash": "331c34fb9bdd",
   "coverage": {
     "coverage": 1.0,
     "n_gold": 33,
     "n_missing": 0,
     "n_predicted": 100
   },
-  "created_utc": "2026-09-23T20:31:58+00:00",
+  "created_utc": "2026-09-23T22:31:18+00:00",
   "delta_vs_baseline": {
     "cer": -0.4708222811671088,
     "exact_match": 0.0,
@@ -47,7 +47,7 @@
   "git": {
     "branch": "main",
     "dirty": true,
-    "sha": "711bce0cbc7e822a2c5e0e1603d047ffa05c8b96"
+    "sha": "074c8c923ab66dae5425bd86cb55c42306c83d9a"
   },
   "inputs": {
     "config": {
@@ -73,7 +73,7 @@
     "predictions_sha256": "1f8cbbe0b33063ee9a7963aa79918e80852800ec7ddf6ca521e56970e57217f3",
     "split_path": "data/splits/handtyped/dev.jsonl",
     "split_sha256": "d74288f9df6836036f14b0d98765b37f551930fa2c61370e3d027fe926a1bbd9",
-    "splits_lock_sha256": "bb1308ef8883c4dec72c4f463871dac5b3a03b9ff1599cb02f8394a942398bf4"
+    "splits_lock_sha256": "ffe1ec3aab908c905035f7c1614b5fdd2c06dc655a6abd22e2bbf620327ab08b"
   },
   "metrics": {
     "by": {
