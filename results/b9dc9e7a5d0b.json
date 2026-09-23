@@ -61,17 +61,17 @@
     "name": "majority_class",
     "notes": []
   },
-  "config_hash": "c0571150b2a6",
+  "config_hash": "b9dc9e7a5d0b",
   "coverage": {
     "coverage": 1.0,
     "n_gold": 100,
     "n_missing": 0,
     "n_predicted": 100
   },
-  "created_utc": "2026-09-23T15:09:05+00:00",
+  "created_utc": "2026-09-23T20:29:41+00:00",
   "delta_vs_baseline": {
-    "accuracy": 0.22999999999999998,
-    "macro_f1": 0.2584459862193931
+    "accuracy": 0.21999999999999997,
+    "macro_f1": 0.2562823355506283
   },
   "env": {
     "packages": {
@@ -97,7 +97,7 @@
   "git": {
     "branch": "main",
     "dirty": true,
-    "sha": "feeb3c510ab3df0081486874dabbbc72c86d5ec6"
+    "sha": "711bce0cbc7e822a2c5e0e1603d047ffa05c8b96"
   },
   "inputs": {
     "config": {
@@ -121,15 +121,15 @@
     },
     "config_path": "configs/p2_lid_handtyped_hybrid.yaml",
     "predictions_path": "results/preds/p2_lid_handtyped_hybrid.jsonl",
-    "predictions_sha256": "a50dd51715922caa35d9d83776dd90e4f4ee8f2dfa9b848772a251cf4599de08",
+    "predictions_sha256": "25ca115ff78dda8027c9d1213b4aabf7adbc0d79ffec0d5e9b81a58cb79e9561",
     "split_path": "data/splits/handtyped/dev.jsonl",
     "split_sha256": "d74288f9df6836036f14b0d98765b37f551930fa2c61370e3d027fe926a1bbd9",
-    "splits_lock_sha256": "123ce39421f2caea998759ab90825b0a6aa625e11e8339fe2131c1d3734a1786"
+    "splits_lock_sha256": "bb1308ef8883c4dec72c4f463871dac5b3a03b9ff1599cb02f8394a942398bf4"
   },
   "metrics": {
     "by": {
       "lang=hi,script=latn": {
-        "accuracy": 0.90625,
+        "accuracy": 0.890625,
         "confusion": {
           "en": {
             "en": 0,
@@ -138,8 +138,8 @@
             "pa": 0
           },
           "hi": {
-            "en": 5,
-            "hi": 58,
+            "en": 6,
+            "hi": 57,
             "other": 0,
             "pa": 1
           },
@@ -156,7 +156,7 @@
             "pa": 0
           }
         },
-        "macro_f1": 0.23770491803278687,
+        "macro_f1": 0.23553719008264462,
         "n": 64.0,
         "per_class": {
           "en": {
@@ -166,9 +166,9 @@
             "support": 0.0
           },
           "hi": {
-            "f1": 0.9508196721311475,
+            "f1": 0.9421487603305785,
             "precision": 1.0,
-            "recall": 0.90625,
+            "recall": 0.890625,
             "support": 64.0
           },
           "other": {
@@ -244,7 +244,7 @@
       }
     },
     "overall": {
-      "accuracy": 0.87,
+      "accuracy": 0.86,
       "confusion": {
         "en": {
           "en": 0,
@@ -253,8 +253,8 @@
           "pa": 0
         },
         "hi": {
-          "en": 5,
-          "hi": 58,
+          "en": 6,
+          "hi": 57,
           "other": 0,
           "pa": 1
         },
@@ -271,7 +271,7 @@
           "pa": 29
         }
       },
-      "macro_f1": 0.4535679374389052,
+      "macro_f1": 0.45140428677014044,
       "n": 100.0,
       "per_class": {
         "en": {
@@ -281,9 +281,9 @@
           "support": 0.0
         },
         "hi": {
-          "f1": 0.9354838709677419,
-          "precision": 0.9666666666666667,
-          "recall": 0.90625,
+          "f1": 0.9268292682926829,
+          "precision": 0.9661016949152542,
+          "recall": 0.890625,
           "support": 64.0
         },
         "other": {
@@ -305,14 +305,14 @@
     "by_lang": {
       "hi": {
         "n_romanized": 64.0,
-        "romanized": 0.23770491803278687
+        "romanized": 0.890625
       },
       "pa": {
         "n_romanized": 36.0,
-        "romanized": 0.2230769230769231
+        "romanized": 0.8055555555555556
       }
     },
-    "metric": "macro_f1"
+    "metric": "accuracy"
   },
   "seed": 42,
   "seeded_libraries": {

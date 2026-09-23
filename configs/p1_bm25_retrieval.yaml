@@ -13,7 +13,7 @@ task: retrieval
 split: data/splits/averitec/dev.jsonl
 gold: data/gold/averitec_dev_retrieval.jsonl
 predictions: results/preds/p1_bm25_retrieval.jsonl
-baseline: c76263a8c491
+baseline: 26186160a153
 
 metrics:
   retrieval:

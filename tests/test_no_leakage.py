@@ -127,3 +127,58 @@ def test_every_row_declares_language_and_script(dataset: str):
         for rec in rows:
             assert rec.get("lang"), f"{dataset}/{name}: {rec.get('uid')} has no lang"
             assert rec.get("script"), f"{dataset}/{name}: {rec.get('uid')} has no script"
+
+
+# -----------------------------------------------------------------------------
+# Cross-DATASET leakage: train yields to eval, across datasets and not only
+# within them.
+# -----------------------------------------------------------------------------
+
+
+def test_no_train_row_appears_in_another_datasets_eval_split():
+    """The invariant that was missing until CheckThat! arrived.
+
+    "Train yields to eval" was applied within each dataset, which was enough
+    while every dataset had its own posts. CheckThat! 2025 Task 2 and X-CLAIM
+    turned out to share a post pool -- 400 of CheckThat's dev posts sat in
+    X-CLAIM's train split, 32% of that dev set. A model trained on one and
+    evaluated on the other would have been scored on what it memorised.
+
+    This asserts the property directly rather than trusting the builder, so it
+    fails whichever way a future dataset introduces the overlap.
+    """
+    root = Path("data/splits")
+    datasets = sorted(d.name for d in root.iterdir() if d.is_dir())
+    if len(datasets) < 2:
+        pytest.skip("need at least two datasets to check cross-dataset leakage")
+
+    eval_hashes: dict[str, set[str]] = {}
+    train_rows: dict[str, list[dict]] = {}
+    for name in datasets:
+        hashes: set[str] = set()
+        for split in ("dev", "test"):
+            path = root / name / f"{split}.jsonl"
+            if path.is_file():
+                hashes |= {r["text_sha1"] for r in load_split(path)}
+        eval_hashes[name] = hashes
+        train_path = root / name / "train.jsonl"
+        if train_path.is_file():
+            train_rows[name] = load_split(train_path)
+
+    offenders: list[str] = []
+    for train_name, rows in train_rows.items():
+        for other, hashes in eval_hashes.items():
+            if other == train_name:
+                continue          # within-dataset overlap is the other test
+            hits = [r["uid"] for r in rows if r["text_sha1"] in hashes]
+            if hits:
+                offenders.append(
+                    f"{len(hits)} row(s) of {train_name}/train are in "
+                    f"{other}'s dev/test, e.g. {hits[:3]}"
+                )
+    assert not offenders, (
+        "Cross-dataset leakage:\n  " + "\n  ".join(offenders)
+        + "\n\nRebuild the offending train split; `deduplicate()` in "
+          "scripts/build_splits.py takes the other datasets' eval rows via "
+          "`load_external_evals`."
+    )

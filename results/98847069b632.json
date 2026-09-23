@@ -10,18 +10,18 @@
     "name": "identity_transliteration",
     "notes": []
   },
-  "config_hash": "8c75757e9aec",
+  "config_hash": "98847069b632",
   "coverage": {
     "coverage": 1.0,
     "n_gold": 33,
     "n_missing": 0,
     "n_predicted": 100
   },
-  "created_utc": "2026-09-23T14:36:15+00:00",
+  "created_utc": "2026-09-23T20:31:41+00:00",
   "delta_vs_baseline": {
-    "cer": -0.4708222811671088,
+    "cer": -0.4237400530503979,
     "exact_match": 0.0,
-    "wer": -0.21604938271604945
+    "wer": -0.20370370370370372
   },
   "env": {
     "packages": {
@@ -43,11 +43,11 @@
     "python": "3.11.16",
     "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
   },
-  "experiment": "p2_translit_handtyped_oracle",
+  "experiment": "p2_translit_handtyped_hybrid",
   "git": {
     "branch": "main",
     "dirty": true,
-    "sha": "93fa1b1080662febcd1f036af990582c7ef45342"
+    "sha": "711bce0cbc7e822a2c5e0e1603d047ffa05c8b96"
   },
   "inputs": {
     "config": {
@@ -57,38 +57,38 @@
         "lang",
         "script"
       ],
-      "experiment": "p2_translit_handtyped_oracle",
+      "experiment": "p2_translit_handtyped_hybrid",
       "gold": "data/gold/handtyped_dev_translit.jsonl",
       "metrics": {},
       "min_cell_n": 30,
-      "notes": "Implementation: preprocess=full, transliterator=rulebased (indic-transliteration 2.3.82 with informal-spelling pre-normalisation). Baseline leaves the romanized text untouched, so its CER is the size of the gap between how people type and how Punjabi is written. ORACLE LANGUAGE (force_lang=pa): language ID is bypassed so this measures the transliterator alone. Compare with p2_translit_handtyped, where the real language ID runs and never routes a single row to the transliterator -- the difference between the two is the cost FR-3 imposes on FR-5.\n",
-      "predictions": "results/preds/p2_translit_handtyped_oracle.jsonl",
+      "notes": "Implementation: preprocess=full, transliterator=rulebased (indic-transliteration 2.3.82 with informal-spelling pre-normalisation). Baseline leaves the romanized text untouched, so its CER is the size of the gap between how people type and how Punjabi is written.\n",
+      "predictions": "results/preds/p2_translit_handtyped_hybrid.jsonl",
       "sanity_ceiling": 0.85,
       "seed": 42,
       "split": "data/splits/handtyped/dev.jsonl",
       "task": "transliteration"
     },
-    "config_path": "configs/p2_translit_handtyped_oracle.yaml",
-    "predictions_path": "results/preds/p2_translit_handtyped_oracle.jsonl",
-    "predictions_sha256": "1f8cbbe0b33063ee9a7963aa79918e80852800ec7ddf6ca521e56970e57217f3",
+    "config_path": "configs/p2_translit_handtyped_hybrid.yaml",
+    "predictions_path": "results/preds/p2_translit_handtyped_hybrid.jsonl",
+    "predictions_sha256": "3d235854b23e9488d360976d460d5de30dfa1447f31bbc548fddc68df7000cc7",
     "split_path": "data/splits/handtyped/dev.jsonl",
     "split_sha256": "d74288f9df6836036f14b0d98765b37f551930fa2c61370e3d027fe926a1bbd9",
-    "splits_lock_sha256": "123ce39421f2caea998759ab90825b0a6aa625e11e8339fe2131c1d3734a1786"
+    "splits_lock_sha256": "bb1308ef8883c4dec72c4f463871dac5b3a03b9ff1599cb02f8394a942398bf4"
   },
   "metrics": {
     "by": {
       "lang=pa,script=latn": {
-        "cer": 0.38096816976127323,
+        "cer": 0.4280503978779841,
         "exact_match": 0.0,
         "n": 33.0,
-        "wer": 0.7129629629629629
+        "wer": 0.7253086419753086
       }
     },
     "overall": {
-      "cer": 0.38096816976127323,
+      "cer": 0.4280503978779841,
       "exact_match": 0.0,
       "n": 33.0,
-      "wer": 0.7129629629629629
+      "wer": 0.7253086419753086
     }
   },
   "native_vs_romanized": {

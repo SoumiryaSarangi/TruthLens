@@ -14,22 +14,22 @@
     "name": "random_rank",
     "notes": []
   },
-  "config_hash": "63deae30edc7",
+  "config_hash": "527489a99261",
   "coverage": {
     "coverage": 1.0,
     "n_gold": 3153,
     "n_missing": 0,
     "n_predicted": 3153
   },
-  "created_utc": "2026-09-23T15:46:18+00:00",
+  "created_utc": "2026-09-23T20:32:33+00:00",
   "delta_vs_baseline": {
-    "mrr": 0.5241699766913842,
-    "recall@1": 0.37458542884327856,
-    "recall@10": 0.6680342457697359,
-    "recall@5": 0.6120531695460335,
-    "success@1": 0.4326038693307961,
-    "success@10": 0.6955280685061845,
-    "success@5": 0.6454170631144942
+    "mrr": 0.32138880078937226,
+    "recall@1": 0.22479184486796291,
+    "recall@10": 0.4161763528081321,
+    "recall@5": 0.37106499501837276,
+    "success@1": 0.26450999048525214,
+    "success@10": 0.4408499841420869,
+    "success@5": 0.3973993022518236
   },
   "env": {
     "packages": {
@@ -51,11 +51,11 @@
     "python": "3.11.16",
     "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
   },
-  "experiment": "p2_match_bge_m3",
+  "experiment": "p2_match_labse",
   "git": {
     "branch": "main",
     "dirty": true,
-    "sha": "9be6c0bcefc0c893a3c5278764b2e81614aebcc0"
+    "sha": "711bce0cbc7e822a2c5e0e1603d047ffa05c8b96"
   },
   "inputs": {
     "config": {
@@ -66,7 +66,7 @@
         "script"
       ],
       "corpus_ids": "data/interim/index/ids.json",
-      "experiment": "p2_match_bge_m3",
+      "experiment": "p2_match_labse",
       "gold": "data/gold/multiclaim_dev_retrieval.jsonl",
       "metrics": {
         "retrieval": {
@@ -78,107 +78,107 @@
         }
       },
       "min_cell_n": 30,
-      "notes": "Encoder bge_m3, fact-check pool 78,077, k=10, L2-normalised inner product. Punjabi cells are n=7 (guru) and n=2 (latn) and are flagged low_n by the harness -- report them with their denominator, never as a bare percentage.\n",
-      "predictions": "results/preds/p2_match_bge_m3.jsonl",
+      "notes": "Encoder labse, fact-check pool 78,077, k=10, L2-normalised inner product. Punjabi cells are n=7 (guru) and n=2 (latn) and are flagged low_n by the harness -- report them with their denominator, never as a bare percentage.\n",
+      "predictions": "results/preds/p2_match_labse.jsonl",
       "sanity_ceiling": 0.85,
       "seed": 42,
       "split": "data/splits/multiclaim/dev.jsonl",
       "task": "retrieval"
     },
-    "config_path": "configs/p2_match_bge_m3.yaml",
-    "predictions_path": "results/preds/p2_match_bge_m3.jsonl",
-    "predictions_sha256": "61fb342c8c5ed4fac0871e759c5768f7a1b778507d311145ead6dbe743380577",
+    "config_path": "configs/p2_match_labse.yaml",
+    "predictions_path": "results/preds/p2_match_labse.jsonl",
+    "predictions_sha256": "1f2d6cd287ecdda64d1ee434d4d1f66d2360d62237f4505a7916a9ab6abc58ba",
     "split_path": "data/splits/multiclaim/dev.jsonl",
     "split_sha256": "b1b0ff4c1b6300e01536b80a3f084dd4938cf28d428469532a581c0a2f57b7fd",
-    "splits_lock_sha256": "123ce39421f2caea998759ab90825b0a6aa625e11e8339fe2131c1d3734a1786"
+    "splits_lock_sha256": "bb1308ef8883c4dec72c4f463871dac5b3a03b9ff1599cb02f8394a942398bf4"
   },
   "metrics": {
     "by": {
       "lang=en,script=latn": {
-        "mrr": 0.5369831138129013,
+        "mrr": 0.31223927727119255,
         "n": 2350.0,
-        "recall@1": 0.3947380952380955,
-        "recall@10": 0.6840050965582881,
-        "recall@5": 0.6297887845015505,
-        "success@1": 0.44765957446808513,
-        "success@10": 0.7051063829787234,
-        "success@5": 0.656595744680851
+        "recall@1": 0.22131291639802259,
+        "recall@10": 0.4112499462712228,
+        "recall@5": 0.3613906082097571,
+        "success@1": 0.2570212765957447,
+        "success@10": 0.4327659574468085,
+        "success@5": 0.3851063829787234
       },
       "lang=hi,script=deva": {
-        "mrr": 0.49807456225366653,
+        "mrr": 0.3647902263573905,
         "n": 737.0,
-        "recall@1": 0.3261872455902307,
-        "recall@10": 0.6395296246042514,
-        "recall@5": 0.5744911804613296,
-        "success@1": 0.3989145183175034,
-        "success@10": 0.6865671641791045,
-        "success@5": 0.6268656716417911
+        "recall@1": 0.24470827679782906,
+        "recall@10": 0.4544549977385799,
+        "recall@5": 0.42044323835368613,
+        "success@1": 0.29850746268656714,
+        "success@10": 0.4898236092265943,
+        "success@5": 0.4559023066485753
       },
       "lang=hi,script=latn": {
-        "mrr": 0.3584795321637427,
+        "mrr": 0.19256474519632413,
         "n": 57.0,
-        "recall@1": 0.1760233918128655,
-        "recall@10": 0.4222222222222222,
-        "recall@5": 0.38421052631578945,
-        "success@1": 0.2631578947368421,
-        "success@10": 0.47368421052631576,
-        "success@5": 0.45614035087719296
+        "recall@1": 0.14619883040935674,
+        "recall@10": 0.19883040935672516,
+        "recall@5": 0.18128654970760236,
+        "success@1": 0.17543859649122806,
+        "success@10": 0.22807017543859648,
+        "success@5": 0.21052631578947367
       },
       "lang=pa,script=guru": {
         "low_n": true,
         "low_n_threshold": 30.0,
-        "mrr": 0.4333333333333333,
+        "mrr": 0.07142857142857142,
         "n": 7.0,
-        "recall@1": 0.2857142857142857,
-        "recall@10": 0.7142857142857143,
-        "recall@5": 0.7142857142857143,
-        "success@1": 0.2857142857142857,
-        "success@10": 0.7142857142857143,
-        "success@5": 0.7142857142857143
+        "recall@1": 0.0,
+        "recall@10": 0.2857142857142857,
+        "recall@5": 0.2857142857142857,
+        "success@1": 0.0,
+        "success@10": 0.2857142857142857,
+        "success@5": 0.2857142857142857
       },
       "lang=pa,script=latn": {
         "low_n": true,
         "low_n_threshold": 30.0,
-        "mrr": 0.5,
+        "mrr": 0.0,
         "n": 2.0,
-        "recall@1": 0.5,
-        "recall@10": 0.5,
-        "recall@5": 0.5,
-        "success@1": 0.5,
-        "success@10": 0.5,
-        "success@5": 0.5
+        "recall@1": 0.0,
+        "recall@10": 0.0,
+        "recall@5": 0.0,
+        "success@1": 0.0,
+        "success@10": 0.0,
+        "success@5": 0.0
       }
     },
     "overall": {
-      "mrr": 0.5244078453878638,
+      "mrr": 0.32162666948585183,
       "n": 3153.0,
-      "recall@1": 0.37458542884327856,
-      "recall@10": 0.6688271414246677,
-      "recall@5": 0.6125289069389926,
-      "success@1": 0.4326038693307961,
-      "success@10": 0.6964795432921027,
-      "success@5": 0.6460513796384396
+      "recall@1": 0.22479184486796291,
+      "recall@10": 0.4169692484630639,
+      "recall@5": 0.37154073241133184,
+      "success@1": 0.26450999048525214,
+      "success@10": 0.4418014589280051,
+      "success@5": 0.3980336187757691
     }
   },
   "native_vs_romanized": {
     "by_lang": {
       "en": {
         "n_native": 2350.0,
-        "native": 0.5369831138129013
+        "native": 0.31223927727119255
       },
       "hi": {
-        "gap": 0.13959503008992385,
+        "gap": 0.17222548116106637,
         "n_native": 737.0,
         "n_romanized": 57.0,
-        "native": 0.49807456225366653,
-        "romanized": 0.3584795321637427
+        "native": 0.3647902263573905,
+        "romanized": 0.19256474519632413
       },
       "pa": {
-        "gap": -0.06666666666666671,
+        "gap": 0.07142857142857142,
         "n_native": 7.0,
         "n_romanized": 2.0,
-        "native": 0.4333333333333333,
-        "romanized": 0.5
+        "native": 0.07142857142857142,
+        "romanized": 0.0
       }
     },
     "metric": "mrr"

@@ -73,12 +73,12 @@ built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
 | **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |
 | **Python** | 3.11.16 via uv, in `.venv`. System Python is 3.13 and is not used. |
-| **Tests** | 261 passing, 2 skipped, 2 gpu-deselected |
-| **Datasets in hand** | AVeriTeC, X-CLAIM, MultiClaim, **handtyped (FR-26, 100 rows)**, **Dakshina** |
+| **Tests** | 265 passing, 2 skipped, 2 gpu-deselected |
+| **Datasets in hand** | AVeriTeC, X-CLAIM, MultiClaim, handtyped (FR-26), Dakshina, **CheckThat! 2025 T2** |
 | **Datasets waiting** | None. CheckThat! 2025 T2 downloaded 2026-09-24; its loader and splits are Phase 3. |
 | **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
 | **Models trained** | Romanized LID (char n-gram) and in-domain Word2Vec, both ours. Everything else is off the shelf. |
-| **Numbers so far** | Claim matching MRR 0.5244 / R@10 0.6688 (BGE-M3, floor 0.0002) · LID 0.8700 on the hand-typed set (was 0.0000) · transliteration CER 0.4281 (identity 0.8518) · AVeriTeC retrieval R@10 0.0947, verdict macro-F1 0.2147 |
+| **Numbers so far** | Claim matching MRR 0.5244 / R@10 0.6688 (BGE-M3, floor 0.0002) · LID 0.8600 on the hand-typed set (was 0.0000) · transliteration CER 0.4281 (identity 0.8518) · AVeriTeC retrieval R@10 0.0947, verdict macro-F1 0.2147 |
 | **CI** | Green. Last verified run 29s, both jobs. |
 
 ---
@@ -774,9 +774,9 @@ already answers. Everything that matters is in two small cells.
 
 | accuracy | script | fastText | hybrid |
 | --- | --- | --- | --- |
-| MultiClaim hi/latn (n=57) | 0.0000 | 0.3158 | **0.7719** |
-| MultiClaim overall (n=3153) | 0.9813 | 0.9756 | 0.9908 |
-| hand-typed (n=100) | 0.0000 | 0.0000 | **0.8700** |
+| MultiClaim hi/latn (n=57) | 0.0000 | 0.3158 | **0.7368** |
+| MultiClaim overall (n=3153) | 0.9813 | 0.9756 | 0.9892 |
+| hand-typed (n=100) | 0.0000 | 0.0000 | **0.8600** |
 
 The hybrid keeps `lid.176` in front — it is genuinely excellent at *rejecting* a
 language we do not support, French at 0.992 — and puts a character n-gram
@@ -836,7 +836,7 @@ somebody's answer is not retrieval.
 | rung | MRR | R@10 |
 | --- | --- | --- |
 | random floor | 0.0002 | 0.0008 |
-| Word2Vec (in-domain) | 0.0920 | 0.1186 |
+| Word2Vec (in-domain) | 0.0901 | 0.1164 |
 | MuRIL | 0.1127 | 0.1369 |
 | TF-IDF | 0.2311 | 0.3045 |
 | LaBSE | 0.3216 | 0.4170 |
@@ -870,7 +870,7 @@ MRR, Hindi, n=737 native / 57 romanized:
 | rung | native | romanized | gap |
 | --- | --- | --- | --- |
 | TF-IDF | 0.0379 | 0.0877 | **-0.0498** |
-| Word2Vec | 0.0585 | 0.0575 | 0.0010 |
+| Word2Vec | 0.0602 | 0.0570 | 0.0032 |
 | MuRIL | 0.1218 | 0.0439 | 0.0779 |
 | LaBSE | 0.3648 | 0.1926 | 0.1722 |
 | BGE-M3 | 0.4981 | 0.3585 | 0.1396 |
@@ -997,6 +997,99 @@ Phase 3 as a deliberate step with a before-and-after, not as a quiet rebuild.
 
 Not built yet: the loader and the frozen splits. That is Phase 3 work.
 
+## 2026-09-24 — CheckThat! ingested, and a cross-dataset leak that was there all along
+
+Ingesting CheckThat! 2025 Task 2 turned up a leak between datasets that the
+project's leakage machinery could not see, because it only ever looked *inside*
+one dataset at a time.
+
+### The leak
+
+CheckThat! Task 2 and X-CLAIM are built from an overlapping pool of
+fact-checked social posts. Measured, both directions:
+
+| | n | severity |
+| --- | --- | --- |
+| checkthat/train ∩ x_claim/train | 4,799 | harmless: train to train |
+| checkthat/train ∩ x_claim/dev | 497 | **leak** |
+| **x_claim/train ∩ checkthat/dev** | **400** | **leak — 32% of that dev set** |
+| x_claim/train ∩ checkthat/test | 375 | **leak** |
+| checkthat/dev ∩ x_claim/dev | 181 | eval to eval: correlated, not contamination |
+
+The one that mattered: **400 of CheckThat's 1,244 dev posts sat in X-CLAIM's
+train split.** Phase 3 plans a jointly-trained XLM-R over both, so the
+normalization dev number would have been largely memorisation.
+
+`make leakage` never saw it. "Train yields to eval" was applied within each
+dataset, which was sufficient right up until two datasets shared a post pool.
+
+### The fix, and what it cost
+
+Same rule, wider scope: a row in ANY eval split is dropped from EVERY train
+split. `load_external_evals()` in `scripts/build_splits.py` reads every other
+dataset's committed dev/test before deduplicating, and
+`tests/test_no_leakage.py` now asserts the property directly rather than
+trusting the builder.
+
+| split | before | after |
+| --- | --- | --- |
+| checkthat/train | 12,900 | 8,318 |
+| x_claim/train | 5,430 | 4,398 |
+| multiclaim/train | 25,228 | 24,642 |
+| every dev and test | — | **byte-identical, verified against git** |
+
+X-CLAIM lost 16.3% of its training data. That is the price of the alternative
+being a number nobody could defend. No eval split moved, so every published
+benchmark stays comparable and no `results/*.json` was invalidated by the split
+change itself.
+
+### What DID have to be re-measured
+
+Two models train on the changed splits, so both were retrained and rescored in
+this commit. The shifts are small and no conclusion moves:
+
+| | before | after |
+| --- | --- | --- |
+| LID, hand-typed forwards | 0.8700 | **0.8600** |
+| LID, MultiClaim overall | 0.9908 | **0.9892** |
+| LID, MultiClaim hi/latn | 0.7719 | **0.7368** |
+| Word2Vec rung, MRR | 0.0920 | **0.0901** |
+| transliteration CER | 0.4281 | **0.4281** (unchanged) |
+
+The transliteration number did not move because the one hand-typed row language
+ID now gets wrong is not among the 33 that carry a Gurmukhi reference.
+
+Everything else on the ladder is untouched: TF-IDF fits on the fact-check
+corpus, and MuRIL, LaBSE and BGE-M3 are pretrained. Their config hashes changed
+anyway, because the hash covers `SPLITS.lock` and the lock moved. Rerun, same
+numbers, and `p1_bm25_retrieval` was re-chained to the new
+`p1_random_retrieval` hash.
+
+### CheckThat's own leakage is upstream's, and stays
+
+30 dev-to-test pairs, 2.0% of its test set. Allowlisted per-uid in
+`KNOWN_LEAKAGE.json` rather than fixed, because removing rows from a published
+shared-task eval split would make our numbers incomparable with the lab's. This
+is the DS@GT CheckThat! 2025 finding `build-plan.md` cites, reproduced directly
+on the 2025 data. Text is deliberately omitted from those entries -- 30 pairs is
+more source text than a committed file should carry.
+
+### A smaller thing the same pass exposed
+
+`freeze_split` logged a changelog entry for any write to a tracked file, and
+rebuilding a dataset re-freezes all of its splits -- so dev and test were
+recorded as having moved when they had not. The changelog's own header says an
+entry means prior results are no longer comparable, which made those entries
+actively misleading. `freeze_split` now compares bytes first and does not log a
+no-op. The wrong entries are corrected in place by a further entry rather than
+deleted: an append-only log that gets edited is not an audit trail.
+
+### Punjabi
+
+CheckThat! contributes **368 Punjabi training rows** (254 Gurmukhi, 50 Latin, 64
+Devanagari) -- and once again the language column is not the script column: only
+67% of the "Punjabi" file is in Punjabi's script.
+
 ## Next
 
 **Phase 3 — front of the pipeline (Days 4-5).** Check-worthiness, claim
@@ -1013,8 +1106,8 @@ so FR-6 has a small but real eval set on romanized input from day one. And
 | component | metric | current | baseline |
 | --- | --- | --- | --- |
 | Claim matching | MRR / R@10 | **0.5244 / 0.6688** (BGE-M3) | 0.0002 / 0.0008 random |
-| Language ID, hand-typed | accuracy | **0.8700** | 0.6400 majority |
-| Language ID, MultiClaim hi/latn | accuracy | **0.7719** | 0.0000 script |
+| Language ID, hand-typed | accuracy | **0.8600** | 0.6400 majority |
+| Language ID, MultiClaim hi/latn | accuracy | **0.7368** | 0.0000 script |
 | Transliteration, 33 pa pairs | CER | **0.4281** | 0.8518 identity |
 | AVeriTeC retrieval | R@10 | 0.0947 | 0.0121 random |
 | AVeriTeC verdict | macro-F1 | 0.2147 | 0.1516 majority |

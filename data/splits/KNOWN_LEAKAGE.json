@@ -1,6 +1,290 @@
 {
   "accepted": [
     {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00013",
+      "uid_b": "checkthat25_t2:en:test:00419"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "jaccard": 0.9352,
+      "kind": "near_duplicate",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "simhash_hamming": 4,
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00021",
+      "uid_b": "checkthat25_t2:en:test:00050"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00022",
+      "uid_b": "checkthat25_t2:en:test:00393"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00023",
+      "uid_b": "checkthat25_t2:en:test:00249"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00035",
+      "uid_b": "checkthat25_t2:en:test:00342"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00051",
+      "uid_b": "checkthat25_t2:en:test:00180"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00092",
+      "uid_b": "checkthat25_t2:en:test:00212"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00128",
+      "uid_b": "checkthat25_t2:en:test:00074"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "jaccard": 0.9026,
+      "kind": "near_duplicate",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "simhash_hamming": 6,
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00135",
+      "uid_b": "checkthat25_t2:en:test:00427"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00185",
+      "uid_b": "checkthat25_t2:en:test:00087"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00190",
+      "uid_b": "checkthat25_t2:en:test:00093"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00201",
+      "uid_b": "checkthat25_t2:en:test:00117"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00212",
+      "uid_b": "checkthat25_t2:en:test:00376"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00233",
+      "uid_b": "checkthat25_t2:en:test:00401"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00233",
+      "uid_b": "checkthat25_t2:en:test:00452"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00257",
+      "uid_b": "checkthat25_t2:en:test:00310"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00280",
+      "uid_b": "checkthat25_t2:en:test:00230"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00304",
+      "uid_b": "checkthat25_t2:en:test:00292"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "jaccard": 0.9894,
+      "kind": "near_duplicate",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "simhash_hamming": 1,
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00310",
+      "uid_b": "checkthat25_t2:en:test:00040"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00323",
+      "uid_b": "checkthat25_t2:en:test:00121"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "jaccard": 0.9609,
+      "kind": "near_duplicate",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "simhash_hamming": 4,
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00356",
+      "uid_b": "checkthat25_t2:en:test:00153"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00358",
+      "uid_b": "checkthat25_t2:en:test:00305"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "jaccard": 0.9197,
+      "kind": "near_duplicate",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "simhash_hamming": 5,
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00367",
+      "uid_b": "checkthat25_t2:en:test:00212"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00397",
+      "uid_b": "checkthat25_t2:en:test:00274"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00413",
+      "uid_b": "checkthat25_t2:en:test:00169"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00417",
+      "uid_b": "checkthat25_t2:en:test:00456"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00422",
+      "uid_b": "checkthat25_t2:en:test:00175"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "kind": "exact_text",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00465",
+      "uid_b": "checkthat25_t2:en:test:00186"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "jaccard": 0.9881,
+      "kind": "near_duplicate",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "simhash_hamming": 2,
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:00476",
+      "uid_b": "checkthat25_t2:en:test:00050"
+    },
+    {
+      "dataset": "checkthat25_t2",
+      "jaccard": 0.9143,
+      "kind": "near_duplicate",
+      "reason": "Both rows are in CheckThat! 2025 Task 2's OFFICIAL evaluation splits (dev and test). The overlap is upstream's, and removing either row would shrink a published shared-task benchmark and make our numbers incomparable with the lab's. Accepted and quantified rather than hidden: 30 of 1,485 test rows (2.0%) also appear in dev, which bounds how much dev-based model selection can inflate the final CheckThat test number. State it in the report. Note this is the same DS@GT CheckThat! 2025 finding docs/build-plan.md cites -- reproduced here on the 2025 data directly. Text is deliberately omitted from these entries: 30 pairs is more source text than a committed file should carry, and the uid plus hash identifies them exactly.",
+      "simhash_hamming": 8,
+      "split_a": "dev",
+      "split_b": "test",
+      "uid_a": "checkthat25_t2:en:dev:01071",
+      "uid_b": "checkthat25_t2:en:test:00313"
+    },
+    {
       "dataset": "x_claim",
       "jaccard": 0.9062,
       "kind": "near_duplicate",

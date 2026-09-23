@@ -12,16 +12,16 @@
       "success@10": 0.024,
       "success@5": 0.014
     },
-    "name": "c76263a8c491"
+    "name": "26186160a153"
   },
-  "config_hash": "1650e52b8691",
+  "config_hash": "cb8f6f0f3b5c",
   "coverage": {
     "coverage": 1.0,
     "n_gold": 500,
     "n_missing": 0,
     "n_predicted": 500
   },
-  "created_utc": "2026-09-21T16:16:25+00:00",
+  "created_utc": "2026-09-23T20:33:24+00:00",
   "delta_vs_baseline": {
     "mrr": 0.05755714285714287,
     "recall@1": 0.01775,
@@ -55,12 +55,12 @@
   "git": {
     "branch": "main",
     "dirty": true,
-    "sha": "659f7215f5d26b3b4c1f9f8deaee18c39347c28b"
+    "sha": "711bce0cbc7e822a2c5e0e1603d047ffa05c8b96"
   },
   "inputs": {
     "config": {
       "allow_partial": true,
-      "baseline": "c76263a8c491",
+      "baseline": "26186160a153",
       "breakdown": [
         "lang",
         "script"
@@ -89,7 +89,7 @@
     "predictions_sha256": "0787848e3438c6c5a638cce41f79f248281de8062d9659030cd64adaac51a459",
     "split_path": "data/splits/averitec/dev.jsonl",
     "split_sha256": "d994098e05100064fdde36e7f5c944b7c5e0c3503ec33dcf075293bf2b1cb14a",
-    "splits_lock_sha256": "b18b0a6d47824a00c7a5e12239096e88c3d74de44b333294c3edfd65d4cd9451"
+    "splits_lock_sha256": "bb1308ef8883c4dec72c4f463871dac5b3a03b9ff1599cb02f8394a942398bf4"
   },
   "metrics": {
     "by": {

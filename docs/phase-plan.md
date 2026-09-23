@@ -67,7 +67,7 @@ aggregator before retrieval is tuning against noise.
 | rung | native | romanized | gap |
 | --- | --- | --- | --- |
 | TF-IDF | 0.0379 | 0.0877 | **-0.0498** |
-| Word2Vec | 0.0585 | 0.0575 | 0.0010 |
+| Word2Vec | 0.0602 | 0.0570 | 0.0032 |
 | MuRIL | 0.1218 | 0.0439 | 0.0779 |
 | LaBSE | 0.3648 | 0.1926 | 0.1722 |
 | **BGE-M3** | **0.4981** | **0.3585** | 0.1396 |
@@ -83,7 +83,7 @@ fact-checks:
 | rung | MRR | R@10 |
 | --- | --- | --- |
 | random floor | 0.0002 | 0.0008 |
-| Word2Vec (in-domain) | 0.0920 | 0.1186 |
+| Word2Vec (in-domain) | 0.0901 | 0.1164 |
 | MuRIL | 0.1127 | 0.1369 |
 | TF-IDF | 0.2311 | 0.3045 |
 | LaBSE | 0.3216 | 0.4170 |
@@ -96,8 +96,8 @@ MuRIL's 0.1127 would have read as a result instead of a warning.
 
 | | script heuristic | fastText | hybrid |
 | --- | --- | --- | --- |
-| MultiClaim hi/latn (n=57) | 0.0000 | 0.3158 | **0.7719** |
-| hand-typed forwards (n=100) | 0.0000 | 0.0000 | **0.8700** |
+| MultiClaim hi/latn (n=57) | 0.0000 | 0.3158 | **0.7368** |
+| hand-typed forwards (n=100) | 0.0000 | 0.0000 | **0.8600** |
 
 | transliteration, 33 Punjabi pairs | CER | WER |
 | --- | --- | --- |

@@ -8,24 +8,24 @@ A row without a baseline is not a result, it is a number.
 
 | Experiment | Task | Headline | Score | Baseline | Base score | Delta | n | Flags |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| p2_match_word2vec | retrieval | mrr | 0.0901 | random_rank | 0.0002 | 0.0898 | 3153 | 1 warning(s), dirty tree |
+| p1_verdict_nli | classification | macro_f1 | 0.2147 | majority_class | 0.1516 | 0.0631 | 500 | 1 warning(s), dirty tree |
+| p1_bm25_retrieval | retrieval | mrr | 0.0656 | 26186160a153 | 0.0081 | 0.0576 | 500 | 1 warning(s), dirty tree |
+| p1_random_retrieval | retrieval | mrr | 0.0081 | random_rank | 0.0072 | 0.0008 | 500 | 1 warning(s), dirty tree |
 | p2_match_labse_translit | retrieval | mrr | 0.3190 | random_rank | 0.0002 | 0.3188 | 3153 | 1 warning(s), dirty tree |
-| p2_match_tfidf | retrieval | mrr | 0.2311 | random_rank | 0.0002 | 0.2308 | 3153 | 1 warning(s), dirty tree |
 | p2_match_bge_m3 | retrieval | mrr | 0.5244 | random_rank | 0.0002 | 0.5242 | 3153 | 1 warning(s), dirty tree |
 | p2_match_labse | retrieval | mrr | 0.3216 | random_rank | 0.0002 | 0.3214 | 3153 | 1 warning(s), dirty tree |
 | p2_match_muril | retrieval | mrr | 0.1127 | random_rank | 0.0002 | 0.1124 | 3153 | 1 warning(s), dirty tree |
-| p2_lid_multiclaim_hybrid | classification | macro_f1 | 0.7010 | majority_class | 0.2135 | 0.4875 | 3153 | 1 warning(s), dirty tree |
+| p2_match_tfidf | retrieval | mrr | 0.2311 | random_rank | 0.0002 | 0.2308 | 3153 | 1 warning(s), dirty tree |
+| p2_translit_handtyped_oracle | transliteration | cer | 0.3810 | identity_transliteration | 0.8518 | -0.4708 | 33 | lower is better, 1 warning(s), dirty tree |
+| p2_translit_handtyped_hybrid | transliteration | cer | 0.4281 | identity_transliteration | 0.8518 | -0.4237 | 33 | lower is better, 1 warning(s), dirty tree |
+| p2_translit_handtyped | transliteration | cer | 0.8518 | identity_transliteration | 0.8518 | 0.0000 | 33 | lower is better, 1 warning(s), dirty tree |
+| p2_lid_multiclaim_hybrid | classification | macro_f1 | 0.6693 | majority_class | 0.2135 | 0.4558 | 3153 | 1 warning(s), dirty tree |
 | p2_lid_multiclaim | classification | macro_f1 | 0.7259 | majority_class | 0.2135 | 0.5123 | 3153 | 1 warning(s), dirty tree |
 | p2_lid_multiclaim_script | classification | macro_f1 | 0.7063 | majority_class | 0.2135 | 0.4928 | 3153 | 1 warning(s), dirty tree |
-| p2_match_word2vec | retrieval | mrr | 0.0920 | random_rank | 0.0002 | 0.0918 | 3153 | 1 warning(s), dirty tree |
-| p2_translit_handtyped_hybrid | transliteration | cer | 0.4281 | identity_transliteration | 0.8518 | -0.4237 | 33 | lower is better, 1 warning(s), dirty tree |
-| p2_lid_handtyped_hybrid | classification | macro_f1 | 0.4536 | majority_class | 0.1951 | 0.2584 | 100 | 1 warning(s), dirty tree |
+| p2_lid_handtyped_hybrid | classification | macro_f1 | 0.4514 | majority_class | 0.1951 | 0.2563 | 100 | 1 warning(s), dirty tree |
 | p2_lid_handtyped | classification | macro_f1 | 0.0000 | majority_class | 0.1951 | -0.1951 | 100 | 1 warning(s), dirty tree |
 | p2_lid_handtyped_script | classification | macro_f1 | 0.0000 | majority_class | 0.1951 | -0.1951 | 100 | 1 warning(s), dirty tree |
-| p2_translit_handtyped | transliteration | cer | 0.8518 | identity_transliteration | 0.8518 | 0.0000 | 33 | lower is better, 1 warning(s), dirty tree |
-| p2_translit_handtyped_oracle | transliteration | cer | 0.3810 | identity_transliteration | 0.8518 | -0.4708 | 33 | lower is better, 1 warning(s), dirty tree |
-| p1_verdict_nli | classification | macro_f1 | 0.2147 | majority_class | 0.1516 | 0.0631 | 500 | 1 warning(s), dirty tree |
-| p1_bm25_retrieval | retrieval | mrr | 0.0656 | c76263a8c491 | 0.0081 | 0.0576 | 500 | 1 warning(s), dirty tree |
-| p1_random_retrieval | retrieval | mrr | 0.0081 | random_rank | 0.0072 | 0.0008 | 500 | 1 warning(s), dirty tree |
 
 ## Native vs romanized
 
@@ -33,21 +33,21 @@ The gap column is the finding. Where it is largest is where the pipeline is most
 
 | Experiment | Lang | Metric | Native | Romanized | Gap | n native | n roman |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| p2_match_word2vec | hi | mrr | 0.0602 | 0.0570 | 0.0032 | 737 | 57 |
+| p2_match_word2vec | pa | mrr | 0.0000 | 0.0000 | 0.0000 | 7 | 2 |
 | p2_match_labse_translit | hi | mrr | 0.3648 | 0.0712 | 0.2936 | 737 | 57 |
 | p2_match_labse_translit | pa | mrr | 0.0714 | 0.0000 | 0.0714 | 7 | 2 |
-| p2_match_tfidf | hi | mrr | 0.0379 | 0.0877 | -0.0498 | 737 | 57 |
-| p2_match_tfidf | pa | mrr | 0.0000 | 0.0000 | 0.0000 | 7 | 2 |
 | p2_match_bge_m3 | hi | mrr | 0.4981 | 0.3585 | 0.1396 | 737 | 57 |
 | p2_match_bge_m3 | pa | mrr | 0.4333 | 0.5000 | -0.0667 | 7 | 2 |
 | p2_match_labse | hi | mrr | 0.3648 | 0.1926 | 0.1722 | 737 | 57 |
 | p2_match_labse | pa | mrr | 0.0714 | 0.0000 | 0.0714 | 7 | 2 |
 | p2_match_muril | hi | mrr | 0.1218 | 0.0439 | 0.0779 | 737 | 57 |
 | p2_match_muril | pa | mrr | 0.0000 | 0.0000 | 0.0000 | 7 | 2 |
-| p2_lid_multiclaim_hybrid | hi | accuracy | 1.0000 | 0.7544 | 0.2456 | 737 | 57 |
+| p2_match_tfidf | hi | mrr | 0.0379 | 0.0877 | -0.0498 | 737 | 57 |
+| p2_match_tfidf | pa | mrr | 0.0000 | 0.0000 | 0.0000 | 7 | 2 |
+| p2_lid_multiclaim_hybrid | hi | accuracy | 1.0000 | 0.7368 | 0.2632 | 737 | 57 |
 | p2_lid_multiclaim_hybrid | pa | accuracy | 1.0000 | 0.0000 | 1.0000 | 7 | 2 |
 | p2_lid_multiclaim | hi | accuracy | 1.0000 | 0.3158 | 0.6842 | 737 | 57 |
 | p2_lid_multiclaim | pa | accuracy | 1.0000 | 0.5000 | 0.5000 | 7 | 2 |
 | p2_lid_multiclaim_script | hi | accuracy | 1.0000 | 0.0000 | 1.0000 | 737 | 57 |
 | p2_lid_multiclaim_script | pa | accuracy | 1.0000 | 0.0000 | 1.0000 | 7 | 2 |
-| p2_match_word2vec | hi | mrr | 0.0585 | 0.0575 | 0.0010 | 737 | 57 |
-| p2_match_word2vec | pa | mrr | 0.0000 | 0.0000 | 0.0000 | 7 | 2 |

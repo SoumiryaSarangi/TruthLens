@@ -61,14 +61,14 @@
     "name": "majority_class",
     "notes": []
   },
-  "config_hash": "d8c2a0cead5c",
+  "config_hash": "c44a8b62351f",
   "coverage": {
     "coverage": 1.0,
     "n_gold": 3153,
     "n_missing": 0,
     "n_predicted": 3153
   },
-  "created_utc": "2026-09-23T15:28:24+00:00",
+  "created_utc": "2026-09-23T20:30:01+00:00",
   "delta_vs_baseline": {
     "accuracy": 0.23596574690770689,
     "macro_f1": 0.4928230690703812
@@ -97,7 +97,7 @@
   "git": {
     "branch": "main",
     "dirty": true,
-    "sha": "74fa817b3a639e4e051735902468c28d9197f4ab"
+    "sha": "711bce0cbc7e822a2c5e0e1603d047ffa05c8b96"
   },
   "inputs": {
     "config": {
@@ -124,7 +124,7 @@
     "predictions_sha256": "2e9ea12d9fcf1ef52fab0ac2bb8648155d2158dea19b775e8b7601bc539a4eb2",
     "split_path": "data/splits/multiclaim/dev.jsonl",
     "split_sha256": "b1b0ff4c1b6300e01536b80a3f084dd4938cf28d428469532a581c0a2f57b7fd",
-    "splits_lock_sha256": "123ce39421f2caea998759ab90825b0a6aa625e11e8339fe2131c1d3734a1786"
+    "splits_lock_sha256": "bb1308ef8883c4dec72c4f463871dac5b3a03b9ff1599cb02f8394a942398bf4"
   },
   "metrics": {
     "by": {

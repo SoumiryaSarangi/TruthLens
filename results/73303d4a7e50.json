@@ -14,14 +14,14 @@
     "name": "random_rank",
     "notes": []
   },
-  "config_hash": "d5610c27bcca",
+  "config_hash": "73303d4a7e50",
   "coverage": {
     "coverage": 1.0,
     "n_gold": 3153,
     "n_missing": 0,
     "n_predicted": 3153
   },
-  "created_utc": "2026-09-23T15:48:31+00:00",
+  "created_utc": "2026-09-23T20:32:49+00:00",
   "delta_vs_baseline": {
     "mrr": 0.3187529890907632,
     "recall@1": 0.2222545787721811,
@@ -55,7 +55,7 @@
   "git": {
     "branch": "main",
     "dirty": true,
-    "sha": "9be6c0bcefc0c893a3c5278764b2e81614aebcc0"
+    "sha": "711bce0cbc7e822a2c5e0e1603d047ffa05c8b96"
   },
   "inputs": {
     "config": {
@@ -90,7 +90,7 @@
     "predictions_sha256": "f3e78f7a16bf7f7372f12a6283698e1d1d3a2a14cdea7bb9b75750746709e199",
     "split_path": "data/splits/multiclaim/dev.jsonl",
     "split_sha256": "b1b0ff4c1b6300e01536b80a3f084dd4938cf28d428469532a581c0a2f57b7fd",
-    "splits_lock_sha256": "123ce39421f2caea998759ab90825b0a6aa625e11e8339fe2131c1d3734a1786"
+    "splits_lock_sha256": "bb1308ef8883c4dec72c4f463871dac5b3a03b9ff1599cb02f8394a942398bf4"
   },
   "metrics": {
     "by": {

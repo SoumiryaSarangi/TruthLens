@@ -1,0 +1,136 @@
+{
+  "counts": {
+    "dev": {
+      "en/deva": 11,
+      "en/latn": 1160,
+      "hi/deva": 47,
+      "hi/latn": 3,
+      "lang=en": 1171,
+      "lang=hi": 50,
+      "lang=pa": 50,
+      "pa/deva": 5,
+      "pa/guru": 37,
+      "pa/latn": 8,
+      "script=deva": 63,
+      "script=guru": 37,
+      "script=latn": 1171,
+      "total": 1271
+    },
+    "test": {
+      "en/deva": 1,
+      "en/latn": 1284,
+      "hi/deva": 96,
+      "hi/latn": 4,
+      "lang=en": 1285,
+      "lang=hi": 100,
+      "lang=pa": 100,
+      "pa/deva": 8,
+      "pa/guru": 86,
+      "pa/latn": 6,
+      "script=deva": 105,
+      "script=guru": 86,
+      "script=latn": 1294,
+      "total": 1485
+    },
+    "train": {
+      "en/deva": 87,
+      "en/latn": 6880,
+      "hi/deva": 930,
+      "hi/latn": 53,
+      "lang=en": 6967,
+      "lang=hi": 983,
+      "lang=pa": 368,
+      "pa/deva": 64,
+      "pa/guru": 254,
+      "pa/latn": 50,
+      "script=deva": 1081,
+      "script=guru": 254,
+      "script=latn": 6983,
+      "total": 8318
+    }
+  },
+  "created_utc": "2026-09-23T20:10:56+00:00",
+  "dataset": "checkthat25_t2",
+  "deduplication": {
+    "dropped_from_train": {
+      "exact_match_in_eval": 982,
+      "in_another_dataset_eval_split": 1232,
+      "near_duplicate_in_eval": 491,
+      "within_train_duplicate": 1877
+    },
+    "left_in_place": {
+      "dev_internal_duplicates": 27,
+      "dev_test_overlap": 22,
+      "test_internal_duplicates": 321
+    },
+    "policy": "train yields to eval; dev and test are never modified"
+  },
+  "notes": [],
+  "seed": 42,
+  "source": {
+    "files": {
+      "dev-eng.csv": {
+        "bytes": 805961,
+        "sha256": "63c0f28e09cd7bc3fa1c4ff6afe647ed556e4f555563d58e6ab1eded3c64c3a5",
+        "url": "https://gitlab.com/checkthat_lab/clef2025-checkthat-lab/-/raw/main/task2/data/dev/dev-eng.csv"
+      },
+      "dev-hi.csv": {
+        "bytes": 27920,
+        "sha256": "86943ec1ac4abd47a8bdf867e666738fd292f2f99c06876ba2b025ca90617993",
+        "url": "https://gitlab.com/checkthat_lab/clef2025-checkthat-lab/-/raw/main/task2/data/dev/dev-hi.csv"
+      },
+      "dev-pa.csv": {
+        "bytes": 24767,
+        "sha256": "ad11702cea7911de12c8c976c92210ffde5eab890c70fcaa42e24da962642e6b",
+        "url": "https://gitlab.com/checkthat_lab/clef2025-checkthat-lab/-/raw/main/task2/data/dev/dev-pa.csv"
+      },
+      "test-eng.csv": {
+        "bytes": 926842,
+        "sha256": "a047c96898d8cd36ee5a7125642c7b38d2750b8c273f737ed7adc5335b0196ae",
+        "url": "https://gitlab.com/checkthat_lab/clef2025-checkthat-lab/-/raw/main/task2/data/test/test-eng.csv"
+      },
+      "test-hi.csv": {
+        "bytes": 33638,
+        "sha256": "a252953741ffddfbab90d73560b4fce186c7f49e8a0ec68eeb6fd4cab706526c",
+        "url": "https://gitlab.com/checkthat_lab/clef2025-checkthat-lab/-/raw/main/task2/data/test/test-hi.csv"
+      },
+      "test-pa.csv": {
+        "bytes": 36772,
+        "sha256": "a62e8190d75a59495b26b25e3eeb15940313971711cf213dceef882513d5cc34",
+        "url": "https://gitlab.com/checkthat_lab/clef2025-checkthat-lab/-/raw/main/task2/data/test/test-pa.csv"
+      },
+      "test_gold-eng.csv": {
+        "bytes": 1019014,
+        "sha256": "977a09196c4779d5c23fbd8a5a784b5c1e92b27aede5843dbcfb0b883846b9c5",
+        "url": "https://gitlab.com/checkthat_lab/clef2025-checkthat-lab/-/raw/main/task2/data/test-outputs/task2_eng_gold.csv"
+      },
+      "test_gold-hi.csv": {
+        "bytes": 57260,
+        "sha256": "db83afda3bdf01db7f2c0b5f97c4117102f47f92041c4861628be852c84042f5",
+        "url": "https://gitlab.com/checkthat_lab/clef2025-checkthat-lab/-/raw/main/task2/data/test-outputs/task2_hi_gold.csv"
+      },
+      "test_gold-pa.csv": {
+        "bytes": 58909,
+        "sha256": "f062c133555f043d5bf99512c517be8b4fcd812d8964fe334b182eb2caad212b",
+        "url": "https://gitlab.com/checkthat_lab/clef2025-checkthat-lab/-/raw/main/task2/data/test-outputs/task2_pa_gold.csv"
+      },
+      "train-eng.csv": {
+        "bytes": 7924805,
+        "sha256": "e95e1a7f9881ec7ab76b0e32a67eafae47bbda45582da80993ca756c7f8dc1fc",
+        "url": "https://gitlab.com/checkthat_lab/clef2025-checkthat-lab/-/raw/main/task2/data/train/train-eng.csv"
+      },
+      "train-hi.csv": {
+        "bytes": 661139,
+        "sha256": "7ad1c72c5b8854251845d3e9aeb0b3187a6d59ecdd87f25e676d2f2d0ca7b068",
+        "url": "https://gitlab.com/checkthat_lab/clef2025-checkthat-lab/-/raw/main/task2/data/train/train-hi.csv"
+      },
+      "train-pa.csv": {
+        "bytes": 243869,
+        "sha256": "fb0f91eb626e96a9e9bf82463083373dd39a0a966929d199f9f2f4691fa7bcfa",
+        "url": "https://gitlab.com/checkthat_lab/clef2025-checkthat-lab/-/raw/main/task2/data/train/train-pa.csv"
+      }
+    },
+    "licence": "CLEF CheckThat! 2025 shared-task release; research use. Publicly distributed -- no registration required.",
+    "repo": "https://gitlab.com/checkthat_lab/clef2025-checkthat-lab"
+  }
+}

@@ -381,6 +381,55 @@ def handtyped_rows() -> dict[str, list[Row]]:
     return {"dev": list(load_handtyped())}
 
 
+# CheckThat! ships each language under its own code, and they are not uniform:
+# English is `eng` while Hindi and Punjabi are `hi` and `pa`.
+CHECKTHAT_LANGS = {"en": "eng", "hi": "hi", "pa": "pa"}
+
+
+def load_checkthat(lang: str, split_name: str) -> Iterator[Row]:
+    """One CheckThat! 2025 Task 2 file: a noisy post and its normalized claim.
+
+    The label is the NORMALIZED CLAIM itself -- free text, not a class -- so it
+    does not go in `label`, which is validated against a fixed label set. It is
+    carried in the materialised text alongside the post and becomes generation
+    gold in Phase 3, the same way the hand-typed Gurmukhi rewrites became
+    transliteration gold.
+
+    The test split is read from `test_gold-*.csv`, NOT `test-*.csv`. The latter
+    is the shared-task release and ships with a `post` column only; a loader
+    pointed at it gets a file with no answers in it and no error.
+    """
+    code = CHECKTHAT_LANGS[lang]
+    stem = "test_gold" if split_name == "test" else split_name
+    path = RAW / "checkthat25_t2" / f"{stem}-{code}.csv"
+    with path.open("r", encoding="utf-8", newline="") as fh:
+        for i, item in enumerate(csv.DictReader(fh)):
+            text = (item.get("post") or "").strip()
+            if not text:
+                continue
+            yield Row(
+                record=_make_record(
+                    dataset="checkthat25_t2",
+                    split=split_name,
+                    index=i,
+                    lang=lang,
+                    text=text,
+                    source_id=f"checkthat25_t2:{stem}-{code}:{i}",
+                    label=None,
+                    label_set=None,
+                ),
+                text=text,
+            )
+
+
+def checkthat_rows() -> dict[str, list[Row]]:
+    out: dict[str, list[Row]] = {"train": [], "dev": [], "test": []}
+    for split in out:
+        for lang in CHECKTHAT_LANGS:
+            out[split].extend(load_checkthat(lang, split))
+    return out
+
+
 def averitec_rows() -> dict[str, list[Row]]:
     """AVeriTeC's public release: train and dev only.
 
@@ -407,6 +456,7 @@ LOADERS = {
     "x_claim": xclaim_rows,
     "multiclaim": multiclaim_rows,
     "handtyped": handtyped_rows,
+    "checkthat25_t2": checkthat_rows,
 }
 
 # What each loader needs on disk. Used to skip a dataset whose source is not
@@ -425,6 +475,9 @@ LOADER_SOURCES: dict[str, tuple[Path, ...]] = {
     # Collected by hand and never published: it contains people's own writing,
     # so like MultiClaim it can never exist on a CI runner.
     "handtyped": (RAW / "handtyped" / "forwards.csv",),
+    "checkthat25_t2": (RAW / "checkthat25_t2" / "train-eng.csv",
+                       RAW / "checkthat25_t2" / "train-hi.csv",
+                       RAW / "checkthat25_t2" / "train-pa.csv"),
 }
 
 

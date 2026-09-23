@@ -40,7 +40,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from common.hashing import sha256_file  # noqa: E402
-from common.io_jsonl import load_json, write_json, write_jsonl  # noqa: E402
+from common.io_jsonl import load_json, load_jsonl, write_json, write_jsonl  # noqa: E402
 from common.seeds import SEED  # noqa: E402
 from data.leakage import per_split_counts  # noqa: E402
 from data.splits import (  # noqa: E402
@@ -74,6 +74,26 @@ def _is_tracked_by_git(path: Path) -> bool:
     return out.returncode == 0
 
 
+def _would_be_identical(target: Path, rows: Sequence[dict[str, Any]]) -> bool:
+    """Would writing `rows` leave the file byte-for-byte as it is?
+
+    Serialised exactly as `common.io_jsonl.write_jsonl` does -- sorted keys,
+    compact separators, LF -- because "identical" has to mean identical to what
+    would actually be written, not to a near-enough rendering of it.
+    """
+    import json
+
+    expected = "".join(
+        json.dumps(row, sort_keys=True, ensure_ascii=False, separators=(",", ":")) + "\n"
+        for row in rows
+    )
+    try:
+        with target.open("r", encoding="utf-8", newline="") as fh:
+            return fh.read() == expected
+    except OSError:  # pragma: no cover - unreadable file is not "identical"
+        return False
+
+
 def freeze_split(
     path: str | Path,
     rows: Sequence[dict[str, Any]],
@@ -98,6 +118,15 @@ def freeze_split(
         return write_jsonl(target, rows)
 
     if target.exists():
+        # A rewrite that changes nothing is not a rewrite. Rebuilding a dataset
+        # re-freezes all of its splits, so dev and test get written even when the
+        # dedup only touched train -- and logging those as changes makes the
+        # changelog lie, because its header says an entry means prior results are
+        # no longer comparable.
+        if _would_be_identical(target, rows):
+            print(f"    ({target.name}: byte-identical, not logged as a change)")
+            return write_jsonl(target, rows)
+
         env_ok = os.environ.get(REWRITE_ENV) == "1"
         if not (allow_rewrite and env_ok and reason):
             missing = []
@@ -195,7 +224,45 @@ DEDUP_HAMMING = 8
 DEDUP_JACCARD = 0.80
 
 
-def deduplicate(rows_by_split: dict[str, list]) -> tuple[dict[str, list], dict[str, Any]]:
+def load_external_evals(exclude: str, splits_root: Path, interim_root: Path) -> dict[str, Any]:
+    """Every dev/test row from every OTHER dataset already on disk.
+
+    This exists because "train yields to eval" was only ever applied WITHIN a
+    dataset, and that was not enough the moment two datasets turned out to share
+    a post pool. CheckThat! 2025 Task 2 and X-CLAIM overlap heavily -- 400 of
+    CheckThat's dev posts are in X-CLAIM's train split, which is 32% of that dev
+    set. Training on one and evaluating on the other would have measured
+    memorisation.
+
+    Nothing here modifies an eval split. It only tells the caller which train
+    rows have to go.
+    """
+    hashes: set[str] = set()
+    items: list[tuple[str, int]] = []
+    texts: dict[str, str] = {}
+    for dataset_dir in sorted(splits_root.iterdir()):
+        if not dataset_dir.is_dir() or dataset_dir.name == exclude:
+            continue
+        text_by_uid: dict[str, str] = {}
+        for split in ("dev", "test"):
+            interim = interim_root / dataset_dir.name / f"{split}.jsonl"
+            if interim.is_file():
+                text_by_uid.update({r["uid"]: r["text"] for r in load_jsonl(interim)})
+        for split in ("dev", "test"):
+            path = dataset_dir / f"{split}.jsonl"
+            if not path.is_file():
+                continue
+            for record in load_jsonl(path):
+                hashes.add(record["text_sha1"])
+                items.append((record["uid"], int(record["simhash64"], 16)))
+                if record["uid"] in text_by_uid:
+                    texts[record["uid"]] = text_by_uid[record["uid"]]
+    return {"hashes": hashes, "items": items, "texts": texts}
+
+
+def deduplicate(rows_by_split: dict[str, list],
+                external_eval: dict[str, Any] | None = None,
+                ) -> tuple[dict[str, list], dict[str, Any]]:
     """Resolve leakage by the rule: TRAIN YIELDS TO EVAL.
 
     Both AVeriTeC and X-CLAIM ship with claims that appear in more than one
@@ -230,6 +297,13 @@ def deduplicate(rows_by_split: dict[str, list]) -> tuple[dict[str, list], dict[s
     eval_items = [(r.record["uid"], int(r.record["simhash64"], 16)) for r in eval_rows]
     eval_text = {r.record["uid"]: r.text for r in eval_rows}
 
+    # Other datasets' eval splits count too. Same rule, wider scope.
+    external = external_eval or {"hashes": set(), "items": [], "texts": {}}
+    external_hashes = set(external["hashes"])
+    eval_items = eval_items + list(external["items"])
+    eval_text = {**eval_text, **external["texts"]}
+    report["dropped_from_train"]["in_another_dataset_eval_split"] = 0
+
     train = rows_by_split.get("train", [])
     train_items = [(r.record["uid"], int(r.record["simhash64"], 16)) for r in train]
     train_text = {r.record["uid"]: r.text for r in train}
@@ -254,6 +328,9 @@ def deduplicate(rows_by_split: dict[str, list]) -> tuple[dict[str, list], dict[s
             continue
         if sha in eval_hashes:
             report["dropped_from_train"]["exact_match_in_eval"] += 1
+            continue
+        if sha in external_hashes:
+            report["dropped_from_train"]["in_another_dataset_eval_split"] += 1
             continue
         if uid in near_uids:
             report["dropped_from_train"]["near_duplicate_in_eval"] += 1
@@ -322,7 +399,11 @@ def cmd_build(args) -> int:
                 "train is correspondingly smaller than the official train."
             )
 
-        rows_by_split, dedup = deduplicate(rows_by_split)
+        external = load_external_evals(name, out_root, interim_root)
+        if external["hashes"]:
+            print(f"  checking against {len(external['hashes'])} eval rows from "
+                  f"other datasets")
+        rows_by_split, dedup = deduplicate(rows_by_split, external_eval=external)
         if "train" in rows_by_split:
             rows_by_split["train"] = _renumber(rows_by_split["train"], "train")
         dropped = dedup["dropped_from_train"]
