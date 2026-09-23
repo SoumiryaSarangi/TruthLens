@@ -1,0 +1,513 @@
+{
+  "baseline": {
+    "kind": "generated",
+    "metrics": {
+      "accuracy": 0.7453219156359023,
+      "confusion": {
+        "en": {
+          "en": 2350,
+          "hi": 0,
+          "other": 0,
+          "pa": 0
+        },
+        "hi": {
+          "en": 794,
+          "hi": 0,
+          "other": 0,
+          "pa": 0
+        },
+        "other": {
+          "en": 0,
+          "hi": 0,
+          "other": 0,
+          "pa": 0
+        },
+        "pa": {
+          "en": 9,
+          "hi": 0,
+          "other": 0,
+          "pa": 0
+        }
+      },
+      "macro_f1": 0.2135198982373251,
+      "n": 3153.0,
+      "per_class": {
+        "en": {
+          "f1": 0.8540795929493004,
+          "precision": 0.7453219156359023,
+          "recall": 1.0,
+          "support": 2350.0
+        },
+        "hi": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 794.0
+        },
+        "other": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 0.0
+        },
+        "pa": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 9.0
+        }
+      }
+    },
+    "name": "majority_class",
+    "notes": []
+  },
+  "config_hash": "47afdb59a695",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 3153,
+    "n_missing": 0,
+    "n_predicted": 3153
+  },
+  "created_utc": "2026-09-23T15:08:08+00:00",
+  "delta_vs_baseline": {
+    "accuracy": 0.2454804947668887,
+    "macro_f1": 0.4875028640967556
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p2_lid_multiclaim_hybrid",
+  "git": {
+    "branch": "main",
+    "dirty": true,
+    "sha": "feeb3c510ab3df0081486874dabbbc72c86d5ec6"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "majority_class",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p2_lid_multiclaim_hybrid",
+      "gold_field": "lang",
+      "label_set": "lang_4class",
+      "metrics": {},
+      "min_cell_n": 30,
+      "notes": "Gold is MultiClaim's own language metadata. Script is detected per row, so the native-vs-romanized breakdown is the cell that matters: hi/latn n=57.\n",
+      "predictions": "results/preds/p2_lid_multiclaim_hybrid.jsonl",
+      "sanity_ceiling": 0.995,
+      "seed": 42,
+      "split": "data/splits/multiclaim/dev.jsonl",
+      "task": "classification"
+    },
+    "config_path": "configs/p2_lid_multiclaim_hybrid.yaml",
+    "predictions_path": "results/preds/p2_lid_multiclaim_hybrid.jsonl",
+    "predictions_sha256": "b581eaa9ddb6a256590078bfc2ec5df3e4db87ca51059e06860c81fe6cfb62df",
+    "split_path": "data/splits/multiclaim/dev.jsonl",
+    "split_sha256": "b1b0ff4c1b6300e01536b80a3f084dd4938cf28d428469532a581c0a2f57b7fd",
+    "splits_lock_sha256": "123ce39421f2caea998759ab90825b0a6aa625e11e8339fe2131c1d3734a1786"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=latn": {
+        "accuracy": 0.994468085106383,
+        "confusion": {
+          "en": {
+            "en": 2337,
+            "hi": 8,
+            "other": 5,
+            "pa": 0
+          },
+          "hi": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "other": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "pa": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          }
+        },
+        "macro_f1": 0.24930659270322167,
+        "n": 2350.0,
+        "per_class": {
+          "en": {
+            "f1": 0.9972263708128867,
+            "precision": 1.0,
+            "recall": 0.994468085106383,
+            "support": 2350.0
+          },
+          "hi": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "other": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "pa": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          }
+        }
+      },
+      "lang=hi,script=deva": {
+        "accuracy": 1.0,
+        "confusion": {
+          "en": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "hi": {
+            "en": 0,
+            "hi": 737,
+            "other": 0,
+            "pa": 0
+          },
+          "other": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "pa": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          }
+        },
+        "macro_f1": 0.25,
+        "n": 737.0,
+        "per_class": {
+          "en": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "hi": {
+            "f1": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "support": 737.0
+          },
+          "other": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "pa": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          }
+        }
+      },
+      "lang=hi,script=latn": {
+        "accuracy": 0.7543859649122807,
+        "confusion": {
+          "en": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "hi": {
+            "en": 11,
+            "hi": 43,
+            "other": 2,
+            "pa": 1
+          },
+          "other": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "pa": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          }
+        },
+        "macro_f1": 0.215,
+        "n": 57.0,
+        "per_class": {
+          "en": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "hi": {
+            "f1": 0.86,
+            "precision": 1.0,
+            "recall": 0.7543859649122807,
+            "support": 57.0
+          },
+          "other": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "pa": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          }
+        }
+      },
+      "lang=pa,script=guru": {
+        "accuracy": 1.0,
+        "confusion": {
+          "en": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "hi": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "other": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "pa": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 7
+          }
+        },
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "macro_f1": 0.25,
+        "n": 7.0,
+        "per_class": {
+          "en": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "hi": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "other": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "pa": {
+            "f1": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "support": 7.0
+          }
+        }
+      },
+      "lang=pa,script=latn": {
+        "accuracy": 0.0,
+        "confusion": {
+          "en": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "hi": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "other": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "pa": {
+            "en": 2,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          }
+        },
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "macro_f1": 0.0,
+        "n": 2.0,
+        "per_class": {
+          "en": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "hi": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "other": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "pa": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 2.0
+          }
+        }
+      }
+    },
+    "overall": {
+      "accuracy": 0.990802410402791,
+      "confusion": {
+        "en": {
+          "en": 2337,
+          "hi": 8,
+          "other": 5,
+          "pa": 0
+        },
+        "hi": {
+          "en": 11,
+          "hi": 780,
+          "other": 2,
+          "pa": 1
+        },
+        "other": {
+          "en": 0,
+          "hi": 0,
+          "other": 0,
+          "pa": 0
+        },
+        "pa": {
+          "en": 2,
+          "hi": 0,
+          "other": 0,
+          "pa": 7
+        }
+      },
+      "macro_f1": 0.7010227623340807,
+      "n": 3153.0,
+      "per_class": {
+        "en": {
+          "f1": 0.994468085106383,
+          "precision": 0.994468085106383,
+          "recall": 0.994468085106383,
+          "support": 2350.0
+        },
+        "hi": {
+          "f1": 0.9860935524652339,
+          "precision": 0.9898477157360406,
+          "recall": 0.982367758186398,
+          "support": 794.0
+        },
+        "other": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 0.0
+        },
+        "pa": {
+          "f1": 0.823529411764706,
+          "precision": 0.875,
+          "recall": 0.7777777777777778,
+          "support": 9.0
+        }
+      }
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 2350.0,
+        "native": 0.24930659270322167
+      },
+      "hi": {
+        "gap": 0.035,
+        "n_native": 737.0,
+        "n_romanized": 57.0,
+        "native": 0.25,
+        "romanized": 0.215
+      },
+      "pa": {
+        "gap": 0.25,
+        "n_native": 7.0,
+        "n_romanized": 2.0,
+        "native": 0.25,
+        "romanized": 0.0
+      }
+    },
+    "metric": "macro_f1"
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "classification",
+  "warnings": [
+    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
+  ]
+}

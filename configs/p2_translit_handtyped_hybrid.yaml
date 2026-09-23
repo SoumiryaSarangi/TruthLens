@@ -1,0 +1,20 @@
+# FR-5 transliteration on the hand-typed forwards.
+#
+# 33 Punjabi messages whose writer typed the SAME message twice -- once in Latin
+# letters, once in Gurmukhi. That makes this the only reference in the project
+# for transliterating REAL informal typing, as opposed to the tidy elicited
+# romanizations in Dakshina.
+#
+# n=33 is small. Report the denominator every time; do not quote a bare percent.
+experiment: p2_translit_handtyped_hybrid
+task: transliteration
+split: data/splits/handtyped/dev.jsonl
+gold: data/gold/handtyped_dev_translit.jsonl
+predictions: results/preds/p2_translit_handtyped_hybrid.jsonl
+baseline: identity_transliteration
+breakdown: [lang, script]
+notes: >
+  Implementation: preprocess=full, transliterator=rulebased
+  (indic-transliteration 2.3.82 with informal-spelling pre-normalisation).
+  Baseline leaves the romanized text untouched, so its CER is the size of the
+  gap between how people type and how Punjabi is written.

@@ -115,3 +115,75 @@ class FastTextLID:
         for the whole project because of one wrapper line.
         """
         return self._load().f.predict(text, 5, 0.0, "strict")
+
+
+# Above this, a confident NON-supported answer from lid.176 is believed and the
+# input is refused as `other`. It only has to be high enough to separate genuine
+# French (0.99) from the noise lid.176 emits on romanized Indic, where nothing
+# clears 0.30 -- so the gap is wide and the exact value is not delicate.
+OTHER_FLOOR = 0.50
+
+
+class HybridLID:
+    """`lid.176` for what it is good at; a char n-gram model for what it is not.
+
+    The division of labour follows the measurements rather than taste:
+
+      native script    decided by the alphabet, no model involved
+      Latin, non-Indic lid.176 is excellent -- French scores 0.992 -- so a
+                       confident unsupported answer is taken as `other`
+      Latin, Indic     lid.176 scores 0 of 100 on real romanized forwards, so
+                       the romanized classifier decides among en/hi/pa
+
+    Keeping lid.176 in front matters: the romanized classifier has no `other`
+    class and would confidently label French as English, losing the
+    unsupported-language refusal FR-3 requires.
+    """
+
+    name = "lid"
+    impl = "hybrid"
+
+    def __init__(self, model_path: str | os.PathLike[str] | None = None,
+                 floor: float = DEFAULT_FLOOR,
+                 roman_model_path: str | os.PathLike[str] | None = None,
+                 roman_floor: float | None = None) -> None:
+        from preprocess.roman_lid import DEFAULT_FLOOR as ROMAN_FLOOR
+        from preprocess.roman_lid import RomanizedLID
+
+        self.fasttext = FastTextLID(model_path=model_path, floor=floor)
+        self.roman = RomanizedLID(
+            model_path=roman_model_path,
+            floor=ROMAN_FLOOR if roman_floor is None else roman_floor,
+        )
+
+    @property
+    def available(self) -> bool:
+        return self.fasttext.available and self.roman.available
+
+    def identify(self, text: str) -> tuple[str, float]:
+        cleaned = " ".join((text or "").split())
+        if not cleaned:
+            return "other", 0.0
+
+        script = detect_script(cleaned)
+        if script in SCRIPT_LANG:
+            return SCRIPT_LANG[script], 1.0
+        if sum(script_counts(cleaned).values()) < MIN_SCRIPT_CHARS:
+            return "other", 0.0
+
+        predictions = self.fasttext._predict(cleaned.replace("\n", " "))
+        if predictions:
+            score, label = predictions[0]
+            code = label.removeprefix("__label__")
+            if code not in SUPPORTED and score >= OTHER_FLOOR:
+                return "other", float(score)
+        return self.roman.identify(cleaned)
+
+
+LID_IMPLS = {"fasttext": FastTextLID, "hybrid": HybridLID}
+
+
+def build_lid(impl: str = "fasttext", **kwargs):
+    if impl not in LID_IMPLS:
+        raise ValueError(f"unknown language ID {impl!r}; registered: {sorted(LID_IMPLS)}")
+    return LID_IMPLS[impl](**kwargs)

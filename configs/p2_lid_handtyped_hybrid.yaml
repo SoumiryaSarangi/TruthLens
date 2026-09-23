@@ -3,10 +3,10 @@
 # The hardest language-ID case this project has, and the one that matters most:
 # 100 messages of romanized Hindi and Punjabi, typed by people, with no native
 # script to fall back on. lid.176 was trained on native-script web text.
-experiment: p2_lid_handtyped
+experiment: p2_lid_handtyped_hybrid
 task: classification
 split: data/splits/handtyped/dev.jsonl
-predictions: results/preds/p2_lid_handtyped.jsonl
+predictions: results/preds/p2_lid_handtyped_hybrid.jsonl
 gold_field: lang
 label_set: lang_4class
 baseline: majority_class

@@ -63,6 +63,7 @@ def all_registrations() -> list[Registration]:
 # -----------------------------------------------------------------------------
 register("preprocess", "passthrough", "preprocess.passthrough", "PassthroughPreprocess")
 register("preprocess", "full", "preprocess.language", "LanguagePreprocess")
+register("preprocess", "hybrid", "preprocess.language", "HybridPreprocess")
 register("claims", "passthrough", "claims.passthrough", "PassthroughClaims")
 register("matching", "none", "matching.none_matcher", "NoMatcher")
 register("retrieval", "bm25", "retrieval.bm25", "BM25Retriever")

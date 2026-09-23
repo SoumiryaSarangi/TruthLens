@@ -1,0 +1,18 @@
+# FR-3 language identification on MultiClaim dev (n=3153, en/hi/pa, mixed script).
+# Implementation: preprocess=full
+experiment: p2_lid_multiclaim_hybrid
+task: classification
+split: data/splits/multiclaim/dev.jsonl
+predictions: results/preds/p2_lid_multiclaim_hybrid.jsonl
+gold_field: lang
+label_set: lang_4class
+baseline: majority_class
+breakdown: [lang, script]
+# The default 0.85 ceiling is calibrated for VERDICT accuracy on AVeriTeC, where
+# anything higher means leakage. Language ID is a far easier task and 0.95+ is
+# the expected range, so the default would fire on every correct run and train
+# us to ignore it.
+sanity_ceiling: 0.995
+notes: >
+  Gold is MultiClaim's own language metadata. Script is detected per row, so the
+  native-vs-romanized breakdown is the cell that matters: hi/latn n=57.

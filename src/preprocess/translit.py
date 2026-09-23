@@ -29,14 +29,23 @@ So this implementation is a floor, not a solution. It exists so the learned
 model has something to be measured against, and its errors are reported rather
 than smoothed over. `docs/results.md` carries the CER and WER.
 
-## IndicXlit
+## IndicXlit: ruled out, and not only because fairseq will not build
 
-`ai4bharat-transliteration` depends on fairseq, which does not install cleanly
-on Windows + Python 3.11. The Day 2 spike could not run at all because `uv` is
-no longer present on this machine, so the package was never resolved -- the
-failure is a tooling one, not a verdict on IndicXlit. Recorded in
-docs/project-log.md. Slotting it in means adding one class here and one
-`register(...)` line; nothing else changes.
+The Day 2 spike ran in a throwaway venv and took 43 seconds to fail. Two
+findings, and the second is the decisive one:
+
+1. `ai4bharat-transliteration` 1.1.3 pulls `fairseq` 0.12.2, whose `libbleu` C
+   extension needs MSVC build tools this machine does not have. Fixable.
+2. Resolving it also pulls **`tensorflow` 2.21, `torch` 2.14 (the CPU build),
+   `tensorflow-addons`, `tf2crf` and `urduhack`** -- roughly 5 GB, and the CPU
+   torch would silently replace the CUDA build every other stage depends on.
+
+So even with a compiler it does not belong in this environment. Installing a
+transliterator must not cost the project its GPU. If IndicXlit is wanted later
+it goes in its own venv behind a subprocess boundary, or through WSL.
+
+Slotting a replacement in means adding one class here and one entry in
+`TRANSLITERATORS`; nothing else changes.
 """
 
 from __future__ import annotations

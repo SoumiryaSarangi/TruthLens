@@ -28,6 +28,12 @@ fasttext-wheel>=0.9.2        # language ID
 # wins. Either way Phase 2 is never blocked on a package that may not install.
 indic-transliteration>=2.3    # rule-based Roman <-> Deva/Guru
 indic-nlp-library>=0.92       # Indic normalisation, script utilities
+# Word2Vec for the Phase 2 embedding ladder. Trained IN-DOMAIN on the MultiClaim
+# corpus rather than loaded pretrained: no credible pretrained Punjabi Word2Vec
+# exists, the fastText vector files are ~7 GB per language, and a model trained
+# on this data handles romanized text natively because it was trained on it.
+gensim>=4.3
+
 pandas>=2.2
 tqdm>=4.66
 matplotlib>=3.8              # t-SNE plot, calibration curve, abstention curve

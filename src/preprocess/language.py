@@ -22,7 +22,7 @@ from __future__ import annotations
 from data.script_id import detect_script, script_purity
 from pipeline.contracts import Preprocessed, Trace
 from preprocess.clean import strip_artefacts
-from preprocess.lid import DEFAULT_FLOOR, FastTextLID
+from preprocess.lid import DEFAULT_FLOOR, build_lid
 from preprocess.translit import build_transliterator
 
 # Scripts that already ARE the native script for their language. A row in
@@ -36,9 +36,10 @@ class LanguagePreprocess:
     name = "preprocess"
     impl = "full"
 
-    def __init__(self, translit: str = "rulebased", lid_floor: float = DEFAULT_FLOOR,
+    def __init__(self, translit: str = "rulebased", lid: str = "fasttext",
+                 lid_floor: float = DEFAULT_FLOOR,
                  model_path: str | None = None, force_lang: str | None = None) -> None:
-        self.lid = FastTextLID(model_path=model_path, floor=lid_floor)
+        self.lid = build_lid(lid, model_path=model_path, floor=lid_floor)
         self.translit_impl = translit
         self._translit = None
         # Skip language ID and assert the answer. Two uses, both legitimate:
@@ -96,3 +97,18 @@ class LanguagePreprocess:
                      f"lang={lang} p={confidence:.2f} script={script}"
                      + ("" if transliterated is None else " transliterated"))
         return trace
+
+
+class HybridPreprocess(LanguagePreprocess):
+    """`LanguagePreprocess` with the hybrid language ID instead of fastText alone.
+
+    A separate registered implementation rather than a config flag, because the
+    two answer differently on the input this project is about and a results
+    table has to name which one produced a number.
+    """
+
+    impl = "hybrid"
+
+    def __init__(self, **kwargs) -> None:
+        kwargs.setdefault("lid", "hybrid")
+        super().__init__(**kwargs)
