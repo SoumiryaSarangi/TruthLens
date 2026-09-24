@@ -1,0 +1,38 @@
+# FR-8, the fast-path gate on BM25. The scale test for `task: fast_path`.
+#
+# Every other retriever in this project scores in [-1, 1]. BM25 does not: top-1
+# scores on this pool run from 0.00 to 3376.42 with a median of 66.16. So this
+# row is two things at once -- the lexical floor for the GATE, and the check that
+# the tau machinery does not quietly assume a cosine.
+#
+# One structural disadvantage worth reading before the numbers: **a BM25 score
+# is not comparable across queries.** It is a sum over query terms, so a long
+# post accumulates a high score for being long rather than for matching well,
+# and MultiClaim dev posts run from a handful of tokens to 2,153. A cosine is
+# length-normalised and does not have this problem. A single global tau is
+# therefore expected to behave worse here than on the dense arms, and that
+# expectation is the point of the row.
+#
+# Also: BM25's IDF depends on corpus composition, so the withheld-answer
+# negatives are APPROXIMATE for this arm where they are exact for the cosine
+# arms. Stated because the same derivation is used for both.
+experiment: p4_fastpath_bm25
+task: fast_path
+split: data/splits/multiclaim/dev.jsonl
+gold: data/gold/multiclaim_dev_retrieval.jsonl
+predictions: results/preds/p4_match_bm25.jsonl
+baseline: always_match
+breakdown: [lang, script]
+metrics:
+  fast_path:
+    # Chosen to span the measured distribution, not copied from the cosine arms:
+    # a cosine grid of 0.55-0.90 would accept every query here and the run would
+    # measure Success@1 under another name. The harness warns when that happens.
+    tau: 80
+    taus: [20, 40, 60, 80, 120, 200, 400]
+notes: >
+  BM25Okapi over the same 78,077 fact-check texts and the same id order as the
+  dense index, scored from the p4_match_bm25 predictions -- one run, two
+  questions. Punjabi is 0.0000 MRR on both cells here (n=7 and n=2): the pool
+  holds 5 Punjabi fact-checks out of 78,077, so there is essentially no lexical
+  overlap to find. Report those with their denominators.

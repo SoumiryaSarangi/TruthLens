@@ -81,18 +81,26 @@ class NLIStance:
     def loaded(self) -> bool:
         return self._model is not None
 
-    def label(self, claim: str, passages: list[str]) -> list[StanceResult]:
-        """Stance of each passage toward the claim."""
-        if not passages:
+    def score_pairs(self, pairs: list[tuple[str, str]]) -> list[StanceResult]:
+        """Stance for arbitrary (premise, hypothesis) pairs, batched across all of them.
+
+        The general primitive. `label` is one claim against many passages, which
+        is the shape the evidence path needs, but the claim-matching reranker
+        (FR-8) scores a different hypothesis per pair -- and forcing that through
+        `label` capped the batch at one post's candidate list, ten rows instead
+        of `batch_size`. Same model, same label map, one shape that serves both.
+        """
+        if not pairs:
             return []
         import torch
 
         self.load()
         out: list[StanceResult] = []
-        for start in range(0, len(passages), self.batch_size):
-            batch = passages[start : start + self.batch_size]
+        for start in range(0, len(pairs), self.batch_size):
+            batch = pairs[start : start + self.batch_size]
             enc = self._tokenizer(
-                batch, [claim] * len(batch),        # premise=passage, hypothesis=claim
+                [premise for premise, _ in batch],
+                [hypothesis for _, hypothesis in batch],
                 truncation=True, max_length=self.max_length,
                 padding=True, return_tensors="pt",
             ).to(self._device)
@@ -103,3 +111,12 @@ class NLIStance:
                 best = max(probs, key=probs.get)
                 out.append(StanceResult(best, probs[best], probs))
         return out
+
+    def label(self, claim: str, passages: list[str]) -> list[StanceResult]:
+        """Stance of each passage toward the claim.
+
+        premise=passage, hypothesis=claim. Reversed, the model would be asked
+        whether the claim implies the evidence, which is a different question
+        with a different answer.
+        """
+        return self.score_pairs([(passage, claim) for passage in passages])

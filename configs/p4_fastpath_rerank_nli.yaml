@@ -1,0 +1,38 @@
+# FR-8, the fast-path gate with a ZERO-SHOT reranker. The control arm.
+#
+# mDeBERTa-XNLI, on disk since Phase 1, trained on nothing of ours. Premise is
+# the post, hypothesis is the fact-check's indexed text, score is P(entailment).
+#
+# This is the control for `p4_fastpath_rerank_xlmr`, and it is not a formality:
+# Phase 3 ran the same trained-vs-zero-shot pairing for check-worthiness and the
+# ZERO-SHOT arm won, by enough to change the reported conclusion. A trained model
+# that cannot beat a model which has never seen the task has learned the training
+# set rather than the task.
+#
+# Stated limitation: NLI asks whether one text ENTAILS another, not whether two
+# texts are about the same claim. A fact-check that debunks a claim also
+# contradicts the post making it, so the relation is only a proxy. That ambiguity
+# is the reason to measure this rather than assume it.
+experiment: p4_fastpath_rerank_nli
+task: fast_path
+split: data/splits/multiclaim/dev.jsonl
+gold: data/gold/multiclaim_dev_retrieval.jsonl
+predictions: results/preds/p4_fastpath_rerank_nli.jsonl
+baseline: always_match
+breakdown: [lang, script]
+metrics:
+  fast_path:
+    # Entailment probabilities pile up near 1 -- measured median 0.898 on a
+    # 40-row probe -- so the taus that separate anything are high ones. A grid
+    # copied from the cosine arm would put every operating point in the same
+    # place.
+    tau: 0.90
+    taus: [0.50, 0.70, 0.80, 0.90, 0.95, 0.98, 0.99]
+notes: >
+  Retrieve top-10 with BGE-M3 over the 78,077-fact-check pool, then rerank with
+  mDeBERTa-v3-base-xnli zero-shot; the gate reads the reranked score. Preprocess
+  is `hybrid`, which is the served language layer -- it beats `full` on romanized
+  input (0.4492 vs 0.0000 macro-F1 on the hand-typed set) and romanized is the
+  primary use case. Withheld-answer negatives are derived by dropping each
+  query's gold from its returned list; false_accept_rate is an UPPER bound
+  because MultiClaim's annotation is incomplete. tau chosen on dev, never test.

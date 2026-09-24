@@ -125,12 +125,24 @@ def always_match(
     looks like a loss of independence and is not: independence from the ranking
     would answer the retrieval question, which is a different question with its
     own floor.
+
+    **The constant comes from the run, not from a literal.** The first version
+    used 1.0, which is above every cosine and far below a BM25 score. On the BM25
+    arm, whose taus span 20 to 400, "the gate removed" then accepted NOTHING and
+    the baseline reported coverage 0.0000 where it must report 1.0. Taking the
+    run's own maximum keeps the property on any score scale. It cannot be
+    infinity, which is not representable in JSON and which the coverage curve
+    would record as a threshold.
     """
     if not predictions:
         raise ValueError(
             "always_match needs the run's own predictions; the harness injects "
             "them for task: fast_path."
         )
+    ceiling = max(
+        (float(s) for pred in predictions.values() for s in pred.get("scores", ())),
+        default=1.0,
+    )
     out: list[dict[str, Any]] = []
     for row in split_rows:
         pred = predictions.get(row["uid"])
@@ -138,7 +150,7 @@ def always_match(
             continue
         ranked = list(pred["ranked_ids"])
         out.append({"uid": row["uid"], "ranked_ids": ranked,
-                    "scores": [1.0] * len(ranked)})
+                    "scores": [ceiling] * len(ranked)})
     return out
 
 

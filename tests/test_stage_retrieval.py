@@ -88,3 +88,95 @@ def test_claim_index_parses_from_source_id(source_id, expected):
 def test_claim_index_rejects_a_malformed_source_id():
     with pytest.raises(ValueError, match="claim index"):
         claim_index_from_uid("not-a-source-id")
+
+
+# -----------------------------------------------------------------------------
+# BM25 over the global fact-check pool (FR-8)
+# -----------------------------------------------------------------------------
+# `rank_bm25` is the independent oracle here, the way scikit-learn is for the
+# classification metrics. The implementation under test replaces it for speed --
+# it precomputes every (document, term) weight, which Okapi BM25 allows because
+# it ignores query-term weighting -- so the thing worth checking is that the
+# arithmetic did not change along with the data structure.
+
+TOY_CORPUS = [
+    ["sarkar", "ne", "kaha", "6000", "rupaye", "milenge"],
+    ["sarkar", "ne", "kaha", "kuch", "nahi"],
+    ["vaccine", "se", "khatra", "hai"],
+    ["sarkar", "sarkar", "sarkar"],
+    ["completely", "unrelated", "text", "about", "cricket"],
+]
+
+
+def _retriever(tmp_path, corpus=TOY_CORPUS, ids=None):
+    from common.io_jsonl import write_jsonl
+    from retrieval.factcheck_bm25 import FactCheckBM25Retriever
+
+    ids = ids or [f"fc{i}" for i in range(len(corpus))]
+    write_jsonl(tmp_path / "bm25_corpus.jsonl",
+                [{"id": i, "tokens": t} for i, t in zip(ids, corpus, strict=True)])
+    return FactCheckBM25Retriever(k=5, index_dir=tmp_path)
+
+
+@pytest.mark.parametrize("query", [
+    ["sarkar"],
+    ["sarkar", "ne", "kaha"],
+    ["vaccine", "khatra"],
+    ["sarkar", "sarkar"],            # a repeated query term must count twice
+    ["nonexistent"],
+    ["sarkar", "nonexistent"],
+])
+def test_scores_agree_with_rank_bm25(tmp_path, query):
+    """The independent oracle. A different data structure, the same arithmetic."""
+    rank_bm25 = pytest.importorskip("rank_bm25")
+
+    theirs = rank_bm25.BM25Okapi(TOY_CORPUS).get_scores(query)
+    ours = _retriever(tmp_path).scores(query)
+    assert ours == pytest.approx(theirs, abs=1e-4)
+
+
+def test_a_term_in_most_of_the_corpus_keeps_its_idf_floor(tmp_path):
+    """BM25Okapi replaces a negative IDF with EPSILON * average_idf rather than
+    letting a near-universal term subtract from every score. Dropping that floor
+    is the easiest way to silently disagree with the oracle."""
+    rank_bm25 = pytest.importorskip("rank_bm25")
+
+    corpus = [["common", "a"], ["common", "b"], ["common", "c"], ["rare", "d"]]
+    theirs = rank_bm25.BM25Okapi(corpus).get_scores(["common"])
+    ours = _retriever(tmp_path, corpus, ids=["w", "x", "y", "z"]).scores(["common"])
+    assert ours == pytest.approx(theirs, abs=1e-4)
+    assert (ours[:3] > 0).all(), "the floor should keep these positive"
+
+
+def test_ranking_is_best_first_and_carries_the_score(tmp_path):
+    ranked = _retriever(tmp_path).rank_batch(["sarkar ne kaha"], k=3)[0]
+    assert [d.doc_id for d in ranked][:1] == ["fc1"] or ranked[0].score > 0
+    assert [d.score for d in ranked] == sorted((d.score for d in ranked), reverse=True)
+
+
+def test_a_query_with_no_lexical_content_returns_nothing(tmp_path):
+    """Zeros ranked by id would be a silent arbitrary ranking presented as a
+    result. An empty list is the honest answer and the harness refuses it."""
+    assert _retriever(tmp_path).rank_batch(["!!! ???"], k=3)[0] == []
+
+
+def test_a_query_of_only_unknown_terms_scores_everything_zero(tmp_path):
+    """Distinct from the case above: there ARE tokens, none are in the vocabulary.
+    Every document is equally (ir)relevant, which is a real answer."""
+    ranked = _retriever(tmp_path).rank_batch(["zzz yyy"], k=3)[0]
+    assert len(ranked) == 3
+    assert all(d.score == 0.0 for d in ranked)
+
+
+def test_topk_ignores_claim_idx_so_it_swaps_with_the_averitec_retriever(tmp_path):
+    """The pool here is global; the signature matches only so the registry can
+    interchange the two."""
+    retriever = _retriever(tmp_path)
+    assert retriever.topk("sarkar", claim_idx=7) == retriever.topk("sarkar")
+
+
+def test_a_missing_index_refuses_and_says_how_to_build_it(tmp_path):
+    from retrieval.factcheck_bm25 import FactCheckBM25Retriever
+
+    with pytest.raises(RuntimeError, match="build_factcheck_bm25"):
+        FactCheckBM25Retriever(index_dir=tmp_path / "empty").rank_batch(["x"])

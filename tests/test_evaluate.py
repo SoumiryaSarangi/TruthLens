@@ -526,6 +526,23 @@ def test_always_match_is_the_gate_removed(tmp_path):
     assert base["fastpath_precision"] == pytest.approx(4 / 9)   # == Success@1
 
 
+def test_always_match_survives_a_retriever_on_another_score_scale(tmp_path):
+    """BM25 scores are unbounded; the first version of this baseline used a
+    literal 1.0 and so accepted NOTHING on a BM25 tau of 80, reporting coverage
+    0.0000 where "the gate removed" must report 1.0. The constant has to come
+    from the run."""
+    gold, preds = _fastpath_setup(
+        tmp_path, scores=[900, 800, 700, 600, 500, 400, 300, 200, 100])
+    doc = evaluate(_fastpath_config(tmp_path, gold, preds, tau=550,
+                                    taus=[100, 550, 900]), tmp_path)
+    base = doc["baseline"]["metrics"]
+    assert base["fastpath_coverage"] == 1.0
+    assert base["false_accept_rate"] == 1.0
+    assert base["fastpath_precision"] == pytest.approx(4 / 9)
+    # And the model itself is gated normally on that scale.
+    assert doc["metrics"]["overall"]["fastpath_coverage"] == pytest.approx(4 / 9)
+
+
 def test_the_headline_is_aucc_and_the_curve_is_not_a_metric(tmp_path):
     """`curve` is the result; `tau` and the counts are parameters, not scores.
 

@@ -1,0 +1,36 @@
+# FR-8, the fast-path gate with OUR trained cross-encoder.
+#
+# XLM-R-base + LoRA, trained by scripts/train_reranker.py on MultiClaim train
+# pairs with hard negatives mined from BGE-M3 itself. Score is P(relevant).
+#
+# The arm this phase exists for. The bi-encoder ranks well and scores badly --
+# a correct top-1 averages cosine 0.7239 and a wrong one 0.6500 -- because it
+# compares two independently built vectors. A cross-encoder reads the post and
+# the fact-check together, which is what can separate "same claim" from "same
+# topic", and "same topic, different claim" is what the bi-encoder's wrong top-1
+# looks like.
+#
+# Read it against THREE rows, not one: `always_match` (the gate removed),
+# `p4_fastpath_bge_m3` (the same gate with no reranker) and
+# `p4_fastpath_rerank_nli` (a reranker that was trained on nothing).
+experiment: p4_fastpath_rerank_xlmr
+task: fast_path
+split: data/splits/multiclaim/dev.jsonl
+gold: data/gold/multiclaim_dev_retrieval.jsonl
+predictions: results/preds/p4_fastpath_rerank_xlmr.jsonl
+baseline: always_match
+breakdown: [lang, script]
+metrics:
+  fast_path:
+    tau: 0.90
+    taus: [0.50, 0.70, 0.80, 0.90, 0.95, 0.98, 0.99]
+notes: >
+  Retrieve top-10 with BGE-M3 over the 78,077-fact-check pool, then rerank with
+  our LoRA cross-encoder; the gate reads P(relevant). Preprocess is `hybrid`.
+  Leakage, stated rather than discovered: training reads MultiClaim TRAIN and
+  this is DEV, both frozen and leakage-checked, but the hard negatives are mined
+  from the shared fact-check pool, which contains fact-checks that are gold for
+  dev queries -- correct, since the pool must hold the answers, and no dev LABEL
+  is used, but the training run does see some dev-answer TEXT in its negative
+  class. false_accept_rate is an UPPER bound: MultiClaim's annotation is
+  incomplete, so a non-gold fact-check may in fact be a good match.

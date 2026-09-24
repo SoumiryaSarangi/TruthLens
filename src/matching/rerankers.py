@@ -85,23 +85,17 @@ class NLIReranker:
         return self._nli
 
     def score_pairs(self, pairs: list[tuple[str, str]]) -> list[float]:
-        """P(entailment) for each (post, fact-check text) pair."""
+        """P(entailment) for each (post, fact-check text) pair.
+
+        Batched across ALL pairs, not per post. Going through `NLIStance.label`
+        capped the batch at one post's candidate list -- ten rows instead of
+        `batch_size` -- which was the difference between minutes and over an hour
+        on the dev split.
+        """
         if not pairs:
             return []
-        nli = self._load()
-        out: list[float] = []
-        # `NLIStance.label` is one claim against many passages, so pairs are
-        # grouped by post: a post with 10 candidates becomes one batched call.
-        start = 0
-        while start < len(pairs):
-            post = pairs[start][0]
-            end = start
-            while end < len(pairs) and pairs[end][0] == post:
-                end += 1
-            results = nli.label(post, [p[1] for p in pairs[start:end]])
-            out.extend(r.probs.get("Supports", 0.0) for r in results)
-            start = end
-        return out
+        results = self._load().score_pairs(pairs)
+        return [r.probs.get("Supports", 0.0) for r in results]
 
     def rerank(self, texts, candidates):
         return _rerank_with(self.score_pairs, texts, candidates)
