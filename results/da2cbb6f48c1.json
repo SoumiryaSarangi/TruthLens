@@ -33,17 +33,17 @@
     "name": "majority_class",
     "notes": []
   },
-  "config_hash": "a7af055a0851",
+  "config_hash": "da2cbb6f48c1",
   "coverage": {
     "coverage": 1.0,
     "n_gold": 963,
     "n_missing": 0,
     "n_predicted": 963
   },
-  "created_utc": "2026-09-24T13:10:33+00:00",
+  "created_utc": "2026-09-24T13:10:25+00:00",
   "delta_vs_baseline": {
-    "accuracy": 0.013499480789200491,
-    "macro_f1": 0.03779408296963371
+    "accuracy": -0.05711318795430942,
+    "macro_f1": 0.1638984215115425
   },
   "env": {
     "packages": {
@@ -65,7 +65,7 @@
     "python": "3.11.16",
     "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
   },
-  "experiment": "p3_cw_derived_heuristic",
+  "experiment": "p3_cw_derived_nli",
   "git": {
     "branch": "main",
     "dirty": false,
@@ -79,20 +79,20 @@
         "lang",
         "script"
       ],
-      "experiment": "p3_cw_derived_heuristic",
+      "experiment": "p3_cw_derived_nli",
       "label_set": "checkworthy_binary",
       "metrics": {},
       "min_cell_n": 30,
-      "notes": "Implementation: claims=heuristic (rules only, no weights). Baseline is majority_class, which predicts Yes for everything -- so a heuristic that catches no negatives ties it exactly, and that tie is the result.\n",
-      "predictions": "results/preds/p3_cw_derived_heuristic.jsonl",
+      "notes": "Implementation: claims=nli -- mDeBERTa-v3-base-xnli with the hypothesis pinned to \"This message states a fact that can be checked.\" and P(entailment) >= 0.5. No weights were trained. Baseline is majority_class, which predicts Yes for everything.\n",
+      "predictions": "results/preds/p3_cw_derived_nli.jsonl",
       "sanity_ceiling": 0.85,
       "seed": 42,
       "split": "data/splits/xclaim_cw/dev.jsonl",
       "task": "classification"
     },
-    "config_path": "configs/p3_cw_derived_heuristic.yaml",
-    "predictions_path": "results/preds/p3_cw_derived_heuristic.jsonl",
-    "predictions_sha256": "d30bde5e972664426bcfd3fd32b172a2d98c1c38d0eebc3e59e22868922d717f",
+    "config_path": "configs/p3_cw_derived_nli.yaml",
+    "predictions_path": "results/preds/p3_cw_derived_nli.jsonl",
+    "predictions_sha256": "0e92d71e1309889711cd920f336a707315e6be3969271c54ebc15f8dbba4f1f5",
     "split_path": "data/splits/xclaim_cw/dev.jsonl",
     "split_sha256": "290d53057ac75ef2bf56c716f08095a492ed4d90698d7a90e47cc0369fd64903",
     "splits_lock_sha256": "4cc7fa3ec6e73ee98730d0e5707f192b7b5c4cea3505be8477b1258eb346d584"
@@ -100,20 +100,20 @@
   "metrics": {
     "by": {
       "lang=en,script=deva": {
-        "accuracy": 0.6153846153846154,
+        "accuracy": 0.38461538461538464,
         "confusion": {
           "No": {
             "No": 0,
             "Yes": 5
           },
           "Yes": {
-            "No": 0,
-            "Yes": 8
+            "No": 3,
+            "Yes": 5
           }
         },
         "low_n": true,
         "low_n_threshold": 30.0,
-        "macro_f1": 0.380952380952381,
+        "macro_f1": 0.2777777777777778,
         "n": 13.0,
         "per_class": {
           "No": {
@@ -123,86 +123,86 @@
             "support": 5.0
           },
           "Yes": {
-            "f1": 0.761904761904762,
-            "precision": 0.6153846153846154,
-            "recall": 1.0,
+            "f1": 0.5555555555555556,
+            "precision": 0.5,
+            "recall": 0.625,
             "support": 8.0
           }
         }
       },
       "lang=en,script=latn": {
-        "accuracy": 0.6158631415241057,
+        "accuracy": 0.5614307931570762,
         "confusion": {
           "No": {
-            "No": 4,
-            "Yes": 247
+            "No": 131,
+            "Yes": 120
           },
           "Yes": {
-            "No": 0,
-            "Yes": 392
+            "No": 162,
+            "Yes": 230
           }
         },
-        "macro_f1": 0.3958996595728495,
+        "macro_f1": 0.5507818693515141,
         "n": 643.0,
         "per_class": {
           "No": {
-            "f1": 0.03137254901960784,
-            "precision": 1.0,
-            "recall": 0.01593625498007968,
+            "f1": 0.4816176470588235,
+            "precision": 0.447098976109215,
+            "recall": 0.5219123505976095,
             "support": 251.0
           },
           "Yes": {
-            "f1": 0.7604267701260912,
-            "precision": 0.6134585289514867,
-            "recall": 1.0,
+            "f1": 0.6199460916442048,
+            "precision": 0.6571428571428571,
+            "recall": 0.5867346938775511,
             "support": 392.0
           }
         }
       },
       "lang=hi,script=deva": {
-        "accuracy": 0.6824324324324325,
+        "accuracy": 0.6148648648648649,
         "confusion": {
           "No": {
-            "No": 5,
-            "Yes": 47
+            "No": 22,
+            "Yes": 30
           },
           "Yes": {
-            "No": 0,
-            "Yes": 96
+            "No": 27,
+            "Yes": 69
           }
         },
-        "macro_f1": 0.4893929384129781,
+        "macro_f1": 0.5716679360243717,
         "n": 148.0,
         "per_class": {
           "No": {
-            "f1": 0.17543859649122806,
-            "precision": 1.0,
-            "recall": 0.09615384615384616,
+            "f1": 0.43564356435643564,
+            "precision": 0.4489795918367347,
+            "recall": 0.4230769230769231,
             "support": 52.0
           },
           "Yes": {
-            "f1": 0.8033472803347281,
-            "precision": 0.6713286713286714,
-            "recall": 1.0,
+            "f1": 0.7076923076923077,
+            "precision": 0.696969696969697,
+            "recall": 0.71875,
             "support": 96.0
           }
         }
       },
       "lang=hi,script=latn": {
-        "accuracy": 0.8,
+        "accuracy": 0.2,
         "confusion": {
           "No": {
             "No": 0,
             "Yes": 1
           },
           "Yes": {
-            "No": 0,
-            "Yes": 4
+            "No": 3,
+            "Yes": 1
           }
         },
         "low_n": true,
         "low_n_threshold": 30.0,
-        "macro_f1": 0.4444444444444445,
+        "macro_f1": 0.16666666666666666,
         "n": 5.0,
         "per_class": {
           "No": {
@@ -212,130 +212,130 @@
             "support": 1.0
           },
           "Yes": {
-            "f1": 0.888888888888889,
-            "precision": 0.8,
-            "recall": 1.0,
+            "f1": 0.3333333333333333,
+            "precision": 0.5,
+            "recall": 0.25,
             "support": 4.0
           }
         }
       },
       "lang=pa,script=deva": {
-        "accuracy": 0.6470588235294118,
+        "accuracy": 0.7058823529411765,
         "confusion": {
           "No": {
-            "No": 0,
-            "Yes": 6
+            "No": 3,
+            "Yes": 3
           },
           "Yes": {
-            "No": 0,
-            "Yes": 11
+            "No": 2,
+            "Yes": 9
           }
         },
         "low_n": true,
         "low_n_threshold": 30.0,
-        "macro_f1": 0.3928571428571429,
+        "macro_f1": 0.6640316205533596,
         "n": 17.0,
         "per_class": {
           "No": {
-            "f1": 0.0,
-            "precision": 0.0,
-            "recall": 0.0,
+            "f1": 0.5454545454545454,
+            "precision": 0.6,
+            "recall": 0.5,
             "support": 6.0
           },
           "Yes": {
-            "f1": 0.7857142857142858,
-            "precision": 0.6470588235294118,
-            "recall": 1.0,
+            "f1": 0.7826086956521738,
+            "precision": 0.75,
+            "recall": 0.8181818181818182,
             "support": 11.0
           }
         }
       },
       "lang=pa,script=guru": {
-        "accuracy": 0.6638655462184874,
+        "accuracy": 0.5378151260504201,
         "confusion": {
           "No": {
-            "No": 3,
-            "Yes": 40
+            "No": 15,
+            "Yes": 28
           },
           "Yes": {
-            "No": 0,
-            "Yes": 76
+            "No": 27,
+            "Yes": 49
           }
         },
-        "macro_f1": 0.46105072463768115,
+        "macro_f1": 0.49673202614379086,
         "n": 119.0,
         "per_class": {
           "No": {
-            "f1": 0.13043478260869565,
-            "precision": 1.0,
-            "recall": 0.06976744186046512,
+            "f1": 0.35294117647058826,
+            "precision": 0.35714285714285715,
+            "recall": 0.3488372093023256,
             "support": 43.0
           },
           "Yes": {
-            "f1": 0.7916666666666666,
-            "precision": 0.6551724137931034,
-            "recall": 1.0,
+            "f1": 0.6405228758169935,
+            "precision": 0.6363636363636364,
+            "recall": 0.6447368421052632,
             "support": 76.0
           }
         }
       },
       "lang=pa,script=latn": {
-        "accuracy": 0.7777777777777778,
+        "accuracy": 0.6111111111111112,
         "confusion": {
           "No": {
-            "No": 1,
-            "Yes": 4
+            "No": 5,
+            "Yes": 0
           },
           "Yes": {
-            "No": 0,
-            "Yes": 13
+            "No": 7,
+            "Yes": 6
           }
         },
         "low_n": true,
         "low_n_threshold": 30.0,
-        "macro_f1": 0.6,
+        "macro_f1": 0.609907120743034,
         "n": 18.0,
         "per_class": {
           "No": {
-            "f1": 0.33333333333333337,
-            "precision": 1.0,
-            "recall": 0.2,
+            "f1": 0.5882352941176471,
+            "precision": 0.4166666666666667,
+            "recall": 1.0,
             "support": 5.0
           },
           "Yes": {
-            "f1": 0.8666666666666666,
-            "precision": 0.7647058823529411,
-            "recall": 1.0,
+            "f1": 0.631578947368421,
+            "precision": 1.0,
+            "recall": 0.46153846153846156,
             "support": 13.0
           }
         }
       }
     },
     "overall": {
-      "accuracy": 0.6365524402907581,
+      "accuracy": 0.5659397715472482,
       "confusion": {
         "No": {
-          "No": 13,
-          "Yes": 350
+          "No": 176,
+          "Yes": 187
         },
         "Yes": {
-          "No": 0,
-          "Yes": 600
+          "No": 231,
+          "Yes": 369
         }
       },
-      "macro_f1": 0.42167124227865477,
+      "macro_f1": 0.5477755808205635,
       "n": 963.0,
       "per_class": {
         "No": {
-          "f1": 0.06914893617021277,
-          "precision": 1.0,
-          "recall": 0.03581267217630854,
+          "f1": 0.45714285714285713,
+          "precision": 0.43243243243243246,
+          "recall": 0.48484848484848486,
           "support": 363.0
         },
         "Yes": {
-          "f1": 0.7741935483870968,
-          "precision": 0.631578947368421,
-          "recall": 1.0,
+          "f1": 0.63840830449827,
+          "precision": 0.6636690647482014,
+          "recall": 0.615,
           "support": 600.0
         }
       }
@@ -345,21 +345,21 @@
     "by_lang": {
       "en": {
         "n_native": 643.0,
-        "native": 0.3958996595728495
+        "native": 0.5507818693515141
       },
       "hi": {
-        "gap": 0.04494849396853362,
+        "gap": 0.4050012693577051,
         "n_native": 148.0,
         "n_romanized": 5.0,
-        "native": 0.4893929384129781,
-        "romanized": 0.4444444444444445
+        "native": 0.5716679360243717,
+        "romanized": 0.16666666666666666
       },
       "pa": {
-        "gap": -0.13894927536231882,
+        "gap": -0.11317509459924313,
         "n_native": 119.0,
         "n_romanized": 18.0,
-        "native": 0.46105072463768115,
-        "romanized": 0.6
+        "native": 0.49673202614379086,
+        "romanized": 0.609907120743034
       }
     },
     "metric": "macro_f1"

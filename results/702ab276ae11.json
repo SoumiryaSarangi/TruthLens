@@ -1,0 +1,213 @@
+{
+  "baseline": {
+    "kind": "generated",
+    "metrics": {
+      "accuracy": 0.85,
+      "confusion": {
+        "No": {
+          "No": 0,
+          "Yes": 15
+        },
+        "Yes": {
+          "No": 0,
+          "Yes": 85
+        }
+      },
+      "macro_f1": 0.45945945945945943,
+      "n": 100.0,
+      "per_class": {
+        "No": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 15.0
+        },
+        "Yes": {
+          "f1": 0.9189189189189189,
+          "precision": 0.85,
+          "recall": 1.0,
+          "support": 85.0
+        }
+      }
+    },
+    "name": "majority_class",
+    "notes": []
+  },
+  "config_hash": "702ab276ae11",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 100,
+    "n_missing": 0,
+    "n_predicted": 100
+  },
+  "created_utc": "2026-09-24T13:10:49+00:00",
+  "delta_vs_baseline": {
+    "accuracy": -0.020000000000000018,
+    "macro_f1": -0.005907546891153415
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p3_cw_handtyped_xlmr",
+  "git": {
+    "branch": "main",
+    "dirty": false,
+    "sha": "91115d5b765c5eaba8738443d408886d16cc8a05"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "majority_class",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p3_cw_handtyped_xlmr",
+      "label_set": "checkworthy_binary",
+      "metrics": {},
+      "min_cell_n": 30,
+      "notes": "Implementation: claims=xlmr -- the dedicated sequence classifier from scripts/train_checkworthy.py (XLM-R-base + LoRA), NOT the span model, and NOT the rules. Trained on the derived xclaim_cw set, which is a different distribution from these messages. Baseline is majority_class, which predicts Yes for everything -- so an arm that catches no negatives ties it exactly.\n",
+      "predictions": "results/preds/p3_cw_handtyped_xlmr.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/handtyped/dev.jsonl",
+      "task": "classification"
+    },
+    "config_path": "configs/p3_cw_handtyped_xlmr.yaml",
+    "predictions_path": "results/preds/p3_cw_handtyped_xlmr.jsonl",
+    "predictions_sha256": "87204341a14323dd924963ceac3ff70fee6dd501313d0530c09ad61d8921fa02",
+    "split_path": "data/splits/handtyped/dev.jsonl",
+    "split_sha256": "d74288f9df6836036f14b0d98765b37f551930fa2c61370e3d027fe926a1bbd9",
+    "splits_lock_sha256": "4cc7fa3ec6e73ee98730d0e5707f192b7b5c4cea3505be8477b1258eb346d584"
+  },
+  "metrics": {
+    "by": {
+      "lang=hi,script=latn": {
+        "accuracy": 0.859375,
+        "confusion": {
+          "No": {
+            "No": 0,
+            "Yes": 7
+          },
+          "Yes": {
+            "No": 2,
+            "Yes": 55
+          }
+        },
+        "macro_f1": 0.46218487394957986,
+        "n": 64.0,
+        "per_class": {
+          "No": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 7.0
+          },
+          "Yes": {
+            "f1": 0.9243697478991597,
+            "precision": 0.8870967741935484,
+            "recall": 0.9649122807017544,
+            "support": 57.0
+          }
+        }
+      },
+      "lang=pa,script=latn": {
+        "accuracy": 0.7777777777777778,
+        "confusion": {
+          "No": {
+            "No": 0,
+            "Yes": 8
+          },
+          "Yes": {
+            "No": 0,
+            "Yes": 28
+          }
+        },
+        "macro_f1": 0.43750000000000006,
+        "n": 36.0,
+        "per_class": {
+          "No": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 8.0
+          },
+          "Yes": {
+            "f1": 0.8750000000000001,
+            "precision": 0.7777777777777778,
+            "recall": 1.0,
+            "support": 28.0
+          }
+        }
+      }
+    },
+    "overall": {
+      "accuracy": 0.83,
+      "confusion": {
+        "No": {
+          "No": 0,
+          "Yes": 15
+        },
+        "Yes": {
+          "No": 2,
+          "Yes": 83
+        }
+      },
+      "macro_f1": 0.453551912568306,
+      "n": 100.0,
+      "per_class": {
+        "No": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 15.0
+        },
+        "Yes": {
+          "f1": 0.907103825136612,
+          "precision": 0.8469387755102041,
+          "recall": 0.9764705882352941,
+          "support": 85.0
+        }
+      }
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "hi": {
+        "n_romanized": 64.0,
+        "romanized": 0.46218487394957986
+      },
+      "pa": {
+        "n_romanized": 36.0,
+        "romanized": 0.43750000000000006
+      }
+    },
+    "metric": "macro_f1"
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "classification",
+  "warnings": []
+}
