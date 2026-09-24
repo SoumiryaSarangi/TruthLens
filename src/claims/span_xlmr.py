@@ -18,6 +18,14 @@ So check-worthiness is its own classifier, trained on the derived `xclaim_cw`
 set. The span-derived path survives as a fallback for when that adapter is
 missing, and is documented as the bad option it is.
 
+That classifier is not the best arm either, and the reason is the same one:
+it reaches 0.7222 macro-F1 on the derived dev set and 0.4536 on the hand-typed
+100, catching **0 of 15** real negatives, because `xclaim_cw`'s negatives are
+out-of-span remainders that read as truncated mid-thought. `claims/nli_zeroshot.py`
+-- no training at all -- catches 7 of 15 and is the arm that beats the majority
+baseline. Keep this one for the derived-set comparison; do not reach for it as
+the served implementation without re-reading that entry in the project log.
+
 Normalization is EXTRACTIVE in Phase 3: the claim is the span, cleaned. It
 cannot reorder, resolve a pronoun to a name, or supply a subject the post left
 implicit, so it should lose to an abstractive model on chrF -- quantifying that

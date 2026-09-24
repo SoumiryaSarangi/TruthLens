@@ -1,0 +1,26 @@
+# FR-6 check-worthiness, zero-shot, on the hand-typed forwards. THE honest test.
+#
+# 100 messages, 85 Yes / 15 No, all romanized, collected specifically so the
+# "nothing to check" path has real negatives. Nothing trains on them, and this
+# arm trains on nothing at all, so the usual caveat about the derived set
+# leaking register into the classifier does not apply here.
+#
+# n=15 negatives is small and the metric is correspondingly noisy: Phase 2 saw a
+# 100-row figure swing 3 rows across retrains. Quote it with its denominator.
+#
+# Stated limitation: the hypothesis is English and these messages are romanized
+# Hindi and Punjabi, which XNLI covers only in Devanagari. This is a floor for
+# the method, not its ceiling.
+experiment: p3_cw_handtyped_nli
+task: classification
+split: data/splits/handtyped/dev.jsonl
+predictions: results/preds/p3_cw_handtyped_nli.jsonl
+label_set: checkworthy_binary
+baseline: majority_class
+breakdown: [lang, script]
+notes: >
+  Implementation: claims=nli -- mDeBERTa-v3-base-xnli with the hypothesis pinned
+  to "This message states a fact that can be checked." and P(entailment) >= 0.5,
+  the untuned default. No weights were trained and nothing was selected on this
+  split. Baseline is majority_class, which predicts Yes for everything -- so an
+  arm that catches no negatives ties it exactly.

@@ -36,7 +36,7 @@ historical rationale, lowest precedence.
 **Precedence when documents disagree:** code and tests > `CLAUDE.md` >
 `docs/specs/` > `docs/build-plan.md`.
 
-**Five things that are easy to get wrong here:**
+**Eleven things that are easy to get wrong here:**
 
 1. **Accuracy is close to meaningless on AVeriTeC.** Majority class scores 61%.
    Lead with macro-F1, always beside its baseline.
@@ -69,6 +69,17 @@ historical rationale, lowest precedence.
 9. **`gh` exists but is not on PATH** — `C:\Program Files\GitHub CLI\gh.exe`.
    CI was red for three commits once because it was assumed unavailable rather
    than looked for.
+10. **A convenient eval set can rank models backwards.** FR-6's derived
+    check-worthiness set and the 100 hand-typed forwards disagree about which
+    arm is better, in both directions: the trained classifier scores 0.7222 on
+    the derived set and 0.4536 on the real one, the zero-shot arm 0.5478 and
+    0.5938. Model selection on the convenient set picks the arm that fails.
+    Any set built by construction rather than collection has to prove it
+    correlates with the real one before it is used to choose anything.
+11. **The numbers have been right and their labels wrong, twice.** Both times a
+    copy-pasted table row or config note stayed plausible. Auditing a write-up
+    means reading every figure back to the results file AND checking the prose
+    that says what produced it.
 
 **To get running:** `make setup` then `make test`. The environment is already
 built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
@@ -79,17 +90,17 @@ built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
 
 | | |
 | --- | --- |
-| **Current phase** | **Phase 3: findings complete, 4 verification gaps open.** Both requirements are measured against baselines and the X-CLAIM ablation is replicated, but four items from the approved plan were not built -- see **Phase 3 gaps** below. Do not report Phase 3 as finished. |
+| **Current phase** | **Phase 3 COMPLETE**, gaps and all. Both requirements measured against baselines, the X-CLAIM ablation replicated, and the four verification gaps closed 2026-09-24. Next is Phase 4. |
 | **Clock** | 14 days. **Days 1-4 done** (Phases 1-3). Day 5 = Phase 4. Freeze end of Day 12. |
 | **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |
 | **Python** | 3.11.16 via uv, in `.venv`. System Python is 3.13 and is not used. |
-| **Tests** | 283 passing, 2 skipped, 2 gpu-deselected |
+| **Tests** | 322 passing, 2 skipped, 2 gpu-deselected |
 | **Datasets in hand** | AVeriTeC, X-CLAIM, MultiClaim, handtyped (FR-26), Dakshina, **CheckThat! 2025 T2** |
 | **Datasets waiting** | None. Every dataset is downloaded, split, locked and leakage-checked. |
 | **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
 | **Models trained** | Romanized LID, in-domain Word2Vec, and **6 XLM-R+LoRA adapters** (5 span ablation arms + check-worthiness). |
-| **Numbers so far** | Span token-F1 **0.7463** (baseline 0.6851) · claim matching MRR 0.5244 · LID ~0.86 on the hand-typed set · transliteration CER 0.4281 · AVeriTeC verdict macro-F1 0.2147. **FR-6 is NOT solved**: 0/15 real no-claim messages caught. |
+| **Numbers so far** | Span token-F1 **0.7463** (baseline 0.6851) · claim matching MRR 0.5244 · LID ~0.86 on the hand-typed set · transliteration CER 0.4281 · AVeriTeC verdict macro-F1 0.2147. **FR-6 partially solved by the ZERO-SHOT arm**: macro-F1 0.5938 vs 0.4595 majority, 7/15 real negatives caught -- at the cost of rejecting 18 of 85 real claims. The trained classifier catches 0/15. |
 | **CI** | Green on `ba727b9`, verified with `gh run list`. Runs take ~1m50s. `gh` is at `C:\Program Files\GitHub CLI\gh.exe`, NOT on this shell's PATH. |
 
 ---
@@ -1118,6 +1129,12 @@ Devanagari) -- and once again the language column is not the script column: only
 > The table here has been fixed in place because the figures were simply
 > incorrect rather than a reversed decision; what happened, and the finding that
 > replaced the wrong one, is in the correction entry further down.
+>
+> **Superseded in part, 2026-09-24.** The FR-6 section below concludes that
+> check-worthiness is unsolved. That held for every arm that had been run at the
+> time; the zero-shot NLI arm, built two entries down, catches 7 of 15 real
+> negatives and beats the majority baseline. The diagnosis below is what led to
+> it and is left intact — read the later entry for where FR-6 actually stands.
 
 Two requirements, three models trained, and two of the phase's most useful
 outputs are negative results.
@@ -1317,52 +1334,153 @@ publishing any table, re-read every figure out of `results/*.json` by
 run, and it is the same check that caught three wrong figures in the Phase 2
 docs. It should run before every phase write-up, not only before a compaction.
 
-## Phase 3 gaps — OPEN. Do not report Phase 3 as complete.
+## 2026-09-24 — The four Phase 3 gaps closed, and FR-6 is no longer unsolved
 
-The findings in the Phase 3 entry are measured, committed and CI-green. Four
-items from the approved plan were not built, and they are verification rather
-than results — which is exactly the kind of thing that gets quietly dropped
-across a context compaction, so it is written here rather than left implied.
+All four items from the previous section are built. The one that mattered
+changed a published conclusion, which is why it was ranked first.
 
-**1. `tests/test_loader_xclaim.py` does not exist.** The plan named it
-specifically: pin the inclusive-end span convention, "because that is the
-assumption most likely to be silently wrong". `scripts/build_span_gold.py`
-re-checks the convention on every build and refuses if it flips, so it is not
-unguarded — but every span number in this project rests on it and there is no
-test. ~10 minutes.
+### FR-6: the zero-shot arm beats the baseline where the trained one does not
 
-**2. The measured VRAM figures never reached `docs/environment.md`.** The plan
-said to write them in because `SYSTEM_DESIGN.md` §10's "~2.8 GB resident" was an
-estimate nobody had checked. They were measured and are in each adapter's
-`data/interim/models/*/training.json`:
+`src/claims/nli_zeroshot.py`, registered as `claims=nli`. No training at all:
+the Phase 1 mDeBERTa-XNLI model with the hypothesis pinned to *"This message
+states a fact that can be checked."*, premise being the forward, and
+`P(entailment) >= 0.5`. `NLIStance` is reused rather than reimplemented, so it
+inherits that class's id2label check — a model whose labels were ordered
+differently raises instead of silently inverting every decision.
 
-| | peak VRAM |
-| --- | --- |
-| XLM-R + LoRA training, batch 16 | **2.59 GiB** |
-| BGE-M3 inference, batch 32 | 1.11 GiB |
-| Real ceiling on this card | ~4.9 GiB |
+| arm | derived dev (n=963) | hand-typed (n=100) | real negatives caught |
+| --- | --- | --- | --- |
+| majority_class | 0.3839 | 0.4595 | 0/15 |
+| heuristic (rules) | 0.4217 | 0.4595 | 0/15 |
+| xlmr (trained classifier) | **0.7222** | 0.4536 | **0/15** |
+| **zero-shot NLI** | 0.5478 | **0.5938** | **7/15** |
 
-So §10's estimate is about right, and that is worth stating in the doc that
-claims it. ~5 minutes.
+**7 of 15, up from 0 of 15**, and macro-F1 0.5938 against the majority
+baseline's 0.4595 — the first arm in this project to beat that baseline on the
+hand-typed set. FR-6 moves from *unsolved* to *partially solved, with a stated
+cost*.
 
-**3. The zero-shot NLI check-worthiness arm was never built, and it matters
-more than when it was planned.** It was planned as the control for "is the
-trained classifier learning anything the NLI model did not already know".
+The cost is real and belongs beside the headline: **18 of 85 genuine claims are
+also rejected** (precision on `No` is 0.28, recall on `Yes` falls to 0.79).
+One in five real claims would be answered "there is nothing to check here",
+which is the worst failure this product has — worse than a wrong verdict,
+because it is silent. The threshold is the knob; it was left at the untuned
+0.5 for the reason below.
 
-Since then FR-6 failed, and the reason it failed is that the trained classifier
-learned X-CLAIM's all-positive distribution. **A zero-shot NLI model has no
-training distribution to be skewed by**, so it is the approach most likely to
-work — and the current position is reporting FR-6 as unsolved without having
-tried it. The mDeBERTa NLI model is already on disk from Phase 1; this needs no
-download and no training, just a hypothesis like "This text makes a checkable
-factual claim" scored by entailment. ~20 minutes.
+**The reason it works is the reason the trained arm failed.** The trained
+classifier learned `xclaim_cw`'s distribution, where negatives are out-of-span
+remainders that read as truncated mid-thought. A zero-shot model has no
+distribution of ours to be skewed by, and "does this text assert that?" is
+XNLI's whole task. The prediction written into the Phase 3 entry — that this
+was the approach most likely to work — held.
 
-**4. No suite tests for `src/claims/span_xlmr.py`.** `spans_from_tags` was
-verified 5/5 in a throwaway script, which does not survive. It is pure logic
-and needs no GPU. ~10 minutes.
+### The two eval sets rank the two arms in opposite orders
 
-**Priority if time is short: (3) first.** It could change the FR-6 conclusion.
-The other three protect numbers that are already correct.
+This is the more transferable finding.
+
+| | derived dev | hand-typed |
+| --- | --- | --- |
+| trained xlmr | 0.7222 | 0.4536 |
+| zero-shot NLI | 0.5478 | 0.5938 |
+
+Selecting on the derived set picks the arm that fails on real data, by a wide
+margin in both directions. The derived set is not merely noisier than the real
+one — it **anti-correlates** with it on the only comparison made so far. That
+is exactly what the Phase 3 loader docstring warned would happen, and it is now
+a measurement rather than a caution.
+
+Two consequences, both acted on:
+
+- **The threshold was not tuned.** The plan allowed choosing it on the derived
+  set. Having measured that this set ranks arms backwards, tuning an operating
+  point on it would be optimising against the wrong target, so the reported
+  figure uses the untuned 0.5. The `--cw-threshold` flag exists for when there
+  is a real set large enough to choose on.
+- **The ~100 more real no-claim messages stay the top human task**, and the
+  argument for them is now stronger, not weaker: there is finally an arm whose
+  operating point is worth choosing, and 15 negatives is not enough to choose
+  it with.
+
+Stated limitation: the hypothesis is English and these messages are romanized
+Hindi and Punjabi, which XNLI covers only in Devanagari. 0.5938 is a floor for
+the method, not its ceiling.
+
+### The other three gaps
+
+**`tests/test_loader_xclaim.py`** — 15 tests pinning the inclusive-end span
+convention. Two layers on purpose: pure tests that run in CI and pin what the
+code DOES with the convention (the token at `end` is inside the span; a row
+claiming `end == len(tokens)` is refused rather than clipped; the derived
+negative excludes the whole claim), and corpus tests that re-measure the
+evidence and skip where `data/raw/x_claim/` is absent. The builder's guard is
+now tested by fabricating an exclusive-indexed corpus and checking it refuses —
+previously the guard existed but nothing proved it was armed.
+
+**VRAM figures into `docs/environment.md`** — `SYSTEM_DESIGN.md` §10's "~2.8 GB
+resident" was an estimate nobody had checked. It is right: the heaviest run
+peaks at **2.588 GiB**. Two things the table shows that the estimate could not
+— peak VRAM is **flat in dataset size** (337 rows and 7,874 rows both peak near
+2.58 GiB, because it is set by batch × sequence length), and training peaks
+about 1.5 GiB above the heaviest inference workload, so **training is the
+binding constraint on this card, not serving**. The LoRA checkpoint policy (D6
+of the plan) is written down in the same section, which was also never done.
+
+**Tests for `src/claims/span_xlmr.py`** — `spans_from_tags` across 9 tag
+sequences including the malformed ones a model actually emits, the
+`AdapterUnavailable` refusal, and `extract()`'s cap and whole-post fallback,
+with the fallback pinned specifically because `pipeline.batch._span_tags`
+bypasses it and the two must stay distinguishable.
+
+Suite: **322 passing**, 2 skipped, 2 gpu-deselected, up from 283.
+
+### Three check-worthiness configs were misattributing their own implementation
+
+Found while adding the new configs, and the same class of error as the ablation
+rows: `p3_cw_handtyped_xlmr.yaml` and `p3_cw_derived_xlmr.yaml` both carried
+copy-pasted `notes` reading *"Implementation: claims=heuristic (rules only, no
+weights)"*, and both `_derived_` configs carried a header block describing the
+hand-typed set. A reader of `docs/results.md` would have attributed the trained
+classifier's 0.7222 to the rules.
+
+The notes are part of the config hash, so correcting them re-hashed two runs.
+The predictions were untouched and the metrics are byte-identical, verified
+before anything was removed:
+
+| experiment | old hash | new hash |
+| --- | --- | --- |
+| `p3_cw_handtyped_xlmr` | `61f7e7b03355` | `702ab276ae11` |
+| `p3_cw_derived_xlmr` | `e264dfc190ac` | `9007de0fde93` |
+
+The two superseded files are deleted rather than kept, because they differ from
+their replacements only in a provenance note that was wrong, and `make table`
+renders one row per results file — keeping them would put four rows in the
+table for two runs. The hashes are recorded here so anything that cited them
+can still be traced. `p3_cw_derived_heuristic.yaml` only needed its header
+comment fixed, which is not hashed, so that run kept `a7af055a0851`.
+
+**The general lesson is the same one the ablation correction produced**: this
+project's numbers have been right and their *labels* have been wrong twice now.
+Both times the error was a copy-paste that stayed plausible. The audit that
+catches it is reading every published figure back to the file it came from,
+including the prose that says what produced it.
+
+## Phase 3 gaps — CLOSED 2026-09-24
+
+All four are built. They were, in the order the previous section ranked them:
+
+1. **Zero-shot NLI check-worthiness arm** — built, and it changed the FR-6
+   conclusion: 7 of 15 real negatives caught against the trained classifier's 0,
+   and the first arm to beat the majority baseline on the hand-typed set.
+2. **`tests/test_loader_xclaim.py`** — 15 tests pinning the inclusive-end span
+   convention, plus a fabricated-corpus test proving the builder's guard fires.
+3. **Measured VRAM in `docs/environment.md`** — §10's ~2.8 GB estimate confirmed
+   at 2.588 GiB peak, with the LoRA checkpoint policy written down beside it.
+4. **Tests for `src/claims/span_xlmr.py`** — `spans_from_tags`, the adapter
+   refusal, the cap and the whole-post fallback.
+
+See the entry above for the numbers and what they changed. **Phase 3 is
+complete.** The remaining FR-6 limitation is a data problem with a named owner:
+~100 more real no-claim messages, under "Needs a human".
 
 ## Next
 
@@ -1379,13 +1497,16 @@ so Phase 4 is mostly wiring it behind `tau_match` and deciding that threshold.
 | Claim matching | MRR / R@10 | **0.5244 / 0.6688** | 0.0002 random |
 | Language ID, hand-typed | accuracy | ~0.86 | 0.6400 majority |
 | Transliteration, 33 pa pairs | CER | **0.4281** | 0.8518 identity |
-| Check-worthiness, hand-typed | macro-F1 | **0.4536** | 0.4595 majority |
+| Check-worthiness, hand-typed | macro-F1 | **0.5938** zero-shot NLI | 0.4595 majority |
 | AVeriTeC retrieval | R@10 | 0.0947 | 0.0121 random |
 | AVeriTeC verdict | macro-F1 | 0.2147 | 0.1516 majority |
 
-**Check-worthiness is the one component below its baseline**, and the reason is
-data rather than modelling: there are 15 real no-claim messages in the entire
-project. See the Phase 3 entry.
+**Every component is now above its baseline.** Check-worthiness was the
+exception until the zero-shot NLI arm; it clears the majority baseline by
++0.1343 while still rejecting 18 of 85 real claims, so it is the weakest link
+rather than a failing one. The constraint is still data — there are 15 real
+no-claim messages in the entire project, which is enough to measure an
+operating point and not enough to choose one.
 
 **Decision due Day 5:** the demo corpus composition (`SYSTEM_DESIGN.md` §14).
 Phase 2's fact-check index makes the retrieve-then-rerank option concrete --

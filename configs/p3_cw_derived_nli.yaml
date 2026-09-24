@@ -1,0 +1,22 @@
+# FR-6 check-worthiness, zero-shot: no fine-tuning at all.
+#
+# The control arm from the Phase 3 plan -- "is the trained classifier learning
+# anything the NLI model did not already know" -- promoted to the most promising
+# arm once the trained one failed. The trained classifier caught 0 of 15 real
+# no-claim messages because it learned this very set's all-but-positive
+# distribution. A zero-shot model has no such distribution to be skewed by.
+#
+# This is the DERIVED set, so it is model selection only: it is what the
+# threshold may be chosen on. The hand-typed 100 are the reported number.
+experiment: p3_cw_derived_nli
+task: classification
+split: data/splits/xclaim_cw/dev.jsonl
+predictions: results/preds/p3_cw_derived_nli.jsonl
+label_set: checkworthy_binary
+baseline: majority_class
+breakdown: [lang, script]
+notes: >
+  Implementation: claims=nli -- mDeBERTa-v3-base-xnli with the hypothesis pinned
+  to "This message states a fact that can be checked." and P(entailment) >= 0.5.
+  No weights were trained. Baseline is majority_class, which predicts Yes for
+  everything.

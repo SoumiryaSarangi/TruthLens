@@ -150,7 +150,9 @@ Practical consequences:
 
 - Close the browser before a training run. It is worth several hundred MB.
 - Measure with `torch.cuda.max_memory_allocated()` once models actually load,
-  and write the real figure here rather than trusting §10's estimate.
+  and write the real figure here rather than trusting §10's estimate. **Done in
+  Phase 3** — see *Measured training cost* below. §10's estimate holds: the
+  heaviest run peaks at 2.588 GiB.
 - Training runs one model at a time with the API server stopped (NFR-4). On
   this card that is a hard requirement, not hygiene.
 - If a model will not fit, the order to try is: smaller batch, gradient
@@ -210,13 +212,60 @@ built from and `DOWNLOADS.json` records their sha256:
 | `data/raw/fasttext/lid.176.bin` | Language ID (FR-3) | 131 MB |
 | `data/raw/dakshina/dakshina_dataset_v1.0.tar` | Transliteration benchmark | 2.01 GB |
 
-Two models are **ours**, trained here and written to gitignored
+Several models are **ours**, trained here and written to gitignored
 `data/interim/models/`:
 
 | Model | Built by | On disk |
 | --- | --- | --- |
 | `roman_lid.joblib` -- char n-gram language ID for Latin script | `scripts/train_roman_lid.py` | 4.5 MB |
 | `word2vec.kv` -- in-domain static embeddings | `scripts/train_word2vec.py` | 80 MB |
+| `span_xlmr_{joint,mono_en,mono_hi,mono_pa,zeroshot}` -- LoRA span taggers | `scripts/train_span.py` | 20 MB each |
+| `checkworthy_xlmr` -- LoRA sequence classifier | `scripts/train_checkworthy.py` | 22 MB |
+
+### Where fine-tuned checkpoints live, and why not in git
+
+LoRA adapters go to gitignored `data/interim/models/<name>/`, following the
+precedent `roman_lid.joblib` and `word2vec.kv` set. Three reasons, in order of
+weight: they are **reproducible** from a seeded script plus a frozen split, so
+committing them stores an output rather than an input; 20 MB times six arms is
+120 MB of binary in a repo whose entire point is that it holds ids and not
+payloads; and an adapter in git would be a second source of truth about what a
+number came from, next to the `results/*.json` that already records the config
+hash. Each directory carries a `training.json` with the seed, the hyper
+parameters, the row counts and the measured peak VRAM, which is what a reader
+actually needs to rebuild it.
+
+Only the **adapter** is stored -- 3.5 MB of `adapter_model.safetensors` for
+887K trainable parameters out of XLM-R-base's 278M (0.32%). The base model
+comes from the HF cache on D:.
+
+### Measured training cost (RTX 4050, XLM-R-base + LoRA, fp16, batch 16, len 256)
+
+`SYSTEM_DESIGN.md` §10 estimated **~2.8 GB resident** and nobody had checked
+it. Measured with `torch.cuda.max_memory_allocated()` and recorded per run in
+`data/interim/models/*/training.json`:
+
+| Run | Train rows | Peak VRAM | Wall clock |
+| --- | --- | --- | --- |
+| Span, joint (en+hi+pa) | 4,472 | **2.587 GiB** | 3.0 min |
+| Span, zero-shot (en+hi) | 4,135 | 2.579 GiB | 4.2 min |
+| Span, mono-en | 2,977 | 2.579 GiB | 2.9 min |
+| Span, mono-hi | 1,158 | 2.587 GiB | 0.7 min |
+| Span, mono-pa | 337 | 2.448 GiB | 0.2 min |
+| Check-worthiness classifier | 7,874 | 2.588 GiB | 4.9 min |
+
+**So §10's estimate was right**, which is worth stating in the document that
+made it. Two things the table shows that the estimate could not:
+
+- Peak VRAM is **flat in dataset size** -- 337 rows and 7,874 rows both peak
+  near 2.58 GiB. It is set by batch size times sequence length, so the knob
+  that matters if a future run will not fit is `--batch-size`, exactly as the
+  order above prescribes. The first run did not OOM at batch 16 and no halving
+  was needed.
+- Against the **~4.9 GiB real ceiling**, training leaves ~2.3 GiB of headroom,
+  and training peaks about 1.5 GiB above the heaviest inference workload
+  measured here (BGE-M3 at 1.11 GiB). Training is the binding constraint on
+  this card, not serving.
 
 ### Measured encoder throughput (RTX 4050, 78,077 documents, fp16, batch 32)
 

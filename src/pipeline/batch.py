@@ -375,6 +375,9 @@ def main(argv: list[str] | None = None) -> int:
                     help="run the check-worthiness gate before extracting, as the "
                          "served pipeline does. Off by default so the span and "
                          "normalization numbers measure FR-7 rather than FR-6")
+    ap.add_argument("--cw-threshold", type=float, default=None,
+                    help="P(entailment) above which the zero-shot NLI arm calls a "
+                         "message check-worthy; chosen on the derived dev set only")
     ap.add_argument("--adapter", default=None,
                     help="LoRA adapter directory for the claims stage; required to "
                          "score an ablation arm, which otherwise loads the default")
@@ -405,6 +408,8 @@ def main(argv: list[str] | None = None) -> int:
         cfg.stages["claims"] = args.claims_impl
     if args.adapter:
         cfg.stage_args.setdefault("claims", {})["adapter"] = args.adapter
+    if args.cw_threshold is not None:
+        cfg.stage_args.setdefault("claims", {})["threshold"] = args.cw_threshold
     if args.force_lang:
         cfg.stage_args.setdefault("preprocess", {})["force_lang"] = args.force_lang
     if args.encoder:

@@ -11,10 +11,10 @@ seconds without reading the whole plan.
 
 ## Current phase
 
-**Phase 3: findings complete, 4 verification gaps OPEN.** Both requirements
-are measured against baselines and the ablation is replicated, but four items
-from the plan were not built — see **Phase 3 gaps** in
-[project-log.md](project-log.md). Phase 4 is not blocked by them.
+**Phase 3 COMPLETE.** Both requirements are measured against baselines, the
+ablation is replicated, and the four verification gaps closed on 2026-09-24 —
+the last of which, a zero-shot NLI arm, turned FR-6 from unsolved into
+partially solved. **Next: Phase 4.**
 
 The clock is **14 days**. **Days 1-4 are done.** Phase 1 shipped the vertical
 slice; Phase 2 shipped the language layer and the native-vs-romanized table,
@@ -156,17 +156,26 @@ English (0.7445 pa/guru vs 0.6647 en/latn, because Indic posts are more
 claim-dense), and **zero-shot ties joint on Punjabi having never seen a Punjabi
 example**, so Punjabi performance is almost entirely cross-lingual transfer.
 
-**FR-6 check-worthiness is NOT solved, and the reason is data.**
+**FR-6 check-worthiness: solved by the arm that was trained on nothing.**
+macro-F1 on the hand-typed 100, whose majority baseline is 0.4595:
 
-| | macro-F1 | vs majority | negatives caught |
+| arm | derived dev (n=963) | hand-typed (n=100) | real negatives caught |
 | --- | --- | --- | --- |
-| derived dev (n=963) | 0.7222 | +0.3383 | 190/363 |
-| hand-typed (n=100) | 0.4536 | -0.0059 | **0/15** |
+| heuristic (rules) | 0.4217 | 0.4595 | 0/15 |
+| xlmr (trained classifier) | **0.7222** | 0.4536 | 0/15 |
+| **zero-shot NLI** | 0.5478 | **0.5938** | **7/15** |
 
-Deriving it from the span model is structurally impossible: X-CLAIM's every post
-contains a claim, so that model has never seen the negative class. A dedicated
-classifier on derived negatives learns the task and transfers nothing to real
-no-claim messages. **~100 more real ones is the top human task.**
+Deriving check-worthiness from the span model is structurally impossible:
+X-CLAIM's every post contains a claim, so that model has never seen the negative
+class. A classifier trained on derived negatives learns that set and transfers
+nothing. Zero-shot NLI has no training distribution of ours to be skewed by, and
+is the only arm above the baseline — at the cost of rejecting **18 of 85 real
+claims**, which is the number to quote beside it.
+
+**The two eval sets rank the arms in opposite orders**, so the derived set
+cannot be used to choose an operating point. **~100 more real no-claim messages
+is still the top human task**, now in order to choose a threshold rather than to
+find out whether the problem is solvable.
 
 **Normalization is not extractable**: chrF 0.2835 against a longest-sentence
 baseline of 0.2875, because only **4.3%** of CheckThat references appear

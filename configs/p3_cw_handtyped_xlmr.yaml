@@ -15,6 +15,8 @@ label_set: checkworthy_binary
 baseline: majority_class
 breakdown: [lang, script]
 notes: >
-  Implementation: claims=heuristic (rules only, no weights). Baseline is
-  majority_class, which predicts Yes for everything -- so a heuristic that
-  catches no negatives ties it exactly, and that tie is the result.
+  Implementation: claims=xlmr -- the dedicated sequence classifier from
+  scripts/train_checkworthy.py (XLM-R-base + LoRA), NOT the span model, and NOT
+  the rules. Trained on the derived xclaim_cw set, which is a different
+  distribution from these messages. Baseline is majority_class, which predicts
+  Yes for everything -- so an arm that catches no negatives ties it exactly.

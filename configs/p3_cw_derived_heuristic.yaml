@@ -1,12 +1,12 @@
-# FR-6 check-worthiness on the hand-typed forwards. THE honest test.
+# FR-6 check-worthiness on the DERIVED set. Model selection only.
 #
-# 100 messages, 85 Yes / 15 No, all romanized, collected specifically so that
-# the "nothing to check" path has real negatives to be measured on. They are
-# `dev` and nothing trains on them -- the derived xclaim_cw set is for model
-# selection, this is for reporting.
+# 963 dev rows, 600 Yes / 363 No, built by `load_xclaim_checkworthy` from
+# X-CLAIM's span annotations: the span is a positive, the out-of-span remainder
+# is a negative. The negatives are therefore CONSTRUCTED -- fragments of posts
+# that did contain a claim -- so they share vocabulary and register with their
+# own positives, which makes this set easier than reality.
 #
-# n=15 negatives is small and the metric is correspondingly noisy: Phase 2 saw a
-# 100-row figure swing 3 rows across retrains. Quote it with its denominator.
+# Nothing here is the reported figure. The hand-typed 100 are.
 experiment: p3_cw_derived_heuristic
 task: classification
 split: data/splits/xclaim_cw/dev.jsonl
