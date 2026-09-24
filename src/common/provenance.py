@@ -8,6 +8,7 @@ table, and the report compares two things that were never comparable.
 from __future__ import annotations
 
 import platform
+import re
 import subprocess
 import sys
 from importlib import metadata
@@ -40,16 +41,25 @@ def _git(*args: str, repo: Path) -> str | None:
 _IRRELEVANT_TO_REPRODUCIBILITY = ("results/",)
 
 
+#   XY<space>path  --  but `_git` strips its whole stdout, so the first line has
+#   lost the leading space of an unstaged " M path". Matching the code as a
+#   leading non-space run rather than slicing a fixed offset survives that;
+#   slicing `line[3:]` turned "M results/x.json" into "esults/x.json", which then
+#   matched nothing and reported every run dirty in the one case that mattered.
+_STATUS_LINE = re.compile(r"^\s*(\S{1,2})\s+(.*)$")
+
+
 def _status_paths(status: str) -> list[str]:
     """Paths from `git status --porcelain`, forward-slashed, renames resolved."""
     paths: list[str] = []
     for line in status.splitlines():
-        if len(line) < 4:
+        match = _STATUS_LINE.match(line)
+        if not match:
             continue
-        path = line[3:].strip()
+        path = match.group(2).strip()
         if " -> " in path:                    # a rename: the destination is what counts
             path = path.split(" -> ", 1)[1]
-        paths.append(path.strip('"').replace("\\", "/"))
+        paths.append(path.strip().strip('"').replace("\\", "/"))
     return paths
 
 

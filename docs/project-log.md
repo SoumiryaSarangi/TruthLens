@@ -1485,6 +1485,17 @@ like this is silently excluding too much. The 31 existing files keep
 `dirty: true` and are not rewritten; from this commit the flag means what it
 says, so it is only comparable within runs scored after it.
 
+**The first version of the fix was itself wrong, and looked right.** It sliced
+`line[3:]` off each `git status --porcelain` line to get the path — correct for
+the format, but `_git()` strips its whole stdout, so the *first* line of an
+unstaged " M path" arrives with its leading space gone. `M results/x.json`
+became `esults/x.json`, matched no exclusion, and reported dirty. Three of five
+re-scored runs came out clean and two did not, which is the only reason it was
+caught: a fix that fails on every run gets noticed, and one that fails on the
+second run onward looks like a fix that worked. Matching the status code as a
+leading non-space run survives the strip, and the stripped form is now one of
+the test cases.
+
 ## Phase 3 gaps — CLOSED 2026-09-24
 
 All four are built. They were, in the order the previous section ranked them:

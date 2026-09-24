@@ -21,6 +21,12 @@ from common.provenance import _status_paths, git_info
 @pytest.mark.parametrize("status, expected", [
     ("", []),
     (" M src/eval/evaluate.py", ["src/eval/evaluate.py"]),
+    # `_git` strips its whole stdout, so the FIRST line of an unstaged change
+    # arrives without its leading space. Slicing a fixed offset turned
+    # "M results/x.json" into "esults/x.json", which matched no exclusion and
+    # reported the run dirty -- the one case the exclusion exists for.
+    ("M results/x.json", ["results/x.json"]),
+    ("M results/x.json\n?? results/y.json", ["results/x.json", "results/y.json"]),
     ("?? results/abc123.json", ["results/abc123.json"]),
     ("D  results/old.json\n M docs/results.md",
      ["results/old.json", "docs/results.md"]),
@@ -45,6 +51,8 @@ def test_an_uncommitted_results_file_is_not_dirtiness(monkeypatch):
     """The whole point. Writing results cannot change what a run computed."""
     assert _dirty(monkeypatch, "?? results/34bd7770cb7f.json") is False
     assert _dirty(monkeypatch, "?? results/a.json\n M results/b.json") is False
+    # The stripped-first-line form, which is what `_git` actually returns.
+    assert _dirty(monkeypatch, "M results/b.json\n?? results/a.json") is False
 
 
 def test_uncommitted_source_is_still_dirtiness(monkeypatch):
