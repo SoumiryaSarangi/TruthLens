@@ -400,7 +400,33 @@ archive into per-claim JSONL. That is a cache, not an index.
 
 | Decision | Default until decided | Decide by |
 | --- | --- | --- |
-| Demo corpus composition | §7 proposal | Day 5 |
+| ~~Demo corpus composition~~ | **DECIDED Day 5 — see below** | Day 5 |
 | Stance gold source | AVeriTeC QA-derived, FEVER warm-start if too thin | Day 7 |
 | Learned aggregator form | Logistic regression over stance features | Day 9 |
 | Manipulation flags | Zero-shot plus rules, or dropped | Day 11 |
+
+### Demo corpus, decided Day 5 (2026-09-24)
+
+Three sources, all inside §7's 3 GB index budget:
+
+1. **AVeriTeC dev knowledge store via retrieve-then-rerank.** BM25 to the top
+   100 per claim, dense over only those: ~0.3 GB and ~15 minutes. A dense index
+   over the *whole* dev store is not feasible here and that is measured, not
+   estimated — 15.3 M passages, 31.3 GB of fp16 vectors, 14–28 GPU-hours.
+2. **The 78,077-fact-check index, which already exists.** The fast path's own
+   index doubles as evidence, exactly as the §7 proposal anticipated.
+3. **Hindi and Punjabi Wikipedia LEAD SECTIONS only** — roughly 210k passages,
+   ~30–60 min to encode, ~0.4 GB. Built at the start of Phase 5, because it is
+   evidence-path machinery (FR-9) rather than FR-8.
+
+**Full-article Wikipedia is cut**, for two reasons and the second matters more.
+It costs 6–20 GPU-hours and ~3.6 GB, which breaks this section's own budget. And
+it is the wrong corpus for the input: this system answers viral WhatsApp forwards
+about schemes, health and rumours, and there is no encyclopedia article about a
+rumour that does not exist. The organisations that cover exactly that are
+fact-checkers, and source 2 is 78,077 of their fact-checks. Wikipedia's real
+contribution is entity grounding — *who is this minister, what is this scheme* —
+which is what lead sections carry, at about 5% of the cost.
+
+Dump sizes are to be verified against the live dumps before Phase 5 commits GPU
+time; the estimates above are from memory.

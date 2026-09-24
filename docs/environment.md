@@ -221,6 +221,45 @@ Several models are **ours**, trained here and written to gitignored
 | `word2vec.kv` -- in-domain static embeddings | `scripts/train_word2vec.py` | 80 MB |
 | `span_xlmr_{joint,mono_en,mono_hi,mono_pa,zeroshot}` -- LoRA span taggers | `scripts/train_span.py` | 20 MB each |
 | `checkworthy_xlmr` -- LoRA sequence classifier | `scripts/train_checkworthy.py` | 22 MB |
+| `reranker_xlmr` -- LoRA cross-encoder for claim matching | `scripts/train_reranker.py` | 22 MB |
+
+### The fact-check index and its sidecars (Phase 4)
+
+All under gitignored `data/interim/index/`, all derived from restricted
+MultiClaim text and all keyed by the **same id order** — `ids.json` is the one
+mapping, and each builder refuses if its pool disagrees with it. Two indexes
+over different corpora produce scores that are not comparable, and the
+difference would read as a result.
+
+| File | Built by | Size |
+| --- | --- | --- |
+| `bge_m3.npy` + `ids.json` | `build_factcheck_index.py` | 160 MB |
+| `bm25_corpus.jsonl` -- tokenized pool, BM25 rebuilt from it in ~2 s | `build_factcheck_bm25.py` | 22 MB |
+| `factcheck_meta.jsonl` -- title, text, url, publisher, verdict, lang | `build_factcheck_meta.py` | 40 MB |
+
+The metadata sidecar exists because `ids.json` maps a row to a bare id, while a
+fast-path answer needs a title, a URL, a publisher and a verdict — and those
+live in a 493 MB CSV that takes ~10 s to scan. NFR-1 budgets **3 s p95** for a
+fast-path response, so the scan cannot be per request, and doing it at startup
+would put ten seconds in front of every `make serve`.
+
+**BM25 is CPU-bound and slow at this scale**: `rank_bm25` scores a query by
+looping in Python over all 78,077 documents once per query term, so a long OCR
+post costs proportionally more. Budget ~30–60 minutes for a 3,153-row split, and
+do not run it beside a GPU job — see below.
+
+### Do not run two jobs at once on this machine
+
+16 GB of RAM, and it is the binding constraint more often than VRAM. Running the
+BM25 matcher (which holds the tokenized pool and its document-frequency dicts,
+~1–2 GB) beside the hard-negative miner (which materialises the fp32 index per
+chunk) took free memory to **0.74 GB of 15.71** and both jobs slowed to a crawl
+paging. NFR-4 already says one model at a time; that is a memory rule as much as
+a VRAM one. Check with:
+
+```powershell
+Get-CimInstance Win32_OperatingSystem | Select-Object @{n='FreeGB';e={[math]::Round($_.FreePhysicalMemory/1MB,2)}}
+```
 
 ### Where fine-tuned checkpoints live, and why not in git
 
