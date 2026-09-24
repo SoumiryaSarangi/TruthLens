@@ -13,6 +13,17 @@
 #
 # Punjabi is n=7 native and n=2 romanized. The harness flags both low_n. Report
 # them as fractions with their denominators, never as bare percentages.
+#
+# **This row is also the CONTROL for the reranker arms.** A separate no-reranker
+# run through the Phase 4 matcher was written and then deleted as a duplicate:
+# the reranker arms rerank the top-10 that THIS retrieval returns, and the two
+# code paths call the same DenseRetriever over the same index with the same k.
+# The one thing that could have differed is the language layer, and it does not
+# -- measured across every cell of the split, `passthrough` and `hybrid`
+# preprocess produce byte-identical query text for 306/306 rows, because the
+# language layer sets lang, script and a transliteration without rewriting
+# `normalized`. So the ablation p4_fastpath_{bge_m3, rerank_nli, rerank_xlmr}
+# differs in exactly one thing: the reranker.
 experiment: p4_fastpath_bge_m3
 task: fast_path
 split: data/splits/multiclaim/dev.jsonl

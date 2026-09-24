@@ -11,10 +11,16 @@ seconds without reading the whole plan.
 
 ## Current phase
 
-**Phase 3 COMPLETE.** Both requirements are measured against baselines, the
-ablation is replicated, and the four verification gaps closed on 2026-09-24 —
-the last of which, a zero-shot NLI arm, turned FR-6 from unsolved into
-partially solved. **Next: Phase 4.**
+**Phase 4 IN PROGRESS — claim matching and the fast path (FR-8).** Phase 3 is
+complete: both requirements measured against baselines, the ablation replicated,
+and its four verification gaps closed on 2026-09-24, the last of which turned
+FR-6 from unsolved into partially solved.
+
+Phase 4 was planned as "wire BGE-M3 behind `tau_match`". It is not that. The
+bi-encoder ranks well (MRR 0.5244) and **scores badly**: a correct top-1
+averages cosine 0.7239 and a wrong one 0.6500, so at τ=0.90 the fast path fires
+on 1.7% of posts and still cites the wrong fact-check 18% of the time. The work
+is a reranker, plus a harness task that can see a decision at all.
 
 The clock is **14 days**. **Days 1-4 are done.** Phase 1 shipped the vertical
 slice; Phase 2 shipped the language layer and the native-vs-romanized table,
