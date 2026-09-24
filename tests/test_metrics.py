@@ -188,3 +188,79 @@ def test_coverage_accuracy_curve_improves_as_coverage_drops():
 
 def test_coverage_curve_on_empty_input():
     assert coverage_accuracy_curve([], []) == []
+
+
+# -----------------------------------------------------------------------------
+# Claim spans and normalization (FR-7)
+# -----------------------------------------------------------------------------
+
+from eval.metrics import chrf, normalization_metrics, span_metrics  # noqa: E402
+
+BEGIN, INSIDE, OUTSIDE = "B-CLAIM", "I-CLAIM", "O"
+
+
+def test_span_metrics_against_a_hand_worked_example():
+    """Gold claim tokens at 1,2,3; predicted at 2,3,4.
+
+    tp = 2 (positions 2 and 3), fp = 1 (position 4), fn = 1 (position 1).
+    So precision = recall = 2/3 and F1 = 2/3.
+    """
+    m = span_metrics([[OUTSIDE, OUTSIDE, BEGIN, INSIDE, INSIDE]], [[OUTSIDE, BEGIN, INSIDE, INSIDE, OUTSIDE]])
+    assert m["token_precision"] == pytest.approx(2 / 3)
+    assert m["token_recall"] == pytest.approx(2 / 3)
+    assert m["token_f1"] == pytest.approx(2 / 3)
+    assert m["exact_span_match"] == 0.0
+
+
+def test_span_metrics_perfect_and_disjoint():
+    assert span_metrics([[BEGIN, INSIDE, OUTSIDE]], [[BEGIN, INSIDE, OUTSIDE]])["token_f1"] == 1.0
+    assert span_metrics([[OUTSIDE, OUTSIDE, BEGIN]], [[BEGIN, INSIDE, OUTSIDE]])["token_f1"] == 0.0
+
+
+def test_an_all_outside_prediction_scores_zero_not_two_thirds():
+    """`O` is not scored as a class, and this is why.
+
+    About half of every X-CLAIM post is not the claim, so a three-class average
+    would reward a model that predicted `O` everywhere and found nothing.
+    """
+    assert span_metrics([[OUTSIDE, OUTSIDE, OUTSIDE]], [[BEGIN, INSIDE, OUTSIDE]])["token_f1"] == 0.0
+
+
+def test_whole_post_prediction_gives_recall_one():
+    """The shape of the `whole_post_span` baseline, on a 50%-claim corpus."""
+    m = span_metrics([[BEGIN, INSIDE, INSIDE, INSIDE]], [[BEGIN, INSIDE, OUTSIDE, OUTSIDE]])
+    assert m["token_recall"] == 1.0
+    assert m["token_precision"] == pytest.approx(0.5)
+    assert m["token_f1"] == pytest.approx(2 / 3)
+
+
+def test_span_metrics_refuses_a_length_mismatch():
+    """A misaligned prediction makes every position meaningless."""
+    with pytest.raises(ValueError, match="tags but gold has"):
+        span_metrics([[BEGIN, INSIDE]], [[BEGIN, INSIDE, OUTSIDE]])
+
+
+def test_chrf_identical_and_disjoint():
+    assert chrf("the government said", "the government said") == pytest.approx(1.0)
+    assert chrf("aaaa", "bbbb") == 0.0
+
+
+def test_chrf_against_a_hand_worked_example():
+    """`abc` vs `abd`, beta=2.
+
+    1-grams {a,b,c} vs {a,b,d}: overlap 2, so p = r = 2/3.
+    2-grams {ab,bc} vs {ab,bd}: overlap 1, so p = r = 1/2.
+    3-grams {abc} vs {abd}:     overlap 0, so p = r = 0.
+    Orders 4-6 have no n-grams on either side and are skipped, not scored zero:
+    a short reference must not be punished for being short.
+    Mean p = mean r = (2/3 + 1/2 + 0)/3 = 7/18, and chrF collapses to that when
+    precision equals recall.
+    """
+    assert chrf("abc", "abd") == pytest.approx(7 / 18)
+
+
+def test_normalization_metrics_reports_chrf_and_exact_match():
+    m = normalization_metrics(["a b", "x"], ["a b", "y"])
+    assert m["exact_match"] == pytest.approx(0.5)
+    assert m["chrf"] == pytest.approx(0.5)
+    assert m["n"] == 2.0

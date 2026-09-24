@@ -19,7 +19,7 @@ from typing import Any, ClassVar
 import yaml
 
 from pipeline import registry
-from pipeline.contracts import ClaimResult, Passage, Trace
+from pipeline.contracts import MAX_CLAIMS, ClaimResult, Passage, Trace
 
 
 @dataclass
@@ -110,6 +110,19 @@ class Orchestrator:
             return trace
 
         self._timed(trace, "claims", self.claims.impl, lambda: self.claims.extract(trace))
+
+        # FR-7: at most MAX_CLAIMS are verified; the rest are LISTED as not
+        # checked. Enforced here rather than trusted to the extractor, because
+        # "at most 3" is a promise the API makes to the user and every future
+        # claims implementation would otherwise have to remember to keep it.
+        # Each extra claim costs a full retrieval and NLI pass, so an extractor
+        # that over-produces is expensive as well as wrong.
+        if len(trace.claims) > MAX_CLAIMS:
+            overflow = trace.claims[MAX_CLAIMS:]
+            trace.claims = trace.claims[:MAX_CLAIMS]
+            trace.unchecked_claims = [c.text for c in overflow] + trace.unchecked_claims
+            trace.record("claims", self.claims.impl, 0.0,
+                         f"capped at {MAX_CLAIMS} claims; {len(overflow)} listed unchecked")
 
         for claim in trace.claims:
             trace.results.append(self._verify_claim(trace, claim, claim_idx))

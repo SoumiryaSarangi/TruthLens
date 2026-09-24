@@ -109,6 +109,7 @@ def run_claims(
     stage: str,
     out: Path,
     limit: int | None = None,
+    gate: bool = False,
 ) -> dict[str, int]:
     """Score the claims stage: `--stage checkworthy`, `span` or `normalize`.
 
@@ -139,22 +140,39 @@ def run_claims(
 
         trace = Trace(request_id=f"batch:{uid}")
         orch.preprocess.run(trace, text)
-        worthy = orch.claims.check_worthy(trace)
-        trace.checkworthy = worthy
         counts["n"] += 1
-        counts["checkworthy"] += bool(worthy)
 
         if stage == "checkworthy":
+            worthy = orch.claims.check_worthy(trace)
+            trace.checkworthy = worthy
+            counts["checkworthy"] += bool(worthy)
             predictions.append({"uid": uid, "pred": "Yes" if worthy else "No"})
             continue
 
-        if worthy:
-            orch.claims.extract(trace)
+        # Span and normalization measure FR-7, so they run the extractor
+        # UNCONDITIONALLY unless `gate` is set. Running the check-worthiness gate
+        # first is correct for the served pipeline -- FR-6 short-circuits before
+        # retrieval -- but it confounds the FR-7 number badly: gating suppressed
+        # extraction on 59 of 600 X-CLAIM dev rows, every one of which then
+        # scored as an all-`O` prediction, and the joint arm's token F1 fell from
+        # 0.7469 to 0.6801 without the span model changing at all. Two questions,
+        # two measurements. `--gate` gives the end-to-end figure on purpose.
+        if gate:
+            worthy = orch.claims.check_worthy(trace)
+            trace.checkworthy = worthy
+            counts["checkworthy"] += bool(worthy)
+            if not worthy:
+                predictions.append(
+                    {"uid": uid, "bio": ["O"] * len(text.split())} if stage == "span"
+                    else {"uid": uid, "normalized": ""}
+                )
+                continue
+        orch.claims.extract(trace)
         if trace.unchecked_claims:
             counts["capped"] += 1
 
         if stage == "span":
-            predictions.append({"uid": uid, "bio": _bio_over_tokens(text, trace)})
+            predictions.append({"uid": uid, "bio": _span_tags(orch.claims, text, trace)})
         else:
             best = max((c.text for c in trace.claims), key=len, default="")
             predictions.append({"uid": uid, "normalized": best or text})
@@ -162,6 +180,27 @@ def run_claims(
     write_jsonl(out, predictions)
     print(f"  wrote {len(predictions)} rows -> {out}")
     return counts
+
+
+def _span_tags(stage, text: str, trace: Trace) -> list[str]:
+    """The tagger's own token predictions where the impl has them.
+
+    FR-7's span metric must measure what the span model predicts, not what
+    survives being turned into `Claim` objects. `extract()` caps at MAX_CLAIMS
+    and falls back to the whole post when it finds nothing -- both correct for
+    PRODUCING claims, both wrong for scoring a tagger. Measured on the joint
+    arm: raw tags score P 0.7747 / R 0.7199 / F1 0.7463, while the same model
+    routed through extract() scores P 0.6284 / R 0.7998 / F1 0.7038. The
+    round-trip trades precision for recall by over-tagging, and it is the
+    cap and the fallback doing it, not the model.
+
+    An implementation without a tagger (the rules baseline) has no token-level
+    prediction to report, so it falls back to projecting its claims.
+    """
+    tag = getattr(stage, "tag", None)
+    if callable(tag):
+        return tag(text.split())
+    return _bio_over_tokens(text, trace)
 
 
 def _bio_over_tokens(text: str, trace: Trace) -> list[str]:
@@ -332,6 +371,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--stance-impl", default=None, help="override the stance impl")
     ap.add_argument("--preprocess-impl", default=None, help="override the preprocess impl")
     ap.add_argument("--claims-impl", default=None, help="override the claims impl")
+    ap.add_argument("--gate", action="store_true",
+                    help="run the check-worthiness gate before extracting, as the "
+                         "served pipeline does. Off by default so the span and "
+                         "normalization numbers measure FR-7 rather than FR-6")
+    ap.add_argument("--adapter", default=None,
+                    help="LoRA adapter directory for the claims stage; required to "
+                         "score an ablation arm, which otherwise loads the default")
     ap.add_argument("--encoder", default=None,
                     help="dense retrieval encoder: tfidf|word2vec|muril|labse|bge_m3")
     ap.add_argument("--use-transliterated", action="store_true",
@@ -357,6 +403,8 @@ def main(argv: list[str] | None = None) -> int:
         cfg.stages["preprocess"] = args.preprocess_impl
     if args.claims_impl:
         cfg.stages["claims"] = args.claims_impl
+    if args.adapter:
+        cfg.stage_args.setdefault("claims", {})["adapter"] = args.adapter
     if args.force_lang:
         cfg.stage_args.setdefault("preprocess", {})["force_lang"] = args.force_lang
     if args.encoder:
@@ -369,7 +417,8 @@ def main(argv: list[str] | None = None) -> int:
         out = Path(args.out or f"results/preds/{args.stage}.jsonl")
         print(f"pipeline: preprocess={cfg.stages['preprocess']} "
               f"claims={cfg.stages['claims']} stage={args.stage}")
-        counts = run_claims(Path(args.split), cfg, args.stage, out, args.limit)
+        counts = run_claims(Path(args.split), cfg, args.stage, out, args.limit,
+                            gate=args.gate)
         print(f"  {counts['n']} rows | {counts['checkworthy']} check-worthy "
               f"| {counts['capped']} capped at MAX_CLAIMS")
         return 0

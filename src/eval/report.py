@@ -49,6 +49,8 @@ HEADLINE = {
     "classification": "macro_f1",
     "retrieval": "mrr",
     "transliteration": "cer",
+    "span": "token_f1",
+    "normalization": "chrf",
 }
 LOWER_IS_BETTER = {"cer", "wer"}
 

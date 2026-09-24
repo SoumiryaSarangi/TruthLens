@@ -11,8 +11,6 @@ from __future__ import annotations
 
 from pipeline.contracts import Claim, Trace
 
-MAX_CLAIMS = 3          # FR-7
-
 
 class PassthroughClaims:
     name = "claims"

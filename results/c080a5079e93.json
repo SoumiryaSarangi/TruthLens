@@ -1,0 +1,162 @@
+{
+  "baseline": {
+    "kind": "generated",
+    "metrics": {
+      "chrf": 0.2875490557653878,
+      "exact_match": 0.01730920535011802,
+      "n": 1271.0
+    },
+    "name": "longest_sentence",
+    "notes": []
+  },
+  "config_hash": "c080a5079e93",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 1271,
+    "n_missing": 0,
+    "n_predicted": 1271
+  },
+  "created_utc": "2026-09-24T00:09:03+00:00",
+  "delta_vs_baseline": {
+    "chrf": -0.004002659010517273,
+    "exact_match": -0.0007867820613690034
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p3_normalize_extractive",
+  "git": {
+    "branch": "main",
+    "dirty": true,
+    "sha": "9c844df7bcdb6370e66e2b34e456fce38e5dfb4e"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "longest_sentence",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p3_normalize_extractive",
+      "gold": "data/gold/checkthat25_t2_dev_normalization.jsonl",
+      "metrics": {},
+      "min_cell_n": 30,
+      "notes": "Extractive normalization cannot reorder, resolve a pronoun to a name, or supply a subject the post left implicit. It should lose to an abstractive model, and quantifying by how much is what makes the Phase 6 upgrade justified rather than assumed.\n",
+      "predictions": "results/preds/p3_normalize_extractive.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/checkthat25_t2/dev.jsonl",
+      "task": "normalization"
+    },
+    "config_path": "configs/p3_normalize_extractive.yaml",
+    "predictions_path": "results/preds/p3_normalize_extractive.jsonl",
+    "predictions_sha256": "a00e4dfe899f28a3d092eb89eb5a4f0c37b831983131de0bd2def0c8266c55de",
+    "split_path": "data/splits/checkthat25_t2/dev.jsonl",
+    "split_sha256": "273a553aed83c44c54338040d2b8a4164da5aa0b25c6a3174e1d41b04194368b",
+    "splits_lock_sha256": "4cc7fa3ec6e73ee98730d0e5707f192b7b5c4cea3505be8477b1258eb346d584"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=deva": {
+        "chrf": 0.004126222077300621,
+        "exact_match": 0.0,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 11.0
+      },
+      "lang=en,script=latn": {
+        "chrf": 0.2778395506870967,
+        "exact_match": 0.010344827586206896,
+        "n": 1160.0
+      },
+      "lang=hi,script=deva": {
+        "chrf": 0.34895222024682576,
+        "exact_match": 0.0425531914893617,
+        "n": 47.0
+      },
+      "lang=hi,script=latn": {
+        "chrf": 0.3073747932204458,
+        "exact_match": 0.0,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 3.0
+      },
+      "lang=pa,script=deva": {
+        "chrf": 0.020198132812643006,
+        "exact_match": 0.0,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 5.0
+      },
+      "lang=pa,script=guru": {
+        "chrf": 0.5206621686740195,
+        "exact_match": 0.16216216216216217,
+        "n": 37.0
+      },
+      "lang=pa,script=latn": {
+        "chrf": 0.16997917491171638,
+        "exact_match": 0.125,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 8.0
+      }
+    },
+    "overall": {
+      "chrf": 0.28354639675487053,
+      "exact_match": 0.016522423288749016,
+      "n": 1271.0
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 1160.0,
+        "native": 0.2778395506870967
+      },
+      "hi": {
+        "gap": 0.041577427026379954,
+        "n_native": 47.0,
+        "n_romanized": 3.0,
+        "native": 0.34895222024682576,
+        "romanized": 0.3073747932204458
+      },
+      "pa": {
+        "gap": 0.3506829937623031,
+        "n_native": 37.0,
+        "n_romanized": 8.0,
+        "native": 0.5206621686740195,
+        "romanized": 0.16997917491171638
+      }
+    },
+    "metric": "chrf"
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "normalization",
+  "warnings": [
+    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
+  ]
+}

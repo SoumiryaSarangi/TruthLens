@@ -1,0 +1,22 @@
+# FR-7 claim normalization, EXTRACTIVE: the claim is the span the model found,
+# artefact-stripped. Phase 3's version; the abstractive seq2seq is Phase 6.
+#
+# chrF rather than the shared task's METEOR, deliberately. METEOR's synonym
+# matching runs through WordNet and is English-only, so an English METEOR and a
+# Punjabi METEOR are not the same measurement and must not share a column. chrF
+# is character n-gram F-score: language-agnostic and standard for multilingual
+# generation. This means our numbers are NOT directly comparable with the
+# CheckThat! leaderboard, which is the price of them being comparable with each
+# other across three languages.
+experiment: p3_normalize_extractive
+task: normalization
+split: data/splits/checkthat25_t2/dev.jsonl
+gold: data/gold/checkthat25_t2_dev_normalization.jsonl
+predictions: results/preds/p3_normalize_extractive.jsonl
+baseline: longest_sentence
+breakdown: [lang, script]
+notes: >
+  Extractive normalization cannot reorder, resolve a pronoun to a name, or
+  supply a subject the post left implicit. It should lose to an abstractive
+  model, and quantifying by how much is what makes the Phase 6 upgrade
+  justified rather than assumed.

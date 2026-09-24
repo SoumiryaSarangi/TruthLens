@@ -1,0 +1,20 @@
+# FR-6 check-worthiness on the hand-typed forwards. THE honest test.
+#
+# 100 messages, 85 Yes / 15 No, all romanized, collected specifically so that
+# the "nothing to check" path has real negatives to be measured on. They are
+# `dev` and nothing trains on them -- the derived xclaim_cw set is for model
+# selection, this is for reporting.
+#
+# n=15 negatives is small and the metric is correspondingly noisy: Phase 2 saw a
+# 100-row figure swing 3 rows across retrains. Quote it with its denominator.
+experiment: p3_cw_derived_xlmr
+task: classification
+split: data/splits/xclaim_cw/dev.jsonl
+predictions: results/preds/p3_cw_derived_xlmr.jsonl
+label_set: checkworthy_binary
+baseline: majority_class
+breakdown: [lang, script]
+notes: >
+  Implementation: claims=heuristic (rules only, no weights). Baseline is
+  majority_class, which predicts Yes for everything -- so a heuristic that
+  catches no negatives ties it exactly, and that tie is the result.

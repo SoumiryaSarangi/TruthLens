@@ -49,6 +49,13 @@ class Preprocessed(BaseModel):
     transliterated: str | None = None
 
 
+# FR-7: at most this many claims per forward are verified; the rest are listed
+# as not checked. Defined once, here, because it is part of the Claim contract
+# and not a property of any one extractor -- it had drifted into three separate
+# copies across src/claims/ before the orchestrator started enforcing it.
+MAX_CLAIMS = 3
+
+
 class Claim(BaseModel):
     claim_id: str
     text: str

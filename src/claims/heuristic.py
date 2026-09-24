@@ -35,10 +35,8 @@ from __future__ import annotations
 
 import re
 
-from pipeline.contracts import Claim, Trace
+from pipeline.contracts import MAX_CLAIMS, Claim, Trace
 from preprocess.clean import strip_artefacts
-
-MAX_CLAIMS = 3          # FR-7
 
 # Below this many word characters there is nothing to check. Tuned on the
 # hand-typed set's negatives, which bottom out around 6 tokens.

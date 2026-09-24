@@ -1,0 +1,20 @@
+# FR-7: XLM-R-base + LoRA, JOINT multilingual arm (trained on en+hi+pa).
+#
+# The X-CLAIM paper's own baseline, and not a straw man. On this dev split 25.8%
+# of gold spans ARE the whole post and 52.1% of tokens are claim tokens, so this
+# scores recall 1.0 and precision ~0.52 by construction. Read exact_span_match
+# and token_precision beside token_f1: a model that ties this on F1 has learned
+# nothing. PRD 8 requires beating it PER LANGUAGE, not on the average.
+experiment: p3_span_xlmr_mono_en
+task: span
+split: data/splits/x_claim/dev.jsonl
+gold: data/gold/x_claim_dev_span.jsonl
+predictions: results/preds/p3_span_xlmr_mono_en.jsonl
+baseline: c108ee694a53
+breakdown: [lang, script]
+notes: >
+  Baseline is the config_hash of the p3_span_whole_post run, so the delta
+  column reads directly as "how much better than predicting the whole post". Token F1 over claim
+  tokens only -- `O` is not scored as a class, because about half of every
+  X-CLAIM post is not the claim and an all-`O` prediction would otherwise look
+  respectable.

@@ -1,0 +1,182 @@
+{
+  "baseline": {
+    "experiment": "p3_span_whole_post",
+    "kind": "prior_run",
+    "metrics": {
+      "exact_span_match": 0.25833333333333336,
+      "n": 600.0,
+      "token_f1": 0.6850797085308812,
+      "token_precision": 0.5210047430064854,
+      "token_recall": 1.0
+    },
+    "name": "c108ee694a53"
+  },
+  "config_hash": "f599f727f473",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 600,
+    "n_missing": 0,
+    "n_predicted": 600
+  },
+  "created_utc": "2026-09-24T00:04:31+00:00",
+  "delta_vs_baseline": {
+    "exact_span_match": 0.004999999999999949,
+    "token_f1": 0.061224880038621365,
+    "token_precision": 0.25368538094393445,
+    "token_recall": -0.2800743149094287
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p3_span_xlmr_joint",
+  "git": {
+    "branch": "main",
+    "dirty": true,
+    "sha": "9c844df7bcdb6370e66e2b34e456fce38e5dfb4e"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "c108ee694a53",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p3_span_xlmr_joint",
+      "gold": "data/gold/x_claim_dev_span.jsonl",
+      "metrics": {},
+      "min_cell_n": 30,
+      "notes": "Baseline is the config_hash of the p3_span_whole_post run, so the delta column reads directly as \"how much better than predicting the whole post\". Token F1 over claim tokens only -- `O` is not scored as a class, because about half of every X-CLAIM post is not the claim and an all-`O` prediction would otherwise look respectable.\n",
+      "predictions": "results/preds/p3_span_xlmr_joint.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/x_claim/dev.jsonl",
+      "task": "span"
+    },
+    "config_path": "configs/p3_span_xlmr_joint.yaml",
+    "predictions_path": "results/preds/p3_span_xlmr_joint.jsonl",
+    "predictions_sha256": "1849e060354040f70b4e0b24c75658b71a8818e40e67b7c4889e201288833470",
+    "split_path": "data/splits/x_claim/dev.jsonl",
+    "split_sha256": "acc94da887669db4a256a76b3b3ed49adfa5d6d9a5e59dee7714ae3d22c69fb1",
+    "splits_lock_sha256": "4cc7fa3ec6e73ee98730d0e5707f192b7b5c4cea3505be8477b1258eb346d584"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=deva": {
+        "exact_span_match": 0.0,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 8.0,
+        "token_f1": 0.6009389671361502,
+        "token_precision": 0.5092838196286472,
+        "token_recall": 0.732824427480916
+      },
+      "lang=en,script=latn": {
+        "exact_span_match": 0.20153061224489796,
+        "n": 392.0,
+        "token_f1": 0.7231976092641016,
+        "token_precision": 0.7636478384348375,
+        "token_recall": 0.6868170852845182
+      },
+      "lang=hi,script=deva": {
+        "exact_span_match": 0.375,
+        "n": 96.0,
+        "token_f1": 0.7805299539170507,
+        "token_precision": 0.8287461773700305,
+        "token_recall": 0.7376156777354382
+      },
+      "lang=hi,script=latn": {
+        "exact_span_match": 0.75,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 4.0,
+        "token_f1": 0.8514851485148515,
+        "token_precision": 0.7678571428571429,
+        "token_recall": 0.9555555555555556
+      },
+      "lang=pa,script=deva": {
+        "exact_span_match": 0.45454545454545453,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 11.0,
+        "token_f1": 0.8352272727272726,
+        "token_precision": 0.7577319587628866,
+        "token_recall": 0.930379746835443
+      },
+      "lang=pa,script=guru": {
+        "exact_span_match": 0.3815789473684211,
+        "n": 76.0,
+        "token_f1": 0.8381709741550696,
+        "token_precision": 0.8371723590150913,
+        "token_recall": 0.839171974522293
+      },
+      "lang=pa,script=latn": {
+        "exact_span_match": 0.46153846153846156,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 13.0,
+        "token_f1": 0.780327868852459,
+        "token_precision": 0.8206896551724138,
+        "token_recall": 0.74375
+      }
+    },
+    "overall": {
+      "exact_span_match": 0.2633333333333333,
+      "n": 600.0,
+      "token_f1": 0.7463045885695025,
+      "token_precision": 0.7746901239504198,
+      "token_recall": 0.7199256850905713
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 392.0,
+        "native": 0.7231976092641016
+      },
+      "hi": {
+        "gap": -0.07095519459780075,
+        "n_native": 96.0,
+        "n_romanized": 4.0,
+        "native": 0.7805299539170507,
+        "romanized": 0.8514851485148515
+      },
+      "pa": {
+        "gap": 0.05784310530261061,
+        "n_native": 76.0,
+        "n_romanized": 13.0,
+        "native": 0.8381709741550696,
+        "romanized": 0.780327868852459
+      }
+    },
+    "metric": "token_f1"
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "span",
+  "warnings": [
+    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
+  ]
+}
