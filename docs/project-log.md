@@ -101,7 +101,7 @@ built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
 | **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
 | **Models trained** | Romanized LID, in-domain Word2Vec, and **6 XLM-R+LoRA adapters** (5 span ablation arms + check-worthiness). |
 | **Numbers so far** | Span token-F1 **0.7463** (baseline 0.6851) · claim matching MRR 0.5244 · LID ~0.86 on the hand-typed set · transliteration CER 0.4281 · AVeriTeC verdict macro-F1 0.2147. **FR-6 partially solved by the ZERO-SHOT arm**: macro-F1 0.5938 vs 0.4595 majority, 7/15 real negatives caught -- at the cost of rejecting 18 of 85 real claims. The trained classifier catches 0/15. |
-| **CI** | Green on `51d955e`, verified with `gh run list`. Runs take ~1m50s. `gh` is at `C:\Program Files\GitHub CLI\gh.exe`, NOT on this shell's PATH. |
+| **CI** | Green, checked with `gh run list` after every push (last: `c250304`). A sha here goes stale the moment the next commit lands -- check, do not trust. Runs take ~1m50s. `gh` is at `C:\Program Files\GitHub CLI\gh.exe`, NOT on this shell's PATH. |
 
 ---
 
