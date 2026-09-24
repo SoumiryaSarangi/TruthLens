@@ -58,6 +58,17 @@ historical rationale, lowest precedence.
    NumPy 2, so `src/preprocess/lid.py` calls the C++ predictor directly — do not
    "simplify" it back. And `uv` has gone missing from this machine once; the
    venv keeps working, so nothing fails until something needs installing.
+8. **A measurement bug looks exactly like a weak model.** Phase 3 produced two,
+   and both read as "the model barely beats its baseline and the ablation shows
+   nothing": a stage gate suppressing the stage being measured, and scoring a
+   tagger through a round-trip that caps and back-fills. Neither raised an
+   error. What caught both was having an earlier number on record to disagree
+   with. So: **score the baseline before building the model, keep every
+   intermediate figure, and when a number moves, find out why before believing
+   it.** A flat result is a hypothesis about the code, not just about the model.
+9. **`gh` exists but is not on PATH** — `C:\Program Files\GitHub CLI\gh.exe`.
+   CI was red for three commits once because it was assumed unavailable rather
+   than looked for.
 
 **To get running:** `make setup` then `make test`. The environment is already
 built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
@@ -68,18 +79,18 @@ built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
 
 | | |
 | --- | --- |
-| **Current phase** | **Phase 3 complete.** Check-worthiness, span identification and extractive normalization shipped, with the X-CLAIM ablation replicated. Phase 4 not started. |
+| **Current phase** | **Phase 3: findings complete, 4 verification gaps open.** Both requirements are measured against baselines and the X-CLAIM ablation is replicated, but four items from the approved plan were not built -- see **Phase 3 gaps** below. Do not report Phase 3 as finished. |
 | **Clock** | 14 days. **Days 1-4 done** (Phases 1-3). Day 5 = Phase 4. Freeze end of Day 12. |
 | **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |
 | **Python** | 3.11.16 via uv, in `.venv`. System Python is 3.13 and is not used. |
 | **Tests** | 283 passing, 2 skipped, 2 gpu-deselected |
 | **Datasets in hand** | AVeriTeC, X-CLAIM, MultiClaim, handtyped (FR-26), Dakshina, **CheckThat! 2025 T2** |
-| **Datasets waiting** | None. CheckThat! 2025 T2 downloaded 2026-09-24; its loader and splits are Phase 3. |
+| **Datasets waiting** | None. Every dataset is downloaded, split, locked and leakage-checked. |
 | **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
 | **Models trained** | Romanized LID, in-domain Word2Vec, and **6 XLM-R+LoRA adapters** (5 span ablation arms + check-worthiness). |
 | **Numbers so far** | Span token-F1 **0.7463** (baseline 0.6851) · claim matching MRR 0.5244 · LID ~0.86 on the hand-typed set · transliteration CER 0.4281 · AVeriTeC verdict macro-F1 0.2147. **FR-6 is NOT solved**: 0/15 real no-claim messages caught. |
-| **CI** | Green. Last verified run 29s, both jobs. |
+| **CI** | Green on `ba727b9`, verified with `gh run list`. Runs take ~1m50s. `gh` is at `C:\Program Files\GitHub CLI\gh.exe`, NOT on this shell's PATH. |
 
 ---
 
@@ -1102,6 +1113,12 @@ Devanagari) -- and once again the language column is not the script column: only
 
 ## 2026-09-24 — Phase 3: the front of the pipeline, and what FR-6 actually needs
 
+> **Corrected 2026-09-24.** Two rows of the ablation table below were originally
+> taken from superseded scoring runs, and one finding drawn from them was wrong.
+> The table here has been fixed in place because the figures were simply
+> incorrect rather than a reversed decision; what happened, and the finding that
+> replaced the wrong one, is in the correction entry further down.
+
 Two requirements, three models trained, and two of the phase's most useful
 outputs are negative results.
 
@@ -1113,8 +1130,8 @@ on the 4050. Token F1 on X-CLAIM dev:
 | arm | overall (600) | en/latn (392) | hi/deva (96) | pa/guru (76) |
 | --- | --- | --- | --- | --- |
 | whole_post_span | 0.6851 | 0.6647 | 0.7385 | 0.7445 |
-| mono-en | 0.6685 | 0.6410 | 0.7283 | 0.7736 |
-| mono-hi | 0.6970 | 0.6528 | 0.7586 | 0.8361 |
+| mono-en | 0.7106 | 0.6911 | 0.7089 | 0.8027 |
+| mono-hi | 0.7053 | 0.6507 | **0.7881** | 0.8352 |
 | mono-pa | 0.7175 | 0.6990 | 0.7375 | 0.7953 |
 | zero-shot | 0.7370 | 0.7055 | 0.7811 | **0.8426** |
 | **joint** | **0.7463** | **0.7232** | 0.7805 | 0.8382 |
@@ -1135,8 +1152,15 @@ rows to en+hi bought essentially nothing. Punjabi performance here is almost
 entirely cross-lingual transfer, not Punjabi supervision — which is a more
 useful finding than "joint wins", because it says where effort should NOT go.
 
-**mono-en scores below the baseline** (0.6685 vs 0.6851). Training on English
-alone is worse than predicting the whole post.
+**Punjabi is better served by HINDI training data than by Punjabi.** mono-hi
+scores 0.8352 on pa/guru against mono-pa's 0.7953, on 1,158 Hindi rows versus
+337 Punjabi ones — across a script boundary, Devanagari to Gurmukhi. Together
+with the zero-shot result, the picture is consistent: for Punjabi span
+identification here, related-language data beats in-language data at this scale.
+
+**mono-hi is the best arm on Hindi** (0.7881 vs joint's 0.7805). Joint training
+wins on average and on English, but it is not uniformly better per language —
+worth stating, because "joint wins" is the headline and this is the asterisk.
 
 The fourth arm the build plan names — training on machine-translated English —
 is not run. `data/CLAUDE.md` never downloaded `en2xx` precisely so it could not
@@ -1256,6 +1280,89 @@ The X-CLAIM span end index is **inclusive**, measured rather than assumed:
 2,897. `scripts/build_span_gold.py` re-checks it on every build and refuses if
 it flips, because getting it wrong shifts every span by one token while still
 looking entirely plausible.
+
+## 2026-09-24 — Correction: two rows of the Phase 3 ablation were from superseded runs
+
+Caught by the pre-compaction audit, which cross-checks every figure in the docs
+against the `results/*.json` it came from.
+
+The ablation was scored three times: once with the FR-6 gate wrongly suppressing
+the extractor, once round-tripped through `extract()`, and once correctly. The
+table written into the Phase 3 entry took `mono-en` from the FIRST run and
+`mono-hi` from the SECOND. Four of six rows were right, which is why it read as
+plausible.
+
+| arm | was | is |
+| --- | --- | --- |
+| mono-en overall | 0.6685 | **0.7106** |
+| mono-hi overall | 0.6970 | **0.7053** |
+
+**One stated finding was wrong and has been removed:** "mono-en scores below the
+baseline — training on English alone is worse than predicting the whole post."
+It is not. **No arm is below the baseline.** The correct numbers support a
+better finding in its place: mono-hi scores 0.8352 on Punjabi against mono-pa's
+0.7953, so for Punjabi span identification at this scale, related-language data
+beats in-language data — and mono-hi beats joint on Hindi (0.7881 vs 0.7805), so
+joint training wins on average without being uniformly better per language.
+
+The commit message of `7e13e81` still carries the wrong table. History is not
+rewritten here; this entry is the correction, and `docs/results.md` is generated
+from `results/` so it was never wrong.
+
+**Why this happened, and the cheap guard against it.** Three scoring passes in
+quick succession, numbers copied into prose from terminal scrollback rather than
+from the results files. The guard is mechanical and takes seconds: before
+publishing any table, re-read every figure out of `results/*.json` by
+`experiment` name and assert it appears in the doc. That check found this in one
+run, and it is the same check that caught three wrong figures in the Phase 2
+docs. It should run before every phase write-up, not only before a compaction.
+
+## Phase 3 gaps — OPEN. Do not report Phase 3 as complete.
+
+The findings in the Phase 3 entry are measured, committed and CI-green. Four
+items from the approved plan were not built, and they are verification rather
+than results — which is exactly the kind of thing that gets quietly dropped
+across a context compaction, so it is written here rather than left implied.
+
+**1. `tests/test_loader_xclaim.py` does not exist.** The plan named it
+specifically: pin the inclusive-end span convention, "because that is the
+assumption most likely to be silently wrong". `scripts/build_span_gold.py`
+re-checks the convention on every build and refuses if it flips, so it is not
+unguarded — but every span number in this project rests on it and there is no
+test. ~10 minutes.
+
+**2. The measured VRAM figures never reached `docs/environment.md`.** The plan
+said to write them in because `SYSTEM_DESIGN.md` §10's "~2.8 GB resident" was an
+estimate nobody had checked. They were measured and are in each adapter's
+`data/interim/models/*/training.json`:
+
+| | peak VRAM |
+| --- | --- |
+| XLM-R + LoRA training, batch 16 | **2.59 GiB** |
+| BGE-M3 inference, batch 32 | 1.11 GiB |
+| Real ceiling on this card | ~4.9 GiB |
+
+So §10's estimate is about right, and that is worth stating in the doc that
+claims it. ~5 minutes.
+
+**3. The zero-shot NLI check-worthiness arm was never built, and it matters
+more than when it was planned.** It was planned as the control for "is the
+trained classifier learning anything the NLI model did not already know".
+
+Since then FR-6 failed, and the reason it failed is that the trained classifier
+learned X-CLAIM's all-positive distribution. **A zero-shot NLI model has no
+training distribution to be skewed by**, so it is the approach most likely to
+work — and the current position is reporting FR-6 as unsolved without having
+tried it. The mDeBERTa NLI model is already on disk from Phase 1; this needs no
+download and no training, just a hypothesis like "This text makes a checkable
+factual claim" scored by entailment. ~20 minutes.
+
+**4. No suite tests for `src/claims/span_xlmr.py`.** `spans_from_tags` was
+verified 5/5 in a throwaway script, which does not survive. It is pure logic
+and needs no GPU. ~10 minutes.
+
+**Priority if time is short: (3) first.** It could change the FR-6 conclusion.
+The other three protect numbers that are already correct.
 
 ## Next
 

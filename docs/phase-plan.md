@@ -11,7 +11,10 @@ seconds without reading the whole plan.
 
 ## Current phase
 
-**Phase 3 complete (Day 4). Phase 4 not started, nothing blocking it.**
+**Phase 3: findings complete, 4 verification gaps OPEN.** Both requirements
+are measured against baselines and the ablation is replicated, but four items
+from the plan were not built — see **Phase 3 gaps** in
+[project-log.md](project-log.md). Phase 4 is not blocked by them.
 
 The clock is **14 days**. **Days 1-4 are done.** Phase 1 shipped the vertical
 slice; Phase 2 shipped the language layer and the native-vs-romanized table,
@@ -141,8 +144,8 @@ and it is recorded beside every cosine in the JSON.
 | arm | overall | en/latn | hi/deva | pa/guru |
 | --- | --- | --- | --- | --- |
 | whole_post_span | 0.6851 | 0.6647 | 0.7385 | 0.7445 |
-| mono-en | 0.6685 | 0.6410 | 0.7283 | 0.7736 |
-| mono-hi | 0.6970 | 0.6528 | 0.7586 | 0.8361 |
+| mono-en | 0.7106 | 0.6911 | 0.7089 | 0.8027 |
+| mono-hi | 0.7053 | 0.6507 | **0.7881** | 0.8352 |
 | mono-pa | 0.7175 | 0.6990 | 0.7375 | 0.7953 |
 | zero-shot | 0.7370 | 0.7055 | 0.7811 | **0.8426** |
 | **joint** | **0.7463** | **0.7232** | 0.7805 | 0.8382 |
