@@ -13,8 +13,8 @@ the question is not "is this true" but "is there anything here a fact-checker
 could look up".
 
 The rules are deliberately few. Each one is a property of the text that can be
-checked without understanding it, and each is there because it separates the
-hand-typed set's 15 negatives from its 85 positives:
+checked without understanding it, and each targets a category the collection
+brief asked for:
 
   too short         a three-word message carries no checkable assertion
   greeting-only     "Suprabhat", "Sat Sri Akal", "Good morning" and their kin
@@ -24,6 +24,17 @@ hand-typed set's 15 negatives from its 85 positives:
                     instruction, not an assertion
   no content word   after stripping greetings, emoji and chain requests, a
                     message with nothing left is not making a claim
+
+**They do not work, and the measurement is the point.** On the hand-typed 100
+this implementation catches **0 of 15** real no-claim messages and ties
+`majority_class` exactly at macro-F1 0.4595. The rules catch messages that are
+short or empty; a blessing is neither. "Sat Sri Akal ji, Rabb sabnu khush rakhe,
+ehna sandesh dostan nu bhejo" is fluent, complete, full of content words and
+asserts nothing, so every rule here passes it through. That limitation is pinned
+by a test that fails loudly if a future change fixes it, rather than left as a
+comment. The arm that does work is `claims/nli_zeroshot.py`, which catches 7 of
+15 -- see the project log. This one remains the floor `SYSTEM_DESIGN.md` §3 asks
+for, and a floor is still worth having a number for.
 
 Numbers and named entities are NOT used as evidence of check-worthiness. It is
 tempting -- most viral health and scheme forwards carry a figure -- but "Rabb
