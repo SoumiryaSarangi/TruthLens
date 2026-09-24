@@ -68,17 +68,17 @@ built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
 
 | | |
 | --- | --- |
-| **Current phase** | **Phase 2 complete.** Language layer, embedding ladder and the native-vs-romanized table all shipped. Phase 3 not started, nothing blocking it. |
-| **Clock** | 14 days. **Days 1-3 done** (Phases 1 and 2). Day 4 = Phase 3. Freeze end of Day 12. |
+| **Current phase** | **Phase 3 complete.** Check-worthiness, span identification and extractive normalization shipped, with the X-CLAIM ablation replicated. Phase 4 not started. |
+| **Clock** | 14 days. **Days 1-4 done** (Phases 1-3). Day 5 = Phase 4. Freeze end of Day 12. |
 | **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |
 | **Python** | 3.11.16 via uv, in `.venv`. System Python is 3.13 and is not used. |
-| **Tests** | 266 passing, 2 skipped, 2 gpu-deselected |
+| **Tests** | 283 passing, 2 skipped, 2 gpu-deselected |
 | **Datasets in hand** | AVeriTeC, X-CLAIM, MultiClaim, handtyped (FR-26), Dakshina, **CheckThat! 2025 T2** |
 | **Datasets waiting** | None. CheckThat! 2025 T2 downloaded 2026-09-24; its loader and splits are Phase 3. |
 | **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
-| **Models trained** | Romanized LID (char n-gram) and in-domain Word2Vec, both ours. Everything else is off the shelf. |
-| **Numbers so far** | Claim matching MRR 0.5244 / R@10 0.6688 (BGE-M3, floor 0.0002) · LID ~0.86 on the hand-typed set (was 0.0000; n=100, +/-3 rows across retrains) · transliteration CER 0.4281 (identity 0.8518) · AVeriTeC retrieval R@10 0.0947, verdict macro-F1 0.2147 |
+| **Models trained** | Romanized LID, in-domain Word2Vec, and **6 XLM-R+LoRA adapters** (5 span ablation arms + check-worthiness). |
+| **Numbers so far** | Span token-F1 **0.7463** (baseline 0.6851) · claim matching MRR 0.5244 · LID ~0.86 on the hand-typed set · transliteration CER 0.4281 · AVeriTeC verdict macro-F1 0.2147. **FR-6 is NOT solved**: 0/15 real no-claim messages caught. |
 | **CI** | Green. Last verified run 29s, both jobs. |
 
 ---
@@ -1100,36 +1100,189 @@ CheckThat! contributes **368 Punjabi training rows** (254 Gurmukhi, 50 Latin, 64
 Devanagari) -- and once again the language column is not the script column: only
 67% of the "Punjabi" file is in Punjabi's script.
 
+## 2026-09-24 — Phase 3: the front of the pipeline, and what FR-6 actually needs
+
+Two requirements, three models trained, and two of the phase's most useful
+outputs are negative results.
+
+### FR-7 span identification: the ablation replicates X-CLAIM's finding
+
+XLM-R-base + LoRA, 887K trainable of 278M (0.32%), 3 minutes and 2.59 GiB peak
+on the 4050. Token F1 on X-CLAIM dev:
+
+| arm | overall (600) | en/latn (392) | hi/deva (96) | pa/guru (76) |
+| --- | --- | --- | --- | --- |
+| whole_post_span | 0.6851 | 0.6647 | 0.7385 | 0.7445 |
+| mono-en | 0.6685 | 0.6410 | 0.7283 | 0.7736 |
+| mono-hi | 0.6970 | 0.6528 | 0.7586 | 0.8361 |
+| mono-pa | 0.7175 | 0.6990 | 0.7375 | 0.7953 |
+| zero-shot | 0.7370 | 0.7055 | 0.7811 | **0.8426** |
+| **joint** | **0.7463** | **0.7232** | 0.7805 | 0.8382 |
+
+Joint beats every monolingual arm, which is what `build-plan.md` asked to be
+replicated deliberately rather than rediscovered. Three things worth more than
+the headline:
+
+**The baseline is harder to beat in Indic than in English** — 0.7445 for
+pa/guru against 0.6647 for en/latn, because Indic posts here are more
+claim-dense. The model faces its highest bar in exactly the languages where it
+has least data: 249 Punjabi rows against a 0.7445 floor, 2,918 English rows
+against 0.6647. That inverts the naive reading.
+
+**Zero-shot ties joint on Punjabi** (0.8426 vs 0.8382, n=76, comfortably inside
+noise) having never seen a single Punjabi training example. Adding 249 Punjabi
+rows to en+hi bought essentially nothing. Punjabi performance here is almost
+entirely cross-lingual transfer, not Punjabi supervision — which is a more
+useful finding than "joint wins", because it says where effort should NOT go.
+
+**mono-en scores below the baseline** (0.6685 vs 0.6851). Training on English
+alone is worse than predicting the whole post.
+
+The fourth arm the build plan names — training on machine-translated English —
+is not run. `data/CLAUDE.md` never downloaded `en2xx` precisely so it could not
+contaminate this comparison. An absence with a recorded reason, not a gap.
+
+### FR-6 check-worthiness: not solved, and now we know exactly why
+
+The first attempt read check-worthiness off the span model: no claim tokens, no
+claim. It rejected **0 of 15** no-claim messages on the hand-typed set while
+getting 70/70 straightforward positives right.
+
+The reason is structural, not a threshold. **The span model trains on X-CLAIM,
+where every post contains a claim.** It has never seen the negative class and
+has no way to answer in the negative. A model cannot learn a class it was never
+shown.
+
+So check-worthiness became its own sequence classifier, trained on the derived
+`xclaim_cw` set (7,874 rows, 3,402 negatives). It learns the task and does not
+transfer:
+
+| | macro-F1 | vs majority | negatives caught |
+| --- | --- | --- | --- |
+| derived dev (n=963) | **0.7222** | +0.3383 | 190/363 = 52.3% |
+| hand-typed (n=100) | 0.4536 | -0.0059 | **0/15** |
+
+That gap was predicted in the loader docstring before it was measured, and the
+prediction was right. Derived negatives are out-of-span fragments of posts that
+DID contain a claim: they read as truncated mid-thought. A real blessing —
+"Sat Sri Akal ji, Rabb sabnu khush rakhe" — is fluent, complete, and asserts
+nothing. Different problems, and training on one does not touch the other.
+
+The rules baseline ties majority class exactly on the hand-typed set (macro-F1
+0.4595, 0/15 negatives). Rules catch short or empty messages; they cannot catch
+"wordy but asserts nothing". I stopped tuning at that point rather than fit six
+hand-picked examples, and pinned the limitation in a test that fails loudly if
+a future change fixes it.
+
+**Category breakdown on the hand-typed set, which its collection brief designed
+for exactly this:**
+
+| category | found |
+| --- | --- |
+| straightforward check-worthy | 70/70 |
+| buried claim in a long emotional message | 9/15 |
+| no claim at all | 0/15 |
+
+Rejected messages average 173 characters against 91 for accepted ones — the
+model degrades precisely on the buried-claim category the brief asked for.
+
+**So the highest-value human task left is ~100 more real no-claim messages.**
+The 15 collected are the only reason we know FR-6 is unsolved, and are far too
+few to train on. This is now the top item under "needs a human".
+
+### Normalization is not extractable, and that is measurable
+
+chrF 0.2835 against a longest-sentence baseline of 0.2875 — extraction loses to
+a `split('.')`. Not a tuning problem:
+
+| | |
+| --- | --- |
+| gold claims appearing VERBATIM in the post | 55/1271 = **4.3%** |
+| mean share of gold words present anywhere in the post | 48.4% |
+| golds with under half their words in the post | 665/1271 |
+
+The CheckThat references describe what a post CLAIMS; they do not quote it.
+Post: "The Karnofsky Jewish family, who immigrated from Lithuania, employed a
+7-year-old..."  Gold: "Photo shows Louis Armstrong as a child".
+
+That settles the Phase 6 abstractive case with a number rather than an
+intuition, which is what D2 of the phase plan said it was for.
+
+### Two measurement bugs, both of which produced publishable-looking numbers
+
+**The FR-6 gate was suppressing FR-7's extractor.** Running check-worthiness
+before extraction is correct for the served pipeline, but it rejected 59 of 600
+X-CLAIM dev rows and every one then scored as an all-`O` prediction. The joint
+arm fell 0.7469 to 0.6801 without the span model changing at all. `--gate` is
+now explicit and off by default: span and normalization measure FR-7,
+check-worthiness measures FR-6. Two questions, two measurements.
+
+**Scoring the tagger through `extract()` cost precision.** `extract()` caps at
+MAX_CLAIMS and falls back to the whole post when it finds nothing — both right
+for PRODUCING claims, both wrong for scoring a tagger. Raw tags score
+P 0.7747 / R 0.7199 / F1 0.7463; the same model round-tripped scores
+P 0.6284 / R 0.7998 / F1 0.7038.
+
+Both bugs produced a flat ablation clustered near the baseline, which reads as
+"the model barely works and joint training does not help" — a conclusion that
+would have been written up. **What caught them was having the earlier ungated
+number on record to disagree with.** A new number is only obviously wrong when
+there is an old one to contradict it, which is the argument for scoring
+baselines first and keeping every intermediate figure.
+
+A third near-miss: `--claims-impl xlmr` hardcoded the joint adapter, so all four
+ablation arms would have scored identically — and identical arms read as "the
+ablation shows no difference" rather than "the script never loaded the other
+three models". `--adapter` now routes through `stage_args`.
+
+### Smaller things
+
+`MAX_CLAIMS` is enforced in the orchestrator rather than trusted to extractors.
+FR-7's "at most 3" is a promise the API makes, and each extra claim costs a full
+retrieval and NLI pass, so an over-producing extractor is expensive as well as
+wrong. It had drifted into three copies across `src/claims/` and now lives once
+in `contracts.py`, where the `Claim` contract is.
+
+The harness gained `task: span` (token P/R/F1 over claim tokens, plus exact-span
+match) and `task: normalization` (chrF + exact match), both following the Phase 2
+transliteration seam list. `O` is deliberately not scored as a class: about half
+of every X-CLAIM post is not the claim, so an all-`O` prediction would otherwise
+look respectable while finding nothing. chrF rather than the shared task's
+METEOR, because METEOR's synonym matching is English-only via WordNet and an
+English METEOR cannot share a column with a Punjabi one.
+
+The X-CLAIM span end index is **inclusive**, measured rather than assumed:
+`== len(tokens)` occurs 0 times across the corpus, `== len(tokens) - 1` occurs
+2,897. `scripts/build_span_gold.py` re-checks it on every build and refuses if
+it flips, because getting it wrong shifts every span by one token while still
+looking entirely plausible.
+
 ## Next
 
-**Phase 3 — front of the pipeline (Days 4-5).** Check-worthiness, claim
-normalisation (CheckThat! 2025 Task 2), span identification (X-CLAIM).
-
-**Phase 2 built two things Phase 3 inherits.** The hand-typed set already
-carries check-worthiness labels (15 `No` / 85 `Yes`) from its `no claim` rows,
-so FR-6 has a small but real eval set on romanized input from day one. And
-`whole_post_span` is registered in `eval/baselines.py` but still raises
-`NotImplementedError` — it needs the tokenised X-CLAIM loaders.
+**Phase 4 — claim matching (Days 5-6).** The fast path: a post that matches an
+existing fact-check closely enough skips retrieval entirely. Phase 2 already
+built and scored the machinery -- BGE-M3 over 78,077 fact-checks, MRR 0.5244 --
+so Phase 4 is mostly wiring it behind `tau_match` and deciding that threshold.
 
 **The floor to beat, per component:**
 
 | component | metric | current | baseline |
 | --- | --- | --- | --- |
-| Claim matching | MRR / R@10 | **0.5244 / 0.6688** (BGE-M3) | 0.0002 / 0.0008 random |
-| Language ID, hand-typed | accuracy | **0.8500** (see caveat) | 0.6400 majority |
-| Language ID, MultiClaim hi/latn | accuracy | **0.7368** | 0.0000 script |
+| Claim span, joint | token F1 | **0.7463** | 0.6851 whole-post |
+| Claim matching | MRR / R@10 | **0.5244 / 0.6688** | 0.0002 random |
+| Language ID, hand-typed | accuracy | ~0.86 | 0.6400 majority |
 | Transliteration, 33 pa pairs | CER | **0.4281** | 0.8518 identity |
+| Check-worthiness, hand-typed | macro-F1 | **0.4536** | 0.4595 majority |
 | AVeriTeC retrieval | R@10 | 0.0947 | 0.0121 random |
 | AVeriTeC verdict | macro-F1 | 0.2147 | 0.1516 majority |
 
-**The highest-value open engineering task is an accurate transliterator**, and
-Phase 2 produced the number that says so: romanized text sits in a spurious
-Latin-script cluster (unrelated romanized hi vs pa = cosine 0.6900, against
-0.5613 for the *same* sentence across scripts), so moving queries out of it
-should help — but doing it with the rule-based transliterator costs 0.0789
-Recall@10 on the hi/latn cell, because CER 0.38 lands them in the wrong place.
-Until that improves, transliteration output is for the user to read, not for
-retrieval to consume.
+**Check-worthiness is the one component below its baseline**, and the reason is
+data rather than modelling: there are 15 real no-claim messages in the entire
+project. See the Phase 3 entry.
+
+**Decision due Day 5:** the demo corpus composition (`SYSTEM_DESIGN.md` §14).
+Phase 2's fact-check index makes the retrieve-then-rerank option concrete --
+78,077 documents encoded in 12 minutes at 1.11 GiB.
 
 ### Open items
 
@@ -1154,18 +1307,21 @@ retrieval to consume.
 
 ### Needs a human — I cannot do these
 
-- ~~**~100 hand-typed romanized forwards (FR-26, P0).**~~ **DONE, Day 3**, eight
-  days before the deadline. 100 rows, 64 hi / 36 pa, 15 no-claim, 33 matched
-  Gurmukhi pairs. The single most valuable input to Phase 2.
+- **~100 more real no-claim messages. This is now the top item.** Phase 3
+  established that FR-6 cannot be solved with what the project has: X-CLAIM and
+  CheckThat! posts are 100% positive, CheckThat!'s subjectivity task covers no
+  Indic language, and negatives derived from X-CLAIM's out-of-span remainders
+  train a classifier to 0.7222 macro-F1 that then catches **0 of 15** real
+  no-claim messages. Greetings, blessings, jokes, pure opinion -- the same
+  categories `collection-brief.md` already describes, just more of them. The 15
+  already collected are the only reason we know FR-6 is unsolved; ~100 would be
+  enough to train on rather than only to fail against.
 - **Native-speaker review of `app/static/i18n/{hi,pa}.json`** before any demo.
-  Those strings are unverified placeholders, marked as such in the files. This
-  is now the only outstanding human task.
+  Those strings are unverified placeholders, marked as such in the files.
 - **Optional: check `hw012`.** Of the seven rows declared `lang=mixed`, six were
-  clear; `hw012` ("...24 ghante **ch** gone") has one Punjabi postposition in an
-  otherwise Hindi sentence and was assigned `hi`. One row in 100, recorded in
-  `loaders.MIXED_UNCERTAIN`, and easy to flip if it is wrong.
-- **Optional: set `HF_TOKEN`.** Phase 2's ~9.6 GB of downloads completed without
-  it, so this is a rate-limit convenience, not a blocker.
+  clear; `hw012` has one Punjabi postposition in an otherwise Hindi sentence and
+  was assigned `hi`. One row in 100, recorded in `loaders.MIXED_UNCERTAIN`.
+- **Optional: set `HF_TOKEN`.** A rate-limit convenience, not a blocker.
 
 ### Standing rules that are easy to forget
 

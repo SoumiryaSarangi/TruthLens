@@ -75,7 +75,7 @@ Source: https://gitlab.com/checkthat_lab/clef2025-checkthat-lab — CLEF CheckTh
 
 | split | n | en/deva | en/latn | hi/deva | hi/latn | pa/deva | pa/guru | pa/latn |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| train | 8624 | 87 | 7165 | 949 | 53 | 64 | 254 | 52 |
+| train | 8623 | 87 | 7164 | 949 | 53 | 64 | 254 | 52 |
 | dev | 1271 | 11 | 1160 | 47 | 3 | 5 | 37 | 8 |
 | test | 1485 | 1 | 1284 | 96 | 4 | 8 | 86 | 6 |
 
@@ -85,7 +85,7 @@ The romanized-vs-native axis. `other` is every row not in the language's own scr
 
 | split | lang | n | native | other | other % |
 | --- | --- | --- | --- | --- | --- |
-| train | en | 7252 | 7165 | 87 | 1.2% |
+| train | en | 7251 | 7164 | 87 | 1.2% |
 | train | hi | 1002 | 949 | 53 | 5.3% |
 | train | pa | 370 | 254 | 116 | 31.4% |
 | dev | en | 1171 | 1160 | 11 | 0.9% |
@@ -99,7 +99,7 @@ The romanized-vs-native axis. `other` is every row not in the language's own scr
 
 | split | n | min | median | mean | max | code-mixed |
 | --- | --- | --- | --- | --- | --- | --- |
-| train | 8624 | 4 | 229 | 582 | 31843 | 1.7% |
+| train | 8623 | 4 | 229 | 582 | 31843 | 1.7% |
 | dev | 1271 | 5 | 236 | 540 | 16930 | 1.2% |
 | test | 1485 | 12 | 259 | 611 | 24790 | 1.1% |
 
@@ -112,7 +112,7 @@ Policy: **train yields to eval; dev and test are never modified**
 | action | rows |
 | --- | --- |
 | dropped from train — exact match in eval | 982 |
-| dropped from train — in another dataset eval split | 1232 |
+| dropped from train — in another dataset eval split | 1233 |
 | dropped from train — near duplicate in eval | 135 |
 | dropped from train — within train duplicate | 1927 |
 | left in place — dev internal duplicates | 27 |
@@ -327,6 +327,76 @@ Policy: **train yields to eval; dev and test are never modified**
 
   - `x_claim:en:dev:00163` ↔ `x_claim:en:test:00352` (dev/test, jaccard 0.906)
   - `x_claim:en:dev:00325` ↔ `x_claim:en:test:00160` (dev/test, jaccard 0.990)
+
+## xclaim_cw
+
+### Counts by split, language and script
+
+| split | n | en/deva | en/latn | hi/deva | hi/guru | hi/latn | pa/deva | pa/guru | pa/latn |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| train | 7874 | 102 | 5512 | 1675 | 1 | 67 | 82 | 384 | 51 |
+| dev | 963 | 13 | 643 | 148 | · | 5 | 17 | 119 | 18 |
+| test | 970 | 2 | 634 | 161 | · | 5 | 9 | 153 | 6 |
+
+### Non-native-script share
+
+The romanized-vs-native axis. `other` is every row not in the language's own script, which for hi/pa is mostly Latin (romanized) plus some cross-script contamination in the source files.
+
+| split | lang | n | native | other | other % |
+| --- | --- | --- | --- | --- | --- |
+| train | en | 5614 | 5512 | 102 | 1.8% |
+| train | hi | 1743 | 1675 | 68 | 3.9% |
+| train | pa | 517 | 384 | 133 | 25.7% |
+| dev | en | 656 | 643 | 13 | 2.0% |
+| dev | hi | 153 | 148 | 5 | 3.3% |
+| dev | pa | 154 | 119 | 35 | 22.7% |
+| test | en | 636 | 634 | 2 | 0.3% |
+| test | hi | 166 | 161 | 5 | 3.0% |
+| test | pa | 168 | 153 | 15 | 8.9% |
+
+### Label distribution
+
+`majority %` is the dumb baseline: a classifier that always predicts the most frequent class. Any model must beat it to be a result.
+
+| split | n | No | Yes | majority % |
+| --- | --- | --- | --- | --- |
+| train | 7874 | 3402 (43%) | 4472 (57%) | 56.8% |
+| dev | 963 | 363 (38%) | 600 (62%) | 62.3% |
+| test | 970 | 399 (41%) | 571 (59%) | 58.9% |
+
+### Text length (characters) and code-mixing
+
+| split | n | min | median | mean | max | code-mixed |
+| --- | --- | --- | --- | --- | --- | --- |
+| train | 7874 | 7 | 126 | 179 | 1639 | 2.3% |
+| dev | 963 | 10 | 134 | 183 | 1218 | 3.1% |
+| test | 970 | 11 | 126 | 179 | 1326 | 2.2% |
+
+_code-mixed = share of rows whose dominant script covers under 90% of their script-bearing characters. Computed from data/interim/, so it shows `—` on a clean clone until `make data` has run._
+
+### Deduplication applied when building these splits
+
+Policy: **train yields to eval; dev and test are never modified**
+
+| action | rows |
+| --- | --- |
+| dropped from train — exact match in eval | 12 |
+| dropped from train — in another dataset eval split | 884 |
+| dropped from train — near duplicate in eval | 51 |
+| dropped from train — within train duplicate | 52 |
+| left in place — dev internal duplicates | 0 |
+| left in place — dev test overlap | 0 |
+| left in place — test internal duplicates | 0 |
+
+### Leakage after deduplication
+
+- unresolved failures: **0**
+- accepted as irreducible upstream: **3** (see `data/splits/KNOWN_LEAKAGE.json`)
+- warnings (unconfirmed near-duplicates): 1
+
+  - `xclaim_cw:en:dev:00326` ↔ `xclaim_cw:en:test:00704` (dev/test, jaccard 0.906)
+  - `xclaim_cw:en:dev:00650` ↔ `xclaim_cw:en:test:00320` (dev/test, jaccard 0.990)
+  - `xclaim_cw:en:dev:00651` ↔ `xclaim_cw:en:test:00321` (dev/test, jaccard 0.975)
 
 ## Supporting corpora (not split, so not profiled above)
 

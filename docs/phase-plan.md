@@ -11,9 +11,9 @@ seconds without reading the whole plan.
 
 ## Current phase
 
-**Phase 2 complete (Days 2-3). Phase 3 not started, nothing blocking it.**
+**Phase 3 complete (Day 4). Phase 4 not started, nothing blocking it.**
 
-The clock is **14 days**. **Days 1-3 are done.** Phase 1 shipped the vertical
+The clock is **14 days**. **Days 1-4 are done.** Phase 1 shipped the vertical
 slice; Phase 2 shipped the language layer and the native-vs-romanized table,
 which is the research contribution. Code freezes at the end of Day 12.
 
@@ -38,7 +38,7 @@ statically. Stages import their models lazily inside methods.
 | Leakage detection | `src/data/leakage.py` | 4 checks, proven against planted leaks |
 | Dataset loaders | `src/data/loaders.py` | **AVeriTeC, X-CLAIM, MultiClaim** |
 | Script detection | `src/data/script_id.py` | Per row, never from the lang label |
-| Frozen splits | `data/splits/` | averitec 2666/500/307 · x_claim 5343/600/571 · multiclaim 25137/3153/3156 |
+| Frozen splits | `data/splits/` | averitec 2666/500/307 · x_claim 4472/600/571 · multiclaim 25137/3153/3156 |
 | Knowledge store | `data/raw/averitec_kb/` + cache | dev, 11.54 GB zip; per-claim cache in `data/interim/` |
 | **Pipeline** | `src/pipeline/` | **Done** — contracts, registry, orchestrator, batch |
 | **Stage baselines** | `src/{preprocess,claims,matching,retrieval,stance,generation,faithfulness}/` | **Done** — 8 impls |
@@ -134,16 +134,49 @@ That is not evidence that real typing is easier. It is code-mixing — "KYC",
 overlap is 0.0513 for the hand-typed pairs against 0.0119-0.0173 for Dakshina,
 and it is recorded beside every cosine in the JSON.
 
-## Next: Phase 3 — front of the pipeline (Days 4-5)
+## Phase 3 results (Day 4) — the floor for Phase 4 onward
 
-Check-worthiness, claim normalisation (CheckThat! 2025 Task 2), span
-identification (X-CLAIM). See [build-plan.md](build-plan.md).
+**FR-7 span identification.** Token F1 on X-CLAIM dev, XLM-R-base + LoRA:
 
-**CheckThat! 2025 Task 2 is not downloaded** and is needed for Phase 3.
+| arm | overall | en/latn | hi/deva | pa/guru |
+| --- | --- | --- | --- | --- |
+| whole_post_span | 0.6851 | 0.6647 | 0.7385 | 0.7445 |
+| mono-en | 0.6685 | 0.6410 | 0.7283 | 0.7736 |
+| mono-hi | 0.6970 | 0.6528 | 0.7586 | 0.8361 |
+| mono-pa | 0.7175 | 0.6990 | 0.7375 | 0.7953 |
+| zero-shot | 0.7370 | 0.7055 | 0.7811 | **0.8426** |
+| **joint** | **0.7463** | **0.7232** | 0.7805 | 0.8382 |
 
-Two assets Phase 2 built that Phase 3 inherits: the hand-typed set already
-carries **check-worthiness labels** (15 `No` / 85 `Yes`), and
-`whole_post_span` is registered but still raises `NotImplementedError`.
+Joint beats every monolingual arm — X-CLAIM's own finding, replicated. Two
+things the average hides: the baseline is **harder** to beat in Indic than in
+English (0.7445 pa/guru vs 0.6647 en/latn, because Indic posts are more
+claim-dense), and **zero-shot ties joint on Punjabi having never seen a Punjabi
+example**, so Punjabi performance is almost entirely cross-lingual transfer.
+
+**FR-6 check-worthiness is NOT solved, and the reason is data.**
+
+| | macro-F1 | vs majority | negatives caught |
+| --- | --- | --- | --- |
+| derived dev (n=963) | 0.7222 | +0.3383 | 190/363 |
+| hand-typed (n=100) | 0.4536 | -0.0059 | **0/15** |
+
+Deriving it from the span model is structurally impossible: X-CLAIM's every post
+contains a claim, so that model has never seen the negative class. A dedicated
+classifier on derived negatives learns the task and transfers nothing to real
+no-claim messages. **~100 more real ones is the top human task.**
+
+**Normalization is not extractable**: chrF 0.2835 against a longest-sentence
+baseline of 0.2875, because only **4.3%** of CheckThat references appear
+verbatim in their post. That is the Phase 6 abstractive case, made with a number.
+
+## Next: Phase 4 — claim matching (Days 5-6)
+
+The fast path: a post matching an existing fact-check closely enough skips
+retrieval. Phase 2 already built and scored the machinery (BGE-M3 over 78,077
+fact-checks, MRR 0.5244), so this is mostly wiring it behind `tau_match` and
+choosing that threshold.
+
+**Decision due Day 5:** demo corpus composition (`SYSTEM_DESIGN.md` §14).
 
 ### Needs a human — I cannot do these
 
@@ -168,7 +201,7 @@ carries **check-worthiness labels** (15 `No` / 85 `Yes`), and
   the CUDA torch every other stage depends on. A transliterator must not cost
   the project its GPU. If it is wanted later it goes in its own venv behind a
   subprocess boundary, or through WSL. The spike took 43 seconds.
-- **CheckThat! 2025 Task 2** — not started; needed for Phase 3.
+- ~~CheckThat! 2025 Task 2~~ **Downloaded and split.** No dataset gaps left.
 - **Real VRAM is ~4.9 GiB, not 5.5 GB.** Windows reserves ~1 GiB of the 6 GiB
   for the desktop. NFR-3's ceiling is optimistic; see `environment.md`.
 - ~~**`hf.co`, not `huggingface.co`.**~~ **Withdrawn.** That was a transient
