@@ -1464,6 +1464,27 @@ Both times the error was a copy-paste that stayed plausible. The audit that
 catches it is reading every published figure back to the file it came from,
 including the prose that says what produced it.
 
+### A guardrail that had never once been informative
+
+Noticed while re-scoring the corrected configs. Every results file carries
+`git.dirty`, which is supposed to mean *"the committed code does not reproduce
+this number"*. It was computed from `git status --porcelain` with no exclusions,
+so writing one results file made the tree dirty for the next eval in the same
+batch. **All 31 results files in the repo were flagged**, and `docs/results.md`
+printed "dirty tree" in the Flags column of every single row.
+
+A flag that fires on 100% of runs carries no information, and worse, it teaches
+the reader to ignore the column it lives in — which is the column the sanity
+ceiling and the partial-coverage warnings also appear in. Results are *outputs*
+and cannot change what a run computes, so `results/` is now excluded. Everything
+else still counts, **including untracked source files**, which are exactly the
+thing that stops a committed tree from reproducing a number.
+
+`tests/test_provenance.py` pins both halves, since the failure mode of a fix
+like this is silently excluding too much. The 31 existing files keep
+`dirty: true` and are not rewritten; from this commit the flag means what it
+says, so it is only comparable within runs scored after it.
+
 ## Phase 3 gaps — CLOSED 2026-09-24
 
 All four are built. They were, in the order the previous section ranked them:

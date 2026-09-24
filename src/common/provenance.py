@@ -34,19 +34,54 @@ def _git(*args: str, repo: Path) -> str | None:
     return out.stdout.strip()
 
 
+# Paths whose state cannot change what a run computes. `results/` holds the
+# OUTPUTS of runs, so an uncommitted results file from the eval two minutes ago
+# says nothing about whether this eval is reproducible.
+_IRRELEVANT_TO_REPRODUCIBILITY = ("results/",)
+
+
+def _status_paths(status: str) -> list[str]:
+    """Paths from `git status --porcelain`, forward-slashed, renames resolved."""
+    paths: list[str] = []
+    for line in status.splitlines():
+        if len(line) < 4:
+            continue
+        path = line[3:].strip()
+        if " -> " in path:                    # a rename: the destination is what counts
+            path = path.split(" -> ", 1)[1]
+        paths.append(path.strip('"').replace("\\", "/"))
+    return paths
+
+
 def git_info(repo: str | Path | None = None) -> dict[str, object]:
     """Current commit and whether the tree was dirty when the run happened.
 
-    `dirty: true` in a results file means the committed code does not reproduce
-    that number. It is recorded rather than blocked, but it is recorded loudly.
+    `dirty: true` means the committed code does not reproduce that number. It is
+    recorded rather than blocked, but it is recorded loudly.
+
+    **Changes under `results/` do not count.** Until 2026-09-24 they did, and the
+    consequence was that all 31 results files in the repo carried `dirty: true`
+    -- because writing one results file makes the tree dirty for the next eval in
+    the same batch. A flag that fires on every run carries no information, and
+    `docs/results.md` printed "dirty tree" in the Flags column of every row,
+    which teaches a reader to ignore that column. Results are outputs; they
+    cannot change what a run computes. Everything else still counts, including
+    untracked source files, which very much can.
     """
     root = Path(repo) if repo else Path(__file__).resolve().parents[2]
     sha = _git("rev-parse", "HEAD", repo=root)
     status = _git("status", "--porcelain", repo=root)
+    if status is None:
+        dirty: bool | None = None
+    else:
+        dirty = any(
+            not path.startswith(_IRRELEVANT_TO_REPRODUCIBILITY)
+            for path in _status_paths(status)
+        )
     return {
         "sha": sha,
         "branch": _git("rev-parse", "--abbrev-ref", "HEAD", repo=root),
-        "dirty": bool(status) if status is not None else None,
+        "dirty": dirty,
     }
 
 
