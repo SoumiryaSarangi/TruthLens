@@ -236,6 +236,84 @@ def _bio_over_tokens(text: str, trace: Trace) -> list[str]:
     return tags
 
 
+def run_fastpath(
+    split_path: Path,
+    cfg: PipelineConfig,
+    out: Path,
+    limit: int | None = None,
+) -> dict[str, int]:
+    """Claim matching through the MATCHER (`--stage fastpath`), for FR-8.
+
+    Distinct from `--stage match`, which calls the retriever directly. That was
+    right for Phase 2's embedding ladder -- the question there was purely which
+    encoder ranks best -- but it means the thing being scored is not the thing
+    the API runs, which is the one promise this module's docstring makes. The
+    matcher adds the pieces that turn a ranking into an answer: the metadata
+    join, the verdict mapping, and any reranking.
+
+    Predictions are `{uid, ranked_ids, scores}`, the same shape the retrieval
+    task takes, so one run feeds both `task: retrieval` and `task: fast_path`.
+    The threshold is NOT applied here: the harness needs the score whether or
+    not it clears the bar, or every eval would measure one operating point.
+    """
+    set_all_seeds()
+    rows = load_jsonl(split_path)
+    if limit:
+        rows = rows[:limit]
+    texts = load_texts(split_path)
+    orch = Orchestrator(cfg)
+    matcher = orch.matcher
+    if not hasattr(matcher, "rank_batch"):
+        raise SystemExit(
+            f"matching impl {matcher.impl!r} has no rank_batch; --stage fastpath "
+            "needs a real matcher (try --matching-impl factcheck)."
+        )
+
+    counts = {"n": 0, "degraded": 0, "no_verdict": 0, "no_candidates": 0}
+    queries: list[str] = []
+    uids: list[str] = []
+
+    started = time.time()
+    for row in rows:
+        uid = row["uid"]
+        text = texts.get(uid)
+        if text is None:
+            raise KeyError(f"{uid} has no text in data/interim/")
+        trace = Trace(uid=uid, request_id=f"batch:{uid}")
+        orch.preprocess.run(trace, text)
+        counts["n"] += 1
+        if any(e.note and "degraded" in e.note for e in trace.events):
+            counts["degraded"] += 1
+        queries.append(trace.pre.normalized)
+        uids.append(uid)
+    print(f"  preprocessed {len(queries)} rows in {time.time() - started:.1f}s",
+          flush=True)
+
+    started = time.time()
+    ranked = matcher.rank_batch(queries)
+    print(f"  matched in {(time.time() - started) / 60:.1f} min", flush=True)
+
+    # What the matcher would actually SERVE for each row, counted here because
+    # it is invisible to the harness: a top-1 whose publisher rating is outside
+    # the verdict mapping declines the fast path even when its score is high.
+    meta = matcher._load_meta()
+    predictions: list[dict] = []
+    for uid, candidates in zip(uids, ranked, strict=True):
+        if not candidates:
+            counts["no_candidates"] += 1
+        elif matcher._to_match(candidates, meta) is None:
+            counts["no_verdict"] += 1
+        predictions.append({
+            "uid": uid,
+            "ranked_ids": [doc_id for doc_id, _ in candidates],
+            "scores": [score for _, score in candidates],
+        })
+
+    write_jsonl(out, predictions)
+    print(f"  wrote {len(predictions)} rows -> {out}")
+    return counts
+
+
 def run_match(
     split_path: Path,
     cfg: PipelineConfig,
@@ -366,11 +444,16 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--split", required=True)
     ap.add_argument("--stage", default="both",
                     choices=["retrieval", "verdict", "both", "lang", "translit",
-                             "match", "checkworthy", "span", "normalize"])
+                             "match", "fastpath", "checkworthy", "span",
+                             "normalize"])
     ap.add_argument("--impl", default=None, help="override the retrieval impl")
     ap.add_argument("--stance-impl", default=None, help="override the stance impl")
     ap.add_argument("--preprocess-impl", default=None, help="override the preprocess impl")
     ap.add_argument("--claims-impl", default=None, help="override the claims impl")
+    ap.add_argument("--matching-impl", default=None, help="override the matching impl")
+    ap.add_argument("--reranker", default=None,
+                    help="reranker for the matching stage: none|nli|xlmr. The "
+                         "bi-encoder score alone gates the fast path poorly")
     ap.add_argument("--gate", action="store_true",
                     help="run the check-worthiness gate before extracting, as the "
                          "served pipeline does. Off by default so the span and "
@@ -406,6 +489,10 @@ def main(argv: list[str] | None = None) -> int:
         cfg.stages["preprocess"] = args.preprocess_impl
     if args.claims_impl:
         cfg.stages["claims"] = args.claims_impl
+    if args.matching_impl:
+        cfg.stages["matching"] = args.matching_impl
+    if args.reranker:
+        cfg.stage_args.setdefault("matching", {})["reranker"] = args.reranker
     if args.adapter:
         cfg.stage_args.setdefault("claims", {})["adapter"] = args.adapter
     if args.cw_threshold is not None:
@@ -426,6 +513,18 @@ def main(argv: list[str] | None = None) -> int:
                             gate=args.gate)
         print(f"  {counts['n']} rows | {counts['checkworthy']} check-worthy "
               f"| {counts['capped']} capped at MAX_CLAIMS")
+        return 0
+
+    if args.stage == "fastpath":
+        out = Path(args.out or "results/preds/fastpath.jsonl")
+        print(f"pipeline: preprocess={cfg.stages['preprocess']} "
+              f"matching={cfg.stages['matching']} "
+              f"reranker={cfg.stage_args.get('matching', {}).get('reranker', 'none')} "
+              f"k={cfg.k}")
+        counts = run_fastpath(Path(args.split), cfg, out, args.limit)
+        print(f"  {counts['n']} rows | {counts['degraded']} degraded "
+              f"| {counts['no_verdict']} top-1 declined for an unmappable rating "
+              f"| {counts['no_candidates']} with no candidates")
         return 0
 
     if args.stage == "match":

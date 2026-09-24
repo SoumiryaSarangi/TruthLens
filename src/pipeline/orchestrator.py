@@ -134,7 +134,7 @@ class Orchestrator:
                             lambda: self.matcher.top1(claim),
                             getattr(self.matcher, "note", None))
         if match is not None and match.score >= self.cfg.tau_match:
-            return self._from_factcheck(claim, match)
+            return self._from_factcheck(trace, claim, match)
 
         # -- evidence path ----------------------------------------------------
         if claim_idx is None:
@@ -222,11 +222,27 @@ class Orchestrator:
             explanation_source="template", explanation_lang="en", cited=[],
         )
 
-    def _from_factcheck(self, claim, match) -> ClaimResult:
+    def _from_factcheck(self, trace: Trace, claim, match) -> ClaimResult:
         explanation = (f"Already checked by {match.publisher}: {match.title}")
+        # `ClaimResult.confidence` is validated to [0, 1] and `match.score` is a
+        # raw retrieval score. A cosine can be negative and a BM25 score is
+        # unbounded -- measured around 20 on the fact-check pool -- so assigning
+        # it straight through raised a ValidationError at request time. It was
+        # unreachable only because `NoMatcher` never returned a match.
+        #
+        # Clamping keeps the response valid; it does NOT make the number a
+        # confidence. It is an uncalibrated retrieval score wearing the field's
+        # name, and the trace says so. Calibration is Phase 6 (FR-13, FR-14).
+        confidence = min(max(float(match.score), 0.0), 1.0)
+        if confidence != match.score:
+            trace.record("matching", self.matcher.impl, 0.0,
+                         f"fast-path score {match.score:.4f} clamped to "
+                         f"{confidence:.4f} for the confidence field")
+        trace.record("matching", self.matcher.impl, 0.0,
+                     "fast-path confidence is an uncalibrated retrieval score")
         return ClaimResult(
             claim=claim, path="fast", match=match, passages=[],
-            verdict=match.verdict, confidence=match.score, abstained=False,
+            verdict=match.verdict, confidence=confidence, abstained=False,
             explanation=explanation, explanation_source="template",
             explanation_lang=match.lang, cited=[match.factcheck_id],
         )

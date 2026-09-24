@@ -1,0 +1,29 @@
+# FR-8 claim matching, lexical floor: BM25 over the fact-check pool.
+#
+# `src/retrieval/CLAUDE.md`: "BM25 is the *real* baseline. A dense retriever
+# that does not beat BM25 on a language is a finding to report, not a bug to
+# hide." Phase 2's ladder used TF-IDF as its lexical rung, which is a stand-in
+# for this rather than this. `SYSTEM_DESIGN.md` 7 budgets the index.
+#
+# Read the per-script breakdown, not the overall figure: 2,350 of these 3,153
+# queries are English and would swamp any average. The cell to watch is
+# lang=hi,script=latn (n=57) -- romanized Hindi shares Latin characters with a
+# largely English corpus, which is why TF-IDF's romanized score was HIGHER than
+# its native one in Phase 2, for a reason unrelated to understanding.
+experiment: p4_match_bm25
+task: retrieval
+split: data/splits/multiclaim/dev.jsonl
+gold: data/gold/multiclaim_dev_retrieval.jsonl
+corpus_ids: data/interim/index/ids.json
+predictions: results/preds/p4_match_bm25.jsonl
+baseline: random_rank
+breakdown: [lang, script]
+metrics:
+  retrieval:
+    k: [1, 5, 10]
+notes: >
+  BM25Okapi over 78,077 fact-check texts (claim + title), the same pool and the
+  same id order as the dense index, tokenized by src/retrieval/tokenize.py.
+  Punjabi cells are n=7 (guru) and n=2 (latn), flagged low_n -- report them with
+  their denominators, never as bare percentages. Compare against
+  p2_match_bge_m3 (MRR 0.5244) and p2_match_tfidf (0.2311).

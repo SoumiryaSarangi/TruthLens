@@ -213,3 +213,47 @@ def test_fast_path_does_not_run_retrieval(kb):
 
     trace = orch.verify("Were nursing posts restored?", claim_idx=7)
     assert not any(e.stage == "retrieval" for e in trace.events)
+
+
+def test_an_unbounded_match_score_does_not_crash_the_response(kb):
+    """`ClaimResult.confidence` is validated to [0, 1] and a match score is not.
+
+    A BM25 score on the fact-check pool is around 20 and a cosine can be
+    negative, so assigning one straight through raised a ValidationError at
+    request time. It was unreachable only because `NoMatcher` never returned a
+    match, which is exactly how it survived three phases.
+    """
+    orch = Orchestrator(PipelineConfig())
+    orch.matcher = _StubMatcher(score=20.47)
+
+    res = orch.verify("Were nursing posts restored?", claim_idx=7).results[0]
+    assert res.path == "fast"
+    assert res.confidence == 1.0
+    # The raw score is not lost: it stays on the match the response carries.
+    assert res.match.score == pytest.approx(20.47)
+
+
+def test_a_negative_match_score_is_clamped_too(kb):
+    """Needs a gate that accepts everything: the default tau_match is 0.0, so a
+    negative score takes the evidence path and never reaches the clamp."""
+    orch = Orchestrator(PipelineConfig(tau_match=-1.0))
+    orch.matcher = _StubMatcher(score=-0.3)
+    res = orch.verify("Were nursing posts restored?", claim_idx=7).results[0]
+    assert res.path == "fast"
+    assert res.confidence == 0.0
+
+
+def test_the_trace_says_the_fast_path_confidence_is_uncalibrated(kb):
+    """It is a retrieval score wearing the confidence field's name. Calibration
+    is Phase 6 (FR-13, FR-14), and until then the trace has to say so."""
+    orch = Orchestrator(PipelineConfig())
+    orch.matcher = _StubMatcher(score=0.9)
+    trace = orch.verify("Were nursing posts restored?", claim_idx=7)
+    assert any(e.note and "uncalibrated" in e.note for e in trace.events)
+
+
+def test_a_clamped_score_is_recorded_rather_than_silently_adjusted(kb):
+    orch = Orchestrator(PipelineConfig())
+    orch.matcher = _StubMatcher(score=20.47)
+    trace = orch.verify("Were nursing posts restored?", claim_idx=7)
+    assert any(e.note and "clamped" in e.note for e in trace.events)

@@ -27,6 +27,13 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from data.verdicts import (
+    first_instance_url,
+    parse_ratings,
+    publisher_from_url,
+    rating_to_verdict,
+)
+
 RAW = Path("data/raw/multiclaim")
 
 # ISO 639-3 as MultiClaim reports it -> our language codes.
@@ -48,6 +55,15 @@ class FactCheck:
     claim: str
     title: str
     lang: str | None
+    # Phase 4 (FR-8). The fast path answers "Already checked by X: <title>" with
+    # a verdict, and none of X, the link or the verdict existed in this loader
+    # until then -- they live in the `ratings` and `instances` columns, which
+    # nothing read. `verdict` is None when the publisher's rating is outside the
+    # mapping, which makes the matcher decline rather than guess.
+    ratings: tuple[str, ...] = ()
+    url: str | None = None
+    publisher: str | None = None
+    verdict: str | None = None
 
 
 def parse_listish(value: str | None) -> str | None:
@@ -119,11 +135,17 @@ def load_fact_checks(ids: set[str] | None = None) -> dict[str, FactCheck]:
             fc_id = str(row["fact_check_id"])
             if ids is not None and fc_id not in ids:
                 continue
+            ratings = parse_ratings(row.get("ratings"))
+            url = first_instance_url(row.get("instances"))
             out[fc_id] = FactCheck(
                 fc_id,
                 _text(row.get("claim")),
                 _text(row.get("title")),
                 _lang(row.get("claim_detected_language_iso")),
+                ratings=tuple(ratings),
+                url=url,
+                publisher=publisher_from_url(url),
+                verdict=rating_to_verdict(ratings),
             )
     return out
 
