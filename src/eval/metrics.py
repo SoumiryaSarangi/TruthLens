@@ -199,6 +199,142 @@ def coverage_accuracy_curve(
 
 
 # -----------------------------------------------------------------------------
+# The fast path (FR-8)
+# -----------------------------------------------------------------------------
+# `retrieval_metrics` above asks "does the retriever find the right fact-check".
+# These ask a strictly different question over the same predictions: **does the
+# SCORE say when to trust it.** Every rank metric is scale-free and every
+# MultiClaim query is guaranteed to have an answer, so nothing above can tell
+# you whether to resolve a post on the fast path or send it to retrieval.
+#
+# Two things to know before reading any number these produce:
+#
+# * **The negatives are made by withholding the answer.** For each query the
+#   best-scoring returned candidate that is NOT gold is, by construction, wrong.
+#   For a cosine scorer this is exact rather than a simulation -- a pair's score
+#   does not depend on what else is in the index, so dropping the gold from the
+#   returned list and dropping it from the index give the same best-remaining
+#   candidate. It is only APPROXIMATE for BM25, whose IDF depends on corpus
+#   composition.
+# * **`false_accept_rate` is an UPPER bound.** MultiClaim's annotation is
+#   incomplete: a fact-check that is not in a post's gold set may still be a
+#   perfectly good match for it, and this counts every such acceptance as a
+#   false one.
+
+
+def area_under_coverage_curve(curve: Sequence[dict[str, float]]) -> float:
+    """Trapezoid over a coverage-accuracy curve, normalised by its coverage span.
+
+    Normalised so that a FLAT curve at p returns exactly p. That property is what
+    the whole comparison rests on: a score carrying no information traces a flat
+    curve at Success@1, so the `always_match` baseline scores exactly Success@1
+    and the delta against it is the amount of gate-worthy signal in the score --
+    not the quality of the ranking, which `task: retrieval` already measures.
+    """
+    points = [(float(p["coverage"]), float(p["accuracy"])) for p in curve]
+    if not points:
+        return 0.0
+    if len(points) == 1:
+        return points[0][1]
+    points.sort()
+    span = points[-1][0] - points[0][0]
+    if span <= 0:
+        return sum(a for _, a in points) / len(points)
+    area = sum(
+        (points[i + 1][0] - points[i][0]) * (points[i][1] + points[i + 1][1]) / 2
+        for i in range(len(points) - 1)
+    )
+    return area / span
+
+
+def fast_path_curve(
+    top_scores: Sequence[float],
+    top_correct: Sequence[bool | None],
+    best_wrong_scores: Sequence[float | None],
+    taus: Sequence[float],
+) -> list[dict[str, float]]:
+    """One row per tau. This table is the result; the headline is a summary of it."""
+    positives = [(s, c) for s, c in zip(top_scores, top_correct, strict=True)
+                 if c is not None]
+    negatives = [s for s in best_wrong_scores if s is not None]
+    out: list[dict[str, float]] = []
+    for tau in sorted({float(t) for t in taus}):
+        accepted = [c for s, c in positives if s >= tau]
+        right = sum(1 for c in accepted if c)
+        out.append({
+            "tau": tau,
+            "coverage": len(accepted) / len(positives) if positives else 0.0,
+            "precision": right / len(accepted) if accepted else 0.0,
+            "yield": right / len(positives) if positives else 0.0,
+            "false_accept_rate": (sum(1 for s in negatives if s >= tau) / len(negatives)
+                                  if negatives else 0.0),
+            "n_accepted": float(len(accepted)),
+        })
+    return out
+
+
+def fast_path_metrics(
+    top_scores: Sequence[float],
+    top_correct: Sequence[bool | None],
+    best_wrong_scores: Sequence[float | None],
+    *,
+    tau: float,
+    taus: Sequence[float] = (),
+    n_points: int = 21,
+) -> dict[str, Any]:
+    """Coverage, precision and false accepts for a score-gated fast path.
+
+    Three parallel arrays, one entry per query:
+
+      top_scores         the top-1 score, whatever scale the retriever uses
+      top_correct        True / False, or **None** when no correct answer exists
+                         for that query at all (a natural negative). A natural
+                         negative scores only on the negative arm: counting it as
+                         a wrong positive would drag precision down for something
+                         that is not the gate's fault.
+      best_wrong_scores  the best score among candidates that are NOT gold, or
+                         **None** when every returned candidate was gold, which
+                         is skipped rather than scored.
+
+    `fastpath_precision` is 0.0 rather than NaN when nothing is accepted -- the
+    same choice `per_class_scores` makes, so the dict stays numeric and the table
+    stays whole. It is vacuous there, `n_accepted` sits beside it, and it is
+    deliberately not the headline.
+    """
+    if not (len(top_scores) == len(top_correct) == len(best_wrong_scores)):
+        raise ValueError("top_scores, top_correct and best_wrong_scores must be "
+                         "the same length")
+
+    positives = [(s, bool(c)) for s, c in zip(top_scores, top_correct, strict=True)
+                 if c is not None]
+    negatives = [s for s in best_wrong_scores if s is not None]
+    accepted = [c for s, c in positives if s >= tau]
+    right = sum(1 for c in accepted if c)
+
+    coverage_curve = coverage_accuracy_curve(
+        [s for s, _ in positives], [c for _, c in positives], n_points=n_points,
+    )
+    return {
+        "fastpath_aucc": area_under_coverage_curve(coverage_curve),
+        "fastpath_coverage": len(accepted) / len(positives) if positives else 0.0,
+        "fastpath_precision": right / len(accepted) if accepted else 0.0,
+        "fastpath_yield": right / len(positives) if positives else 0.0,
+        "false_accept_rate": (sum(1 for s in negatives if s >= tau) / len(negatives)
+                              if negatives else 0.0),
+        "tau": float(tau),
+        "n": float(len(positives)),
+        "n_accepted": float(len(accepted)),
+        "n_negatives": float(len(negatives)),
+        "n_natural_negatives": float(sum(1 for c in top_correct if c is None)),
+        "n_skipped_no_wrong_candidate": float(
+            sum(1 for s in best_wrong_scores if s is None)),
+        "curve": fast_path_curve(top_scores, top_correct, best_wrong_scores,
+                                 (*taus, tau)),
+        "coverage_curve": coverage_curve,
+    }
+
+
+# -----------------------------------------------------------------------------
 # Transliteration (FR-5)
 # -----------------------------------------------------------------------------
 # Character error rate is the metric the transliteration literature reports, so

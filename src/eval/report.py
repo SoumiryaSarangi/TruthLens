@@ -43,11 +43,18 @@ def _fmt(value: Any) -> str:
     return str(value)
 
 
-# The metric each task leads with. Kept here rather than inlined so a new task
-# type cannot silently fall through to `mrr` and report a blank column.
+# The metric each task leads with. **The single definition** -- `evaluate.py`
+# imports this one rather than keeping its own, because for three phases there
+# were two copies and nothing compared them: a task added to the scorer's map and
+# missed here rendered every row of its table against `mrr`, with a wrong label
+# and a blank score.
 HEADLINE = {
     "classification": "macro_f1",
     "retrieval": "mrr",
+    # The fast path's headline is a summary of a curve, not the result. The
+    # result is the tau table in `curve`; this exists because a table needs one
+    # column and because AUCC is the only candidate a threshold cannot move.
+    "fast_path": "fastpath_aucc",
     "transliteration": "cer",
     "span": "token_f1",
     "normalization": "chrf",
@@ -62,7 +69,14 @@ def results_table(docs: list[dict[str, Any]]) -> str:
     ]
     for doc in docs:
         overall = doc.get("metrics", {}).get("overall", {})
-        headline = HEADLINE.get(doc.get("task"), "mrr")
+        # An unregistered task renders as a blank rather than borrowing `mrr`.
+        # Falling back to another task's metric produces a row that looks
+        # populated and is measuring something else.
+        headline = HEADLINE.get(doc.get("task"))
+        if headline is None:
+            lines.append(f"| {doc.get('experiment', '?')} | {doc.get('task')} | "
+                         "— | — | — | — | — | — | task not in HEADLINE |")
+            continue
         score = overall.get(headline)
         delta = doc.get("delta_vs_baseline", {}).get(headline)
         base_score = score - delta if (score is not None and delta is not None) else None

@@ -15,8 +15,10 @@ from sklearn.metrics import accuracy_score, f1_score
 
 from eval.metrics import (
     accuracy,
+    area_under_coverage_curve,
     coverage_accuracy_curve,
     expected_calibration_error,
+    fast_path_metrics,
     macro_f1,
     per_class_scores,
     recall_at_k,
@@ -188,6 +190,108 @@ def test_coverage_accuracy_curve_improves_as_coverage_drops():
 
 def test_coverage_curve_on_empty_input():
     assert coverage_accuracy_curve([], []) == []
+
+
+# -----------------------------------------------------------------------------
+# The fast path (FR-8)
+# -----------------------------------------------------------------------------
+
+
+def test_area_under_a_flat_curve_is_the_flat_value():
+    """The property the `always_match` baseline rests on.
+
+    A score carrying no information traces a flat coverage-accuracy curve at
+    Success@1, so AUCC must come back as exactly Success@1 -- otherwise the
+    delta against that baseline is not "signal in the score" but an artefact of
+    how the area was normalised.
+    """
+    flat = [{"coverage": 0.25, "accuracy": 0.5},
+            {"coverage": 0.50, "accuracy": 0.5},
+            {"coverage": 1.00, "accuracy": 0.5}]
+    assert area_under_coverage_curve(flat) == pytest.approx(0.5)
+
+
+def test_area_under_coverage_curve_hand_computed():
+    """Reuses the curve above: conf 0.9..0.4, correct [T,T,T,T,F,F], n_points=6.
+
+    Coverages are i/6 and accuracies 1, 1, 1, 1, 4/5, 2/3. Trapezoid at h=1/6 is
+    (1/6)(1 + 1 + 1 + 9/10 + 11/15) = 139/180. The coverage span is 1 - 1/6 = 5/6,
+    so AUCC = (139/180)(6/5) = 139/150.
+    """
+    curve = coverage_accuracy_curve([0.9, 0.8, 0.7, 0.6, 0.5, 0.4],
+                                    [True] * 4 + [False] * 2, n_points=6)
+    assert area_under_coverage_curve(curve) == pytest.approx(139 / 150)
+
+
+def test_fast_path_metrics_at_one_tau_hand_computed():
+    """Nine queries, scores 0.9 down to 0.1, correct = [T,T,T,F,T,F,F,F,F].
+
+    At tau=0.55 four are accepted (0.9, 0.8, 0.7, 0.6) and three of those are
+    right: coverage 4/9, precision 3/4, yield 3/9.
+    """
+    scores = [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]
+    correct = [True, True, True, False, True, False, False, False, False]
+    wrong = [0.85, 0.75, 0.65, 0.6, 0.45, 0.4, 0.3, 0.2, 0.1]
+    m = fast_path_metrics(scores, correct, wrong, tau=0.55, taus=[0.55])
+    assert m["fastpath_coverage"] == pytest.approx(4 / 9)
+    assert m["fastpath_precision"] == pytest.approx(3 / 4)
+    assert m["fastpath_yield"] == pytest.approx(1 / 3)
+    assert m["false_accept_rate"] == pytest.approx(4 / 9)
+    assert m["n"] == 9.0
+    assert m["n_accepted"] == 4.0
+
+
+def test_precision_is_zero_not_nan_when_nothing_is_accepted():
+    """Vacuous, and documented as such -- read `n_accepted` beside it."""
+    m = fast_path_metrics([0.1], [False], [0.1], tau=0.9)
+    assert m["fastpath_precision"] == 0.0
+    assert m["n_accepted"] == 0.0
+    assert m["fastpath_coverage"] == 0.0
+
+
+def test_a_natural_negative_scores_on_the_negative_arm_only():
+    """`relevant_ids: []` means no correct answer exists for that query.
+
+    Counting it as a wrong positive would drag precision down for a reason that
+    is not the gate's fault -- the gate cannot pick a right answer that is not
+    in the corpus.
+    """
+    m = fast_path_metrics([0.9, 0.9], [True, None], [0.5, 0.9], tau=0.8)
+    assert m["n"] == 1.0
+    assert m["fastpath_precision"] == 1.0
+    assert m["n_natural_negatives"] == 1.0
+    assert m["false_accept_rate"] == pytest.approx(1 / 2)
+
+
+def test_a_query_whose_every_candidate_is_gold_is_skipped_not_scored():
+    m = fast_path_metrics([0.9], [True], [None], tau=0.5)
+    assert m["n_skipped_no_wrong_candidate"] == 1.0
+    assert m["n_negatives"] == 0.0
+    assert m["false_accept_rate"] == 0.0
+
+
+def test_the_curve_carries_every_requested_tau_plus_the_operating_point():
+    """The chosen tau must be visible on the table it was chosen from."""
+    m = fast_path_metrics([0.9, 0.5], [True, False], [0.4, 0.5],
+                          tau=0.7, taus=[0.6, 0.8])
+    assert [point["tau"] for point in m["curve"]] == [0.6, 0.7, 0.8]
+
+
+def test_a_gate_that_never_declines_reports_success_at_one():
+    """tau below every score measures Success@1 under another name.
+
+    Pinned because it is the failure mode of putting a cosine-calibrated tau in
+    front of a retriever whose scores are on a different scale.
+    """
+    m = fast_path_metrics([0.9, 0.8, 0.7], [True, False, True], [0.1, 0.1, 0.1],
+                          tau=0.0)
+    assert m["fastpath_coverage"] == 1.0
+    assert m["fastpath_precision"] == pytest.approx(2 / 3)
+
+
+def test_mismatched_array_lengths_are_refused():
+    with pytest.raises(ValueError, match="same length"):
+        fast_path_metrics([0.9, 0.8], [True], [0.1], tau=0.5)
 
 
 # -----------------------------------------------------------------------------

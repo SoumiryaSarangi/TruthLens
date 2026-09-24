@@ -1,0 +1,35 @@
+# FR-8, the fast-path GATE on the Phase 2 BGE-M3 run.
+#
+# No new inference: this is the SAME predictions file p2_match_bge_m3 scored,
+# asked a different question. `task: retrieval` asks whether the right
+# fact-check is found; this asks whether the SCORE says when to trust it. Every
+# rank metric is scale-free and every MultiClaim query is guaranteed to have an
+# answer, so MRR 0.5244 says nothing about when to resolve a post on the fast
+# path rather than sending it to retrieval.
+#
+# The negatives are derived by dropping each query's gold fact-checks from its
+# returned list. That is EXACT for a cosine scorer -- a pair's score does not
+# depend on what else is indexed -- and approximate for BM25, whose IDF does.
+#
+# Punjabi is n=7 native and n=2 romanized. The harness flags both low_n. Report
+# them as fractions with their denominators, never as bare percentages.
+experiment: p4_fastpath_bge_m3
+task: fast_path
+split: data/splits/multiclaim/dev.jsonl
+gold: data/gold/multiclaim_dev_retrieval.jsonl
+predictions: results/preds/p2_match_bge_m3.jsonl
+baseline: always_match
+breakdown: [lang, script]
+metrics:
+  fast_path:
+    tau: 0.70
+    taus: [0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90]
+notes: >
+  Pool is 78,077 fact-checks -- every fact-check in at least one annotated pair,
+  the MultiClaim / SemEval-2025 Task 7 setup. Baseline is always_match: the same
+  ranking with the gate removed, so its AUCC is Success@1 and the delta against
+  it is exactly the gate-worthy signal in the score. false_accept_rate is an
+  UPPER bound, because MultiClaim's annotation is incomplete and a fact-check
+  outside a post's gold set may still be a good match for it. tau=0.70 is a
+  provisional dev operating point, not yet a chosen one -- the tau table in
+  `curve` is the result, and the headline exists because a table needs a column.

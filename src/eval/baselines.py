@@ -100,6 +100,48 @@ def random_rank(
     return out
 
 
+def always_match(
+    split_rows: Sequence[dict[str, Any]], *, seed: int = SEED,
+    predictions: dict[str, dict[str, Any]] | None = None, **_: Any,
+) -> list[dict[str, Any]]:
+    """Take the top-1 match regardless of its score: the fast path with no gate.
+
+    The floor for a fast-path DECISION, and note what it holds fixed. The
+    RANKING is the model's own and only the SCORE is destroyed, which is
+    deliberate: `random_rank` is already the floor for "can the retriever find
+    it" and `task: retrieval` already answers that. The question here is whether
+    the score says when to trust the answer, and the only control that isolates
+    it is the same ranking carrying an uninformative score.
+
+    Coverage 1.0, precision = Success@1 and false_accept_rate 1.0 are fixed by
+    construction. AUCC is Success@1 **in expectation**: every score is identical,
+    so each coverage point is an unbiased random subsample and the curve is flat
+    only on average. Measured on MultiClaim dev (n=3,153) it lands at 0.4284
+    against a Success@1 of 0.4326 -- so read a delta against this baseline as
+    carrying a few thousandths of tie-ordering slop. It is deterministic (the
+    scorer shuffles with the config's seed), not noise that moves between runs.
+
+    It is the first baseline here that reads the run's own predictions. That
+    looks like a loss of independence and is not: independence from the ranking
+    would answer the retrieval question, which is a different question with its
+    own floor.
+    """
+    if not predictions:
+        raise ValueError(
+            "always_match needs the run's own predictions; the harness injects "
+            "them for task: fast_path."
+        )
+    out: list[dict[str, Any]] = []
+    for row in split_rows:
+        pred = predictions.get(row["uid"])
+        if pred is None:
+            continue
+        ranked = list(pred["ranked_ids"])
+        out.append({"uid": row["uid"], "ranked_ids": ranked,
+                    "scores": [1.0] * len(ranked)})
+    return out
+
+
 def whole_post_span(
     split_rows: Sequence[dict[str, Any]], *, seed: int = SEED,
     gold: dict[str, list[str]] | None = None, **_: Any,
@@ -178,6 +220,7 @@ REGISTRY = {
     "majority_class": majority_class,
     "stratified_random": stratified_random,
     "random_rank": random_rank,
+    "always_match": always_match,
     "whole_post_span": whole_post_span,
     "identity_transliteration": identity_transliteration,
     "longest_sentence": longest_sentence,

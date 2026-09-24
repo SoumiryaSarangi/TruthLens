@@ -24,6 +24,11 @@ you find yourself importing LaBSE in this directory, something has gone wrong.
   predictions JSONL; it does not score itself.
 - Predictions format: `{"uid": ..., "ranked_ids": [...], "scores": [...]}`,
   ranked best-first, at least as deep as the largest `k` in the config.
+  **`scores` is load-bearing, not decoration.** The same file is scored a second
+  time as `task: fast_path` (FR-8), where the fast-path gate reads `scores[0]`
+  and nothing else. It must be aligned with `ranked_ids` and non-increasing; the
+  harness refuses the run otherwise. A retriever that emits an unordered score
+  array would make the gate read an arbitrary number.
 - Every retriever must be runnable over a fixed candidate pool so its numbers
   are comparable across runs. Note the pool size in the config's `notes:`.
 - Retrieval is evaluated **on its own**, before anything touches generation.

@@ -14,6 +14,14 @@ including Romanized Hindi and Punjabi. Solo student project, CSE472.
 
 ## Metric definitions (do not improvise alternatives)
 - Retrieval: Recall@{1,5,10}, MRR, Success@10
+- Fast path (FR-8): coverage and precision at τ, false-accept rate on
+  withheld-answer negatives, and AUCC — area under the coverage-precision
+  curve — as the τ-free headline. **The τ table is the result**; the headline
+  exists because a results table needs one column and AUCC is the only
+  candidate a threshold cannot move. τ is a config key, chosen on dev, never
+  on test, and recorded in the served pipeline config.
+  Retrieval metrics do NOT answer this: they are rank-based and scale-free,
+  and every MultiClaim query is guaranteed to have an answer.
 - Verdict: macro-F1 over 5 classes
   {Supported, Refuted, Conflicting, NEI, NotAClaim}
   Conflicting is kept from AVeriTeC, not folded into NEI: "evidence

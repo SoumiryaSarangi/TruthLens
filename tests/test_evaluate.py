@@ -443,3 +443,173 @@ def test_transliteration_gold_needs_a_reference_field(tmp_path):
     )
     with pytest.raises(EvalRefused, match=r"relevant_ids.*reference"):
         evaluate(cfg, tmp_path)
+
+
+# -----------------------------------------------------------------------------
+# task: fast_path (FR-8)
+# -----------------------------------------------------------------------------
+
+
+def _fastpath_setup(tmp_path: Path, scores=None, top_correct=None, gold_ids=None):
+    """Nine toy rows: top-1 scores 0.9 down to 0.1, right at 0, 1, 2 and 4.
+
+    Each row returns two candidates, the runner-up scoring 0.05 less, so the
+    derived "best non-gold" candidate is the runner-up where the top-1 is right
+    and the top-1 itself where it is wrong.
+    """
+    rows = load_jsonl(Path("tests/fixtures/toy_clean/dev.jsonl"))
+    scores = scores or [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]
+    top_correct = top_correct or [True, True, True, False, True,
+                                  False, False, False, False]
+    gold_path = tmp_path / "gold.jsonl"
+    preds_path = tmp_path / "preds.jsonl"
+    gold_lines, pred_lines = [], []
+    for i, (row, score, ok) in enumerate(zip(rows, scores, top_correct, strict=True)):
+        right, wrong = f"doc-{i:03}", f"doc-{i + 900:03}"
+        ids = gold_ids[i] if gold_ids is not None else [right]
+        gold_lines.append(json.dumps({"uid": row["uid"], "relevant_ids": ids}))
+        ranked = [right, wrong] if ok else [wrong, right]
+        pred_lines.append(json.dumps({"uid": row["uid"], "ranked_ids": ranked,
+                                      "scores": [score, round(score - 0.05, 2)]}))
+    gold_path.write_text("\n".join(gold_lines) + "\n", encoding="utf-8")
+    preds_path.write_text("\n".join(pred_lines) + "\n", encoding="utf-8")
+    return gold_path, preds_path
+
+
+def _fastpath_config(tmp_path: Path, gold: Path, preds: Path, **settings):
+    return write_config(
+        tmp_path, task="fast_path", label_set=None,
+        gold=str(gold).replace("\\", "/"), predictions=str(preds).replace("\\", "/"),
+        baseline="always_match",
+        metrics={"fast_path": {"tau": settings.pop("tau", 0.55), **settings}},
+    )
+
+
+def test_fast_path_scores_coverage_precision_and_false_accepts(tmp_path):
+    """At tau=0.55 four of nine are accepted and three of those are right."""
+    gold, preds = _fastpath_setup(tmp_path)
+    doc = evaluate(_fastpath_config(tmp_path, gold, preds, tau=0.55), tmp_path)
+    overall = doc["metrics"]["overall"]
+    assert overall["fastpath_coverage"] == pytest.approx(4 / 9)
+    assert overall["fastpath_precision"] == pytest.approx(3 / 4)
+    assert overall["fastpath_yield"] == pytest.approx(1 / 3)
+    assert overall["false_accept_rate"] == pytest.approx(4 / 9)
+    assert overall["tau"] == 0.55
+
+
+def test_fast_path_reuses_a_retrieval_predictions_file_unchanged(tmp_path):
+    """One batch run, two tasks -- the whole point of the seam.
+
+    The committed retrieval fixture is scored as a gate with no edits, which is
+    what lets the Phase 4 config reuse the Phase 2 predictions and cost zero
+    inference.
+    """
+    cfg = write_config(
+        tmp_path, task="fast_path", label_set=None,
+        gold="tests/fixtures/toy_clean/gold_retrieval_dev.jsonl",
+        predictions="tests/fixtures/toy_clean/predictions_retrieval_demo.jsonl",
+        baseline="always_match",
+        metrics={"fast_path": {"tau": 0.5}},
+    )
+    doc = evaluate(cfg, tmp_path)
+    assert doc["metrics"]["overall"]["n"] == 9.0
+    assert doc["metrics"]["overall"]["fastpath_coverage"] == 1.0
+
+
+def test_always_match_is_the_gate_removed(tmp_path):
+    """Its coverage and false-accept rate are fixed by construction."""
+    gold, preds = _fastpath_setup(tmp_path)
+    doc = evaluate(_fastpath_config(tmp_path, gold, preds, tau=0.55), tmp_path)
+    base = doc["baseline"]["metrics"]
+    assert base["fastpath_coverage"] == 1.0
+    assert base["false_accept_rate"] == 1.0
+    assert base["fastpath_precision"] == pytest.approx(4 / 9)   # == Success@1
+
+
+def test_the_headline_is_aucc_and_the_curve_is_not_a_metric(tmp_path):
+    """`curve` is the result; `tau` and the counts are parameters, not scores.
+
+    None of them may appear in delta_vs_baseline or trip the sanity ceiling --
+    n_accepted is a row count and would fire "SUSPICIOUSLY HIGH" on every run.
+    """
+    gold, preds = _fastpath_setup(tmp_path)
+    doc = evaluate(_fastpath_config(tmp_path, gold, preds, tau=0.55), tmp_path)
+    assert "fastpath_aucc" in doc["delta_vs_baseline"]
+    for key in ("curve", "coverage_curve", "tau", "n", "n_accepted", "n_negatives"):
+        assert key not in doc["delta_vs_baseline"], key
+    assert not any("SUSPICIOUSLY" in w for w in doc["warnings"])
+    assert doc["metrics"]["overall"]["curve"][0]["tau"] == 0.55
+
+
+def test_a_config_without_tau_is_refused(tmp_path):
+    """FR-14: the operating point is recorded, never defaulted."""
+    gold, preds = _fastpath_setup(tmp_path)
+    cfg = write_config(
+        tmp_path, task="fast_path", label_set=None,
+        gold=str(gold).replace("\\", "/"), predictions=str(preds).replace("\\", "/"),
+        baseline="always_match", metrics={"fast_path": {"taus": [0.6]}},
+    )
+    with pytest.raises(EvalRefused):
+        evaluate(cfg, tmp_path)
+
+
+def test_misaligned_scores_are_refused(tmp_path):
+    gold, preds = _fastpath_setup(tmp_path)
+    rows = [json.loads(line) for line in preds.read_text(encoding="utf-8").splitlines()]
+    rows[0]["scores"] = rows[0]["scores"][:1]
+    preds.write_text("\n".join(json.dumps(r) for r in rows) + "\n", encoding="utf-8")
+    with pytest.raises(EvalRefused, match="score"):
+        evaluate(_fastpath_config(tmp_path, gold, preds), tmp_path)
+
+
+def test_scores_not_ranked_best_first_are_refused(tmp_path):
+    """tau gates scores[0]. If that is not the maximum, tau gates nothing."""
+    gold, preds = _fastpath_setup(tmp_path)
+    rows = [json.loads(line) for line in preds.read_text(encoding="utf-8").splitlines()]
+    rows[0]["scores"] = [0.1, 0.9]
+    preds.write_text("\n".join(json.dumps(r) for r in rows) + "\n", encoding="utf-8")
+    with pytest.raises(EvalRefused, match="best-first"):
+        evaluate(_fastpath_config(tmp_path, gold, preds), tmp_path)
+
+
+def test_predictions_without_scores_are_refused(tmp_path):
+    """`scores` is conventional for retrieval and load-bearing here."""
+    gold, preds = _fastpath_setup(tmp_path)
+    rows = [json.loads(line) for line in preds.read_text(encoding="utf-8").splitlines()]
+    for row in rows:
+        row.pop("scores")
+    preds.write_text("\n".join(json.dumps(r) for r in rows) + "\n", encoding="utf-8")
+    with pytest.raises(EvalRefused, match="scores"):
+        evaluate(_fastpath_config(tmp_path, gold, preds), tmp_path)
+
+
+def test_a_tau_above_every_score_warns_rather_than_reporting_a_silent_zero(tmp_path):
+    """The error waiting to happen once BM25's unbounded scores share this task."""
+    gold, preds = _fastpath_setup(tmp_path)
+    doc = evaluate(_fastpath_config(tmp_path, gold, preds, tau=99.0), tmp_path)
+    assert any("never fires" in w for w in doc["warnings"])
+
+
+def test_a_tau_below_every_score_warns_that_it_is_measuring_success_at_1(tmp_path):
+    gold, preds = _fastpath_setup(tmp_path)
+    doc = evaluate(_fastpath_config(tmp_path, gold, preds, tau=-1.0), tmp_path)
+    assert any("never declines" in w for w in doc["warnings"])
+
+
+def test_a_query_with_no_correct_answer_scores_on_the_negative_arm_only(tmp_path):
+    """An empty `relevant_ids` is a natural negative, not a guaranteed miss."""
+    gold_ids = [[f"doc-{i:03}"] for i in range(9)]
+    gold_ids[0] = []
+    gold, preds = _fastpath_setup(tmp_path, gold_ids=gold_ids)
+    doc = evaluate(_fastpath_config(tmp_path, gold, preds, tau=0.55), tmp_path)
+    overall = doc["metrics"]["overall"]
+    assert overall["n"] == 8.0
+    assert overall["n_natural_negatives"] == 1.0
+
+
+def test_fast_path_metrics_are_broken_down_by_script(tmp_path):
+    """The gate is where romanization bites hardest: a romanized query's cosine
+    is depressed, so one global tau may not be defensible across scripts."""
+    gold, preds = _fastpath_setup(tmp_path)
+    doc = evaluate(_fastpath_config(tmp_path, gold, preds), tmp_path)
+    assert "fastpath_aucc" in doc["metrics"]["by"]["lang=hi,script=latn"]

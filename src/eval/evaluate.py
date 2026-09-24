@@ -24,7 +24,9 @@ Exit codes: 0 success, 2 the run was refused, 1 an unexpected error.
 from __future__ import annotations
 
 import argparse
+import itertools
 import os
+import random
 import re
 import sys
 from datetime import UTC, datetime
@@ -43,6 +45,7 @@ from data.splits import SplitError, load_split, read_lock
 from eval import baselines as baselines_mod
 from eval import metrics as M
 from eval.breakdown import MIN_CELL_N, compute_with_breakdown, script_gap
+from eval.report import HEADLINE
 
 SCHEMA_PATH = Path("configs/_schema/eval.schema.json")
 DEFAULT_OUT_DIR = Path("results")
@@ -206,11 +209,52 @@ def check_coverage(
     }
 
 
+# A metrics dict carries three kinds of entry and only one of them is a score.
+# Counts answer "over how many", parameters answer "at what setting", and
+# neither belongs in a delta against a baseline or under the sanity ceiling --
+# `n_accepted=1276.0` would trip "SUSPICIOUSLY HIGH" on every fast-path run.
+# This lived as a hard-coded `{"n", "n_skipped_no_relevant"}` in three places,
+# which is three places to forget the next time a task adds a count.
+NON_METRIC_KEYS = frozenset({"n", "tau"})
+
+
+def is_metric(name: str, value: Any) -> bool:
+    """True if this entry is a score rather than a count or a parameter.
+
+    `n_*` is the count convention, which retro-covers `n_skipped_no_relevant`.
+    The bool check is not redundant: `isinstance(True, int)` is True in Python,
+    so without it a boolean entry would be compared against a float ceiling.
+    """
+    return (isinstance(value, (int, float)) and not isinstance(value, bool)
+            and name not in NON_METRIC_KEYS and not name.startswith("n_"))
+
+
+def fast_path_scale_warnings(overall: dict[str, Any]) -> list[str]:
+    """A tau on the wrong scale gates everything or nothing, silently.
+
+    Warned rather than refused, following guardrail 4's posture: a run where the
+    gate never fires is a legitimate thing to want to see once. It stops being
+    legitimate when nobody notices, which is what this is for. The error is easy
+    to make the moment two retrievers with different score ranges share a task --
+    BM25 scores are unbounded, a cosine is not.
+    """
+    tau, n, accepted = overall.get("tau"), overall.get("n"), overall.get("n_accepted")
+    if not n:
+        return []
+    if accepted == 0:
+        return [f"tau={tau} is above every top-1 score in this run: the fast path "
+                "never fires. Is tau on the same scale as this retriever's scores?"]
+    if accepted == n:
+        return [f"tau={tau} is below every top-1 score: the gate never declines, so "
+                "this run measures Success@1 under another name."]
+    return []
+
+
 def collect_sanity_warnings(metrics: dict[str, Any], ceiling: float) -> list[str]:
     """Guardrail 4."""
     warnings: list[str] = []
     for name, value in metrics.get("overall", {}).items():
-        if not isinstance(value, (int, float)) or name in {"n", "n_skipped_no_relevant"}:
+        if not is_metric(name, value):
             continue
         # CER and WER are error rates: high is bad, not suspicious. Warning on
         # them would train the reader to ignore this warning.
@@ -237,6 +281,9 @@ def load_predictions(path: str | Path, task: str) -> dict[str, dict[str, Any]]:
     if not p.is_file():
         raise EvalRefused(f"predictions not found: {p}")
     required = {"retrieval": ("uid", "ranked_ids"),
+                # `scores` is conventional for retrieval and LOAD-BEARING here:
+                # the gate reads scores[0] and nothing else.
+                "fast_path": ("uid", "ranked_ids", "scores"),
                 "classification": ("uid", "pred"),
                 "transliteration": ("uid", "transliterated"),
                 "span": ("uid", "bio"),
@@ -350,6 +397,84 @@ def score_retrieval(
     )
 
 
+DEFAULT_TAUS = (0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90)
+
+
+def score_fast_path(
+    split_rows: list[dict[str, Any]],
+    pred_by_uid: dict[str, dict[str, Any]],
+    gold: dict[str, list[str]],
+    cfg: dict[str, Any],
+) -> dict[str, Any]:
+    """Does the match SCORE say when to trust the match (FR-8)?
+
+    A different question from `task: retrieval` over the identical predictions
+    file. Retrieval asks whether the right fact-check is found; every rank metric
+    is scale-free and every MultiClaim query is guaranteed to have an answer, so
+    none of them can say whether to resolve a post on the fast path.
+
+    The negatives are derived here rather than supplied: the best-scoring
+    returned candidate that is not gold is, by construction, wrong. See
+    `metrics.fast_path_metrics` for why that is exact for a cosine scorer,
+    approximate for BM25, and an upper bound on false accepts either way.
+
+    A gold row present with an EMPTY `relevant_ids` is a natural negative -- a
+    query with no correct answer anywhere in the corpus. It scores on the
+    negative arm only.
+    """
+    settings = cfg.get("metrics", {}).get("fast_path", {})
+    tau = settings["tau"]          # schema-required: a defaulted tau is a
+                                   # silently chosen operating point (FR-14)
+    taus = tuple(settings.get("taus", DEFAULT_TAUS))
+    n_points = int(settings.get("coverage_points", 21))
+
+    scored = [r for r in split_rows if r["uid"] in pred_by_uid and r["uid"] in gold]
+    tops: list[float] = []
+    correct: list[bool | None] = []
+    best_wrong: list[float | None] = []
+    for row in scored:
+        pred = pred_by_uid[row["uid"]]
+        ranked, scores = list(pred["ranked_ids"]), [float(s) for s in pred["scores"]]
+        where = f"{cfg['predictions']} uid={row['uid']}"
+        if not ranked:
+            raise EvalRefused(
+                f"{where}: empty `ranked_ids`. A retriever that returned nothing is "
+                "a failure to surface, not one to score as a decline."
+            )
+        if len(ranked) != len(scores):
+            raise EvalRefused(
+                f"{where}: {len(scores)} score(s) for {len(ranked)} ranked id(s). "
+                "A misaligned score array makes scores[0] an arbitrary number."
+            )
+        if any(a < b for a, b in itertools.pairwise(scores)):
+            raise EvalRefused(
+                f"{where}: `scores` is not ranked best-first. tau gates scores[0]; "
+                "if that is not the maximum then tau gates nothing."
+            )
+        relevant = set(gold[row["uid"]])
+        tops.append(scores[0])
+        correct.append(ranked[0] in relevant if relevant else None)
+        best_wrong.append(next((s for i, s in zip(ranked, scores) if i not in relevant),
+                               None))
+
+    def compute(indices) -> dict[str, Any]:
+        # Ties must not resolve into a language block. A constant-score baseline
+        # produces an all-ties curve, and MultiClaim uids are ordered
+        # `multiclaim:en:dev:*` first, so a stable sort would measure its
+        # low-coverage points on English alone.
+        order = list(indices)
+        random.Random(cfg["seed"]).shuffle(order)
+        return M.fast_path_metrics(
+            [tops[i] for i in order], [correct[i] for i in order],
+            [best_wrong[i] for i in order],
+            tau=tau, taus=taus, n_points=n_points,
+        )
+
+    return compute_with_breakdown(
+        scored, cfg["breakdown"], compute, min_cell_n=cfg["min_cell_n"],
+    )
+
+
 def score_transliteration(
     split_rows: list[dict[str, Any]],
     pred_by_uid: dict[str, dict[str, Any]],
@@ -441,6 +566,9 @@ def score(
     if task == "retrieval":
         assert gold is not None
         return score_retrieval(split_rows, pred_by_uid, gold, cfg)
+    if task == "fast_path":
+        assert gold is not None
+        return score_fast_path(split_rows, pred_by_uid, gold, cfg)
     if task == "transliteration":
         assert gold is not None
         return score_transliteration(split_rows, pred_by_uid, gold, cfg)
@@ -523,6 +651,11 @@ def run_baseline(
     if name == "whole_post_span":
         # It needs the token count per row, which only the gold carries.
         kwargs["gold"] = gold
+    if name == "always_match":
+        # The gate-removed control keeps the model's own RANKING and destroys
+        # only its scores, so it has to read the run's predictions. See the
+        # baseline's docstring for why that is the right control here.
+        kwargs["predictions"] = load_predictions(Path(cfg["predictions"]), cfg["task"])
     if name == "random_rank":
         # Prefer the REAL corpus when the run names one. Sampling from the gold
         # documents alone would draw every candidate from the set of things that
@@ -550,7 +683,7 @@ def run_baseline(
 def delta_vs_baseline(model: dict[str, Any], base: dict[str, Any]) -> dict[str, float]:
     out: dict[str, float] = {}
     for key, value in model.items():
-        if not isinstance(value, (int, float)) or key in {"n", "n_skipped_no_relevant"}:
+        if not is_metric(key, value):
             continue
         other = base.get(key)
         if isinstance(other, (int, float)):
@@ -593,7 +726,8 @@ def evaluate(config_path: str | Path, out_dir: str | Path = DEFAULT_OUT_DIR,
     pred_by_uid = load_predictions(pred_path, cfg["task"])
     pred_sha = sha256_file(pred_path)
 
-    needs_gold = cfg["task"] in ("retrieval", "transliteration", "span", "normalization")
+    needs_gold = cfg["task"] in ("retrieval", "fast_path", "transliteration",
+                                 "span", "normalization")
     gold = load_gold_retrieval(cfg["gold"]) if needs_gold else None
 
     # Transliteration gold covers only the rows somebody wrote a reference for --
@@ -602,7 +736,8 @@ def evaluate(config_path: str | Path, out_dir: str | Path = DEFAULT_OUT_DIR,
     # is the check that actually matters.
     # These tasks' gold covers only the rows somebody annotated, so the split is
     # the universe of what MAY be predicted and the gold is what MUST be.
-    partial_gold = cfg["task"] in ("transliteration", "span", "normalization")
+    partial_gold = cfg["task"] in ("fast_path", "transliteration", "span",
+                                   "normalization")
     expected_uids = (sorted(gold) if partial_gold
                      else [r["uid"] for r in split_rows])
     coverage = check_coverage(
@@ -628,9 +763,11 @@ def evaluate(config_path: str | Path, out_dir: str | Path = DEFAULT_OUT_DIR,
             "reproduce this number."
         )
 
-    headline = {"classification": "macro_f1", "retrieval": "mrr",
-                "transliteration": "cer", "span": "token_f1",
-                "normalization": "chrf"}[cfg["task"]]
+    if cfg["task"] == "fast_path":
+        warnings.extend(fast_path_scale_warnings(scored.get("overall", {})))
+
+    # Imported, not redeclared: report.py holds the single definition.
+    headline = HEADLINE[cfg["task"]]
     # The native-vs-romanized gap needs a metric that MEANS something inside one
     # cell. For language identification it cannot be macro-F1: the cells are
     # split by language and the classes ARE languages, so every cell holds a
@@ -709,7 +846,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  coverage : {scored}/{cov['n_gold']} scored{extra}")
     base_name = doc["baseline"]["name"]
     for key, value in sorted(headline.items()):
-        if not isinstance(value, (int, float)) or key in {"n", "n_skipped_no_relevant"}:
+        if not is_metric(key, value):
             continue
         delta = doc["delta_vs_baseline"].get(key)
         if delta is None:

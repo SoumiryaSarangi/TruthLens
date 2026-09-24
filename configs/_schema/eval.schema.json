@@ -21,6 +21,7 @@
     "task": {
       "enum": [
         "retrieval",
+        "fast_path",
         "classification",
         "transliteration",
         "span",
@@ -75,6 +76,31 @@
             "ece_bins": {
               "type": "integer",
               "minimum": 2
+            },
+            "coverage_points": {
+              "type": "integer",
+              "minimum": 2
+            }
+          }
+        },
+        "fast_path": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "tau"
+          ],
+          "properties": {
+            "tau": {
+              "type": "number",
+              "description": "The served operating point. Selected on dev, never on test (SRS FR-14, SYSTEM_DESIGN 6). No default on purpose: a defaulted tau is a silently chosen operating point, and tau is part of the config hash, so moving it is recorded as a separate run."
+            },
+            "taus": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 1,
+              "description": "The grid reported in `curve`. `tau` is always folded in."
             },
             "coverage_points": {
               "type": "integer",
@@ -218,6 +244,31 @@
         "required": [
           "gold"
         ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "task": {
+            "const": "fast_path"
+          }
+        },
+        "required": [
+          "task"
+        ]
+      },
+      "then": {
+        "required": [
+          "gold",
+          "metrics"
+        ],
+        "properties": {
+          "metrics": {
+            "required": [
+              "fast_path"
+            ]
+          }
+        }
       }
     }
   ]
