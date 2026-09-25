@@ -21,7 +21,7 @@
     "n_missing": 0,
     "n_predicted": 3153
   },
-  "created_utc": "2026-09-24T18:24:41+00:00",
+  "created_utc": "2026-09-25T02:01:59+00:00",
   "delta_vs_baseline": {
     "mrr": 0.3823838722506656,
     "recall@1": 0.2829326178279558,
@@ -54,8 +54,8 @@
   "experiment": "p4_match_bm25",
   "git": {
     "branch": "main",
-    "dirty": true,
-    "sha": "1fbd85a3a1dc759fed758eb22bf63b482cf81c10"
+    "dirty": false,
+    "sha": "ff141de3746575098c44f9ae49f516574fcfcbb8"
   },
   "inputs": {
     "config": {
@@ -191,7 +191,5 @@
     "transformers": true
   },
   "task": "retrieval",
-  "warnings": [
-    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
-  ]
+  "warnings": []
 }

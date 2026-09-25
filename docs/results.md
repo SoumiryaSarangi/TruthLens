@@ -8,11 +8,11 @@ A row without a baseline is not a result, it is a number.
 
 | Experiment | Task | Headline | Score | Baseline | Base score | Delta | n | Flags |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| p4_fastpath_rerank_nli | fast_path | fastpath_aucc | 0.1153 | always_match | 0.1067 | 0.0086 | 3153 | 1 warning(s), dirty tree |
-| p4_fastpath_rerank_xlmr | fast_path | fastpath_aucc | 0.5508 | always_match | 0.4354 | 0.1154 | 3153 | 1 warning(s), dirty tree |
-| p4_fastpath_bge_m3 | fast_path | fastpath_aucc | 0.5842 | always_match | 0.4284 | 0.1557 | 3153 | 1 warning(s), dirty tree |
-| p4_fastpath_bm25 | fast_path | fastpath_aucc | 0.3420 | always_match | 0.3247 | 0.0173 | 3153 | 1 warning(s), dirty tree |
-| p4_match_bm25 | retrieval | mrr | 0.3826 | random_rank | 0.0002 | 0.3824 | 3153 | 1 warning(s), dirty tree |
+| p4_fastpath_rerank_nli | fast_path | fastpath_aucc | 0.1153 | always_match | 0.1067 | 0.0086 | 3153 | — |
+| p4_fastpath_rerank_xlmr | fast_path | fastpath_aucc | 0.5508 | always_match | 0.4354 | 0.1154 | 3153 | — |
+| p4_fastpath_bm25 | fast_path | fastpath_aucc | 0.3420 | always_match | 0.3247 | 0.0173 | 3153 | — |
+| p4_match_bm25 | retrieval | mrr | 0.3826 | random_rank | 0.0002 | 0.3824 | 3153 | — |
+| p4_fastpath_bge_m3 | fast_path | fastpath_aucc | 0.5842 | always_match | 0.4284 | 0.1557 | 3153 | — |
 | p3_cw_handtyped_xlmr | classification | macro_f1 | 0.4536 | majority_class | 0.4595 | -0.0059 | 100 | — |
 | p3_cw_derived_xlmr | classification | macro_f1 | 0.7222 | majority_class | 0.3839 | 0.3383 | 963 | — |
 | p3_cw_derived_heuristic | classification | macro_f1 | 0.4217 | majority_class | 0.3839 | 0.0378 | 963 | — |
@@ -55,12 +55,12 @@ The gap column is the finding. Where it is largest is where the pipeline is most
 | p4_fastpath_rerank_nli | pa | fastpath_aucc | 0.0000 | 0.0000 | 0.0000 | 7 | 2 |
 | p4_fastpath_rerank_xlmr | hi | fastpath_aucc | 0.4291 | 0.4028 | 0.0263 | 737 | 57 |
 | p4_fastpath_rerank_xlmr | pa | fastpath_aucc | 0.6024 | 0.0000 | 0.6024 | 7 | 2 |
-| p4_fastpath_bge_m3 | hi | fastpath_aucc | 0.5426 | 0.4067 | 0.1359 | 737 | 57 |
-| p4_fastpath_bge_m3 | pa | fastpath_aucc | 0.3266 | 0.2500 | 0.0766 | 7 | 2 |
 | p4_fastpath_bm25 | hi | fastpath_aucc | 0.1771 | 0.2177 | -0.0406 | 737 | 57 |
 | p4_fastpath_bm25 | pa | fastpath_aucc | 0.0000 | 0.0000 | 0.0000 | 7 | 2 |
 | p4_match_bm25 | hi | mrr | 0.1936 | 0.2251 | -0.0315 | 737 | 57 |
 | p4_match_bm25 | pa | mrr | 0.0000 | 0.0000 | 0.0000 | 7 | 2 |
+| p4_fastpath_bge_m3 | hi | fastpath_aucc | 0.5426 | 0.4067 | 0.1359 | 737 | 57 |
+| p4_fastpath_bge_m3 | pa | fastpath_aucc | 0.3266 | 0.2500 | 0.0766 | 7 | 2 |
 | p3_cw_derived_xlmr | hi | macro_f1 | 0.6577 | 0.3750 | 0.2827 | 148 | 5 |
 | p3_cw_derived_xlmr | pa | macro_f1 | 0.6855 | 0.7231 | -0.0376 | 119 | 18 |
 | p3_cw_derived_heuristic | hi | macro_f1 | 0.4894 | 0.4444 | 0.0449 | 148 | 5 |

@@ -218,7 +218,7 @@
     "n_missing": 0,
     "n_predicted": 3153
   },
-  "created_utc": "2026-09-24T18:30:35+00:00",
+  "created_utc": "2026-09-25T02:01:52+00:00",
   "delta_vs_baseline": {
     "false_accept_rate": -0.7849666983824929,
     "fastpath_aucc": 0.1557188541700228,
@@ -249,8 +249,8 @@
   "experiment": "p4_fastpath_bge_m3",
   "git": {
     "branch": "main",
-    "dirty": true,
-    "sha": "1fbd85a3a1dc759fed758eb22bf63b482cf81c10"
+    "dirty": false,
+    "sha": "ff141de3746575098c44f9ae49f516574fcfcbb8"
   },
   "inputs": {
     "config": {
@@ -1573,7 +1573,5 @@
     "transformers": true
   },
   "task": "fast_path",
-  "warnings": [
-    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
-  ]
+  "warnings": []
 }

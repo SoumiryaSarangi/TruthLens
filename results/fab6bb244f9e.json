@@ -210,7 +210,7 @@
     "n_missing": 0,
     "n_predicted": 3153
   },
-  "created_utc": "2026-09-24T21:13:27+00:00",
+  "created_utc": "2026-09-25T02:02:14+00:00",
   "delta_vs_baseline": {
     "false_accept_rate": -0.8249286393910561,
     "fastpath_aucc": 0.11541718325850137,
@@ -241,8 +241,8 @@
   "experiment": "p4_fastpath_rerank_xlmr",
   "git": {
     "branch": "main",
-    "dirty": true,
-    "sha": "1a6aa4abc66720b5bba52db148a9188becafb163"
+    "dirty": false,
+    "sha": "ff141de3746575098c44f9ae49f516574fcfcbb8"
   },
   "inputs": {
     "config": {
@@ -1516,7 +1516,5 @@
     "transformers": true
   },
   "task": "fast_path",
-  "warnings": [
-    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
-  ]
+  "warnings": []
 }
