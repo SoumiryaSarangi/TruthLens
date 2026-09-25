@@ -1,21 +1,73 @@
-# Which implementation runs at each stage. Phase 1 baselines only.
+# Which implementation runs at each stage.
 # Changing a line here changes what runs -- never edit code to switch impls.
-name: p1_dev
+#
+# Until Phase 4 this file still ran Phase 1 baselines at EVERY stage, so
+# everything Phases 2 and 3 built was measured by the harness and not served:
+# `claims: passthrough` returns check_worthy = True for any non-empty string, so
+# `NotAClaim` -- the first card in the demo script and the answer to PRD scenario
+# S4 -- was unreachable in the API.
+name: p4_dev
 split: dev
 k: 10
 
-# tau_match: the fast path is not built until Phase 4, so nothing can clear it.
-tau_match: 1.0
-# tau_abstain: 0.0 disables abstention. Confidence here is an uncalibrated
-# score from the rule aggregator, so any threshold chosen against it would be
-# meaningless. Abstention gets a real threshold in Phase 6, on dev, after
-# temperature scaling (FR-13, FR-14).
+# tau_match: chosen on dev (SRS FR-14, SYSTEM_DESIGN 6), reported by
+# GET /version (FR-21), and set HIGH on purpose. The measured operating curve for
+# the best of four gates (raw BGE-M3 cosine, task: fast_path on MultiClaim dev):
+#
+#     tau   coverage   precision   false accepts
+#     0.70    40.5%      62.7%        21.5%
+#     0.80    12.4%      67.3%         4.8%
+#     0.85     4.9%      74.0%         1.4%
+#     0.90     1.7%      81.8%         0.3%
+#
+# Precision here is "of the posts resolved on the fast path, how many cite the
+# RIGHT fact-check". At 0.90 the fast path fires on 1.7% of posts (n=55) and is
+# still wrong about one time in five. A wrong fast-path answer is this system's
+# worst failure -- confident, sourced and presented as settled -- so the
+# threshold is set where the error rate is lowest, accepting that the fast path
+# then handles almost no traffic. **FR-8 is measured, not demo-ready**; see the
+# Phase 4 entry in docs/project-log.md.
+tau_match: 0.90
+
+# tau_abstain: 0.0 disables abstention. Confidence on the evidence path is an
+# uncalibrated score from the rule aggregator, and on the fast path it is a raw
+# retrieval score wearing the field's name. Abstention gets a real threshold in
+# Phase 6, on dev, after temperature scaling (FR-13, FR-14).
 tau_abstain: 0.0
 
 stages:
-  preprocess: passthrough
-  claims: passthrough
-  matching: none
+  # `hybrid`, not `full`: it beats `full` on romanized input by a wide margin on
+  # the hand-typed set (macro-F1 0.4492 vs 0.0000) and loses to it on MultiClaim's
+  # mostly-native text (0.6785 vs 0.7259). Romanized input is the primary use
+  # case, not an edge case (CLAUDE.md), so the served config takes the romanized
+  # win. It does not change retrieval: passthrough and hybrid produce identical
+  # query text for 306/306 MultiClaim rows.
+  preprocess: hybrid
+  # `heuristic`, NOT the arm that wins the metric. Measured on the hand-typed 100:
+  #
+  #     impl        macro-F1   real claims rejected   no-claims caught
+  #     nli           0.5938     18/85 = 21.2%             7/15
+  #     xlmr          0.4536      2/85 =  2.4%             0/15
+  #     heuristic     0.4595      0/85 =  0.0%             0/15
+  #
+  # macro-F1 picks `nli` and the product does not, because the two errors are not
+  # symmetric and macro-F1 treats them as if they were. A false `NotAClaim` fails
+  # the user completely -- they forwarded a rumour and the system answered "there
+  # is no checkable factual claim here", with no verification and no recourse. A
+  # false check-worthy costs an NEI answer on a blessing: mildly silly, harmless.
+  # One in five real claims is too high a price for catching seven blessings.
+  #
+  # This does not retract the FR-6 result: `nli` is still the best arm on the
+  # metric and stays the reported number. The served config makes the cost-aware
+  # choice, and both are recorded. Revisit when there are enough real no-claim
+  # messages to pick an operating point that does not cost claim recall.
+  #
+  # Surfaced only by running the pipeline end to end: with `nli` the served
+  # config answered `NotAClaim` to "Sarkar ne announce kiya hai ki har student ko
+  # 6000 rupaye milenge" while accepting a Punjabi blessing. The metric never
+  # showed that; two example forwards did.
+  claims: heuristic
+  matching: factcheck
   retrieval: bm25
   stance: nli
   aggregate: rule
@@ -27,3 +79,11 @@ stage_args:
     threshold: 0.5
   stance:
     batch_size: 16
+  matching:
+    # No reranker. Both arms were built and measured and both lose to the raw
+    # cosine as a GATE: zero-shot NLI destroys the ranking (Success@1 0.4326 ->
+    # 0.1062) and the trained cross-encoder learned to score fact-checks rather
+    # than pairs (about three quarters of its score variance comes from the
+    # candidate alone). Phase 4 entry has the diagnosis.
+    reranker: none
+    encoder: bge_m3

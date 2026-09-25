@@ -187,14 +187,51 @@ find out whether the problem is solvable.
 baseline of 0.2875, because only **4.3%** of CheckThat references appear
 verbatim in their post. That is the Phase 6 abstractive case, made with a number.
 
-## Next: Phase 4 — claim matching (Days 5-6)
+## Phase 4 results (Day 5) — FR-8 is measured, not demo-ready
 
-The fast path: a post matching an existing fact-check closely enough skips
-retrieval. Phase 2 already built and scored the machinery (BGE-M3 over 78,077
-fact-checks, MRR 0.5244), so this is mostly wiring it behind `tau_match` and
-choosing that threshold.
+**The gate, four ways.** All on MultiClaim dev, 3,153 queries against 78,077
+fact-checks. `always_match` is the same ranking with the gate removed, so its
+AUCC is that arm's Success@1 and the delta is the signal in the score alone.
 
-**Decision due Day 5:** demo corpus composition (`SYSTEM_DESIGN.md` §14).
+| gate | Success@1 | AUCC | vs gate-removed | prec @ ~40% coverage |
+| --- | --- | --- | --- | --- |
+| BM25 (lexical) | 0.3283 | 0.3420 | +0.0173 | 35.8% |
+| zero-shot NLI reranker | 0.1062 | 0.1153 | +0.0086 | 10.8% |
+| trained XLM-R reranker | 0.4342 | 0.5508 | +0.1154 | 59.3% |
+| **BGE-M3 cosine, no reranker** | 0.4326 | **0.5842** | **+0.1557** | **62.7%** |
+
+**The raw cosine wins.** Zero-shot NLI destroys the ranking (Success@1 0.4326 →
+0.1062): entailment is the wrong relation, because a fact-check that debunks a
+claim contradicts the post making it. The trained cross-encoder doubled the mean
+score separation and still lost, because it learned to score **fact-checks rather
+than pairs** — about three quarters of its score variance comes from the candidate
+alone, and candidates never seen as a positive in training average P(relevant)
+0.0500 against 0.1596 for those seen 2-4 times. That is a training-data
+construction bug and resampling cannot fix it; the objective has to become
+within-query. Full diagnosis in `project-log.md`.
+
+**There is no safe operating point.** At the served `tau_match: 0.90` the fast
+path fires on 1.7% of posts (n=55) and is still wrong about 1 in 5 times; 40%
+coverage costs 37% wrong citations. A wrong fast-path answer is confident,
+sourced and presented as settled, which makes it this system's worst failure.
+
+**Also measured:** 79.2% of the fact-check pool has a rating this project can map
+to a verdict, and the mapped distribution is 79.5% `Refuted` against **0.2%
+`Supported`** — a user whose forward is TRUE will almost never be told so. The
+pool holds **5 Punjabi fact-checks out of 78,077**, so a Punjabi post matches
+cross-lingually or not at all, and BM25 scores 0.0000 MRR there.
+
+**Decided Day 5:** demo corpus composition, recorded in `SYSTEM_DESIGN.md` §14 —
+retrieve-then-rerank over the AVeriTeC dev store, the fact-check index as a
+second evidence source, and hi/pa Wikipedia lead sections only.
+
+## Next: Phase 5 — evidence retrieval and stance (Days 7-8)
+
+Day 6 is for the Phase 4 follow-ups, cheapest first: present the fast path as a
+**related fact-check rather than a verdict** (a `UI_UX.md` change), then the
+within-query reranker objective, then reconsider downloading
+`BAAI/bge-reranker-v2-m3`. Phase 5's first task is building the demo corpus
+above.
 
 ### Needs a human — I cannot do these
 

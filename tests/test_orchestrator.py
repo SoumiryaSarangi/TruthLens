@@ -9,6 +9,8 @@ testable in CI without a GPU.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from common.io_jsonl import write_jsonl
@@ -257,3 +259,68 @@ def test_a_clamped_score_is_recorded_rather_than_silently_adjusted(kb):
     orch.matcher = _StubMatcher(score=20.47)
     trace = orch.verify("Were nursing posts restored?", claim_idx=7)
     assert any(e.note and "clamped" in e.note for e in trace.events)
+
+
+# -----------------------------------------------------------------------------
+# The SERVED config, not a test fixture
+# -----------------------------------------------------------------------------
+# Until Phase 4 `configs/pipeline/dev.yaml` still ran Phase 1 baselines at every
+# stage, so everything Phases 2 and 3 built was measured and not served. Nothing
+# caught that, because every test built its own PipelineConfig. These load the
+# real file.
+
+
+SERVED = Path("configs/pipeline/dev.yaml")
+
+
+def test_the_served_config_runs_the_stages_that_were_built():
+    """A stage left on its Phase 1 baseline is work that is measured and not
+    shipped -- and `claims: passthrough` makes `NotAClaim` unreachable, which is
+    the first card in the demo script and the answer to PRD scenario S4."""
+    cfg = PipelineConfig.load(SERVED)
+    assert cfg.stages["preprocess"] != "passthrough"
+    assert cfg.stages["claims"] != "passthrough"
+    assert cfg.stages["matching"] != "none"
+
+
+def test_the_served_tau_match_is_the_one_chosen_on_dev():
+    """FR-14 and SYSTEM_DESIGN 6: tau is selected on dev and recorded in the
+    served config, where GET /version reports it (FR-21). Pinned so a change is
+    deliberate -- the measured curve puts fast-path precision at 81.8% here and
+    62.7% at tau 0.70, so this number is a safety decision, not a default."""
+    assert PipelineConfig.load(SERVED).tau_match == 0.90
+
+
+def test_the_served_pipeline_answers_not_a_claim_to_a_greeting():
+    """PRD scenario S4, end to end through the served claims stage.
+
+    Preprocess is overridden to `passthrough` because `hybrid` needs the
+    romanized-LID model from gitignored data/interim/, and it makes no difference
+    here: both produce identical normalized text (measured, 306/306 MultiClaim
+    rows). The claims stage is the served one.
+    """
+    cfg = PipelineConfig.load(SERVED)
+    cfg.stages["preprocess"] = "passthrough"
+    cfg.stages["matching"] = "none"
+    orch = Orchestrator(cfg)
+    result = orch.verify("Good morning, stay blessed").results[0]
+    assert result.verdict == "NotAClaim"
+
+
+def test_the_served_pipeline_does_not_reject_a_scheme_rumour():
+    """The inversion that end-to-end wiring caught and no metric showed.
+
+    With `claims: nli` -- the arm that WINS macro-F1 on the hand-typed set -- the
+    served pipeline answered `NotAClaim` to this, while accepting a Punjabi
+    blessing. It rejects 18 of 85 real claims (21.2%), measured. A false
+    `NotAClaim` fails the user completely; a false check-worthy costs an NEI on a
+    blessing. macro-F1 weights the two errors equally and the product does not.
+    """
+    cfg = PipelineConfig.load(SERVED)
+    cfg.stages["preprocess"] = "passthrough"
+    cfg.stages["matching"] = "none"
+    orch = Orchestrator(cfg)
+    trace = orch.verify(
+        "Sarkar ne announce kiya hai ki har student ko 6000 rupaye milenge")
+    assert trace.checkworthy is True
+    assert trace.results[0].verdict != "NotAClaim"

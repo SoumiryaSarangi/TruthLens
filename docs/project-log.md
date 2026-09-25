@@ -36,7 +36,7 @@ historical rationale, lowest precedence.
 **Precedence when documents disagree:** code and tests > `CLAUDE.md` >
 `docs/specs/` > `docs/build-plan.md`.
 
-**Eleven things that are easy to get wrong here:**
+**Thirteen things that are easy to get wrong here:**
 
 1. **Accuracy is close to meaningless on AVeriTeC.** Majority class scores 61%.
    Lead with macro-F1, always beside its baseline.
@@ -80,6 +80,16 @@ historical rationale, lowest precedence.
     copy-pasted table row or config note stayed plausible. Auditing a write-up
     means reading every figure back to the results file AND checking the prose
     that says what produced it.
+12. **A symmetric metric encodes a claim about error costs.** FR-6's zero-shot arm
+    wins macro-F1 (0.5938 vs 0.4595) and rejects 21% of real claims, which the
+    metric prices the same as missing a blessing. The served config runs the
+    rules instead. Before shipping the arm that won, ask what each error costs
+    the user.
+13. **Wire the served config and run two real inputs.** `configs/pipeline/dev.yaml`
+    sat on Phase 1 baselines at every stage for three phases while the harness
+    scored the real models, because every test built its own config. Two example
+    forwards through the real pipeline found an inversion that 3,153 scored rows
+    did not.
 
 **To get running:** `make setup` then `make test`. The environment is already
 built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
@@ -90,17 +100,18 @@ built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
 
 | | |
 | --- | --- |
-| **Current phase** | **Phase 3 COMPLETE**, gaps and all. Both requirements measured against baselines, the X-CLAIM ablation replicated, and the four verification gaps closed 2026-09-24. Next is Phase 4. |
-| **Clock** | 14 days. **Days 1-4 done** (Phases 1-3). Day 5 = Phase 4. Freeze end of Day 12. |
+| **Current phase** | **Phase 4 (claim matching, FR-8): measured, not demo-ready.** The gate, the verdict mapping, the matcher and a lexical floor are built and scored; the two rerankers were built and both LOSE to the raw cosine. At the served tau the fast path fires on 1.7% of posts and is still wrong 1 in 5 times. See the Phase 4 entry for what to do next. |
+| **Clock** | 14 days. **Days 1-5 done** (Phases 1-4). Day 6 = finish Phase 4 follow-ups or start Phase 5. Freeze end of Day 12. |
 | **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |
 | **Python** | 3.11.16 via uv, in `.venv`. System Python is 3.13 and is not used. |
-| **Tests** | 322 passing, 2 skipped, 2 gpu-deselected |
+| **Served config** | `configs/pipeline/dev.yaml` -- preprocess `hybrid`, claims `heuristic`, matching `factcheck`, tau_match 0.90. It ran Phase 1 baselines at EVERY stage until Phase 4; `tests/test_orchestrator.py` now loads the real file. |
+| **Tests** | 438 passing, 2 skipped, 2 gpu-deselected |
 | **Datasets in hand** | AVeriTeC, X-CLAIM, MultiClaim, handtyped (FR-26), Dakshina, **CheckThat! 2025 T2** |
 | **Datasets waiting** | None. Every dataset is downloaded, split, locked and leakage-checked. |
 | **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
-| **Models trained** | Romanized LID, in-domain Word2Vec, and **6 XLM-R+LoRA adapters** (5 span ablation arms + check-worthiness). |
-| **Numbers so far** | Span token-F1 **0.7463** (baseline 0.6851) · claim matching MRR 0.5244 · LID ~0.86 on the hand-typed set · transliteration CER 0.4281 · AVeriTeC verdict macro-F1 0.2147. **FR-6 partially solved by the ZERO-SHOT arm**: macro-F1 0.5938 vs 0.4595 majority, 7/15 real negatives caught -- at the cost of rejecting 18 of 85 real claims. The trained classifier catches 0/15. |
+| **Models trained** | Romanized LID, in-domain Word2Vec, and **7 XLM-R+LoRA adapters** (5 span ablation arms, check-worthiness, and a claim-matching cross-encoder that did not work -- see Phase 4). |
+| **Numbers so far** | Span token-F1 **0.7463** (baseline 0.6851) - claim matching MRR **0.5244** (BM25 0.3826, random 0.0002) - fast-path gate AUCC **0.5842** (gate-removed 0.4284) - LID ~0.86 on the hand-typed set - transliteration CER 0.4281 - AVeriTeC verdict macro-F1 0.2147. **FR-6**: zero-shot NLI 0.5938 vs 0.4595 majority, 7/15 real negatives, but it rejects 21% of real claims so the SERVED config runs the rules. **FR-8**: no safe operating point. |
 | **CI** | Green, checked with `gh run list` after every push (last: `c250304`). A sha here goes stale the moment the next commit lands -- check, do not trust. Runs take ~1m50s. `gh` is at `C:\Program Files\GitHub CLI\gh.exe`, NOT on this shell's PATH. |
 
 ---
@@ -1496,6 +1507,333 @@ second run onward looks like a fix that worked. Matching the status code as a
 leading non-space run survives the strip, and the stripped form is now one of
 the test cases.
 
+## 2026-09-25 — Phase 4: the fast path, and a gate that does not gate
+
+Phase 4 was planned as *"mostly wiring BGE-M3 behind `tau_match` and choosing
+that threshold"*. Two measurements taken during planning — both on data and
+predictions that already existed, at zero inference cost — said it was not that,
+and reshaped the phase before a line was written.
+
+### The retriever ranks well and scores badly
+
+MRR 0.5244 was never wrong. It answers a different question. Every rank metric
+is scale-free, and every MultiClaim query is guaranteed to have an answer, so
+nothing measured in Phase 2 could say **when to trust the top result**.
+
+Profiled from `results/preds/p2_match_bge_m3.jsonl`:
+
+| | mean | p50 | p90 |
+| --- | --- | --- | --- |
+| top-1 cosine when top-1 is CORRECT | 0.7239 | 0.7196 | 0.8376 |
+| top-1 cosine when top-1 is WRONG | 0.6500 | 0.6321 | 0.7789 |
+
+Heavily overlapping, and the operating curve has no usable point on it:
+
+| τ | coverage | fast-path precision | false accepts |
+| --- | --- | --- | --- |
+| 0.60 | 77.6% | 51.8% | 64.3% |
+| 0.70 | 40.5% | 62.7% | 21.5% |
+| 0.80 | 12.4% | 67.3% | 4.8% |
+| 0.90 | 1.7% | **81.8%** | 0.3% |
+
+At τ=0.90 the fast path fires on 1.7% of posts and still cites the **wrong**
+fact-check 18% of the time. A wrong citation here is this system's worst
+failure: it is confident, sourced, and presented as settled.
+
+### The fast path had no verdict to return
+
+`SYSTEM_DESIGN.md` §4 annotates `FactCheckMatch.verdict` as "mapped from the
+publisher's rating". Nothing did the mapping. `multiclaim.py` read id, claim,
+title and lang, and never touched the `ratings` or `instances` columns — so FR-8,
+whose whole sentence ends *"using that fact-check's verdict"*, could not be
+satisfied at all.
+
+`src/data/verdicts.py` maps ratings onto the 5-class scheme by **exact match
+only**. Substring rules are the obvious shortcut and every one of them is wrong
+somewhere that reads fine: `half true` contains `true`, `mostly false` contains
+`false`, `partiellement faux` contains `faux`, `salah [misleading content]`
+starts with `salah`. An unmapped rating costs a fall-through to the evidence
+path, which is where the request was going anyway; a mis-mapped one puts a
+confident wrong verdict in front of a user.
+
+Measured, not asserted (`scripts/report_verdict_coverage.py`):
+
+| | pool (78,077) | dev gold (3,943) |
+| --- | --- | --- |
+| verdict mappable | 79.2% | 81.9% |
+| has a URL | 100% | 100% |
+
+Adding nineteen more cognates from the top of the unmapped tail moved dev gold
+from 81.7% to **81.9%**. That is the case for stopping: the tail is 13,583
+distinct strings whose largest count is 140, so it is flat, not long.
+
+**Two numbers from that table matter more than the coverage figure.** The mapped
+distribution is 79.5% `Refuted` and **0.2% `Supported`** — a user whose forward
+is TRUE will almost never be told so by the fast path, because fact-checks are
+written about false claims. And the pool holds **5 Punjabi fact-checks out of
+78,077**, so a Punjabi post cannot match a Punjabi fact-check; it matches
+cross-lingually or not at all.
+
+### `task: fast_path`: the harness could not see a decision
+
+`task: retrieval` asks whether the right fact-check is found. The gate asks
+whether the score says when to trust it. Same predictions file, same gold file,
+different question — so the new task reuses both unchanged and costs no new data
+and no new inference.
+
+Design decisions worth keeping:
+
+- **Negatives by withholding the answer, derived in the scorer.** For each query
+  the best-scoring returned candidate that is not gold is, by construction,
+  wrong. For a cosine scorer this is exact rather than simulated: a pair's score
+  does not depend on what else is indexed. It is only approximate for BM25,
+  whose IDF is corpus-dependent. And `false_accept_rate` is an **upper bound**
+  either way, because MultiClaim's annotation is incomplete and a non-gold
+  fact-check may genuinely match. Not a config flag: the one number that makes
+  the fast path look bad must not be the optional one.
+- **The headline is AUCC**, the area under the coverage-precision curve, because
+  every other candidate is a knob. Precision is monotone in τ (81.8% at 1.7%
+  coverage is not an achievement), and yield is maximised at τ = −∞. **The τ
+  table is the result**; the headline exists because a results table needs one
+  column.
+- **The baseline is `always_match`** — the same ranking with the gate removed,
+  so its AUCC is Success@1 and the delta against it is the gate-worthy signal in
+  the score and nothing else.
+
+### The lexical floor was understated
+
+`src/retrieval/CLAUDE.md` says BM25 is the real baseline, and none existed over
+the fact-check pool; Phase 2's ladder used TF-IDF (MRR 0.2311) as a stand-in.
+
+| | MRR | R@10 | AUCC | vs `always_match` |
+| --- | --- | --- | --- | --- |
+| TF-IDF (Phase 2) | 0.2311 | 0.3045 | — | — |
+| LaBSE (Phase 2) | 0.3216 | 0.4170 | — | — |
+| **BM25** | **0.3826** | 0.4570 | 0.3420 | +0.0173 |
+| **BGE-M3** | **0.5244** | 0.6688 | **0.5842** | **+0.1557** |
+
+So the real lexical floor is well above what Phase 2 reported. BGE-M3 still wins
+on **every single cell**, including romanized Hindi, where I expected BM25 to
+win and said so in the plan.
+
+Two things the average hides. **BM25's gate is nearly worthless** — +0.0173 AUCC
+against BGE-M3's +0.1557 — and the reason is structural: a BM25 score is a sum
+over query terms, so a long post scores high for being long, while a cosine is
+length-normalised. Top-1 BM25 scores here run 0.00 to 3376.42. A single global τ
+cannot mean the same thing for two queries of different lengths.
+
+And **BM25 scores 0.0000 MRR on Punjabi**, both cells (n=7, n=2). With 5 Punjabi
+fact-checks in the pool there is no lexical overlap to find, so BGE-M3's 0.4333
+there is entirely cross-lingual transfer. The same pattern Phase 2 found for
+TF-IDF replicates: BM25's *romanized* Hindi (0.2251) beats its *native* Hindi
+(0.1936), because Latin characters are shared with a largely English corpus and
+Devanagari shares none.
+
+### Engineering that was worth the detour
+
+`rank_bm25` scores a query by looping in Python over all 78,077 documents once
+per query term. A 3,153-row split took over an hour, and its ~1.5 GB of
+per-document dicts were paged out on this 16 GB machine, after which it crawled.
+
+Okapi BM25 ignores query-term weighting, so every (document, term) weight is
+query-independent and precomputes into one sparse matrix; a query is then
+`W @ v`. **17.4 ms/query against 1070 ms, and 14 MB of CSR against ~1.5 GB.**
+The arithmetic is `BM25Okapi`'s exactly, including its negative-IDF floor, and
+it is tested against `rank_bm25` as an independent oracle rather than against
+itself.
+
+My first estimate of the cost was wrong, and the reason is worth keeping: I
+benchmarked on a 12-token query when MultiClaim dev posts average 59.8 tokens
+with a p99 of 542, so the real cost was 5× the projection. **Benchmark on real
+inputs.**
+
+### Three bugs, two of them latent for three phases
+
+- **`_from_factcheck` fed a raw retrieval score into a validated field.**
+  `ClaimResult.confidence` is `Field(ge=0.0, le=1.0)` and a cosine can be
+  negative while a BM25 score is ~20, so the fast path raised a
+  `ValidationError` at request time. It survived three phases because
+  `NoMatcher` never returned a match. Now clamped, with the trace recording both
+  the clamp and the fact that a fast-path confidence is uncalibrated.
+- **`FactCheckMatch.lang` is `en|hi|pa|other`** and MultiClaim covers 39
+  languages — 42,899 of the pool are outside our three.
+- **`always_match` assigned a literal score of 1.0.** Above every cosine, far
+  below a BM25 score. On the BM25 arm (τ from 20 to 400) "the gate removed"
+  accepted *nothing* and reported coverage 0.0000 where it must report 1.0. It
+  now takes the run's own maximum. **The BM25 row is what caught it** — the
+  same argument as Phase 3's: a second arm on a different scale is what makes a
+  silent assumption visible.
+
+### Smaller things
+
+`{"n", "n_skipped_no_relevant"}` was hard-coded in three places to decide what
+counts as a metric, and `n_accepted` would have tripped the sanity ceiling on
+every fast-path run. One `is_metric()` rule now, which also fixes a latent bug:
+`isinstance(True, int)` is `True`, so a boolean was being read as a score.
+
+`HEADLINE` existed twice, in `evaluate.py` and `report.py`, with nothing
+comparing them — a task added to one and missed in the other rendered every row
+of its table against `mrr`, with a wrong label and a blank score. `report.py`
+now holds the only copy, and an unregistered task renders blank rather than
+borrowing another task's metric.
+
+A no-reranker control arm was written and then deleted as a duplicate. The
+reranker arms rerank the top-10 that `p4_fastpath_bge_m3`'s retrieval returns,
+through the same `DenseRetriever` over the same index — and the one thing that
+could have differed, the language layer, does not: measured across every cell,
+`passthrough` and `hybrid` produce byte-identical query text for 306/306 rows,
+because the language layer sets lang, script and a transliteration without
+rewriting `normalized`. Twelve GPU-minutes and a duplicate table row saved by
+checking instead of assuming.
+
+### The ablation: four gates, and the raw cosine wins
+
+All four score the same 3,153 MultiClaim dev queries against the same
+78,077-fact-check pool. `always_match` is the same ranking with the gate removed,
+so its AUCC is that arm's Success@1 and the delta is the gate-worthy signal in
+the score alone.
+
+| gate | Success@1 | AUCC | vs gate-removed | prec @ ~40% coverage |
+| --- | --- | --- | --- | --- |
+| BM25 (lexical) | 0.3283 | 0.3420 | +0.0173 | 35.8% |
+| zero-shot NLI reranker | **0.1062** | 0.1153 | +0.0086 | 10.8% |
+| trained XLM-R reranker | 0.4342 | 0.5508 | +0.1154 | 59.3% |
+| **BGE-M3 cosine, no reranker** | 0.4326 | **0.5842** | **+0.1557** | **62.7%** |
+
+**The raw cosine is the best gate of the four.** That is not what the phase set
+out to find, and the two reranker results are the useful part.
+
+**Zero-shot NLI actively destroys the ranking**: Success@1 falls from 0.4326 to
+**0.1062**. The limitation written into the docstring before the run turned out
+to be the whole story — NLI asks whether one text entails another, and a
+fact-check that *debunks* a claim contradicts the post making it. Entailment is
+the wrong relation for "these are about the same claim". Phase 3's zero-shot arm
+won its ablation; this one loses by a mile. **Trained-versus-zero-shot is not a
+rule, it is a question, and it has to be asked per task.**
+
+### The trained reranker learned to score fact-checks instead of pairs
+
+It looked like it was working. Mean score separation between a correct and a
+wrong top-1 **doubled**: +0.1465 against the cosine's +0.0739. But AUCC came out
+*lower* (0.5508 vs 0.5842), and the τ table says why — at τ=0.90 its precision
+**collapses to 9.8%** on 41 rows. Its most confident answers are its most wrong.
+
+Three measurements, each ruling something out:
+
+1. **Not annotation incompleteness.** The obvious excuse is that MultiClaim's
+   gold is incomplete and those confident "errors" are really good matches marked
+   wrong. They are not: mean token-Jaccard between the wrong high-confidence
+   pick and the post's actual gold is **0.049**, and **0 of 37** are
+   near-duplicates of it. They are about unrelated subjects.
+2. **The score barely depends on the post.** Across the 622 fact-checks that
+   appear as a candidate for five or more dev posts, the overall score SD is
+   0.224 while the mean *within-candidate* SD is **0.057** — about three
+   quarters of the variation is explained by which fact-check it is, not by the
+   pair. Per-candidate mean scores span 0.001 to 0.704.
+3. **It is memorising which fact-checks are ever a gold answer.** Candidates that
+   were **never** a positive in training average P(relevant) **0.0500**; those
+   seen as a positive 2–4 times average **0.1596** — a 3.2× difference, Pearson
+   r = +0.250 against the log positive count.
+
+So the model found a shortcut that the mining handed it. Positives are the
+annotated golds and negatives are top-10 non-golds, which means *"is this
+fact-check ever somebody's answer"* predicts the label without reading the post
+at all. A cross-encoder that never has to look at the post cannot order
+candidates within a query, which is exactly what a gate needs.
+
+**This is a training-data construction bug, not a model failure**, and the plan
+predicted the shape of it: *"If it does not beat the zero-shot control, suspect
+the hard-negative mining before the model."* It did beat the zero-shot control,
+and the mining was still the problem.
+
+The fix is to destroy the shortcut: every candidate has to appear on both sides
+of the label, so a fact-check's identity carries no information about relevance.
+Sampling some negatives from *other posts' gold* does that.
+
+Resampling was the obvious fix and it was measured before being paid for, which
+is the only reason it was not. Drawing extra negatives from **other posts' gold**,
+frequency-weighted so a candidate's positive rate stays constant, moves the
+correlation from **+0.803 to +0.768** and shrinks the spread across ever-gold
+candidates from sd 0.1645 to 0.1035. It cannot do better: a candidate that is
+never any train post's gold has a positive rate of exactly **0.0000**, and no
+sampling scheme changes that. Identity still answers *"could this ever be a
+positive"*.
+
+So the shortcut is in the objective. The fix is to train **within a query** -- a
+listwise softmax over each post's candidate list with its gold as the target -- so
+the model is scored on ordering candidates for one post, where a global
+per-candidate prior has much less to offer. That is a Phase 6 change, not a
+Phase 4 one; `--gold-negatives` stays in the miner at default 0, with its number
+beside it, because a rejected experiment with a measurement is worth more than a
+deleted one. **Retraining was not attempted**, on the grounds that a two-and-
+three-quarter-hour run against a fix already measured to move r by 0.035 is not
+a good trade.
+
+### The served pipeline was still running Phase 1 at every stage
+
+Found before implementation started and worth its own line: `configs/pipeline/dev.yaml`
+had `preprocess: passthrough` and `claims: passthrough`. Everything Phases 2 and
+3 built was measured by the harness and **not served**, and because
+`PassthroughClaims.check_worthy` returns True for any non-empty string,
+`NotAClaim` -- the first card in the demo script and the answer to PRD scenario
+S4 -- was unreachable in the API. Nothing caught it because every test built its
+own `PipelineConfig`; `tests/test_orchestrator.py` now loads the real file.
+
+### Wiring it found something no metric had
+
+With the config pointing at the arms that won their metrics, the pipeline was run
+on two forwards. It **inverted both**: `NotAClaim` for *"Sarkar ne announce kiya
+hai ki har student ko 6000 rupaye milenge"*, and check-worthy for a Punjabi
+blessing.
+
+The cause is the FR-6 arm selection, and the numbers were on record the whole
+time:
+
+| claims impl | macro-F1 | real claims rejected | no-claims caught |
+| --- | --- | --- | --- |
+| nli (zero-shot) | **0.5938** | **18/85 = 21.2%** | 7/15 |
+| xlmr (trained) | 0.4536 | 2/85 = 2.4% | 0/15 |
+| heuristic (rules) | 0.4595 | 0/85 = 0.0% | 0/15 |
+
+**macro-F1 picks `nli`; the product does not.** The two errors are not symmetric
+and macro-F1 treats them as if they were. A false `NotAClaim` fails the user
+completely -- they forwarded a rumour and the system said there is nothing to
+check, with no verification and no recourse. A false check-worthy costs an NEI
+answer on a blessing: silly, harmless. One in five real claims is too high a
+price for catching seven blessings.
+
+So the served config runs `claims: heuristic` while the **reported** FR-6 result
+stays `nli`, which is still the best arm on the metric. Both are recorded, and
+the served choice is revisitable the moment there are enough real no-claim
+messages to pick an operating point that does not cost claim recall.
+
+The transferable part: **a symmetric metric silently encodes a claim about
+relative error costs.** Nothing in the harness is wrong here — macro-F1 measured
+exactly what it says. Two example forwards through the real pipeline showed what
+3,153 scored rows could not.
+
+### Where FR-8 actually stands
+
+`tau_match: 0.90`, chosen on dev, recorded in the served config and reported by
+`GET /version`. At that threshold the fast path fires on **1.7% of posts (n=55)**
+and is **still wrong about one time in five**. Lower thresholds buy coverage at a
+price the product cannot pay: 40.5% coverage costs 37.3% wrong citations.
+
+So FR-8 is **measured, not demo-ready**, and the reason is not the threshold. It
+is that the best available signal separates a right match from a wrong one too
+weakly, and the two obvious ways to strengthen it have both been tried and
+measured. The honest options from here, in order of expected value:
+
+1. **A within-query reranker objective** (above). The shortcut diagnosis makes
+   this a specific change with a specific prediction, not a hope.
+2. **A cross-encoder somebody else trained** -- `BAAI/bge-reranker-v2-m3` is
+   purpose-built for exactly this and was declined during planning on download
+   risk. That decision looks worse now than it did.
+3. **Present the fast path as a related fact-check rather than a verdict.** At
+   68% precision the top match is genuinely useful as *"here is a fact-check that
+   may be about this"* and dishonest as *"already checked, verdict Refuted"*. This
+   is a `UI_UX.md` question, and it is the cheapest of the three.
+
 ## Phase 3 gaps — CLOSED 2026-09-24
 
 All four are built. They were, in the order the previous section ranked them:
@@ -1516,33 +1854,57 @@ complete.** The remaining FR-6 limitation is a data problem with a named owner:
 
 ## Next
 
-**Phase 4 — claim matching (Days 5-6).** The fast path: a post that matches an
-existing fact-check closely enough skips retrieval entirely. Phase 2 already
-built and scored the machinery -- BGE-M3 over 78,077 fact-checks, MRR 0.5244 --
-so Phase 4 is mostly wiring it behind `tau_match` and deciding that threshold.
+**Phase 5 — evidence retrieval and stance (Days 7-8)**, with two Phase 4
+follow-ups that are worth Day 6 first.
+
+**Phase 4 follow-ups, in order of expected value.** All three come out of the
+diagnosis in the Phase 4 entry rather than out of hope:
+
+1. **Present the fast path as a related fact-check, not a verdict.** Cheapest of
+   the three, and it is a `UI_UX.md` change rather than a model. At 68% precision
+   the top match is genuinely useful as *"here is a fact-check that may be about
+   this"* and dishonest as *"already checked, verdict Refuted"*.
+2. **A within-query reranker objective.** The trained cross-encoder learned to
+   score fact-checks rather than pairs, and that is measured three ways, so a
+   listwise softmax over each post's candidate list is a specific change with a
+   specific prediction. ~3 hours of GPU.
+3. **`BAAI/bge-reranker-v2-m3`**, declined during planning on download risk
+   (~2.3 GB on a connection this project has documented as unreliable). That
+   decision looks worse now than it did.
+
+**Phase 5's first task is the demo corpus**, decided Day 5 and recorded in
+`SYSTEM_DESIGN.md` §14: retrieve-then-rerank over the AVeriTeC dev knowledge
+store (BM25 to top-100, dense over those, ~0.3 GB, ~15 min), the existing
+fact-check index as a second evidence source, and Hindi/Punjabi Wikipedia **lead
+sections only**. Verify the real dump sizes before committing GPU time.
 
 **The floor to beat, per component:**
 
 | component | metric | current | baseline |
 | --- | --- | --- | --- |
 | Claim span, joint | token F1 | **0.7463** | 0.6851 whole-post |
-| Claim matching | MRR / R@10 | **0.5244 / 0.6688** | 0.0002 random |
+| Claim matching | MRR / R@10 | **0.5244 / 0.6688** | 0.3826 BM25, 0.0002 random |
+| Fast-path gate | AUCC | **0.5842** | 0.4284 gate-removed |
 | Language ID, hand-typed | accuracy | ~0.86 | 0.6400 majority |
 | Transliteration, 33 pa pairs | CER | **0.4281** | 0.8518 identity |
 | Check-worthiness, hand-typed | macro-F1 | **0.5938** zero-shot NLI | 0.4595 majority |
 | AVeriTeC retrieval | R@10 | 0.0947 | 0.0121 random |
 | AVeriTeC verdict | macro-F1 | 0.2147 | 0.1516 majority |
 
-**Every component is now above its baseline.** Check-worthiness was the
-exception until the zero-shot NLI arm; it clears the majority baseline by
-+0.1343 while still rejecting 18 of 85 real claims, so it is the weakest link
-rather than a failing one. The constraint is still data — there are 15 real
-no-claim messages in the entire project, which is enough to measure an
-operating point and not enough to choose one.
+**Every component is above its baseline, and two of them are not therefore
+usable.**
 
-**Decision due Day 5:** the demo corpus composition (`SYSTEM_DESIGN.md` §14).
-Phase 2's fact-check index makes the retrieve-then-rerank option concrete --
-78,077 documents encoded in 12 minutes at 1.11 GiB.
+- **Check-worthiness** clears majority by +0.1343 and rejects 21% of real
+  claims, so the served config runs the rules instead. The constraint is data:
+  15 real no-claim messages in the entire project is enough to measure an
+  operating point and not enough to choose one.
+- **The fast-path gate** beats its gate-removed control by +0.1557 AUCC and
+  still has no safe operating point: 1.7% coverage at 18% wrong citations, or
+  40% coverage at 37%. FR-8 is measured, not demo-ready.
+
+That pairing is the Phase 4 lesson in one line: **above a baseline is not the
+same as good enough to ship**, and the gap between them is a question about what
+an error costs the user, which no metric in this harness answers.
 
 ### Open items
 
