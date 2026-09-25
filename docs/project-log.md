@@ -100,7 +100,7 @@ built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
 
 | | |
 | --- | --- |
-| **Current phase** | **Phase 4 (claim matching, FR-8): measured, not demo-ready.** The gate, the verdict mapping, the matcher and a lexical floor are built and scored; the two rerankers were built and both LOSE to the raw cosine. At the served tau the fast path fires on 1.7% of posts and is still wrong 1 in 5 times. See the Phase 4 entry for what to do next. |
+| **Current phase** | **Phase 4 COMPLETE. FR-8 is measured and not demo-ready.** The gate, the verdict mapping, the matcher and a lexical floor are built and scored; the two rerankers were built and both LOSE to the raw cosine. At the served tau the fast path fires on 1.7% of posts and is still wrong 1 in 5 times. See the Phase 4 entry for what to do next. |
 | **Clock** | 14 days. **Days 1-5 done** (Phases 1-4). Day 6 = finish Phase 4 follow-ups or start Phase 5. Freeze end of Day 12. |
 | **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |
@@ -112,7 +112,7 @@ built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
 | **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
 | **Models trained** | Romanized LID, in-domain Word2Vec, and **7 XLM-R+LoRA adapters** (5 span ablation arms, check-worthiness, and a claim-matching cross-encoder that did not work -- see Phase 4). |
 | **Numbers so far** | Span token-F1 **0.7463** (baseline 0.6851) - claim matching MRR **0.5244** (BM25 0.3826, random 0.0002) - fast-path gate AUCC **0.5842** (gate-removed 0.4284) - LID ~0.86 on the hand-typed set - transliteration CER 0.4281 - AVeriTeC verdict macro-F1 0.2147. **FR-6**: zero-shot NLI 0.5938 vs 0.4595 majority, 7/15 real negatives, but it rejects 21% of real claims so the SERVED config runs the rules. **FR-8**: no safe operating point. |
-| **CI** | Green, checked with `gh run list` after every push (last: `c250304`). A sha here goes stale the moment the next commit lands -- check, do not trust. Runs take ~1m50s. `gh` is at `C:\Program Files\GitHub CLI\gh.exe`, NOT on this shell's PATH. |
+| **CI** | Green, checked with `gh run list` after every push (last: `dd011ba`). A sha here goes stale the moment the next commit lands -- check, do not trust. Runs take ~1m50s. `gh` is at `C:\Program Files\GitHub CLI\gh.exe`, NOT on this shell's PATH. |
 
 ---
 

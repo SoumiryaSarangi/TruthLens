@@ -11,16 +11,18 @@ seconds without reading the whole plan.
 
 ## Current phase
 
-**Phase 4 IN PROGRESS — claim matching and the fast path (FR-8).** Phase 3 is
-complete: both requirements measured against baselines, the ablation replicated,
-and its four verification gaps closed on 2026-09-24, the last of which turned
-FR-6 from unsolved into partially solved.
+**Phase 4 COMPLETE — FR-8 is measured, and it is not demo-ready.** Everything in
+the approved plan is built: the `fast_path` harness task, the verdict mapping, the
+matcher, a BM25 lexical floor, both rerankers, the served-pipeline wiring, and the
+semantic near-duplicate check. **Next: Phase 5** (Days 7-8), with Day 6 for the
+Phase 4 follow-ups below.
 
 Phase 4 was planned as "wire BGE-M3 behind `tau_match`". It is not that. The
-bi-encoder ranks well (MRR 0.5244) and **scores badly**: a correct top-1
-averages cosine 0.7239 and a wrong one 0.6500, so at τ=0.90 the fast path fires
-on 1.7% of posts and still cites the wrong fact-check 18% of the time. The work
-is a reranker, plus a harness task that can see a decision at all.
+bi-encoder ranks well (MRR 0.5244) and **scores badly**: a correct top-1 averages
+cosine 0.7239 and a wrong one 0.6500, so at the served τ=0.90 the fast path fires
+on 1.7% of posts and still cites the wrong fact-check about 1 time in 5. Both
+rerankers were built and both lose to the raw cosine as a gate. The results are
+below; the diagnosis is in `project-log.md`.
 
 The clock is **14 days**. **Days 1-4 are done.** Phase 1 shipped the vertical
 slice; Phase 2 shipped the language layer and the native-vs-romanized table,

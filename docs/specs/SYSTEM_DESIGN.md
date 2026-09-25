@@ -293,9 +293,9 @@ Errors:
 ```json
 {
   "git_sha": "...",
-  "pipeline_config": "configs/pipeline/demo.yaml",
+  "pipeline_config": "configs/pipeline/dev.yaml",
   "config_hash": "...",
-  "tau_match": 0.0,
+  "tau_match": 0.9,
   "tau_abstain": 0.0,
   "confidence_bands": { "high": 0.0, "medium": 0.0 }
 }
