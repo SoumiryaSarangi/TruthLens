@@ -1812,6 +1812,65 @@ relative error costs.** Nothing in the harness is wrong here — macro-F1 measur
 exactly what it says. Two example forwards through the real pipeline showed what
 3,153 scored rows could not.
 
+### Semantic near-duplicate leakage, which SimHash cannot see
+
+`data/CLAUDE.md` assigned this to Phase 4: *"Embedding-based duplicate detection
+belongs in Phase 4 alongside the claim-matching retriever. Until then,
+`make leakage` passing means no duplicates, not no overlap."* Built as
+`scripts/check_semantic_leakage.py`, and the cut is **calibrated against two
+measured distributions per dataset** rather than assumed, the way the SimHash
+thresholds were in Phase 0:
+
+| dataset | known near-dups (SimHash ≤ 4), p5 | random unrelated pairs, p95 |
+| --- | --- | --- |
+| x_claim | 0.9703 | 0.4642 |
+| multiclaim | 0.9245 | 0.4568 |
+| checkthat25_t2 | 0.9420 | 0.4683 |
+| averitec | 0.8337 | 0.4470 |
+
+Two cleanly separated distributions on every dataset, so a cut of **0.90** sits
+inside the near-duplicate lower tail and roughly twice above the unrelated
+ceiling. It therefore errs toward **missing** near-duplicates rather than
+inventing them — every count below is a lower bound, and AVeriTeC's p5 of 0.8337
+says the undercount is largest there.
+
+What it finds, counting only rows the SimHash check cannot see (Hamming > 8, its
+fail threshold):
+
+| dataset | dev flagged | dev NEW | test flagged | test NEW |
+| --- | --- | --- | --- | --- |
+| averitec | 6/500 (1.2%) | 5 | 31/307 (10.1%) | 27 |
+| checkthat25_t2 | 110/1271 (8.7%) | 91 | 164/1485 (11.0%) | 130 |
+| **multiclaim** | **373/3153 (11.8%)** | **287** | 390/3156 (12.4%) | 317 |
+| x_claim | 19/600 (3.2%) | 16 | 19/571 (3.3%) | 14 |
+| xclaim_cw | 36/963 (3.7%) | 30 | 37/970 (3.8%) | 28 |
+
+**945 eval rows across the project** are semantic near-duplicates of a training
+row that `make leakage` passes.
+
+**Which results this actually touches is narrower than the table suggests**, and
+the distinction is whether anything was trained on that dataset's train split:
+
+- **Nothing.** AVeriTeC retrieval and verdict (BM25 and off-the-shelf NLI),
+  CheckThat normalization (extractive), and MultiClaim claim matching (BGE-M3 is
+  off-the-shelf and the index is the fact-check pool, not the posts). A model
+  that never saw train cannot have memorised it.
+- **The span model**, on x_claim: token F1 0.7463 is measured on a dev set where
+  2.7% of rows are invisible near-copies of training rows.
+- **The check-worthiness classifier**, on xclaim_cw: 3.1% of dev.
+- **The claim-matching reranker**, on multiclaim: 9.1% of dev. It inflates the
+  arm that lost anyway, so that conclusion is if anything safer than reported.
+
+**Recommendation: state it, do not rebuild.** Two reasons beyond `CLAUDE.md`'s
+first non-negotiable. The contamination is small on exactly the splits that feed
+trained models (2.7% and 3.1%), and rebuilding would invalidate every Phase 1-4
+number for a correction of that size. More interestingly, on MultiClaim the
+near-duplicates **are the phenomenon**: the same rumour is forwarded thousands of
+times, which is precisely why a fast path is worth building. Removing
+near-duplicate posts across splits would make the claim-matching benchmark less
+like deployment, not more — in deployment, nearly every input is a near-duplicate
+of something already fact-checked.
+
 ### Where FR-8 actually stands
 
 `tau_match: 0.90`, chosen on dev, recorded in the served config and reported by

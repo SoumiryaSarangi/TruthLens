@@ -161,9 +161,15 @@ def check(dataset: str, encoder: str, batch_size: int, cut: float,
         vecs = encode([texts[r["uid"]] for r in rows], encoder, batch_size)
         best, where = max_similarity(vecs, train_vecs)
         flagged = [i for i in range(len(rows)) if best[i] >= cut]
+        # The number that matters is not how many this finds, it is how many it
+        # finds that `make leakage` does not. SimHash fails a pair at Hamming <= 8
+        # (calibrated in Phase 0), so anything above that is new information.
+        new = [i for i in flagged
+               if hamming(rows[i]["simhash64"], train_rows[where[i]]["simhash64"]) > 8]
         print(f"  {dataset}/{split}: {len(flagged)}/{len(rows)} rows at or above "
-              f"cosine {cut} against train = {len(flagged) / len(rows):.2%}")
-        findings += len(flagged)
+              f"cosine {cut} against train = {len(flagged) / len(rows):.2%}; "
+              f"**{len(new)} NEW** (SimHash Hamming > 8, so invisible to make leakage)")
+        findings += len(new)
         for i in sorted(flagged, key=lambda j: -best[j])[:show]:
             train_row = train_rows[where[i]]
             gap = hamming(rows[i]["simhash64"], train_row["simhash64"])
@@ -202,7 +208,8 @@ def main(argv: list[str] | None = None) -> int:
             calibrate(dataset, args.encoder, args.batch_size, args.pairs)
         total += check(dataset, args.encoder, args.batch_size, args.cut, args.show)
 
-    print(f"\n{total} eval row(s) flagged at cosine >= {args.cut}.")
+    print(f"\n{total} eval row(s) are semantic near-duplicates of a train row "
+          f"that `make leakage` cannot see, at cosine >= {args.cut}.")
     print("This script REPORTS. It does not touch data/splits/ -- those are frozen "
           "and every Phase 1-4 number is scored against them. A finding here is a "
           "conversation, not a rebuild.")

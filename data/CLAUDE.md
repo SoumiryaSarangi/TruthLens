@@ -76,13 +76,29 @@ committed manifests with no source text:
 **Known limitation, stated plainly:** this catches duplicates and trivial
 variants, not semantic paraphrase. Two sentences that mean the same thing in
 different words score around 9–11 Hamming, overlapping the warning band, and a
-genuinely reworded claim can be missed. Embedding-based duplicate detection
-belongs in Phase 4 alongside the claim-matching retriever. Until then,
-`make leakage` passing means *no duplicates*, not *no overlap*.
+genuinely reworded claim can be missed. **`make leakage` passing means *no
+duplicates*, not *no overlap*.**
 
 This matters because it is not hypothetical: the DS@GT team on CheckThat! 2025
 found substantial claim overlap, to the point of duplication, across train,
 dev and test in this exact family of data.
+
+**Measured in Phase 4** by `scripts/check_semantic_leakage.py`, with the cosine
+cut calibrated per dataset against known near-duplicates and random pairs rather
+than assumed. At cosine ≥ 0.90, **945 eval rows across the project are semantic
+near-duplicates of a training row that the SimHash check passes** — 11.8% of
+MultiClaim dev, 8.7% of CheckThat dev, 3.2% of X-CLAIM dev, 3.7% of xclaim_cw
+dev, 1.2% of AVeriTeC dev. Every count is a lower bound: the cut sits inside the
+near-duplicate distribution's lower tail, so it misses rather than invents.
+
+**The splits are NOT rebuilt, deliberately.** Contamination is small on exactly
+the splits that feed a trained model (2.7% for the span model, 3.1% for
+check-worthiness, 9.1% for the reranker that lost anyway), and rebuilding would
+invalidate every Phase 1–4 number for a correction of that size. And on MultiClaim
+the near-duplicates *are the phenomenon*: the same rumour is forwarded thousands
+of times, which is why the fast path is worth building at all. Removing them
+would make the claim-matching benchmark less like deployment, not more. See the
+Phase 4 entry in `docs/project-log.md` for the full table and reasoning.
 
 ## Datasets
 
