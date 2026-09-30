@@ -1974,8 +1974,19 @@ an error costs the user, which no metric in this harness answers.
   (it would install CPU torch over the CUDA build). Options: a character-level
   seq2seq trained on Dakshina's word pairs, or IndicXlit behind a subprocess
   boundary in its own venv. See the Phase 2 entry for why it matters.
-- **Knowledge store train split** (63.52 GB) not downloaded. Dev is enough for
-  evaluation; only needed if training retrieval on AVeriTeC.
+- **Knowledge store train split (63.52 GB) — REQUIRED, and this line used to say
+  otherwise.** It said the train store was "only needed if training retrieval on
+  AVeriTeC". Wrong: AVeriTeC's official test labels are withheld, so this
+  project's locked **test split is 307 claims carved from the public
+  `train.json`** (Phase 0 decision), and their evidence pools live in the TRAIN
+  store — spread across all three of its files (115 / 86 / 106 claims). **Without
+  it the final reported AVeriTeC number cannot be produced at all.** Its first
+  use is earlier: a learned aggregator (Phase 6) trains on train-claim evidence.
+  Fits on D: (90.5 GB free on 2026-09-30); resumable; start it in the background
+  well before Phase 6, since multi-GB pulls here get interrupted.
+- **Knowledge store test split (40.71 GB) — NEVER needed.** Its claims have no
+  public labels, so nothing downloaded from it could be scored. Of the "~110 GB"
+  AVeriTeC store, 11.54 GB is in hand, 63.52 GB is required, and 40.71 GB is not.
 - **A dense index over the full dev knowledge store is not feasible** on this
   GPU: 15.3 M passages, 31.3 GB of fp16 vectors, 14-28 GPU-hours.
   `SYSTEM_DESIGN.md` §7 budgets 3 GB. Use retrieve-then-rerank — BM25 to top-100

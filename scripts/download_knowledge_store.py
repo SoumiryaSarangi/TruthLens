@@ -15,8 +15,12 @@ Sizes (measured from the HF API, not guessed):
     test    40.71 GB   (test + test_updated)
     ALL    115.78 GB   does NOT fit in the 109 GB free on this machine
 
-So the default is dev only. `--split train` is there for later phases and
-prints the disk check before it starts.
+So the default is dev only. `--split train` prints the disk check before it
+starts, and it is NOT optional for the final result: this project's AVeriTeC
+test split is 307 claims held out of the public train.json (the official test
+labels are withheld), so their evidence pools are in the train store, across all
+three files. `--split test` is the one that is never needed -- nothing in it can
+be scored, because its labels are not public.
 
 The upstream repo builds this store by scraping via the Google Search API.
 We download the prebuilt one instead: no API key, no scraping, no ToS
