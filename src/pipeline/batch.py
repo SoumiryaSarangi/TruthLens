@@ -402,6 +402,7 @@ def run(
     out_retrieval: Path | None,
     out_verdict: Path | None,
     limit: int | None = None,
+    allow_degraded: bool = False,
 ) -> dict[str, int]:
     set_all_seeds()
     rows = load_jsonl(split_path)
@@ -414,7 +415,7 @@ def run(
 
     retrieval_out: list[dict] = []
     verdict_out: list[dict] = []
-    counts = {"n": 0, "no_pool": 0, "no_evidence": 0}
+    counts = {"n": 0, "no_pool": 0, "no_evidence": 0, "degraded": 0, "below_floor": 0}
     started = time.time()
 
     for i, row in enumerate(rows, start=1):
@@ -426,6 +427,14 @@ def run(
         claim_idx = claim_index_from_uid(row["source_id"])
         trace = orch.verify(text, claim_idx=claim_idx)
         counts["n"] += 1
+        # Only the evidence stages. The null matcher's note also says
+        # "degraded", and counting it would flag every default run.
+        if any(e.stage in ("retrieval", "stance") and e.note
+               and e.note.startswith("degraded") for e in trace.events):
+            counts["degraded"] += 1
+        if any(e.note and e.note.startswith("no source above relevance floor")
+               for e in trace.events):
+            counts["below_floor"] += 1
 
         if not trace.results:
             counts["no_pool"] += 1
@@ -451,6 +460,18 @@ def run(
             rate = i / max(time.time() - started, 1e-6)
             print(f"  {i:4}/{len(rows)}  {rate:5.2f} claims/s  "
                   f"eta {(len(rows) - i) / max(rate, 1e-6) / 60:5.1f} min", flush=True)
+
+    # Refused, not warned. A hybrid run in which the encoder fell over is BM25
+    # under a hybrid label: a complete, plausible predictions file measuring the
+    # wrong thing. The dense cache's first version hit exactly this -- a shape
+    # error inside the retriever's degradation handler made every claim fall back
+    # to BM25 silently -- and only a test counting encodes noticed.
+    if counts["degraded"] and not allow_degraded:
+        raise SystemExit(
+            f"{counts['degraded']}/{counts['n']} claims ran DEGRADED (dense->bm25 or "
+            "stance failure); nothing written. Fix the cause, or pass "
+            "--allow-degraded if measuring the fallback is the point."
+        )
 
     if out_retrieval is not None:
         write_jsonl(out_retrieval, retrieval_out)
@@ -486,6 +507,20 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--adapter", default=None,
                     help="LoRA adapter directory for the claims stage; required to "
                          "score an ablation arm, which otherwise loads the default")
+    ap.add_argument("--depth", type=int, default=None,
+                    help="hybrid retrieval: how deep into BM25's ranking to rerank")
+    ap.add_argument("--fusion", default=None, choices=["rrf", "weighted", "dense"],
+                    help="hybrid retrieval: how BM25 and the dense score combine")
+    ap.add_argument("--alpha", type=float, default=None,
+                    help="hybrid retrieval: dense weight for --fusion weighted")
+    ap.add_argument("--rrf-k", type=int, default=None)
+    ap.add_argument("--relevance-floor", type=float, default=None,
+                    help="FR-12: NEI and abstain when no source's dense cosine "
+                         "reaches this. Choose it on dev, never on test")
+    ap.add_argument("--allow-degraded", action="store_true",
+                    help="write predictions even if some claims fell back from "
+                         "dense to BM25. Off by default: a degraded hybrid run is "
+                         "BM25 wearing a hybrid label")
     ap.add_argument("--encoder", default=None,
                     help="dense retrieval encoder: tfidf|word2vec|muril|labse|bge_m3")
     ap.add_argument("--use-transliterated", action="store_true",
@@ -526,6 +561,13 @@ def main(argv: list[str] | None = None) -> int:
         cfg.stage_args.setdefault("retrieval", {})["encoder"] = args.encoder
     if args.k:
         cfg.k = args.k
+    hybrid_args = {"depth": args.depth, "fusion": args.fusion, "alpha": args.alpha,
+                   "rrf_k": args.rrf_k}
+    for key, value in hybrid_args.items():
+        if value is not None:
+            cfg.stage_args.setdefault("retrieval", {})[key] = value
+    if args.relevance_floor is not None:
+        cfg.relevance_floor = args.relevance_floor
 
     if args.stage in ("checkworthy", "span", "normalize"):
         out = Path(args.out or f"results/preds/{args.stage}.jsonl")
@@ -582,9 +624,11 @@ def main(argv: list[str] | None = None) -> int:
                      or "results/preds/verdict.jsonl")
 
     print(f"pipeline: {cfg.stages}  k={cfg.k}")
-    counts = run(Path(args.split), cfg, args.stage, out_r, out_v, args.limit)
+    counts = run(Path(args.split), cfg, args.stage, out_r, out_v, args.limit,
+                 allow_degraded=args.allow_degraded)
     print(f"  {counts['n']} claims | {counts['no_evidence']} with no evidence "
-          f"| {counts['no_pool']} with no result")
+          f"| {counts['no_pool']} with no result | {counts['degraded']} degraded "
+          f"| {counts['below_floor']} below the relevance floor")
     return 0
 
 

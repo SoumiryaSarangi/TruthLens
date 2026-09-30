@@ -73,6 +73,7 @@ register("matching", "factcheck", "matching.factcheck", "FactCheckMatcher")
 register("retrieval", "bm25", "retrieval.bm25", "BM25Retriever")
 register("retrieval", "random", "retrieval.random_retriever", "RandomRetriever")
 register("retrieval", "dense", "retrieval.dense", "DenseRetriever")
+register("retrieval", "hybrid", "retrieval.hybrid", "HybridRetriever")
 register("retrieval", "bm25_factcheck", "retrieval.factcheck_bm25",
          "FactCheckBM25Retriever")
 register("stance", "nli", "stance.nli", "NLIStance")

@@ -35,6 +35,12 @@ class PipelineConfig:
     k: int = 10
     tau_match: float = 0.0
     tau_abstain: float = 0.0
+    # FR-12: "zero passages, OR NONE ABOVE THE RELEVANCE FLOOR, yields NEI with
+    # abstained = true". Only the first half existed until Phase 5. A dense
+    # cosine is the only retrieval score here with an absolute scale -- BM25 is
+    # unbounded and RRF is rank-based -- so the floor reads `dense_score`. Off by
+    # default; chosen on dev by verdict macro-F1, like tau.
+    relevance_floor: float | None = None
     stages: dict[str, str] | None = None
     stage_args: dict[str, dict[str, Any]] | None = None
 
@@ -62,6 +68,7 @@ class PipelineConfig:
     def describe(self) -> dict[str, Any]:
         return {"name": self.name, "split": self.split, "k": self.k,
                 "tau_match": self.tau_match, "tau_abstain": self.tau_abstain,
+                "relevance_floor": self.relevance_floor,
                 "stages": dict(self.stages or {})}
 
 
@@ -155,10 +162,45 @@ class Orchestrator:
                          f"degraded: retrieval failed ({type(exc).__name__})")
             scored = []
 
+        # NFR-7: a hybrid retriever whose encoder failed returns BM25's ranking
+        # and says so on the ranking it returns. Recorded here so the trace shows
+        # that the evidence came from a weaker path than the config names.
+        if note := getattr(scored, "note", None):
+            trace.record("retrieval", self.retriever.impl, 0.0, note)
+
         if not scored:
             return self._nei_abstain(claim, "No sources were retrieved.")   # FR-12
 
-        passages = self._to_passages(claim.text, scored)
+        # Passage selection was outside any `try` until Phase 5, so a retriever
+        # that failed there crashed `verify()` instead of degrading -- the one
+        # thing SYSTEM_DESIGN 11 says must never happen. The lexical selector
+        # needs no model, so it is the fallback.
+        try:
+            passages = self._to_passages(claim.text, scored)
+        except Exception as exc:
+            trace.record("retrieval", self.retriever.impl, 0.0,
+                         f"degraded: passage selection failed ({type(exc).__name__}); "
+                         "lexical paragraphs")
+            passages = self._to_passages(claim.text, scored, lexical=True)
+
+        # FR-12, the half that did not exist: sources were found, but none is
+        # relevant enough to judge from. Abstaining here costs an NEI; reading
+        # stance off irrelevant pages is what produced Phase 1's 3.7x
+        # over-prediction of Conflicting.
+        if self.cfg.relevance_floor is not None:
+            dense = [s for sd in scored
+                     if (s := getattr(sd, "dense_score", None)) is not None]
+            if not dense:
+                trace.record("retrieval", self.retriever.impl, 0.0,
+                             "relevance floor not applied: this retriever gives "
+                             "no dense score")
+            elif max(dense) < self.cfg.relevance_floor:
+                trace.record("retrieval", self.retriever.impl, 0.0,
+                             f"no source above relevance floor ({max(dense):.3f} < "
+                             f"{self.cfg.relevance_floor:.3f})")
+                return self._nei_abstain(
+                    claim, "No retrieved source was relevant enough to judge from.",
+                    passages=passages)
 
         # -- stance -----------------------------------------------------------
         try:
@@ -192,10 +234,17 @@ class Orchestrator:
         )
 
     # -- result constructors --------------------------------------------------
-    def _to_passages(self, claim_text: str, scored) -> list[Passage]:
+    def _to_passages(self, claim_text: str, scored, lexical: bool = False) -> list[Passage]:
+        if lexical:
+            from retrieval.passages import best_paragraph as lexical_best
+
+            def select(text, doc):
+                return lexical_best(text, doc.paragraphs)
+        else:
+            select = self.retriever.best_paragraph
         out: list[Passage] = []
         for i, sd in enumerate(scored, start=1):
-            text, span = self.retriever.best_paragraph(claim_text, sd.document)
+            text, span = select(claim_text, sd.document)
             out.append(Passage(
                 passage_id=f"e{i}", doc_id=sd.doc_id, text=text,
                 url=sd.doc_id, title=None, retrieval_score=sd.score,
@@ -203,9 +252,13 @@ class Orchestrator:
             ))
         return out
 
-    def _nei_abstain(self, claim, why: str) -> ClaimResult:
+    def _nei_abstain(self, claim, why: str,
+                     passages: list[Passage] | None = None) -> ClaimResult:
+        """NEI, abstained. With `passages`, the sources that were looked at and
+        judged too weak -- kept so the retrieval eval and the UI still see them."""
         return ClaimResult(
-            claim=claim, path="none", match=None, passages=[],
+            claim=claim, path="evidence" if passages else "none", match=None,
+            passages=passages or [],
             verdict="NEI", confidence=0.0, abstained=True,
             explanation=f"There is not enough evidence to judge this claim. {why}",
             explanation_source="template", explanation_lang="en", cited=[],

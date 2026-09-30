@@ -21,6 +21,24 @@ class ScoredDoc:
     doc_id: str
     score: float
     document: Document
+    # The dense cosine, when a retriever computed one. Kept apart from `score`,
+    # which may be a fused or rank-based value with no absolute scale: FR-12's
+    # relevance floor needs a number that means the same thing across claims, and
+    # only the cosine does.
+    dense_score: float | None = None
+
+
+class Ranking(list):
+    """A ranking that can say how it was produced.
+
+    `note` carries a degradation -- `degraded: dense->bm25` -- back to the
+    orchestrator, which records it in the trace (NFR-7). It travels on the
+    RETURNED value rather than as an attribute of the retriever, because the API
+    serves requests from a thread pool with one shared retriever: a per-call
+    attribute would let one request read another's note.
+    """
+
+    note: str | None = None
 
 
 class BM25Retriever:

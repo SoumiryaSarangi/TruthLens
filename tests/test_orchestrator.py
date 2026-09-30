@@ -324,3 +324,93 @@ def test_the_served_pipeline_does_not_reject_a_scheme_rumour():
         "Sarkar ne announce kiya hai ki har student ko 6000 rupaye milenge")
     assert trace.checkworthy is True
     assert trace.results[0].verdict != "NotAClaim"
+
+
+# -----------------------------------------------------------------------------
+# Phase 5: degradation reaches the trace, and FR-12's relevance floor
+# -----------------------------------------------------------------------------
+
+
+class _DenseStub:
+    """A retriever returning fixed documents with fixed dense scores."""
+
+    name, impl = "retrieval", "stub-dense"
+
+    def __init__(self, dense, note=None, fail_passages=False):
+        self.dense, self.note, self.fail_passages = dense, note, fail_passages
+
+    def topk(self, claim_text, claim_idx, k=None):
+        from retrieval.bm25 import Ranking, ScoredDoc
+        from retrieval.kb import Document
+
+        out = Ranking(ScoredDoc(f"d{i}", 1.0 - i / 10,
+                                Document(f"d{i}", (f"passage {i}",), False),
+                                dense_score=s)
+                      for i, s in enumerate(self.dense))
+        out.note = self.note
+        return out
+
+    def best_paragraph(self, claim_text, doc):
+        if self.fail_passages:
+            raise RuntimeError("encoder went away")
+        return doc.paragraphs[0], (0, len(doc.paragraphs[0]))
+
+
+def _with_retriever(retriever, **cfg):
+    orch = Orchestrator(PipelineConfig(stages={"stance": "always_neutral"}, **cfg))
+    orch.retriever = retriever
+    return orch
+
+
+def test_a_dense_degradation_appears_in_the_trace():
+    """NFR-7: BM25 wearing a hybrid label must say so."""
+    trace = _with_retriever(_DenseStub([0.9], note="degraded: dense->bm25 (OSError)")
+                            ).verify("A claim.", claim_idx=7)
+    assert any(e.note and e.note.startswith("degraded: dense->bm25")
+               for e in trace.events)
+
+
+def test_a_passage_selection_failure_degrades_instead_of_crashing():
+    """Passage selection sat outside any `try`, so this used to raise out of
+    `verify()` -- the one thing SYSTEM_DESIGN 11 says must never happen."""
+    trace = _with_retriever(_DenseStub([0.9], fail_passages=True)
+                            ).verify("A claim.", claim_idx=7)
+    assert trace.results[0].passages, "the lexical fallback should still yield passages"
+    assert any(e.note and "passage selection failed" in e.note for e in trace.events)
+
+
+def test_nothing_above_the_relevance_floor_is_nei_abstained_with_its_passages():
+    """FR-12's second half. The passages are kept: the retrieval eval and the UI
+    still need to see what was looked at and judged too weak."""
+    result = _with_retriever(_DenseStub([0.31, 0.22]), relevance_floor=0.5
+                             ).verify("A claim.", claim_idx=7).results[0]
+    assert result.verdict == "NEI"
+    assert result.abstained is True
+    assert result.path == "evidence"
+    assert [p.doc_id for p in result.passages] == ["d0", "d1"]
+
+
+def test_one_source_above_the_floor_is_enough_to_judge():
+    result = _with_retriever(_DenseStub([0.31, 0.72]), relevance_floor=0.5
+                             ).verify("A claim.", claim_idx=7).results[0]
+    assert "relevant enough" not in result.explanation
+
+
+def test_the_relevance_floor_is_off_by_default():
+    assert PipelineConfig().relevance_floor is None
+    result = _with_retriever(_DenseStub([0.01])).verify("A claim.",
+                                                        claim_idx=7).results[0]
+    assert "relevant enough" not in result.explanation
+
+
+def test_a_floor_with_no_dense_scores_is_recorded_rather_than_silently_skipped():
+    """BM25 has no absolute scale to compare against a floor. Skipping quietly
+    would let a config claim a floor that never ran."""
+    trace = _with_retriever(_DenseStub([None]), relevance_floor=0.5
+                            ).verify("A claim.", claim_idx=7)
+    assert any(e.note and "relevance floor not applied" in e.note for e in trace.events)
+
+
+def test_version_reports_the_relevance_floor():
+    """FR-21: operating thresholds are reported, not buried in code."""
+    assert "relevance_floor" in PipelineConfig(relevance_floor=0.4).describe()
