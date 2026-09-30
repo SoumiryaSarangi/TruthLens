@@ -27,7 +27,7 @@ from common.io_jsonl import load_jsonl, write_jsonl
 from common.seeds import set_all_seeds
 from pipeline.contracts import Trace
 from pipeline.orchestrator import Orchestrator, PipelineConfig
-from retrieval.kb import claim_index_from_uid
+from retrieval.kb import claim_index_from_uid, kb_split_from_source_id
 
 INTERIM = Path("data/interim")
 
@@ -375,6 +375,26 @@ def run_match(
     return counts
 
 
+def evidence_store_for(rows: list[dict], split_path: Path) -> str:
+    """Which knowledge store holds these rows' evidence pools, from their ids.
+
+    Not from `cfg.split`, and not from the split file's name. Until Phase 5 this
+    runner looked every row up in `KnowledgeStore(cfg.split)`, which defaults to
+    `dev`, keeping only the integer from `averitec:train.json:133`. The local
+    TEST split is 307 claims held out of train.json, so a test claim with index
+    below 500 silently read an UNRELATED dev claim's pool, and one above 500 got
+    NEI from a missing file. No error either way; the final reported number would
+    have been wrong. It had not fired only because nothing had yet run on test.
+    """
+    stores = {kb_split_from_source_id(r["source_id"]) for r in rows}
+    if len(stores) != 1:
+        raise SystemExit(
+            f"{split_path} mixes rows from knowledge stores {sorted(stores)}; "
+            "one run reads one store."
+        )
+    return stores.pop()
+
+
 def run(
     split_path: Path,
     cfg: PipelineConfig,
@@ -388,6 +408,8 @@ def run(
     if limit:
         rows = rows[:limit]
     texts = load_texts(split_path)
+    cfg.split = evidence_store_for(rows, split_path)
+    print(f"  evidence pools from the {cfg.split} knowledge store")
     orch = Orchestrator(cfg)
 
     retrieval_out: list[dict] = []
