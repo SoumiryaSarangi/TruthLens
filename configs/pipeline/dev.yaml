@@ -6,7 +6,7 @@
 # `claims: passthrough` returns check_worthy = True for any non-empty string, so
 # `NotAClaim` -- the first card in the demo script and the answer to PRD scenario
 # S4 -- was unreachable in the API.
-name: p5_dev
+name: p6_dev
 split: dev
 k: 10
 
@@ -29,13 +29,25 @@ k: 10
 # Phase 4 entry in docs/project-log.md.
 tau_match: 0.90
 
-# tau_abstain: 0.0 disables abstention. Confidence on the evidence path is an
-# uncalibrated score from the rule aggregator, and on the fast path it is a raw
-# retrieval score wearing the field's name. Abstention gets a real threshold in
-# Phase 6, on dev, after temperature scaling (FR-13, FR-14).
-tau_abstain: 0.0
+# tau_abstain (FR-14): chosen on DEV by the criterion fixed in the Phase 6 plan
+# before any number was seen -- the lowest tau whose coverage is <= 60% -- on the
+# served arm (NLI stance, learned aggregator, temperature-scaled; run
+# c2ffd949681b). At 0.317 the system answers 60% of dev claims; accuracy on
+# those rises only 0.320 -> 0.353, because this arm's confidences are honest
+# and flat (0.28-0.42 for almost every claim; ECE 0.038). Abstention buys
+# little here, and that is the finding, not a reason to move the criterion.
+#
+# Fast-path confidence is a raw retrieval cosine, not a calibrated probability;
+# tau_abstain applies to the evidence path only.
+tau_abstain: 0.317
 
-# relevance_floor (FR-12): built, tested, and OFF. Choosing it now would tune a
+# relevance_floor (FR-12): OFF, chosen on dev in Phase 6 by verdict macro-F1.
+# 0.45 and 0.50 abstain on zero dev claims; 0.55 and 0.60 abstain on 3 and 9 and
+# only lower macro-F1 (0.60: -0.0065, CI excludes 0). AVeriTeC pools are
+# retrieved FOR each claim, so a floor cannot be tuned there; on the demo
+# corpus, where it would matter, there is no gold. The earlier note follows.
+#
+# Phase 5: built, tested, and OFF. Choosing it then would have tuned a
 # threshold against the rule aggregator Phase 5 showed is broken; Phase 6 picks
 # it on dev, after the learned aggregator.
 relevance_floor: null
@@ -96,14 +108,30 @@ stages:
   # Refutes among nine Supports makes Conflicting. Seven forwards are not a
   # metric; they are enough not to serve a model that ignores the evidence its
   # explanation cites. Project log, 2026-10-01, "the demo corpus".
+  #
+  # Phase 6, D4, against the learned aggregator: NO evidence-reading stance model
+  # beats the claim-only control (0.2949) on AVeriTeC dev. xlmr 0.2802 (tie,
+  # CI -0.062..+0.030), bilstm 0.2340 and nli 0.2135 (both significantly worse).
+  # The approved plan's rule: no arm beats the control -> report it, and the
+  # served stance stays. That keeps the arm with the weakest AVeriTeC number and
+  # the only one seen reading evidence on real forwards -- an open product
+  # trade-off, put to the project owner in the Phase 6 log entry.
   stance: nli
-  aggregate: rule
-  generation: template
-  faithfulness: stub
+  # Phase 6 (FR-11): logistic regression over the whole top-10 stance
+  # distribution, temperature-scaled on dev; artifact aggregator_nli, found by
+  # the stance name. +0.0435 macro-F1 over the rule on the claim-only control
+  # (CI excludes 0); it fixes the rule's Conflicting over-fire.
+  aggregate: learned
+  # Phase 6 (FR-15/16/18): IndicBART + LoRA, English, beam. Served ONLY when
+  # every sentence passes the NLI gate; otherwise -- and always when abstained
+  # -- the template, with the reason in the trace. ~52% of dev explanations on
+  # retrieved passages pass.
+  generation: indicbart
+  faithfulness: nli
 
 stage_args:
-  aggregate:
-    threshold: 0.5
+  generation:
+    decoding: beam
   stance:
     batch_size: 16
   retrieval:

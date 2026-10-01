@@ -326,6 +326,14 @@ class Orchestrator:
             weakest = min(check["entailment"]) if check["entailment"] else 0.0
             return template(f"faithfulness: generated explanation failed the NLI gate "
                             f"(weakest sentence entailment {weakest:.2f}); template served")
+        # Faithful to SOME passage is not consistent with the VERDICT: a sentence
+        # that entails the claim asserts it, which only a Supported verdict may.
+        if verdict != "Supported" and hasattr(self.faithfulness, "restates"):
+            restated = self.faithfulness.restates(raw, claim_text)
+            if restated >= 0.5:
+                return template(f"faithfulness: generated explanation restates the claim "
+                                f"(entailment {restated:.2f}) under verdict {verdict}; "
+                                "template served")
         cited_idx = sorted({j for js in check["supporting"] for j in js})
         return (raw, [passages[j].passage_id for j in cited_idx], "generated",
                 min(check["entailment"]))

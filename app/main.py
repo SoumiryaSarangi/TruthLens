@@ -3,17 +3,16 @@
 Serves the **same orchestrator** the batch runner evaluates (§1). There is no
 separate demo path that could drift from the one the numbers came from.
 
-Phase 1 caveat, surfaced rather than hidden: retrieval is per AVeriTeC claim
-pool, so free-text input has nothing to search until the demo corpus exists
-(§7). Such a request gets NEI with `abstained=true` and a trace note saying
-why, instead of a fabricated verdict. `?claim_idx=` runs a real dev claim end
-to end, which is what the demo shows.
+Free text is searched against the demo corpus (Phase 5, `free_text_retrieval`);
+`?claim_idx=` runs a real AVeriTeC dev claim against its own evidence pool.
 """
 
 from __future__ import annotations
 
 import os
 import subprocess
+import time
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
@@ -30,11 +29,30 @@ DEFAULT_CONFIG = Path("configs/pipeline/dev.yaml")
 MAX_CHARS = 4000        # FR-1
 
 # UI_UX.md §7: the confidence bands are served, never hard-coded in JavaScript.
-# Phase 1 values are placeholders -- the real cut points come off the
-# calibration curve in Phase 6, which is why they are here and not in app.js.
-CONFIDENCE_BANDS = {"high": 0.75, "medium": 0.5}
+# Cut points from the calibration curve of the SERVED arm on dev (run
+# c2ffd949681b, temperature-scaled): `medium` is the reliability-bin edge where
+# dev accuracy first reaches 0.5 (bin 0.40-0.50: 0.54, n=39), `high` where it
+# reaches 0.75 (bin 0.50+: n=3 -- thin, and said so). Below tau_abstain (0.317)
+# the card is abstained, not "low". These move with the served arm.
+CONFIDENCE_BANDS = {"high": 0.50, "medium": 0.40}
 
-app = FastAPI(title="TruthLens", version="0.1.0")
+# A statement that runs every stage -- check-worthy, the demo corpus, stance,
+# the aggregator, generation and the gate -- so the first real request is not
+# the one that pays for loading five models. SYSTEM_DESIGN 13.
+WARMUP_TEXT = "Delhi is the capital of India."
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    # Opt-in (`make serve` sets it), so the API tests do not load every model.
+    if os.environ.get("TRUTHLENS_WARMUP") == "1":
+        t0 = time.perf_counter()
+        get_orchestrator().verify(WARMUP_TEXT)
+        print(f"warm-up request done in {time.perf_counter() - t0:.1f} s", flush=True)
+    yield
+
+
+app = FastAPI(title="TruthLens", version="0.1.0", lifespan=lifespan)
 
 _orchestrator: Orchestrator | None = None
 _config: PipelineConfig | None = None

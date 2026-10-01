@@ -113,3 +113,15 @@ def test_without_a_gate_generated_text_is_never_served(kb):
 def test_support_indices_point_at_the_evidence_as_given():
     out = F.support("Posts were restored.", ["", "posts were restored in 2020"])
     assert out["supporting"] == [[1]]
+
+
+def test_restating_the_claim_under_a_non_supported_verdict_sends_the_template(kb):
+    """The rumour, word for word, as the explanation for its own refutation --
+    faithful to a passage that asserts it, and exactly wrong to serve."""
+    claim = "The minister restored 4400 nursing posts in 2020."
+    trace = make(kb, FakeGenerator(claim)).verify(claim, claim_idx=7)
+    res = trace.results[0]
+    assert res.verdict != "Supported"                 # always_neutral -> NEI
+    assert res.explanation_source == "template"
+    assert any("restates the claim" in n for n in notes(trace))
+
