@@ -98,7 +98,9 @@ class Orchestrator:
             self.free_text_retriever = registry.build(
                 "retrieval", impl, **{**args.get("free_text_retrieval", {}), "k": cfg.k})
         self.stance = make("stance")
-        self.aggregator = make("aggregate")
+        # The stance impl is passed so a learned aggregator finds the artifact
+        # trained for it (`aggregator_<stance>`) when no explicit path is set.
+        self.aggregator = make("aggregate", stance=s["stance"])
         # A learned aggregator reads ONE stance model's probabilities. Fed another
         # model's, it produces a confident distribution over noise and never
         # says so -- so the pairing is checked once, here, not trusted.

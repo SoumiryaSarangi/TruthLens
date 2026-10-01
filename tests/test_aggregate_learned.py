@@ -205,3 +205,16 @@ def test_temperature_override_scores_the_same_artifact_unscaled(tmp_path):
     assert LearnedAggregator(path=path).temperature == 5.0
     assert LearnedAggregator(path=path, temperature=1.0).temperature == 1.0
 
+
+
+def test_without_a_path_the_orchestrator_looks_for_its_stances_artifact(tmp_path, monkeypatch):
+    """The served config names only `aggregate: learned`; the artifact must be the
+    one trained for the configured stance, never a default that fits another."""
+    pytest.importorskip("rank_bm25", reason="rank_bm25 lives in the ML lock")
+    import pipeline.aggregate as agg_mod
+    from pipeline.orchestrator import Orchestrator, PipelineConfig
+
+    monkeypatch.setattr(agg_mod, "MODELS", tmp_path)
+    with pytest.raises(FileNotFoundError, match="aggregator_always_neutral"):
+        Orchestrator(PipelineConfig(stages={"stance": "always_neutral",
+                                            "aggregate": "learned"}))
