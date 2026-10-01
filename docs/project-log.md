@@ -100,17 +100,17 @@ built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
 
 | | |
 | --- | --- |
-| **Current phase** | **Phase 4 COMPLETE. FR-8 is measured and not demo-ready.** The gate, the verdict mapping, the matcher and a lexical floor are built and scored; the two rerankers were built and both LOSE to the raw cosine. At the served tau the fast path fires on 1.7% of posts and is still wrong 1 in 5 times. See the Phase 4 entry for what to do next. |
-| **Clock** | 14 days. **Days 1-5 done** (Phases 1-4). Day 6 = finish Phase 4 follow-ups or start Phase 5. Freeze end of Day 12. |
+| **Current phase** | **Phase 5: FR-9 and FR-10 measured; the demo corpus is the one item left.** Hybrid retrieval lifts Success@10 0.158 -> 0.214, and that exposed the rule aggregator: the claim-only stance control (0.2514) now beats every evidence-reading arm on the verdict, so the stance choice moves to Phase 6. Phase 4 is COMPLETE (FR-8 measured, not demo-ready). |
+| **Clock** | Target **2026-10-12**, no fixed external deadline (confirmed 2026-09-30). Phases 1-4 done; Phase 5 started 2026-09-30. Phases 6 and 7 remain. |
 | **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |
 | **Python** | 3.11.16 via uv, in `.venv`. System Python is 3.13 and is not used. |
 | **Served config** | `configs/pipeline/dev.yaml` -- preprocess `hybrid`, claims `heuristic`, matching `factcheck`, tau_match 0.90. It ran Phase 1 baselines at EVERY stage until Phase 4; `tests/test_orchestrator.py` now loads the real file. |
-| **Tests** | 438 passing, 2 skipped, 2 gpu-deselected |
+| **Tests** | 524 passing, 2 skipped, 2 gpu-deselected |
 | **Datasets in hand** | AVeriTeC, X-CLAIM, MultiClaim, handtyped (FR-26), Dakshina, **CheckThat! 2025 T2** |
 | **Datasets waiting** | None. Every dataset is downloaded, split, locked and leakage-checked. |
 | **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
-| **Models trained** | Romanized LID, in-domain Word2Vec, and **7 XLM-R+LoRA adapters** (5 span ablation arms, check-worthiness, and a claim-matching cross-encoder that did not work -- see Phase 4). |
+| **Models trained** | Romanized LID, in-domain Word2Vec, **9 XLM-R+LoRA adapters** (5 span arms, check-worthiness, the Phase 4 cross-encoder, stance and its claim-only twin), a BiLSTM stance model, and two TF-IDF stance models. |
 | **Numbers so far** | Span token-F1 **0.7463** (baseline 0.6851) - claim matching MRR **0.5244** (BM25 0.3826, random 0.0002) - fast-path gate AUCC **0.5842** (gate-removed 0.4284) - LID ~0.86 on the hand-typed set - transliteration CER 0.4281 - AVeriTeC verdict macro-F1 0.2147. **FR-6**: zero-shot NLI 0.5938 vs 0.4595 majority, 7/15 real negatives, but it rejects 21% of real claims so the SERVED config runs the rules. **FR-8**: no safe operating point. |
 | **CI** | Green, checked with `gh run list` after every push (last: `dd011ba`). A sha here goes stale the moment the next commit lands -- check, do not trust. Runs take ~1m50s. `gh` is at `C:\Program Files\GitHub CLI\gh.exe`, NOT on this shell's PATH. |
 
@@ -1892,6 +1892,206 @@ measured. The honest options from here, in order of expected value:
    68% precision the top match is genuinely useful as *"here is a fact-check that
    may be about this"* and dishonest as *"already checked, verdict Refuted"*. This
    is a `UI_UX.md` question, and it is the cheapest of the three.
+
+## 2026-10-01 — Phase 5: evidence retrieval and stance
+
+FR-9 (hybrid retrieval) and FR-10 (stance), both P0. Phase 1 had left the
+verdict stuck behind retrieval -- Success@10 0.158, so the stance model read
+irrelevant text on most claims -- and this phase was where it was meant to move.
+Five measurements were taken before anything was designed, and two of them
+changed the plan.
+
+### A bug that would have corrupted the final number
+
+`claim_index_from_uid` kept only the integer from `averitec:train.json:133`, and
+the batch runner looked it up in `KnowledgeStore(cfg.split)`, which defaults to
+`dev`. The local AVeriTeC **test** split is 307 claims held out of the public
+train.json, so a test claim with index below 500 silently read an **unrelated
+dev claim's evidence pool**, and one above 500 got NEI from a missing file. No
+error either way; it had not fired only because nothing had yet run on test.
+
+The same hard-coded dev archive sat in `kb.py` and `build_kb_cache.py`, so
+`--split train` would have written the dev store into the train cache.
+
+Fixed before any Phase 5 number: the store now comes from the row's source_id,
+`KB_ZIPS` is the one map of which archives form which split, and the cache
+builder refuses an archive the download manifest does not vouch for, builds into
+`.partial/`, and verifies the claim-to-file mapping two ways before publishing.
+Measured on the real archives rather than inferred from file names: all three
+train zips use global claim indices, own-claim QA agreement 100% against 3.8% for
+the neighbour, and a dev rebuild is byte-identical to the Phase 1 cache.
+
+The train store took 8 hours to build, mostly from contention, and one number
+from it matters for Phase 6: **3,504 of 6,458 train gold documents (54%) have no
+text** -- worse than dev's 40%.
+
+### Ceilings, measured before building
+
+- **A fifth of dev can never be retrieved correctly.** 443 of 1,096 dev gold
+  documents have no text, and for 114 of 500 claims every gold document is empty.
+  Success@10 cannot exceed **0.772** for any text retriever.
+- **BM25 finds the gold, just too deep:** Success@10 / 50 / 100 / 200 / 500 =
+  0.158 / 0.350 / 0.474 / 0.584 / 0.700 (`p5_retrieval_bm25_depth`, through the
+  harness). Success@N is the ceiling on a reranker over BM25's top N.
+
+### Stance has no gold, so it was derived -- and the derivation is a trap
+
+AVeriTeC annotates a verdict per claim and QA evidence per claim, but no stance
+per piece of evidence. `averitec_stance` is one row per QA answer, labelled with
+its claim's verdict: 6,616 train / 1,260 dev / 789 test, split membership
+**inherited** from the frozen AVeriTeC splits so no test claim can train.
+
+The gold is noisy by construction, and dev row 0 shows it: *"Where was the claim
+first published? It was first published on Sccopertino"* is labelled Refutes,
+because its claim is refuted.
+
+Worse, it has a built-in shortcut: every answer of a claim shares one label, so
+within a claim the evidence cannot change the label, and across claims the claim
+alone predicts it. So every stance model got a **claim-only twin**, trained
+identically on the claim alone.
+
+| arm | all 1,260 rows | answered 1,222 | vs claim-only twin |
+| --- | --- | --- | --- |
+| majority_class | 0.2663 | | |
+| zero-shot NLI | 0.3339 | 0.3183 | -0.1036 (TF-IDF twin) |
+| TF-IDF, claim only | 0.4177 | 0.4220 | (twin) |
+| TF-IDF | 0.5554 | 0.4183 | **-0.0036** |
+| BiLSTM | 0.5006 | 0.4012 | -0.0208 (TF-IDF twin) |
+| XLM-R, claim only | 0.4032 | 0.4098 | (twin) |
+| **XLM-R** | **0.5945** | **0.4582** | **+0.0484** |
+
+Three findings:
+
+1. **TF-IDF's apparent evidence lift was one string.** On all rows it beat its
+   twin by +0.1377. The 38 Unanswerable rows are all the literal *"No answer
+   could be found."*, which the derivation relabels Neutral; TF-IDF gets 38/38,
+   the twin 3/38. On the 1,222 rows where an answer was found, TF-IDF reads
+   nothing the claim did not already say. My own relabelling made that string
+   trivially learnable -- the third shortcut in two phases.
+2. **Only the cross-encoder reads usable evidence.** XLM-R beats its own twin by
+   +0.0484 on answered rows; neither the bag of words nor the BiLSTM gains
+   anything there. That is the expected ordering: the only usable evidence signal
+   under these labels is a relation that transfers across claims ("Did X say Y?
+   No, he never said it" refutes the claim), which a model reading both texts
+   together can represent and the others cannot.
+3. **Zero-shot NLI scoring lowest here is not evidence that it is the worst
+   stance model.** It predicts Neutral for 516 of 838 gold-Refutes rows, and most
+   of those are background answers that genuinely neither entail nor contradict
+   the claim. When it commits to Refutes it is 75% precise. This is the Phase 3
+   trap again -- a constructed set ranking models by something other than the
+   task -- which is why **verdict macro-F1 on AVeriTeC dev, whose gold is clean,
+   picks the stance model**, not this table.
+
+The answered-only figures go through the harness via `allow_partial`, each full
+model's baseline set to its claim-only twin's run on the same rows, so the delta
+is exactly the evidence lift. The frozen split was not regenerated to drop the
+38 rows; it was committed minutes before the string was found, and `CLAUDE.md`
+says not to.
+
+### Hybrid retrieval: every arm beats BM25, and depth is not the limit
+
+BM25 per claim -> top N -> BGE-M3 passage rerank (~1,000-character passages,
+document scored by its best passage, MaxP) -> fused. The best passage is what
+stance reads, replacing the lexical paragraph picker. Passage vectors are cached
+by document, so one 45-minute build served every arm below.
+
+| arm | Success@10 | MRR | ceiling at that depth |
+| --- | --- | --- | --- |
+| BM25 (Phase 1) | 0.158 | 0.0656 | |
+| RRF, depth 100 | 0.212 | 0.0863 | 0.474 |
+| **RRF, depth 200** | **0.214** | 0.0888 | 0.584 |
+| dense only, depth 100 | 0.204 | 0.0906 | 0.474 |
+| dense only, depth 200 | 0.206 | **0.0924** | 0.584 |
+| weighted, depth 200 | 0.172 | 0.0715 | 0.584 |
+
+I predicted 0.35-0.45. The reranker recovered about 13% of the headroom, and the
+reason was measured, not assumed: 292 of 500 claims have a non-empty gold in
+BM25's top 200, and BGE-M3 lifts the best gold to a **median rank of 21** of
+those 200 -- top 50 for 75% of claims, top 10 for 35%. The gold's best passage
+scores a median cosine of 0.653 against 0.555 for the median distractor: a gap of
+0.09, because **AVeriTeC's pools are web-search results for that claim and the
+distractors are on-topic too.** A bi-encoder separates on-topic from off-topic
+well and gold from on-topic poorly. That is the case for a cross-encoder
+reranker.
+
+Depth 100 -> 200 adds 0.002, so extending the cache to depth 500 (~2 more
+hours) was cut on that measurement. Weighted fusion is worst because cosines
+here sit in a narrow band while min-max BM25 spans 0-1, so BM25 dominates the
+mix; RRF is rank-based and immune.
+
+### The verdict: better retrieval exposed the aggregator, and the claim alone won
+
+Retrieval fixed at RRF depth 200, the Phase 1 rule aggregator unchanged, only
+the stance model varied. AVeriTeC dev, clean gold:
+
+| stance | verdict macro-F1 | Conflicting predicted (gold 38) |
+| --- | --- | --- |
+| **XLM-R, claim only** | **0.2514** | **0** |
+| TF-IDF | 0.2323 | 49 |
+| *Phase 1: BM25 + NLI* | *0.2147* | *141* |
+| XLM-R | 0.2082 | 214 |
+| BiLSTM | 0.2065 | 141 |
+| zero-shot NLI | 0.1989 | 246 |
+| majority_class | 0.1516 | |
+
+**Better retrieval made the NLI verdict worse** -- 0.2147 to 0.1989 while
+Success@10 rose. More on-topic passages give the stance model confident signals
+in both directions, and the rule aggregator (max P(Supports) and max P(Refutes)
+over k passages, Conflicting if both clear 0.5) turns that into Conflicting:
+141 predictions in Phase 1, 246 now. Refuted F1 falls 0.547 -> 0.412 as refuted
+claims get called Conflicting. Phase 1 flagged this aggregator as a Phase 6
+problem; better retrieval made it the bottleneck.
+
+**The control that never reads evidence produces the best verdict**, and the
+ranking is almost exactly the inverse of how often each arm triggers
+Conflicting. The claim-only model scores every passage of a claim identically,
+and one distribution cannot put both Supports and Refutes at 0.5 -- so it
+*cannot* trigger the rule. **Under this aggregator the verdict rewards a stance
+model for not reading evidence.** This is a version of the claim-only bias known
+from fact-verification datasets, here amplified by the aggregator.
+
+Three consequences:
+
+- **Plan decision D4 does not hold yet.** "The verdict picks the stance model"
+  assumed an aggregator that was neutral between stance models. This one is not,
+  so the stance choice moves to Phase 6 and is made against the learned
+  aggregator. The served pipeline takes XLM-R provisionally: the only arm shown
+  to read evidence, and serving a model that ignores evidence would contradict an
+  explanation that cites it.
+- **Phase 6's bar is 0.2514, not 0.2147.** Any claim that evidence helps the
+  verdict has to beat the claim-only control.
+- **The relevance floor (FR-12) is built, tested, and off.** Choosing its value
+  now would tune a threshold against a broken aggregator -- the same reason
+  Phase 1 gave for not tuning the aggregator before retrieval.
+
+### Smaller things worth keeping
+
+- **Two more bugs the degradation path or a counter caught.** A document with no
+  text got a (0, 0) vector array whose concatenation raised inside the
+  retriever's degradation handler, so every run silently fell back to BM25 and
+  cached nothing -- a test counting encodes saw it, and the batch runner now
+  REFUSES a run in which any claim degraded. And a URL shared by two claims'
+  pools was cached only under the first, so every later run re-encoded it.
+- **The train knowledge-store build and the dense build together dropped the
+  dense build from 56 to 3 passages/s** -- free RAM 1.06 GB, the 63 GB zip stream
+  evicting everything. Alone it ran at 121/s. Measured claim by claim, the
+  6.5 GiB private footprint was not a leak (torch, CUDA and the model, committed
+  once); the one-job-at-a-time rule is about memory and disk, not just VRAM.
+- **pandas is not in CI's core lock**; the TF-IDF pipeline used it and three
+  tests failed on the runner. Rewritten without it; both arms reproduce their
+  config hashes exactly.
+- **All 19 split files reproduce byte-for-byte**, including the three new ones,
+  and CI's reproducibility job rebuilt `averitec_stance` from public data.
+
+### Still open in Phase 5
+
+**The demo corpus (decision D7)** -- Hindi and Punjabi Wikipedia lead sections
+plus the fact-check texts as one global hybrid index, so a free-text forward gets
+an evidence path at all. Dumps verified 2026-09-30: hi 240 MB, pa 96 MB. Until
+it exists, every forward that misses the fast path answers "no evidence corpus is
+available". The AVeriTeC knowledge store is deliberately NOT in it (confirmed
+during planning): ~500k pages scraped for specific US-centric claims fit Indian
+forwards poorly. Evaluation is unaffected; it always uses AVeriTeC's own pools.
 
 ## Phase 3 gaps — CLOSED 2026-09-24
 
