@@ -36,7 +36,7 @@ historical rationale, lowest precedence.
 **Precedence when documents disagree:** code and tests > `CLAUDE.md` >
 `docs/specs/` > `docs/build-plan.md`.
 
-**Thirteen things that are easy to get wrong here:**
+**Fifteen things that are easy to get wrong here:**
 
 1. **Accuracy is close to meaningless on AVeriTeC.** Majority class scores 61%.
    Lead with macro-F1, always beside its baseline.
@@ -89,7 +89,22 @@ historical rationale, lowest precedence.
     sat on Phase 1 baselines at every stage for three phases while the harness
     scored the real models, because every test built its own config. Two example
     forwards through the real pipeline found an inversion that 3,153 scored rows
-    did not.
+    did not. **Phase 5 did it again:** seven forwards found that fact-checks were
+    feeding the stance model the rumour itself, and that the served stance model
+    ignored its evidence. Rerun them (`docs/project-log.md`, "the demo corpus")
+    after any change to the served config.
+14. **Every derived label needs a shortcut control.** Derived stance gold labels
+    every answer with its claim's verdict, so the claim alone predicts it. Each
+    trained stance arm has a claim-only twin trained identically; a model that
+    does not beat its twin is not reading evidence. Under the rule aggregator
+    the twin even wins the verdict (0.2514) -- that is Phase 6's bar.
+15. **A fact-check's claim field is the misinformation.** It is right for
+    retrieval and inverted as evidence. `retrieval/corpus.py` reads a
+    fact-check as its title; do not "simplify" that back.
+
+**Where things stand (2026-10-01):** Phases 1-5 complete; **Phase 6 is next**
+-- learned aggregator, relevance floor, calibration, abstention, generation. The
+ordered list is in `docs/phase-plan.md` under "Next: Phase 6".
 
 **To get running:** `make setup` then `make test`. The environment is already
 built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).

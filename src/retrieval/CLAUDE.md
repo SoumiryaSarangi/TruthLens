@@ -1,8 +1,18 @@
 # src/retrieval/
 
-Hybrid BM25 + dense retrieval over the evidence corpus. Phase 5 (Unit III).
-Empty until then; this file records the conventions so the first commit here
-does not have to invent them.
+Hybrid BM25 + dense retrieval over the evidence corpus. Built in Phase 5.
+
+| Module | Searches | Used by |
+| --- | --- | --- |
+| `bm25.py` | one AVeriTeC claim's pool (~1,013 docs) | Phase 1 baseline |
+| `hybrid.py` | the same pool: BM25 top N -> BGE-M3 passage rerank (MaxP) -> RRF | evaluation and served `retrieval` |
+| `corpus.py` | the global demo corpus (hi/pa Wikipedia leads + fact-checks) | served `free_text_retrieval` only; no gold, no metric |
+| `kb.py` | which archives form which knowledge-store split | everything above |
+| `dense.py`, `factcheck_bm25.py` | the 78,077-fact-check pool | claim matching (fast path) |
+
+Two rules learned the hard way: the knowledge-store split comes from each row's
+`source_id`, never from a default (the test split lives in the TRAIN store); and
+a fact-check is read as evidence by its title, never its claim (`corpus.py`).
 
 ## Model choices, already decided
 

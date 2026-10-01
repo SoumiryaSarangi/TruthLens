@@ -35,7 +35,8 @@ on 1.7% of posts and still cites the wrong fact-check about 1 time in 5. Both
 rerankers were built and both lose to the raw cosine as a gate. The results are
 below; the diagnosis is in `project-log.md`.
 
-The clock is **14 days**. **Days 1-4 are done.** Phase 1 shipped the vertical
+The clock is **14 days**. **Phases 1-5 are done** (2026-10-01); target
+2026-10-12, no fixed external deadline. Phase 1 shipped the vertical
 slice; Phase 2 shipped the language layer and the native-vs-romanized table,
 which is the research contribution. Code freezes at the end of Day 12.
 
@@ -58,14 +59,17 @@ statically. Stages import their models lazily inside methods.
 | Metrics | `src/eval/metrics.py` | Cross-checked against scikit-learn |
 | Dumb baselines | `src/eval/baselines.py` | majority_class, stratified_random, random_rank |
 | Leakage detection | `src/data/leakage.py` | 4 checks, proven against planted leaks |
-| Dataset loaders | `src/data/loaders.py` | **AVeriTeC, X-CLAIM, MultiClaim** |
+| Dataset loaders | `src/data/loaders.py` | AVeriTeC, X-CLAIM, MultiClaim, CheckThat, handtyped, **averitec_stance** (derived) |
 | Script detection | `src/data/script_id.py` | Per row, never from the lang label |
-| Frozen splits | `data/splits/` | averitec 2666/500/307 · x_claim 4472/600/571 · multiclaim 25137/3153/3156 |
-| Knowledge store | `data/raw/averitec_kb/` + cache | dev, 11.54 GB zip; per-claim cache in `data/interim/` |
+| Frozen splits | `data/splits/` | 19 files under `SPLITS.lock` · averitec 2666/500/307 · x_claim 4472/600/571 · multiclaim 25137/3153/3156 · averitec_stance 6616/1260/789 |
+| Knowledge stores | `data/raw/averitec_kb/` + cache | **dev and train** built; `retrieval/kb.py` is the one map of archives to splits |
+| Retrieval | `src/retrieval/` | BM25, dense, **hybrid** (RRF@200, passage vectors cached), **corpus** (demo, free text) |
+| Stance | `src/stance/` | NLI, TF-IDF, BiLSTM, XLM-R+LoRA, each trained arm with a claim-only twin |
+| Demo corpus | `data/interim/evidence/` | hi/pa Wikipedia leads + fact-checks; `scripts/build_evidence_index.py` |
 | **Pipeline** | `src/pipeline/` | **Done** — contracts, registry, orchestrator, batch |
 | **Stage baselines** | `src/{preprocess,claims,matching,retrieval,stance,generation,faithfulness}/` | **Done** — 8 impls |
 | **API + UI** | `app/` | **Done** — `/verify`, `/health`, `/version`, plain page |
-| Tests | `tests/` | 204 passing, 1 skipped, 1 gpu-deselected |
+| Tests | `tests/` | 548 passing, 2 skipped, 2 gpu-deselected |
 | CI | `.github/workflows/ci.yml` | Green — `check` + `data` (splits reproduce from source) |
 
 ## Phase 1 results — the floor everything must beat
@@ -238,13 +242,54 @@ cross-lingually or not at all, and BM25 scores 0.0000 MRR there.
 retrieve-then-rerank over the AVeriTeC dev store, the fact-check index as a
 second evidence source, and hi/pa Wikipedia lead sections only.
 
-## Next: Phase 5 — evidence retrieval and stance (Days 7-8)
+## Phase 5 results (2026-10-01) — retrieval up, the aggregator now the bottleneck
 
-Day 6 is for the Phase 4 follow-ups, cheapest first: present the fast path as a
-**related fact-check rather than a verdict** (a `UI_UX.md` change), then the
-within-query reranker objective, then reconsider downloading
-`BAAI/bge-reranker-v2-m3`. Phase 5's first task is building the demo corpus
-above.
+All on AVeriTeC dev. Full tables and diagnosis: the 2026-10-01 entry in
+`project-log.md`.
+
+| Component | Number | Baseline / reference |
+| --- | --- | --- |
+| Retrieval, hybrid RRF@200 | Success@10 **0.214**, MRR 0.0888 | BM25 0.158 / 0.0656; ceiling 0.584 at depth 200, 0.772 overall (22.8% of claims have only empty gold docs) |
+| Stance, derived dev, answered rows | XLM-R **0.4582** | its claim-only twin 0.4098 (+0.0484); TF-IDF −0.0036 vs its twin |
+| Verdict, rule aggregator | best = **XLM-R claim-only 0.2514** | Phase 1 0.2147, majority 0.1516; XLM-R 0.2082, NLI 0.1989 |
+
+- **The rule aggregator rewards ignoring evidence.** max P(Supports) and max
+  P(Refutes) over k passages, Conflicting if both ≥ 0.5: a claim-only model gives
+  every passage one distribution and can never trigger Conflicting, so it wins.
+- **D4 ("the verdict picks the stance model") is deferred to Phase 6.**
+- **Relevance floor (FR-12):** built, tested, OFF until the learned aggregator.
+- **Demo corpus built** (`data/interim/evidence/`, `retrieval/corpus.py`):
+  154,259 hi + 57,410 pa Wikipedia leads + 78,077 fact-checks, global BM25 ∪
+  BGE-M3, RRF. No gold, no metric. Real forwards through it found (1) fact-checks
+  were feeding the stance model the rumour itself — fixed, a fact-check's passage
+  is its title — and (2) XLM-R stance behaves like its claim-only twin there, so
+  the **served stance is `nli`, provisionally**.
+- **Train knowledge store built** (`averitec_kb_train/`); 54% of train gold docs
+  have no text.
+
+## Next: Phase 6 — aggregation, calibration, grounded generation (Days 9-11)
+
+The bar for every verdict claim in Phase 6 is **0.2514** (the claim-only control),
+not 0.2147. In order:
+
+1. **Learned aggregator (FR-11).** Logistic regression over stance features that
+   see the whole distribution over k passages, not just the max; trained on
+   AVeriTeC **train** (its KB is now built; the batch runner derives the store
+   from each row's source_id). Ablate k. Then make D4: choose the stance model
+   against it, with the claim-only twin as the control that must lose.
+2. **Relevance floor (FR-12)**, chosen on dev by verdict macro-F1 with the
+   abstention rate beside it.
+3. **Calibration (FR-13)**: temperature scaling on dev, ECE before and after;
+   then **τ_abstain (FR-14)** on dev, recorded in `configs/pipeline/dev.yaml`.
+4. **Generation (FR-15/16/18)**: IndicBART (decided 2026-09-21), NLI faithfulness
+   gate that falls back to the template.
+5. **Rerun the seven demo forwards** (project log, "the demo corpus") through the
+   served config after each change; hard negatives for the aggregator are
+   fact-check titles that debunk a *different* claim about the same entity.
+
+Still open from Phase 4, not yet scheduled: present the fast path as a **related
+fact-check rather than a verdict** (`UI_UX.md`), and a within-query reranker
+objective. Cut first if time runs short: the optional `bge-reranker-v2-m3` arm.
 
 ### Needs a human — I cannot do these
 
