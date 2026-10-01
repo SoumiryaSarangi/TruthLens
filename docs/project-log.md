@@ -100,19 +100,19 @@ built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
 
 | | |
 | --- | --- |
-| **Current phase** | **Phase 5: FR-9 and FR-10 measured; the demo corpus is the one item left.** Hybrid retrieval lifts Success@10 0.158 -> 0.214, and that exposed the rule aggregator: the claim-only stance control (0.2514) now beats every evidence-reading arm on the verdict, so the stance choice moves to Phase 6. Phase 4 is COMPLETE (FR-8 measured, not demo-ready). |
+| **Current phase** | **Phase 5 COMPLETE (2026-10-01); Phase 6 next.** Hybrid retrieval lifts Success@10 0.158 -> 0.214; the rule aggregator is now the bottleneck (the claim-only stance control, 0.2514, beats every evidence-reading arm), so Phase 6's bar is 0.2514. The demo corpus (hi/pa Wikipedia leads + fact-checks) gives free text an evidence path; real forwards through it showed XLM-R stance ignores evidence there, so NLI is served. |
 | **Clock** | Target **2026-10-12**, no fixed external deadline (confirmed 2026-09-30). Phases 1-4 done; Phase 5 started 2026-09-30. Phases 6 and 7 remain. |
 | **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |
 | **Python** | 3.11.16 via uv, in `.venv`. System Python is 3.13 and is not used. |
-| **Served config** | `configs/pipeline/dev.yaml` -- preprocess `hybrid`, claims `heuristic`, matching `factcheck`, tau_match 0.90. It ran Phase 1 baselines at EVERY stage until Phase 4; `tests/test_orchestrator.py` now loads the real file. |
-| **Tests** | 524 passing, 2 skipped, 2 gpu-deselected |
+| **Served config** | `configs/pipeline/dev.yaml` -- preprocess `hybrid`, claims `heuristic`, matching `factcheck` (tau_match 0.90), retrieval `hybrid` (RRF@200), free text `corpus`, stance `nli` (provisional), relevance floor off. `tests/test_orchestrator.py` loads the real file. |
+| **Tests** | 548 passing, 2 skipped, 2 gpu-deselected |
 | **Datasets in hand** | AVeriTeC, X-CLAIM, MultiClaim, handtyped (FR-26), Dakshina, **CheckThat! 2025 T2** |
 | **Datasets waiting** | None. Every dataset is downloaded, split, locked and leakage-checked. |
 | **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
 | **Models trained** | Romanized LID, in-domain Word2Vec, **9 XLM-R+LoRA adapters** (5 span arms, check-worthiness, the Phase 4 cross-encoder, stance and its claim-only twin), a BiLSTM stance model, and two TF-IDF stance models. |
 | **Numbers so far** | Span token-F1 **0.7463** (baseline 0.6851) - claim matching MRR **0.5244** (BM25 0.3826, random 0.0002) - fast-path gate AUCC **0.5842** (gate-removed 0.4284) - LID ~0.86 on the hand-typed set - transliteration CER 0.4281 - AVeriTeC verdict macro-F1 0.2147. **FR-6**: zero-shot NLI 0.5938 vs 0.4595 majority, 7/15 real negatives, but it rejects 21% of real claims so the SERVED config runs the rules. **FR-8**: no safe operating point. |
-| **CI** | Green, checked with `gh run list` after every push (last: `dd011ba`). A sha here goes stale the moment the next commit lands -- check, do not trust. Runs take ~1m50s. `gh` is at `C:\Program Files\GitHub CLI\gh.exe`, NOT on this shell's PATH. |
+| **CI** | Checked with `gh run list` after every push (last green: `6dce339`). A sha here goes stale the moment the next commit lands -- check, do not trust. Runs take ~2 min. `gh` is at `C:\Program Files\GitHub CLI\gh.exe`, NOT on this shell's PATH. |
 
 ---
 
@@ -2083,15 +2083,72 @@ Three consequences:
 - **All 19 split files reproduce byte-for-byte**, including the three new ones,
   and CI's reproducibility job rebuilt `averitec_stance` from public data.
 
-### Still open in Phase 5
+### The demo corpus, and two inversions only real forwards could show
 
-**The demo corpus (decision D7)** -- Hindi and Punjabi Wikipedia lead sections
-plus the fact-check texts as one global hybrid index, so a free-text forward gets
-an evidence path at all. Dumps verified 2026-09-30: hi 240 MB, pa 96 MB. Until
-it exists, every forward that misses the fast path answers "no evidence corpus is
-available". The AVeriTeC knowledge store is deliberately NOT in it (confirmed
-during planning): ~500k pages scraped for specific US-centric claims fit Indian
-forwards poorly. Evaluation is unaffected; it always uses AVeriTeC's own pools.
+Decision D7, built: Hindi and Punjabi Wikipedia **lead sections** plus the 78,077
+fact-checks as one global index (`retrieval/corpus.py`), so a free-text forward
+-- every real forward -- gets an evidence path. Until now each one that missed
+the fast path answered "no evidence corpus is available".
+
+| part | documents | notes |
+| --- | --- | --- |
+| hi leads | 154,259 | of 175,284 articles; 21,025 had no usable lead |
+| pa leads | 57,410 | of 60,023 articles |
+| fact-checks | 78,077 | Phase 4 vectors reused, not re-encoded |
+
+Dumps pinned to the 2026-09-01 snapshot (hi 240 MB, pa 96 MB) with sha256 in
+`DOWNLOADS.json`; leads extracted in 2.2 minutes with a stdlib regex stripper (no
+wikitext library is installed), 211,669 encoded at ~140 docs/s, 0.59 GB of
+vectors. Search is global BM25 top 100 UNION global BGE-M3 top 100, fused by
+RRF; the dense side proposes its own candidates because there is no pool to
+rerank. Every result carries a cosine, so the relevance floor can read one. The
+AVeriTeC knowledge store is not in it (decided in planning, now recorded in
+SYSTEM_DESIGN §14). ~1 s per forward warm; the first takes ~40 s to load models.
+
+**The corpus has no gold, so it has no metric.** It was checked the way Phase 4's
+wiring was: real forwards through `configs/pipeline/dev.yaml`. Both of the
+following were invisible to every number in this entry.
+
+**1. Fact-checks were handing the stance model the rumour.** A fact-check is
+indexed as "claim + title", which is right for retrieval -- a forward repeats
+the claim. As evidence it is inverted: the claim field IS the misinformation,
+stated as fact. "नींबू पानी पीने से कैंसर ठीक हो जाता है" (lemon water cures
+cancer) came back **Supported, 0.815**, because one passage began "Cancer ... can
+be cured using hot lemon water" and NLI correctly found that it entailed the
+claim. A fact-check's passage is now its **title** -- the fact-checker's own
+conclusion -- and never its claim; the same forward now answers Refuted.
+
+**2. XLM-R stance does not read the evidence on this corpus.** Same passages,
+three stance models, seven forwards (four true, three false):
+
+| | xlmr | xlmr claim-only | nli |
+| --- | --- | --- | --- |
+| passages labelled as the claim-only twin labels them | 5 of 7 forwards identical | -- | -- |
+| verdicts | Refuted/Conflicting on **all 7** | | 3 right, 4 wrong |
+| "दिल्ली भारत की राजधानी है" (true) | **Refuted** | | Supported, 10/10 passages |
+
+XLM-R gets the three false claims "right" and every true claim wrong: that is
+its AVeriTeC prior (68% Refutes), not evidence. The +0.0484 it showed over its
+twin on derived dev does not transfer to Wikipedia leads and fact-check titles.
+NLI's four errors are the aggregator's: one Refutes among nine Supports makes
+Lahore-is-the-capital Conflicting, and two fact-check titles that say "No ..."
+about a different Gujarat story make a true Modi claim Refuted. **The served
+stance is now `nli`**, reversing the provisional `xlmr` above on its own stated
+premise -- serve the model that reads the evidence its explanation cites. Seven
+forwards are not a metric and do not settle D4; Phase 6 still does.
+
+**What this hands Phase 6.** Max-over-k lets one passage of ten decide the
+verdict, and that is now the visible failure on the demo as well as on dev. The
+learned aggregator should see the whole distribution, and fact-check titles that
+debunk a *different* claim about the same entity are the hard negatives for it.
+
+## Phase 5 — COMPLETE 2026-10-01
+
+FR-9 and FR-10 are built and measured; the demo corpus is built and wired.
+Served config: retrieval `hybrid` (RRF, depth 200), free text `corpus`, stance
+`nli` (provisional), relevance floor off. Also fixed: two stance refusal tests
+imported torch, which CI's core lock lacks -- CI was red for two pushes
+(`cb9b15e`, `838e7b9`) before `6dce339`. Suite: 548 passing.
 
 ## Phase 3 gaps — CLOSED 2026-09-24
 

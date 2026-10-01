@@ -6,7 +6,7 @@
 # `claims: passthrough` returns check_worthy = True for any non-empty string, so
 # `NotAClaim` -- the first card in the demo script and the answer to PRD scenario
 # S4 -- was unreachable in the API.
-name: p4_dev
+name: p5_dev
 split: dev
 k: 10
 
@@ -34,6 +34,11 @@ tau_match: 0.90
 # retrieval score wearing the field's name. Abstention gets a real threshold in
 # Phase 6, on dev, after temperature scaling (FR-13, FR-14).
 tau_abstain: 0.0
+
+# relevance_floor (FR-12): built, tested, and OFF. Choosing it now would tune a
+# threshold against the rule aggregator Phase 5 showed is broken; Phase 6 picks
+# it on dev, after the learned aggregator.
+relevance_floor: null
 
 stages:
   # `hybrid`, not `full`: it beats `full` on romanized input by a wide margin on
@@ -68,7 +73,29 @@ stages:
   # showed that; two example forwards did.
   claims: heuristic
   matching: factcheck
-  retrieval: bm25
+  # Phase 5. `hybrid`: BM25 top 200 -> BGE-M3 passage rerank -> RRF, the best
+  # Success@10 of the ablation (0.214 vs BM25's 0.158 on AVeriTeC dev).
+  retrieval: hybrid
+  # Free text -- every real forward -- has no AVeriTeC pool. `corpus` searches
+  # the demo corpus instead: hi/pa Wikipedia lead sections plus the 78,077
+  # fact-checks (SYSTEM_DESIGN.md §14, D7). It has no gold and no metric; it is
+  # verified by smoke test and the demo. Without this line free text answers NEI.
+  free_text_retrieval: corpus
+  # PROVISIONAL, and NOT the arm the Phase 5 log first named. The verdict table
+  # picks no stance model yet: under the rule aggregator the claim-only control
+  # wins (0.2514), because a model that ignores evidence can never trigger
+  # Conflicting. The choice is Phase 6's, against the learned aggregator.
+  #
+  # `xlmr` was served first, as "the only arm shown to read evidence" (+0.0484
+  # over its claim-only twin on derived dev). Seven real forwards through this
+  # file showed that does not hold on the demo corpus: xlmr labelled every
+  # passage of five of them exactly as its claim-only twin did, and answered
+  # Refuted or Conflicting to all seven -- "दिल्ली भारत की राजधानी है" (Delhi is
+  # India's capital) came back Refuted. `nli` reads the passages (10/10 Supports
+  # on the Delhi leads) and its remaining errors are the aggregator's: one
+  # Refutes among nine Supports makes Conflicting. Seven forwards are not a
+  # metric; they are enough not to serve a model that ignores the evidence its
+  # explanation cites. Project log, 2026-10-01, "the demo corpus".
   stance: nli
   aggregate: rule
   generation: template
@@ -79,6 +106,12 @@ stage_args:
     threshold: 0.5
   stance:
     batch_size: 16
+  retrieval:
+    depth: 200
+    fusion: rrf
+  free_text_retrieval:
+    depth: 100
+    fusion: rrf
   matching:
     # No reranker. Both arms were built and measured and both lose to the raw
     # cosine as a GATE: zero-shot NLI destroys the ranking (Success@1 0.4326 ->

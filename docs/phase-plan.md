@@ -11,13 +11,15 @@ seconds without reading the whole plan.
 
 ## Current phase
 
-**Phase 5 IN PROGRESS — FR-9 and FR-10 measured; the demo corpus is left.**
-Hybrid retrieval beats BM25 (Success@10 0.158 → 0.214), and that exposed the
-Phase 1 rule aggregator: it turns confident evidence in both directions into
-`Conflicting`, so on the verdict the **claim-only stance control (0.2514) beats
-every stance model that reads evidence**. The stance choice therefore moves to
-Phase 6, against a learned aggregator, and Phase 6's bar is 0.2514. Full results
-and diagnosis: the 2026-10-01 entry in `project-log.md`.
+**Phase 5 COMPLETE (2026-10-01) — Phase 6 is next.** Hybrid retrieval beats
+BM25 (Success@10 0.158 → 0.214), and that exposed the Phase 1 rule aggregator:
+it turns confident evidence in both directions into `Conflicting`, so on the
+verdict the **claim-only stance control (0.2514) beats every stance model that
+reads evidence**. The stance choice moves to Phase 6, against a learned
+aggregator, and Phase 6's bar is 0.2514. The demo corpus (hi/pa Wikipedia leads
++ 78,077 fact-checks) is built and served; real forwards through it showed XLM-R
+stance ignoring evidence there, so the served stance is `nli` for now. Full
+results: the 2026-10-01 entry in `project-log.md`.
 
 Target date **2026-10-12**, no fixed external deadline (confirmed 2026-09-30).
 
