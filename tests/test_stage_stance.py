@@ -138,3 +138,49 @@ def test_load_pairs_refuses_a_single_text_split(tmp_path, monkeypatch):
     write_jsonl(tmp_path / "averitec" / "dev.jsonl", [{"uid": "u", "text": "a claim"}])
     with pytest.raises(ValueError, match="not a pair dataset"):
         batch.load_pairs(Path("data/splits/averitec/dev.jsonl"))
+
+
+def test_an_untrained_xlmr_stance_refuses_and_says_how_to_train_it(tmp_path):
+    from stance.xlmr import StanceAdapterMissing, XLMRStance
+
+    stage = XLMRStance(adapter=tmp_path / "none")
+    assert stage.available is False
+    with pytest.raises(StanceAdapterMissing, match=r"train_stance\.py"):
+        stage.label("claim", ["evidence"])
+
+
+def test_the_xlmr_claim_only_twin_never_passes_the_evidence():
+    """The control's whole value: no input it builds contains a passage."""
+    from stance.xlmr import XLMRClaimOnlyStance, XLMRStance
+
+    first, second = XLMRClaimOnlyStance().inputs("The claim.", ["ev one", "ev two"])
+    assert first == ["The claim.", "The claim."] and second is None
+    first, second = XLMRStance().inputs("The claim.", ["ev one", "ev two"])
+    assert first == ["ev one", "ev two"]                 # premise: the evidence
+    assert second == ["The claim.", "The claim."]        # hypothesis: the claim
+
+
+def test_an_untrained_bilstm_refuses_and_says_how_to_train_it(tmp_path):
+    from stance.bilstm import BiLSTMStance, StanceModelMissing
+
+    with pytest.raises(StanceModelMissing, match="train_bilstm_stance"):
+        BiLSTMStance(model_dir=tmp_path / "none").label("claim", ["evidence"])
+
+
+def test_the_bilstm_vocab_maps_unseen_tokens_to_unknown_and_pads():
+    from stance.bilstm import PAD, UNK, Vocab
+
+    class Tok:
+        def __call__(self, texts, **_):
+            return {"input_ids": [[5, 6, 7], [5]]}
+
+    rows = Vocab({5: 2, 6: 3}).encode(Tok(), ["a", "b"])
+    assert rows == [[2, 3, UNK], [2, PAD, PAD]]
+
+
+@pytest.mark.parametrize("impl", ["bilstm", "xlmr", "xlmr_claimonly",
+                                  "tfidf", "tfidf_claimonly"])
+def test_the_stance_arms_are_registered_and_build_without_torch(impl):
+    from pipeline import registry
+
+    assert registry.build("stance", impl).impl == impl

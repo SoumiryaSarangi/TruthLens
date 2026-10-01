@@ -1,0 +1,158 @@
+{
+  "baseline": {
+    "experiment": "p1_random_retrieval",
+    "kind": "prior_run",
+    "metrics": {
+      "mrr": 0.008074603174603174,
+      "n": 500.0,
+      "recall@1": 0.0022857142857142855,
+      "recall@10": 0.012138095238095238,
+      "recall@5": 0.0068047619047619055,
+      "success@1": 0.004,
+      "success@10": 0.024,
+      "success@5": 0.014
+    },
+    "name": "26186160a153"
+  },
+  "config_hash": "1189eaf38ffc",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 500,
+    "n_missing": 0,
+    "n_predicted": 500
+  },
+  "created_utc": "2026-10-01T05:03:08+00:00",
+  "delta_vs_baseline": {
+    "mrr": 0.0691817374702869,
+    "recall@1": 0.01775,
+    "recall@10": 0.08251666666666668,
+    "recall@5": 0.05451666666666667,
+    "success@1": 0.032,
+    "success@10": 0.134,
+    "success@5": 0.084
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p5_retrieval_bm25_depth",
+  "git": {
+    "branch": "main",
+    "dirty": true,
+    "sha": "8aa446532643e3355d4131522727cb8ac7dcb09c"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": true,
+      "baseline": "26186160a153",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p5_retrieval_bm25_depth",
+      "gold": "data/gold/averitec_dev_retrieval.jsonl",
+      "metrics": {
+        "retrieval": {
+          "k": [
+            1,
+            5,
+            10,
+            50,
+            100,
+            200,
+            500
+          ]
+        }
+      },
+      "min_cell_n": 30,
+      "notes": "BM25Okapi per claim over its ~1,013-document pool, ranked 500 deep. Baseline is the Phase 1 random run over the same pools (26186160a153).\n",
+      "predictions": "results/preds/p5_retrieval_bm25_depth.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/averitec/dev.jsonl",
+      "task": "retrieval"
+    },
+    "config_path": "configs/p5_retrieval_bm25_depth.yaml",
+    "predictions_path": "results/preds/p5_retrieval_bm25_depth.jsonl",
+    "predictions_sha256": "6f1a2402c15f05d4ac41360b71a5d2d7083f2ba09fa07d65fcff55b642d30ade",
+    "split_path": "data/splits/averitec/dev.jsonl",
+    "split_sha256": "d994098e05100064fdde36e7f5c944b7c5e0c3503ec33dcf075293bf2b1cb14a",
+    "splits_lock_sha256": "f972ff7c3f0064fa22a8cd3f475bace63dd37c683640d993319f677545056952"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=latn": {
+        "mrr": 0.07725634064489008,
+        "n": 500.0,
+        "recall@1": 0.020035714285714285,
+        "recall@10": 0.09465476190476192,
+        "recall@100": 0.2983119047619048,
+        "recall@200": 0.38645,
+        "recall@5": 0.061321428571428575,
+        "recall@50": 0.21265714285714288,
+        "recall@500": 0.5122619047619048,
+        "success@1": 0.036,
+        "success@10": 0.158,
+        "success@100": 0.474,
+        "success@200": 0.584,
+        "success@5": 0.098,
+        "success@50": 0.35,
+        "success@500": 0.7
+      }
+    },
+    "overall": {
+      "mrr": 0.07725634064489008,
+      "n": 500.0,
+      "recall@1": 0.020035714285714285,
+      "recall@10": 0.09465476190476192,
+      "recall@100": 0.2983119047619048,
+      "recall@200": 0.38645,
+      "recall@5": 0.061321428571428575,
+      "recall@50": 0.21265714285714288,
+      "recall@500": 0.5122619047619048,
+      "success@1": 0.036,
+      "success@10": 0.158,
+      "success@100": 0.474,
+      "success@200": 0.584,
+      "success@5": 0.098,
+      "success@50": 0.35,
+      "success@500": 0.7
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 500.0,
+        "native": 0.07725634064489008
+      }
+    },
+    "metric": "mrr"
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "retrieval",
+  "warnings": [
+    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
+  ]
+}

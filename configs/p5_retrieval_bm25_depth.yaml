@@ -1,0 +1,27 @@
+# FR-9 first-stage ceiling: how deep BM25 has to go to find the gold.
+#
+# The hybrid retriever reranks BM25's top N, so it can never place a document
+# BM25 did not return in its top N. Success@N here is therefore the CEILING on
+# every hybrid arm at depth N -- the reference each of them is read against.
+#
+# Same per-claim pools, same documents (truncated to 4,000 chars), as Phase 1;
+# only the list depth differs. Stance is always_neutral for this run so nothing
+# but ranking is measured -- `cfg.k` also sets how many passages go to stance.
+#
+# A second ceiling sits above every arm: 443 of 1,096 dev gold documents have no
+# text, and for 114 of 500 claims every gold document is empty, so no text
+# retriever can exceed Success@10 = 0.772 on dev.
+experiment: p5_retrieval_bm25_depth
+task: retrieval
+split: data/splits/averitec/dev.jsonl
+gold: data/gold/averitec_dev_retrieval.jsonl
+predictions: results/preds/p5_retrieval_bm25_depth.jsonl
+baseline: 26186160a153
+metrics:
+  retrieval:
+    k: [1, 5, 10, 50, 100, 200, 500]
+breakdown: [lang, script]
+allow_partial: true
+notes: >
+  BM25Okapi per claim over its ~1,013-document pool, ranked 500 deep. Baseline is
+  the Phase 1 random run over the same pools (26186160a153).

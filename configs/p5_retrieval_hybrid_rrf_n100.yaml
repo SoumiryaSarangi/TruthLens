@@ -1,0 +1,27 @@
+# FR-9 hybrid retrieval: BM25 top 100, BGE-M3 passage rerank, rrf fusion.
+#
+# Fusion: reciprocal rank fusion of BM25's order and the dense order (rrf_k 60).
+# Each candidate is split into ~1,000-character passages and scored by its BEST
+# passage (MaxP); that passage is what stance reads.
+#
+# Read against TWO ceilings, never against 1.0:
+#   - BM25's own Success@100 = 0.474 (p5_retrieval_bm25_depth): the
+#     reranker cannot place a document BM25 did not return in its top 100.
+#   - 0.772: 114 of 500 dev claims have only empty-text gold documents.
+# The list is 10 deep, like Phase 1, so MRR is comparable with its 0.0656.
+experiment: p5_retrieval_hybrid_rrf_n100
+task: retrieval
+split: data/splits/averitec/dev.jsonl
+gold: data/gold/averitec_dev_retrieval.jsonl
+predictions: results/preds/p5_retrieval_hybrid_rrf_n100.jsonl
+baseline: cb8f6f0f3b5c
+metrics:
+  retrieval:
+    k: [1, 5, 10]
+breakdown: [lang, script]
+allow_partial: true
+notes: >
+  retrieval=hybrid, depth 100, fusion rrf, BGE-M3 at 256 tokens, CLS-pooled,
+  passages of 1,000 chars, documents truncated to 4,000 chars. Baseline is the
+  Phase 1 BM25 run over the same pools (cb8f6f0f3b5c). Stance always_neutral for
+  the retrieval run, so nothing but ranking is measured.
