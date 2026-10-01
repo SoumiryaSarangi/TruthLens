@@ -220,6 +220,13 @@ viral post can straddle two splits. The clustering imports its thresholds from
 `src/data/leakage.py` rather than restating them — they drifted once, which
 left a band the clusterer ignored and the detector rejected.
 
+**Hindi and Punjabi Wikipedia** — the demo evidence corpus only (D7)
+- Dumps: `{hi,pa}wiki-20260901-pages-articles.xml.bz2` from dumps.wikimedia.org,
+  pinned to that date; sha256 in `DOWNLOADS.json`.
+- Licence: CC BY-SA 4.0. Every passage shown carries its article URL.
+- **Never evaluated against and never split.** It has no gold; it exists so a
+  free-text forward has something to read. Nothing in `data/splits/` comes from it.
+
 ### Not yet acquired
 
 | Dataset | Role | Status |

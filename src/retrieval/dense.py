@@ -79,9 +79,13 @@ class DenseRetriever:
 
     def _get_encoder(self):
         if self._encoder is None:
-            from retrieval.encoders import build_encoder
+            from retrieval.encoders import build_encoder, shared_encoder
 
-            self._encoder = build_encoder(self.encoder_name)
+            # TF-IDF gets its fitted state written into it below, so it is never
+            # shared; the neural encoders are stateless and are.
+            self._encoder = (build_encoder(self.encoder_name)
+                             if self.encoder_name == "tfidf"
+                             else shared_encoder(self.encoder_name))
             # TF-IDF is fitted state, not weights: the vectoriser and the SVD
             # basis ARE the vector space. Loading the exact ones the index was
             # built with is what guarantees queries and documents live in the

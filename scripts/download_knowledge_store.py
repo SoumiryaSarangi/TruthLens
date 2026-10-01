@@ -102,9 +102,14 @@ def human(n: float) -> str:
     return f"{n / 1e9:.2f} GB"
 
 
-def fetch_resumable(path_in_repo: str, dest: Path, expected: int) -> None:
-    """Download with Range resumption. Safe to kill and rerun."""
-    url = f"{RESOLVE}/{path_in_repo}"
+def fetch_resumable(path_in_repo: str, dest: Path, expected: int,
+                    url: str | None = None) -> None:
+    """Download with Range resumption. Safe to kill and rerun.
+
+    `url` overrides the HuggingFace location, so the Wikipedia dumps reuse this
+    rather than a second copy of the retry logic.
+    """
+    url = url or f"{RESOLVE}/{path_in_repo}"
     dest.parent.mkdir(parents=True, exist_ok=True)
     part = dest.with_suffix(dest.suffix + ".part")
 

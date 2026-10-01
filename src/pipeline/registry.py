@@ -76,6 +76,8 @@ register("retrieval", "dense", "retrieval.dense", "DenseRetriever")
 register("retrieval", "hybrid", "retrieval.hybrid", "HybridRetriever")
 register("retrieval", "bm25_factcheck", "retrieval.factcheck_bm25",
          "FactCheckBM25Retriever")
+# The demo evidence corpus for free text (D7); served as `free_text_retrieval`.
+register("retrieval", "corpus", "retrieval.corpus", "CorpusRetriever")
 register("stance", "nli", "stance.nli", "NLIStance")
 register("stance", "always_neutral", "stance.baseline", "AlwaysNeutralStance")
 register("stance", "tfidf", "stance.tfidf", "TfidfStance")

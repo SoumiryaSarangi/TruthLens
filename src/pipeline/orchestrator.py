@@ -85,6 +85,14 @@ class Orchestrator:
         self.claims = make("claims")
         self.matcher = make("matching")
         self.retriever = make("retrieval", split=cfg.split, k=cfg.k)
+        # A forward has no AVeriTeC pool, so free text needs its own retriever
+        # over a global corpus (SYSTEM_DESIGN.md §14, D7). Optional and not in
+        # DEFAULT_STAGES: an evaluation config never sees free text, and a
+        # pipeline without it answers free text with an honest NEI.
+        self.free_text_retriever = None
+        if impl := s.get("free_text_retrieval"):
+            self.free_text_retriever = registry.build(
+                "retrieval", impl, **{**args.get("free_text_retrieval", {}), "k": cfg.k})
         self.stance = make("stance")
         self.aggregator = make("aggregate")
         self.generator = make("generation")
@@ -144,21 +152,22 @@ class Orchestrator:
             return self._from_factcheck(trace, claim, match)
 
         # -- evidence path ----------------------------------------------------
-        if claim_idx is None:
-            # No candidate pool: Phase 1 retrieval is per AVeriTeC claim, so a
-            # free-text request has nothing to search until the demo corpus
-            # exists (SYSTEM_DESIGN.md §7). Say so rather than invent a verdict.
+        # An AVeriTeC claim is ranked within its own pool; free text goes to the
+        # global demo corpus when the config names one.
+        retriever = self.retriever if claim_idx is not None else self.free_text_retriever
+        if retriever is None:
+            # Say so rather than invent a verdict.
             trace.record("retrieval", self.retriever.impl, 0.0,
                          "degraded: no candidate pool for free-text input")
             return self._nei_abstain(claim, "No evidence corpus is available for "
-                                            "free-text input yet.")
+                                            "free-text input.")
 
         try:
-            scored = self._timed(trace, "retrieval", self.retriever.impl,
-                                 lambda: self.retriever.topk(claim.text, claim_idx,
-                                                             self.cfg.k))
+            scored = self._timed(trace, "retrieval", retriever.impl,
+                                 lambda: retriever.topk(claim.text, claim_idx,
+                                                        self.cfg.k))
         except Exception as exc:
-            trace.record("retrieval", self.retriever.impl, 0.0,
+            trace.record("retrieval", retriever.impl, 0.0,
                          f"degraded: retrieval failed ({type(exc).__name__})")
             scored = []
 
@@ -166,7 +175,7 @@ class Orchestrator:
         # and says so on the ranking it returns. Recorded here so the trace shows
         # that the evidence came from a weaker path than the config names.
         if note := getattr(scored, "note", None):
-            trace.record("retrieval", self.retriever.impl, 0.0, note)
+            trace.record("retrieval", retriever.impl, 0.0, note)
 
         if not scored:
             return self._nei_abstain(claim, "No sources were retrieved.")   # FR-12
@@ -176,9 +185,9 @@ class Orchestrator:
         # thing SYSTEM_DESIGN 11 says must never happen. The lexical selector
         # needs no model, so it is the fallback.
         try:
-            passages = self._to_passages(claim.text, scored)
+            passages = self._to_passages(claim.text, scored, retriever=retriever)
         except Exception as exc:
-            trace.record("retrieval", self.retriever.impl, 0.0,
+            trace.record("retrieval", retriever.impl, 0.0,
                          f"degraded: passage selection failed ({type(exc).__name__}); "
                          "lexical paragraphs")
             passages = self._to_passages(claim.text, scored, lexical=True)
@@ -191,11 +200,11 @@ class Orchestrator:
             dense = [s for sd in scored
                      if (s := getattr(sd, "dense_score", None)) is not None]
             if not dense:
-                trace.record("retrieval", self.retriever.impl, 0.0,
+                trace.record("retrieval", retriever.impl, 0.0,
                              "relevance floor not applied: this retriever gives "
                              "no dense score")
             elif max(dense) < self.cfg.relevance_floor:
-                trace.record("retrieval", self.retriever.impl, 0.0,
+                trace.record("retrieval", retriever.impl, 0.0,
                              f"no source above relevance floor ({max(dense):.3f} < "
                              f"{self.cfg.relevance_floor:.3f})")
                 return self._nei_abstain(
@@ -234,20 +243,25 @@ class Orchestrator:
         )
 
     # -- result constructors --------------------------------------------------
-    def _to_passages(self, claim_text: str, scored, lexical: bool = False) -> list[Passage]:
+    def _to_passages(self, claim_text: str, scored, lexical: bool = False,
+                     retriever=None) -> list[Passage]:
         if lexical:
             from retrieval.passages import best_paragraph as lexical_best
 
             def select(text, doc):
                 return lexical_best(text, doc.paragraphs)
         else:
-            select = self.retriever.best_paragraph
+            select = (retriever or self.retriever).best_paragraph
         out: list[Passage] = []
         for i, sd in enumerate(scored, start=1):
             text, span = select(claim_text, sd.document)
+            # An AVeriTeC document's id IS its URL; a demo-corpus document
+            # carries its URL and title separately (`retrieval/corpus.py`).
             out.append(Passage(
                 passage_id=f"e{i}", doc_id=sd.doc_id, text=text,
-                url=sd.doc_id, title=None, retrieval_score=sd.score,
+                url=getattr(sd.document, "url", None) or sd.doc_id,
+                title=getattr(sd.document, "title", None) or None,
+                retrieval_score=sd.score,
                 highlight=span,
             ))
         return out

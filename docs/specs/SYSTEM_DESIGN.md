@@ -224,14 +224,18 @@ This is the part most likely to be underestimated, so it is spelled out.
 
 Stated limitation for the report: without live search (cut list item 2), claims about events after the corpus snapshot get NEI. **The fast path is what makes the demo work on genuinely new, realistic forwards**, which is another reason it is never cut.
 
-Index layout, all under `data/index/` (gitignored, rebuilt by a make target):
+Index layout as built (gitignored, under `data/interim/`). The original
+proposal here was FAISS files under `data/index/`; flat numpy matrices replaced
+them because every faster FAISS index is approximate, and a flat search over
+these sizes is one blocked matmul.
 
-| Index | Contents | Size estimate |
+| Index | Contents | Size |
 | --- | --- | --- |
-| `factcheck.faiss` | BGE-M3 dense, 1024-d, fp16, flat inner product | ~200k fact-checks ≈ 0.4 GB |
-| `factcheck.bm25.pkl` | BM25 over fact-check titles and claims | small |
-| `evidence.faiss` | BGE-M3 over ~512-token passages of the demo corpus | measure after chunking; budget ≤ 3 GB on disk |
-| `evidence.bm25.pkl` | BM25 over the same passages | — |
+| `index/bge_m3.npy` + `ids.json` | BGE-M3, 1024-d, fp16, the 78,077 fact-checks (fast path) | 0.16 GB |
+| `index/bm25_corpus.jsonl` | tokens for the fact-check BM25 | 23 MB |
+| `evidence/bge_m3.npy` | BGE-M3 over the demo corpus: fact-checks + 211,669 hi/pa leads, one vector per document | ~0.6 GB |
+| `evidence/bm25.npz` + `vocab.json` | precomputed BM25Okapi weights over the same documents | see `docs/environment.md` |
+| `evidence/docs.jsonl` + `offsets.npy` | the texts, read by byte offset rather than held in memory | — |
 
 ## 8. API
 
@@ -430,3 +434,22 @@ which is what lead sections carry, at about 5% of the cost.
 
 Dump sizes are to be verified against the live dumps before Phase 5 commits GPU
 time; the estimates above are from memory.
+
+### Demo corpus, revised and built in Phase 5 (2026-10-01)
+
+**Source 1 is dropped**, confirmed with the project owner during Phase 5
+planning. The AVeriTeC knowledge store is ~500k web pages retrieved for
+specific, mostly US-centric claims, and its topical fit to Indian WhatsApp
+forwards is poor. Evaluation is unaffected: it always ranks within AVeriTeC's
+own per-claim pools.
+
+Sources 2 and 3 are built (`retrieval/corpus.py`,
+`scripts/build_evidence_index.py`), with the dumps verified rather than
+remembered: hi 240 MB and pa 96 MB (2026-09-01 snapshot), giving 154,259 hi and
+57,410 pa leads, plus the 78,077 fact-checks. A free-text forward is searched by
+global BM25 top 100 UNION global BGE-M3 top 100, fused by RRF. The pipeline
+config names it as `stages.free_text_retrieval: corpus`; a config without that
+line answers free text with an honest NEI, as before.
+
+The corpus has no gold, so it has no metric. It is verified by tests on a tiny
+index and by real forwards through the served pipeline (project log, Phase 5).

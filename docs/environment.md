@@ -274,6 +274,31 @@ at the deepest depth makes every shallower depth and fusion rule a read. Built b
   the model -- committed, mostly untouched) and then stays flat. That is not a
   leak; measured claim by claim.
 
+### The demo evidence corpus (Phase 5)
+
+`data/interim/evidence/` -- the global index free-text forwards are searched
+against (`retrieval/corpus.py`, decision D7). Built by
+`python scripts/download_wikipedia.py` then `python scripts/build_evidence_index.py`.
+
+| Part | Count | Source |
+| --- | --- | --- |
+| Hindi Wikipedia lead sections | 154,259 | `hiwiki-20260901-pages-articles.xml.bz2`, 240 MB |
+| Punjabi Wikipedia lead sections | 57,410 | `pawiki-20260901-pages-articles.xml.bz2`, 96 MB |
+| MultiClaim fact-checks | 78,077 | the Phase 4 index; vectors reused, not re-encoded |
+
+- Lead extraction is CPU-only and fast: 2.2 minutes for both dumps, streamed
+  with the stdlib (no wikitext library is installed). 21,025 hi and 2,613 pa
+  articles had no usable lead (stubs, disambiguation pages that strip to
+  nothing). About 1-2% of kept leads carry harmless debris, mostly `|` used as a
+  danda.
+- Lead encoding: 211,669 leads, BGE-M3 at 256 tokens, **~135-160 docs/s
+  alone** -- faster than knowledge-store passages because leads are short
+  (median 259 hi / 336 pa characters). Resumable from `.partial/` blocks.
+- Dumps are pinned to a dated snapshot, not `latest`; their sha256 is in
+  `DOWNLOADS.json` under `wikipedia`.
+- The fact-check text in `docs.jsonl` is MultiClaim's and is not redistributed;
+  the directory is gitignored with the rest of `data/interim/`.
+
 ### Do not run two jobs at once on this machine
 
 **Phase 5 relearned this.** The train knowledge-store build streams 63 GB of zips

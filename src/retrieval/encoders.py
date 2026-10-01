@@ -252,3 +252,27 @@ def build_encoder(name: str, **kwargs) -> Encoder:
     if name not in ENCODERS:
         raise ValueError(f"unknown encoder {name!r}; registered: {sorted(ENCODERS)}")
     return ENCODERS[name](**kwargs)
+
+
+_SHARED: dict[tuple, Encoder] = {}
+_SHARED_LOCK = __import__("threading").Lock()
+
+
+def shared_encoder(name: str, **kwargs) -> Encoder:
+    """One encoder instance per (name, settings) for the whole process.
+
+    The served pipeline uses BGE-M3 twice -- the fast-path matcher and the
+    free-text evidence corpus -- and two copies are ~2.2 GB of a ~4.9 GiB GPU
+    that also holds the stance model. Same weights, same settings, same vectors,
+    so sharing changes nothing but the memory.
+    """
+    if name in ("muril", "labse", "bge_m3"):
+        # Spelled out so `shared_encoder("bge_m3")` and
+        # `shared_encoder("bge_m3", max_length=256)` are one instance, not two.
+        kwargs.setdefault("max_length", 256)
+    key = (name, tuple(sorted(kwargs.items())))
+    with _SHARED_LOCK:
+        if key not in _SHARED:
+            _SHARED[key] = build_encoder(name, **kwargs)
+        return _SHARED[key]
+
