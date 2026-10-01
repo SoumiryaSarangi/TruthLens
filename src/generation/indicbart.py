@@ -49,6 +49,16 @@ _QA_REF = re.compile(
 _ACCORDING = re.compile(r"\bAccording to the evidence,?\s*", re.IGNORECASE)
 
 
+# IndicBART's language tags and sentence markers are added tokens that
+# `skip_special_tokens` does not remove; left in, `<2en>` and `</s>` reach the
+# user and the NLI gate reads them as words.
+_MARKUP = re.compile(r"<2[a-z]{2}>|</?s>|<pad>|<unk>")
+
+
+def strip_markup(text: str) -> str:
+    return re.sub(r"\s+", " ", _MARKUP.sub(" ", text or "")).strip()
+
+
 def clean_justification(text: str) -> str:
     """A justification with its references to AVeriTeC's QA scaffolding removed."""
     out = _QA_REF.sub("the evidence", text or "")
@@ -113,8 +123,10 @@ class IndicBARTExplainer:
                 BASE_MODEL, do_lower_case=False, use_fast=False, keep_accents=True)
             base = MBartForConditionalGeneration.from_pretrained(BASE_MODEL)
             model = PeftModel.from_pretrained(base, self.adapter)
-            if self._device == "cuda":
-                model = model.half()
+            if self._device == "cuda" and torch.cuda.is_bf16_supported():
+                # bf16, never fp16: mBART-family models overflow fp16 (the first
+                # training run went to NaN loss under fp16 autocast).
+                model = model.to(torch.bfloat16)
             self._model = model.to(self._device).eval()
         return self._tokenizer, self._model
 
@@ -134,8 +146,9 @@ class IndicBARTExplainer:
                 pad_token_id=special("<pad>"), bos_token_id=special("<s>"),
                 eos_token_id=special("</s>"), decoder_start_token_id=special(LANG_TAG),
                 **DECODING[decoding or self.decoding])
-        return tok.decode(out[0], skip_special_tokens=True,
-                          clean_up_tokenization_spaces=False).strip()
+        text = tok.decode(out[0], skip_special_tokens=True,
+                          clean_up_tokenization_spaces=False)
+        return strip_markup(text)
 
     def explain(self, verdict: str, passages: list, *, abstained: bool = False,
                 claim: str | None = None) -> tuple[str, list[str]]:

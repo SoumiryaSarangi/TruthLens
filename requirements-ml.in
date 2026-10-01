@@ -16,6 +16,8 @@ datasets>=2.20
 accelerate>=0.33
 peft>=0.12                   # LoRA - required to fit training into 6 GB VRAM
 sentencepiece>=0.2           # IndicBART's tokenizer (Phase 6 generation)
+protobuf>=4.25                # transformers 5 reads spiece.model through it; without it
+                             # it falls back to a tiktoken reader and fails
 faiss-cpu>=1.8
 rank-bm25>=0.2.2
 fasttext-wheel>=0.9.2        # language ID

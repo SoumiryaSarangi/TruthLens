@@ -7,7 +7,13 @@ from pathlib import Path
 import pytest
 
 from common.io_jsonl import load_jsonl
-from generation.indicbart import LANG_TAG, clean_justification, encode_source, source_text
+from generation.indicbart import (
+    LANG_TAG,
+    clean_justification,
+    encode_source,
+    source_text,
+    strip_markup,
+)
 
 
 def test_justifications_lose_their_references_to_the_qa_scaffolding():
@@ -51,3 +57,8 @@ def test_explainer_training_data_never_contains_a_test_claim():
     test_uids = {r["uid"] for r in load_jsonl(Path("data/splits/averitec/test.jsonl"))}
     assert train_uids and not train_uids & test_uids
     assert len(train_uids) <= 2666
+
+
+def test_language_tags_and_sentence_markers_never_reach_the_user():
+    assert strip_markup("<2en> The claim is refuted.</s>") == "The claim is refuted."
+

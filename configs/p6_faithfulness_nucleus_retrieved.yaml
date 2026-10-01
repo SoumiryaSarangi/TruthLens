@@ -1,0 +1,22 @@
+# FR-15 / FR-16: IndicBART + LoRA explanations, nucleus decoding, on the DEPLOYED input: the claim's top hybrid passages and the verdict the served stance + learned aggregator gave.
+#
+# Graded RAW, before the orchestrator's gate -- grading served text would grade
+# the gate, which passes only entailed text by construction. Faithful = EVERY
+# sentence entailed (mDeBERTa XNLI, P >= 0.5) by at least one of the passages
+# the model was shown; the grader is fixed in src/eval/faithfulness.py.
+#
+# Baseline: extractive_explanation, the first sentence of the top passage --
+# near-faithful by construction, which is why chrF against the cleaned AVeriTeC
+# justification is reported beside it. The template is NOT graded: "[1] <title>
+# contradicts it" is not a factual claim, and NLI on it measures nothing.
+experiment: p6_faithfulness_nucleus_retrieved
+task: faithfulness
+split: data/splits/averitec/dev.jsonl
+predictions: results/preds/p6_explain_nucleus_retrieved.jsonl
+gold: data/gold/averitec_dev_justification.jsonl
+baseline: extractive_explanation
+breakdown: [lang, script]
+sanity_ceiling: 1.0
+notes: >
+  generator=IndicBART+LoRA (data/interim/models/explainer_indicbart, English),
+  decoding=nucleus, input=retrieved, k=5 passages. Raw output, pre-gate.

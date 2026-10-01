@@ -82,7 +82,10 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  trainable {trainable:,}")
 
     opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=args.lr)
-    scaler = torch.amp.GradScaler(enabled=device == "cuda")
+    # bf16, not fp16: the first run under fp16 autocast went to NaN loss in epoch
+    # 1 -- mBART-family models overflow fp16's range. bf16 keeps fp32's exponent,
+    # so it needs no loss scaler, and the RTX 4050 (Ada) supports it.
+    use_amp = device == "cuda" and torch.cuda.is_bf16_supported()
     rng = random.Random(SEED)
     started = time.time()
 
@@ -104,16 +107,17 @@ def main(argv: list[str] | None = None) -> int:
         for start in range(0, len(order), args.batch_size):
             src, mask, dec_in, labels = batchify([encoded[i] for i in
                                                   order[start:start + args.batch_size]])
-            with torch.autocast(device_type=device, dtype=torch.float16,
-                                enabled=device == "cuda"):
+            with torch.autocast(device_type=device, dtype=torch.bfloat16, enabled=use_amp):
                 loss = model(input_ids=src, attention_mask=mask,
                              decoder_input_ids=dec_in, labels=labels).loss
+            if not torch.isfinite(loss):
+                # Refused at the first bad step, not after four epochs of NaN.
+                print(f"non-finite loss at epoch {epoch + 1}, step {steps + 1}; stopping")
+                return 1
             opt.zero_grad()
-            scaler.scale(loss).backward()
-            scaler.unscale_(opt)
+            loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-            scaler.step(opt)
-            scaler.update()
+            opt.step()
             total += loss.item()
             steps += 1
         print(f"  epoch {epoch + 1}/{args.epochs}  loss {total / steps:.4f}  "
@@ -127,6 +131,7 @@ def main(argv: list[str] | None = None) -> int:
         "base_model": BASE_MODEL, "seed": SEED, "epochs": args.epochs,
         "batch_size": args.batch_size, "lr": args.lr, "lora_r": args.lora_r,
         "lora_alpha": args.lora_alpha, "n_train": len(encoded),
+        "precision": "bf16 autocast" if use_amp else "fp32",
         "evidence": "gold QA", "targets": "cleaned AVeriTeC justifications",
         "peak_vram_gib": round(peak, 3),
         "minutes": round((time.time() - started) / 60, 1)}, indent=2), encoding="utf-8")
