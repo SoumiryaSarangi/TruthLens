@@ -215,6 +215,25 @@ def test_without_a_path_the_orchestrator_looks_for_its_stances_artifact(tmp_path
     from pipeline.orchestrator import Orchestrator, PipelineConfig
 
     monkeypatch.setattr(agg_mod, "MODELS", tmp_path)
-    with pytest.raises(FileNotFoundError, match="aggregator_always_neutral"):
-        Orchestrator(PipelineConfig(stages={"stance": "always_neutral",
-                                            "aggregate": "learned"}))
+    orch = Orchestrator(PipelineConfig(stages={"stance": "always_neutral",
+                                               "aggregate": "learned"}))
+    assert orch.aggregator.path == tmp_path / "aggregator_always_neutral" / "model.joblib"
+
+
+def test_a_missing_aggregator_degrades_to_the_rule_and_says_so(tmp_path, monkeypatch):
+    """SYSTEM_DESIGN 11: degrade, record it, never crash -- CI and a fresh clone
+    have no trained artifact."""
+    pytest.importorskip("rank_bm25", reason="rank_bm25 lives in the ML lock")
+    import pipeline.aggregate as agg_mod
+    from pipeline.orchestrator import Orchestrator, PipelineConfig
+    from retrieval.kb import KnowledgeStore
+
+    write_jsonl(tmp_path / "averitec_kb_dev" / "7.jsonl", [
+        {"doc_id": "d", "is_gold": True, "paragraphs": ["Nursing posts were restored."]}])
+    monkeypatch.setattr(agg_mod, "MODELS", tmp_path / "none")
+    orch = Orchestrator(PipelineConfig(stages={"stance": "always_neutral",
+                                               "aggregate": "learned"}, k=1))
+    orch.retriever.store = KnowledgeStore("dev", cache_root=tmp_path)
+    trace = orch.verify("Were nursing posts restored?", claim_idx=7)
+    assert trace.results[0].verdict == "NEI"
+    assert any("no aggregator artifact; rule" in (e.note or "") for e in trace.events)

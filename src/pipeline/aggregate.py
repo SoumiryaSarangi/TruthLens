@@ -178,6 +178,10 @@ class LearnedAggregator:
         return self._artifact
 
     @property
+    def available(self) -> bool:
+        return self.path.is_file()
+
+    @property
     def stance(self) -> str:
         return self._load()["stance"]
 

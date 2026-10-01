@@ -104,7 +104,10 @@ class Orchestrator:
         # A learned aggregator reads ONE stance model's probabilities. Fed another
         # model's, it produces a confident distribution over noise and never
         # says so -- so the pairing is checked once, here, not trusted.
-        trained_on = getattr(self.aggregator, "stance", None)
+        # Checked only when the artifact exists: a missing one degrades to the
+        # rule at aggregation time (below) rather than refusing to start.
+        trained_on = (getattr(self.aggregator, "stance", None)
+                      if getattr(self.aggregator, "available", True) else None)
         if trained_on is not None and trained_on != s["stance"]:
             from pipeline.aggregate import AggregatorMismatch
 
@@ -248,8 +251,17 @@ class Orchestrator:
             probs.append(res.probs)
 
         dense = [getattr(sd, "dense_score", None) for sd in scored][:len(probs)]
-        agg = self._timed(trace, "aggregate", self.aggregator.impl,
-                          lambda: self.aggregator.aggregate(probs, dense=dense))
+        try:
+            agg = self._timed(trace, "aggregate", self.aggregator.impl,
+                              lambda: self.aggregator.aggregate(probs, dense=dense))
+        except FileNotFoundError:
+            # NFR-7: no trained aggregator on this machine (CI, a fresh clone).
+            # The rule is the always-available floor; the trace says it ran.
+            from pipeline.aggregate import RuleAggregator
+
+            trace.record("aggregate", self.aggregator.impl, 0.0,
+                         "degraded: no aggregator artifact; rule aggregator")
+            agg = RuleAggregator().aggregate(probs)
         abstained = agg.confidence < self.cfg.tau_abstain          # FR-14
 
         explanation, cited, source, faith = self._explain(
