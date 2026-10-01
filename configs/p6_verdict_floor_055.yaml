@@ -1,0 +1,19 @@
+# FR-12's relevance floor, chosen on DEV (decision D5): served arm (NLI stance,
+# learned aggregator), floor = 0.55 on the best passage's dense cosine. A claim
+# with no retrieved source at or above it is answered NEI, abstained.
+#
+# Baseline: the same arm with the floor OFF (c2ffd949681b), paired over the same
+# 500 claims. The floor is chosen by verdict macro-F1 BEFORE tau_abstain; the
+# abstention rate it causes is in the batch log and in the NEI count.
+experiment: p6_verdict_floor_055
+task: classification
+split: data/splits/averitec/dev.jsonl
+predictions: results/preds/p6_verdict_floor_055.jsonl
+label_set: verdict_5class
+baseline: c2ffd949681b
+paired_bootstrap: 2000
+breakdown: [lang, script]
+sanity_ceiling: 0.85
+notes: >
+  retrieval=hybrid (rrf, depth 200, k 10), stance=nli, aggregate=learned,
+  relevance_floor=0.55 on dense cosine, tau_abstain 0. Dev only; never test.

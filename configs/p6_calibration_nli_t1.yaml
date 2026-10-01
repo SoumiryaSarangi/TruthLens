@@ -1,0 +1,22 @@
+# FR-13, the BEFORE side: the served arm (NLI stance, learned aggregator, floor
+# off) with its temperature forced to 1.0 -- the raw logistic-regression
+# distribution. Temperature never changes the argmax, so the verdicts and
+# macro-F1 are identical to the AFTER run; only the confidences differ.
+#
+# Baseline: the AFTER run itself (c2ffd949681b, fitted T = 1.389), so the
+# delta on `ece` is exactly what temperature scaling bought. T was fitted on
+# these same 500 dev claims; the out-of-sample ECE is the test split's, once,
+# in Phase 7.
+experiment: p6_calibration_nli_t1
+task: classification
+split: data/splits/averitec/dev.jsonl
+predictions: results/preds/p6_calibration_nli_t1.jsonl
+label_set: verdict_5class
+baseline: c2ffd949681b
+breakdown: [lang, script]
+sanity_ceiling: 0.85
+calibration:
+  coverage_target: 0.6
+notes: >
+  retrieval=hybrid (rrf, depth 200, k 10), stance=nli, aggregate=learned with
+  temperature overridden to 1.0, relevance floor off, tau_abstain 0.
