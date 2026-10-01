@@ -1,0 +1,118 @@
+{
+  "baseline": {
+    "kind": "generated",
+    "metrics": {
+      "chrf": 0.18455716342446152,
+      "faithful_rate": 0.826,
+      "mean_min_entailment": 0.76348584004445,
+      "mean_sentence_entailment": 0.76348584004445,
+      "n_sentences_mean": 1.0
+    },
+    "name": "extractive_explanation",
+    "notes": []
+  },
+  "config_hash": "d0b2219a6411",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 500,
+    "n_missing": 0,
+    "n_predicted": 500
+  },
+  "created_utc": "2026-10-01T18:39:03+00:00",
+  "delta_vs_baseline": {
+    "chrf": 0.05804249285779042,
+    "faithful_rate": -0.5539999999999999,
+    "mean_min_entailment": -0.4738290488600614,
+    "mean_sentence_entailment": -0.4473197188774839
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p6_faithfulness_beam_gold",
+  "git": {
+    "branch": "main",
+    "dirty": false,
+    "sha": "ded2d39bf21fe268325b98c173586feba1ad8c2f"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "extractive_explanation",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p6_faithfulness_beam_gold",
+      "gold": "data/gold/averitec_dev_justification.jsonl",
+      "metrics": {},
+      "min_cell_n": 30,
+      "notes": "generator=IndicBART+LoRA (data/interim/models/explainer_indicbart, English), decoding=beam, input=gold, k=5 passages. Raw output, pre-gate.\n",
+      "predictions": "results/preds/p6_explain_beam_gold.jsonl",
+      "sanity_ceiling": 1.0,
+      "seed": 42,
+      "split": "data/splits/averitec/dev.jsonl",
+      "task": "faithfulness"
+    },
+    "config_path": "configs/p6_faithfulness_beam_gold.yaml",
+    "predictions_path": "results/preds/p6_explain_beam_gold.jsonl",
+    "predictions_sha256": "b5739130b8bf8c64e78b2c340edb44cfd8e3f19dcaaecdcdceca009b25e223a5",
+    "split_path": "data/splits/averitec/dev.jsonl",
+    "split_sha256": "d994098e05100064fdde36e7f5c944b7c5e0c3503ec33dcf075293bf2b1cb14a",
+    "splits_lock_sha256": "f972ff7c3f0064fa22a8cd3f475bace63dd37c683640d993319f677545056952"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=latn": {
+        "chrf": 0.24259965628225194,
+        "faithful_rate": 0.272,
+        "mean_min_entailment": 0.2896567911843886,
+        "mean_sentence_entailment": 0.3161661211669661,
+        "n": 500.0,
+        "n_sentences_mean": 1.128
+      }
+    },
+    "overall": {
+      "chrf": 0.24259965628225194,
+      "faithful_rate": 0.272,
+      "mean_min_entailment": 0.2896567911843886,
+      "mean_sentence_entailment": 0.3161661211669661,
+      "n_sentences_mean": 1.128
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 500.0,
+        "native": 0.272
+      }
+    },
+    "metric": "faithful_rate"
+  },
+  "paired_vs_baseline": null,
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "faithfulness",
+  "warnings": []
+}
