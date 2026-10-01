@@ -289,3 +289,21 @@ def test_a_cache_built_with_other_settings_refuses(tmp_path):
     other.dir = next(tmp_path.iterdir())           # point it at the first cache
     with pytest.raises(CacheMismatch, match="chunk_chars"):
         other.load(0)
+
+
+def test_a_document_shared_by_two_claims_is_cached_under_both(tmp_path):
+    """The same URL often appears in several claims' pools. The first version
+    served the second claim from its in-memory memo and never wrote it to that
+    claim's file, so every later run -- starting with an empty memo -- re-encoded
+    it, and "encode once, ablate for free" quietly stopped being true."""
+    shared = {"doc_id": "shared", "is_gold": False,
+              "paragraphs": ["The health minister restored nursing posts."]}
+    write_jsonl(tmp_path / "averitec_kb_dev" / "1.jsonl", [shared])
+    write_jsonl(tmp_path / "averitec_kb_dev" / "2.jsonl", [shared])
+    first = retriever(tmp_path, tmp_path, cache="readwrite", depth=1, k=1)
+    first.topk(CLAIM, 1)
+    first.topk(CLAIM, 2)                       # served from memo for claim 2
+
+    fresh = retriever(tmp_path, tmp_path, cache="readwrite", depth=1, k=1)
+    fresh.topk(CLAIM, 2)
+    assert fresh._encoder.texts == 1, "claim 2's file should already hold the passage"

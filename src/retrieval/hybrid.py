@@ -249,13 +249,17 @@ class HybridRetriever:
         todo: list[tuple[Document, str, list[tuple[int, int]]]] = []
         for doc in docs:
             sha = text_sha1(doc.text)
+            on_disk = cached.get(doc.doc_id)
+            if on_disk is not None and on_disk.text_sha1 == sha:
+                out[doc.doc_id] = on_disk
+                continue
             hit = self._chunk_memo.get((doc.doc_id, sha))
-            if hit is None:
-                on_disk = cached.get(doc.doc_id)
-                if on_disk is not None and on_disk.text_sha1 == sha:
-                    hit = on_disk
             if hit is not None:
-                out[doc.doc_id] = hit
+                # In memory but NOT in this claim's file: the same URL is in an
+                # earlier claim's pool. It still has to be written here, or every
+                # later run -- which starts with an empty memo -- re-encodes it,
+                # and "encode once, ablate for free" quietly stops being true.
+                out[doc.doc_id] = fresh[doc.doc_id] = hit
                 continue
             spans = chunk_spans(doc, self.chunk_chars)
             if not spans:
