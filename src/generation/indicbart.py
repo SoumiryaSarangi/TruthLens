@@ -92,7 +92,8 @@ class IndicBARTExplainer:
 
     def __init__(self, adapter: str | Path | None = None, decoding: str = "beam",
                  max_new_tokens: int = MAX_TARGET, k: int = 5,
-                 device: str | None = None, **_: object) -> None:
+                 device: str | None = None, attn_implementation: str | None = None,
+                 **_: object) -> None:
         if decoding not in DECODING:
             raise ValueError(f"decoding {decoding!r}; expected one of {sorted(DECODING)}")
         self.adapter = Path(adapter) if adapter else DEFAULT_ADAPTER
@@ -100,6 +101,9 @@ class IndicBARTExplainer:
         self.max_new_tokens = max_new_tokens
         self.k = k
         self._device = device
+        # "eager" only for the attention figure: SDPA, the default, is faster
+        # and does not return attention weights.
+        self.attn_implementation = attn_implementation
         self._model = None
         self._tokenizer = None
 
@@ -121,7 +125,9 @@ class IndicBARTExplainer:
             self._device = self._device or ("cuda" if torch.cuda.is_available() else "cpu")
             self._tokenizer = AlbertTokenizer.from_pretrained(
                 BASE_MODEL, do_lower_case=False, use_fast=False, keep_accents=True)
-            base = MBartForConditionalGeneration.from_pretrained(BASE_MODEL)
+            kwargs = ({"attn_implementation": self.attn_implementation}
+                      if self.attn_implementation else {})
+            base = MBartForConditionalGeneration.from_pretrained(BASE_MODEL, **kwargs)
             model = PeftModel.from_pretrained(base, self.adapter)
             if self._device == "cuda" and torch.cuda.is_bf16_supported():
                 # bf16, never fp16: mBART-family models overflow fp16 (the first

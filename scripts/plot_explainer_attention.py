@@ -41,15 +41,26 @@ OUT_PNG = FIGURES / "explainer_attention.png"
 OUT_JSON = FIGURES / "explainer_attention.json"
 
 
-def segments(tok, claim: str, verdict: str, passages: list[str]) -> list[tuple[str, int, int]]:
-    """(label, start, end) token ranges of the encoder input, in order."""
+def segments(tok, claim: str, verdict: str, passages: list[str],
+             n_source: int) -> list[tuple[str, int, int]]:
+    """(label, start, end) token ranges covering the WHOLE encoder input.
+
+    The trailing `</s> <2en>` gets its own column: decoders park much of their
+    attention on such tokens, and a figure that left them out would show a
+    fraction of the attention and let the reader assume it was all of it.
+    Passages cut off by truncation are clipped to what the encoder saw.
+    """
     parts = [("claim", claim.strip()), ("verdict", f"</s> {verdict} </s>")]
     parts += [(f"[{i}]", f"[{i}] {p.strip()}") for i, p in enumerate(passages, start=1)]
+    body_end = n_source - 2
     out, cursor = [], 0
     for label, text in parts:
         n = len(tok(text, add_special_tokens=False).input_ids)
-        out.append((label, cursor, cursor + n))
+        start, end = min(cursor, body_end), min(cursor + n, body_end)
+        if end > start:
+            out.append((label, start, end))
         cursor += n
+    out.append(("</s> <2en>", body_end, n_source))
     return out
 
 
@@ -60,7 +71,7 @@ def main() -> int:
     import matplotlib.pyplot as plt
     import torch
 
-    explainer = IndicBARTExplainer()
+    explainer = IndicBARTExplainer(attn_implementation="eager")
     tok, model = explainer._load()
     chosen = None
     for ex in examples("dev"):
@@ -86,12 +97,13 @@ def main() -> int:
     # (layers, batch, heads, tgt, src) -> mean over layers and heads -> (tgt, src)
     att = torch.stack(out.cross_attentions).float().mean(dim=(0, 2))[0].cpu().numpy()
 
-    segs = segments(tok, ex["claim"], ex["verdict"], passages)
+    segs = segments(tok, ex["claim"], ex["verdict"], passages, len(src_ids))
     mass = [[float(att[t, s:e].sum()) for _, s, e in segs] for t in range(att.shape[0])]
     out_tokens = tok.convert_ids_to_tokens(tgt[1:])
 
     fig, ax = plt.subplots(figsize=(1.1 * len(segs) + 3, 0.28 * len(out_tokens) + 2))
-    im = ax.imshow(mass, aspect="auto", cmap="Blues", vmin=0.0, vmax=1.0)
+    im = ax.imshow(mass, aspect="auto", cmap="Blues", vmin=0.0,
+                   vmax=max(max(row) for row in mass))
     ax.set_xticks(range(len(segs)), [label for label, _, _ in segs])
     ax.set_yticks(range(len(out_tokens)), [t.replace("▁", "") for t in out_tokens],
                   fontsize=7)
@@ -111,6 +123,7 @@ def main() -> int:
         "attention_mass_per_token": dict(zip(out_tokens, mass, strict=False)),
         "mean_mass_per_segment": {label: float(sum(row[i] for row in mass) / len(mass))
                                   for i, (label, _, _) in enumerate(segs)},
+        "row_sums_min_max": [min(sum(r) for r in mass), max(sum(r) for r in mass)],
         "selection_rule": "first dev claim with >=3 gold QA passages and <300 source tokens",
         "caveat": "attention shows where the decoder looked, not why it wrote what it did",
     })

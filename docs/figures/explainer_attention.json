@@ -1,0 +1,163 @@
+{
+  "attention_mass_per_token": {
+    ",": [
+      0.06567239761352539,
+      0.05150492861866951,
+      0.0886891782283783,
+      0.060469090938568115,
+      0.02854946255683899,
+      0.7050541043281555
+    ],
+    ".": [
+      0.044122811406850815,
+      0.06504910439252853,
+      0.09171860665082932,
+      0.03440815210342407,
+      0.030084189027547836,
+      0.7346673011779785
+    ],
+    "</s>": [
+      0.02693338692188263,
+      0.09840837121009827,
+      0.07563000172376633,
+      0.03342912718653679,
+      0.02844325080513954,
+      0.737243115901947
+    ],
+    "te": [
+      0.007123361807316542,
+      0.03880070522427559,
+      0.02221771329641342,
+      0.007201727479696274,
+      0.0053562987595796585,
+      0.9193848967552185
+    ],
+    "ted": [
+      0.005070419982075691,
+      0.04353426769375801,
+      0.019532091915607452,
+      0.007061908952891827,
+      0.005751940421760082,
+      0.9192009568214417
+    ],
+    "▁There": [
+      0.051729269325733185,
+      0.039946213364601135,
+      0.11978530883789062,
+      0.05058775469660759,
+      0.050152067095041275,
+      0.6875969171524048
+    ],
+    "▁Therefore": [
+      0.04633975028991699,
+      0.050368405878543854,
+      0.12314440310001373,
+      0.04627016931772232,
+      0.046581387519836426,
+      0.6873798370361328
+    ],
+    "▁claim": [
+      0.07881235331296921,
+      0.04078744351863861,
+      0.14431291818618774,
+      0.04350590705871582,
+      0.04689699411392212,
+      0.645635187625885
+    ],
+    "▁evidence": [
+      0.0513133779168129,
+      0.041270993649959564,
+      0.12440922856330872,
+      0.13290753960609436,
+      0.04019790515303612,
+      0.6099514365196228
+    ],
+    "▁is": [
+      0.030379407107830048,
+      0.07050056755542755,
+      0.0641399472951889,
+      0.03338835388422012,
+      0.02093345671892166,
+      0.7809470891952515
+    ],
+    "▁no": [
+      0.042131997644901276,
+      0.04576123505830765,
+      0.12543398141860962,
+      0.09192578494548798,
+      0.05441790446639061,
+      0.6403732299804688
+    ],
+    "▁or": [
+      0.11194442212581635,
+      0.04811016470193863,
+      0.13236653804779053,
+      0.030583953484892845,
+      0.036999549716711044,
+      0.6399292349815369
+    ],
+    "▁refu": [
+      0.016533739864826202,
+      0.06333450227975845,
+      0.046309612691402435,
+      0.0334785170853138,
+      0.023368068039417267,
+      0.8171263337135315
+    ],
+    "▁support": [
+      0.038913436233997345,
+      0.0515085905790329,
+      0.0540468767285347,
+      0.04799427092075348,
+      0.02695038728415966,
+      0.7806499004364014
+    ],
+    "▁the": [
+      0.0510578416287899,
+      0.043672919273376465,
+      0.09314484894275665,
+      0.06318864226341248,
+      0.030099263414740562,
+      0.7188838720321655
+    ],
+    "▁to": [
+      0.041233696043491364,
+      0.04592219740152359,
+      0.08469123393297195,
+      0.061176396906375885,
+      0.03590371087193489,
+      0.7310743927955627
+    ]
+  },
+  "caveat": "attention shows where the decoder looked, not why it wrote what it did",
+  "claim": "UNESCO declared Nadar community as the most ancient race in the world.",
+  "explanation": "There is no evidence to support or refute the claim. Therefore, the claim is refuted",
+  "mean_mass_per_segment": {
+    "</s> <2en>": 0.7336749255657196,
+    "[1]": 0.08904502652585507,
+    "[2]": 0.04640016588382423,
+    "[3]": 0.031026160484179853,
+    "claim": 0.04869541728403419,
+    "verdict": 0.051195510849356654
+  },
+  "passages": [
+    "What is Nadar? Nadar (also referred as Nadan, Shanar) is a caste of Tamil Nadu & Kerala, South India. The Nadars are an entrepreneurial south Indian caste] and constitute 12% of Tamil Nadu's population. The Nadar community was not a singular caste, but an assortment of sub-castes and classes of different origins, which in course of time, came under the single banner Nadar. Nadars are predominant in the southern districts of Tuticorin, Kaniyakumari, Tirunelveli and Virudhunagar.",
+    "What is the world's most ancient race according to UNESCO? No answer could be found.",
+    "What is the world's most ancient race? The San people of southern Africa, who have lived as hunter-gatherers for thousands of years, are likely to be the oldest population of humans on Earth, according to the biggest and most detailed analysis of African DNA."
+  ],
+  "row_sums_min_max": [
+    0.9997975304722786,
+    1.0002888217568398
+  ],
+  "segments": [
+    "claim",
+    "verdict",
+    "[1]",
+    "[2]",
+    "[3]",
+    "</s> <2en>"
+  ],
+  "selection_rule": "first dev claim with >=3 gold QA passages and <300 source tokens",
+  "uid": "averitec:en:dev:00003",
+  "verdict": "Refuted"
+}
