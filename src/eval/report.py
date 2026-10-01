@@ -58,8 +58,9 @@ HEADLINE = {
     "transliteration": "cer",
     "span": "token_f1",
     "normalization": "chrf",
+    "faithfulness": "faithful_rate",
 }
-LOWER_IS_BETTER = {"cer", "wer"}
+LOWER_IS_BETTER = {"cer", "wer", "ece"}
 
 
 def results_table(docs: list[dict[str, Any]]) -> str:

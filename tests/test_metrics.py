@@ -368,3 +368,40 @@ def test_normalization_metrics_reports_chrf_and_exact_match():
     assert m["exact_match"] == pytest.approx(0.5)
     assert m["chrf"] == pytest.approx(0.5)
     assert m["n"] == 2.0
+
+
+# -----------------------------------------------------------------------------
+# Calibration and abstention (Phase 6)
+# -----------------------------------------------------------------------------
+
+
+def test_reliability_bins_by_hand():
+    from eval.metrics import reliability_bins
+    bins = reliability_bins([0.15, 0.18, 0.95], [True, False, True], n_bins=10)
+    assert [(b["lo"], b["n"], b["accuracy"]) for b in bins] == [(0.1, 2.0, 0.5),
+                                                               (0.9, 1.0, 1.0)]
+
+
+def test_operating_point_is_the_lowest_tau_within_the_coverage_target():
+    from eval.metrics import operating_point
+    y = ["A", "A", "B", "B", "A"]
+    p = ["A", "B", "B", "A", "A"]
+    conf = [0.9, 0.8, 0.8, 0.4, 0.3]
+    op = operating_point(y, p, conf, ["A", "B"], coverage_target=0.6)
+    # tau=0.8 keeps 3/5 = 0.6 (the tie at 0.8 is kept together); tau=0.4 keeps 0.8.
+    assert op["tau"] == 0.8 and op["coverage"] == 0.6
+    assert op["selective_accuracy"] == pytest.approx(2 / 3)
+
+
+def test_operating_point_when_ties_make_the_target_unreachable():
+    from eval.metrics import operating_point
+    op = operating_point(["A"] * 4, ["A"] * 4, [0.5] * 4, ["A"], coverage_target=0.6)
+    assert op["coverage"] == 0.0 and op["n_kept"] == 0.0 and op["tau"] > 0.5
+
+
+def test_calibration_metrics_curve_carries_macro_f1():
+    from eval.metrics import calibration_metrics
+    out = calibration_metrics(["A", "B"], ["A", "A"], [0.9, 0.6], ["A", "B"], n_points=2)
+    assert out["coverage_curve"][0]["macro_f1"] == pytest.approx(0.5)   # A right, B absent
+    assert out["ece"] == pytest.approx((abs(1 - 0.9) + abs(0 - 0.6)) / 2)
+

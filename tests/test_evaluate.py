@@ -275,10 +275,116 @@ def test_refuses_a_missing_config(tmp_path):
         evaluate(tmp_path / "nope.yaml", tmp_path)
 
 
-def test_faithfulness_task_is_registered_but_not_yet_implemented(tmp_path):
-    cfg = write_config(tmp_path, task="faithfulness")
-    with pytest.raises(EvalRefused, match="Phase 6"):
+# -----------------------------------------------------------------------------
+# Calibration (FR-13, FR-14) and faithfulness (FR-16): Phase 6
+# -----------------------------------------------------------------------------
+
+
+def _with_confidence(tmp_path: Path, conf=lambda i, row: 0.9, probs=None) -> Path:
+    """The fixture predictions with a `confidence` on each row."""
+    src = Path("tests/fixtures/toy_clean/predictions_demo.jsonl")
+    rows = list(load_jsonl(src))
+    out = tmp_path / "preds.jsonl"
+    with out.open("w", encoding="utf-8") as fh:
+        for i, row in enumerate(rows):
+            c = conf(i, row)
+            if c is not None:
+                row["confidence"] = c
+            if probs is not None:
+                row["probs"] = probs
+            fh.write(json.dumps(row) + "\n")
+    return out
+
+
+def test_calibration_reports_ece_curve_and_operating_point(tmp_path):
+    preds = _with_confidence(tmp_path, conf=lambda i, row: row["probs"][row["pred"]])
+    cfg = write_config(tmp_path, predictions=str(preds),
+                       calibration={"coverage_target": 0.6})
+    overall = evaluate(cfg, tmp_path)["metrics"]["overall"]
+    assert 0.0 <= overall["ece"] <= 1.0
+    cal = overall["calibration"]
+    assert cal["coverage_curve"][-1]["coverage"] == 1.0
+    assert "macro_f1" in cal["coverage_curve"][0]
+    assert cal["operating_point"]["coverage"] <= 0.6
+
+
+def test_calibration_config_does_not_move_existing_hashes(tmp_path):
+    """`calibration` is opt-in and NOT in DEFAULTS: every result already on disk
+    keeps its config_hash."""
+    a = evaluate(BASE_CONFIG, tmp_path)["config_hash"]
+    b = evaluate(BASE_CONFIG, tmp_path)["config_hash"]
+    assert a == b
+    from eval.evaluate import DEFAULTS
+    assert "calibration" not in DEFAULTS
+
+
+def test_calibration_refuses_predictions_without_confidence(tmp_path):
+    cfg = write_config(tmp_path, calibration={})
+    with pytest.raises(EvalRefused, match="no `confidence`"):
         evaluate(cfg, tmp_path)
+
+
+def test_calibration_refuses_a_confidence_outside_unit_interval(tmp_path):
+    preds = _with_confidence(tmp_path, conf=lambda i, row: 1.7 if i == 0 else 0.5)
+    cfg = write_config(tmp_path, predictions=str(preds), calibration={})
+    with pytest.raises(EvalRefused, match=r"in \[0, 1\]"):
+        evaluate(cfg, tmp_path)
+
+
+def test_calibration_refuses_an_unnormalised_distribution(tmp_path):
+    preds = _with_confidence(tmp_path, probs={"Supported": 0.9, "Refuted": 0.9})
+    cfg = write_config(tmp_path, predictions=str(preds), calibration={})
+    with pytest.raises(EvalRefused, match="sums to"):
+        evaluate(cfg, tmp_path)
+
+
+def test_calibration_is_classification_only(tmp_path):
+    cfg = write_config(tmp_path, task="faithfulness", calibration={})
+    with pytest.raises(EvalRefused, match="classification runs only"):
+        evaluate(cfg, tmp_path)
+
+
+def _faithfulness_run(tmp_path: Path, explanations: dict[int, str]) -> Path:
+    split = list(load_jsonl(Path("tests/fixtures/toy_clean/dev.jsonl")))
+    preds = tmp_path / "expl.jsonl"
+    with preds.open("w", encoding="utf-8") as fh:
+        for i, row in enumerate(split):
+            fh.write(json.dumps({
+                "uid": row["uid"],
+                "explanation": explanations.get(i, "The minister restored the posts. [1]"),
+                "evidence": ["The minister restored the posts in 2020."],
+            }) + "\n")
+    return write_config(tmp_path, task="faithfulness", predictions=str(preds),
+                        baseline="extractive_explanation", label_set=None)
+
+
+@pytest.fixture
+def fake_nli():
+    """Entailment iff every word of the hypothesis appears in the premise."""
+    from eval import faithfulness as F
+
+    def score(pairs):
+        return [1.0 if set(h.lower().strip(".").split()) <= set(p.lower().strip(".").split())
+                else 0.0 for p, h in pairs]
+
+    F.set_scorer(score)
+    yield
+    F.set_scorer(None)
+
+
+def test_faithfulness_scores_every_sentence_and_one_bad_one_fails_the_row(tmp_path, fake_nli):
+    cfg = _faithfulness_run(tmp_path, {0: "The minister restored the posts. Cats can fly."})
+    doc = evaluate(cfg, tmp_path)
+    overall = doc["metrics"]["overall"]
+    assert overall["faithful_rate"] == pytest.approx(8 / 9)
+    assert doc["baseline"]["name"] == "extractive_explanation"
+    assert doc["baseline"]["metrics"]["faithful_rate"] == 1.0   # copying is faithful
+
+
+def test_faithfulness_ignores_citation_markers():
+    from eval.faithfulness import sentences
+    assert sentences("Posts were restored [1, 2]. It was 2020 [3].") == [
+        "Posts were restored.", "It was 2020."]
 
 
 def test_cli_returns_two_on_refusal(tmp_path):

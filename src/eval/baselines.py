@@ -228,7 +228,37 @@ def identity_transliteration(
             for r in split_rows]
 
 
+def extractive_explanation(
+    split_rows: Sequence[dict[str, Any]], *, seed: int = SEED,
+    predictions: dict[str, dict[str, Any]] | None = None, **_: Any,
+) -> list[dict[str, Any]]:
+    """The first sentence of the top evidence passage, as the explanation.
+
+    The floor for generated explanations (FR-15), and a deliberately awkward
+    one: copying the evidence is close to faithful BY CONSTRUCTION, so a
+    generator that merely matches its faithfulness has added nothing. That is
+    why `task: faithfulness` reports chrF against reference justifications
+    beside it. Reads the run's own evidence, like `always_match`, because the
+    question is what the generator did with the evidence it was given.
+    """
+    if predictions is None:
+        raise ValueError("extractive_explanation needs the run's own predictions; "
+                         "the harness injects them for task: faithfulness.")
+    from eval.faithfulness import sentences
+
+    out: list[dict[str, Any]] = []
+    for row in split_rows:
+        pred = predictions.get(row["uid"])
+        if pred is None:
+            continue
+        evidence = [p for p in pred.get("evidence", []) if p and p.strip()]
+        first = sentences(evidence[0])[0] if evidence and sentences(evidence[0]) else ""
+        out.append({"uid": row["uid"], "explanation": first, "evidence": evidence})
+    return out
+
+
 REGISTRY = {
+    "extractive_explanation": extractive_explanation,
     "majority_class": majority_class,
     "stratified_random": stratified_random,
     "random_rank": random_rank,

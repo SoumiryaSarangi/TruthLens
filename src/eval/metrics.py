@@ -169,6 +169,91 @@ def expected_calibration_error(
     return ece
 
 
+def reliability_bins(
+    confidences: Sequence[float], correct: Sequence[bool], n_bins: int = 10,
+) -> list[dict[str, float]]:
+    """The reliability diagram ECE summarises: one row per non-empty bin."""
+    rows: list[dict[str, float]] = []
+    for b in range(n_bins):
+        lo, hi = b / n_bins, (b + 1) / n_bins
+        idx = [i for i, c in enumerate(confidences)
+               if min(int(c * n_bins), n_bins - 1) == b]
+        if not idx:
+            continue
+        rows.append({
+            "lo": lo, "hi": hi, "n": float(len(idx)),
+            "mean_confidence": sum(confidences[i] for i in idx) / len(idx),
+            "accuracy": sum(1 for i in idx if correct[i]) / len(idx),
+        })
+    return rows
+
+
+def operating_point(
+    y_true: Sequence[str], y_pred: Sequence[str], confidences: Sequence[float],
+    labels: Sequence[str], coverage_target: float,
+) -> dict[str, float]:
+    """The LOWEST threshold tau whose coverage is still <= `coverage_target`.
+
+    Threshold semantics, not rank semantics: a claim is answered iff its
+    confidence >= tau, which is exactly what the served pipeline does with
+    `tau_abstain` (abstain when confidence < tau). Ties are therefore kept or
+    dropped together, so the coverage achieved can sit below the target.
+    The criterion is fixed in the Phase 6 plan before any number was seen.
+    """
+    n = len(confidences)
+    if not n:
+        return {"tau": 1.0, "coverage": 0.0, "n_kept": 0.0}
+    best = None
+    for tau in sorted(set(confidences)):
+        kept = [i for i in range(n) if confidences[i] >= tau]
+        if len(kept) / n <= coverage_target:
+            best = (tau, kept)
+            break
+    if best is None:                       # every threshold answers too much
+        tau = math.nextafter(max(confidences), math.inf)
+        best = (tau, [])
+    tau, kept = best
+    yt = [y_true[i] for i in kept]
+    yp = [y_pred[i] for i in kept]
+    return {
+        "tau": float(tau),
+        "coverage_target": float(coverage_target),
+        "coverage": len(kept) / n,
+        "n_kept": float(len(kept)),
+        "selective_accuracy": accuracy(yt, yp),
+        "selective_macro_f1": macro_f1(yt, yp, labels) if kept else 0.0,
+    }
+
+
+def calibration_metrics(
+    y_true: Sequence[str], y_pred: Sequence[str], confidences: Sequence[float],
+    labels: Sequence[str], n_bins: int = 10, coverage_target: float = 0.6,
+    n_points: int = 21,
+) -> dict[str, Any]:
+    """ECE, its reliability bins, the coverage curve and the abstention point.
+
+    FR-13 and FR-14. `confidence` is the probability the system attaches to the
+    verdict it gave -- the number `tau_abstain` is compared against -- so that
+    is what is calibrated, not the maximum of some distribution it may not have
+    acted on.
+    """
+    correct = [g == p for g, p in zip(y_true, y_pred, strict=True)]
+    curve = coverage_accuracy_curve(confidences, correct, n_points=n_points)
+    order = sorted(range(len(confidences)), key=lambda i: confidences[i], reverse=True)
+    for point in curve:
+        kept = order[:int(point["n_kept"])]
+        point["macro_f1"] = macro_f1([y_true[i] for i in kept],
+                                     [y_pred[i] for i in kept], labels)
+    return {
+        "ece": expected_calibration_error(confidences, correct, n_bins=n_bins),
+        "mean_confidence": sum(confidences) / len(confidences) if confidences else 0.0,
+        "reliability": reliability_bins(confidences, correct, n_bins=n_bins),
+        "coverage_curve": curve,
+        "operating_point": operating_point(y_true, y_pred, confidences, labels,
+                                           coverage_target),
+    }
+
+
 def coverage_accuracy_curve(
     confidences: Sequence[float], correct: Sequence[bool], n_points: int = 21,
 ) -> list[dict[str, float]]:

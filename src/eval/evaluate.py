@@ -258,7 +258,7 @@ def collect_sanity_warnings(metrics: dict[str, Any], ceiling: float) -> list[str
             continue
         # CER and WER are error rates: high is bad, not suspicious. Warning on
         # them would train the reader to ignore this warning.
-        if name in {"cer", "wer"}:
+        if name in {"cer", "wer", "ece"}:
             continue
         if value > ceiling:
             warnings.append(
@@ -288,7 +288,10 @@ def load_predictions(path: str | Path, task: str) -> dict[str, dict[str, Any]]:
                 "transliteration": ("uid", "transliterated"),
                 "span": ("uid", "bio"),
                 "normalization": ("uid", "normalized"),
-                "faithfulness": ("uid", "explanation")}[task]
+                # `evidence` is what the explanation must be faithful TO. It
+                # travels with the prediction because it is the run's own
+                # retrieval; the harness cannot reconstruct it.
+                "faithfulness": ("uid", "explanation", "evidence")}[task]
 
     by_uid: dict[str, dict[str, Any]] = {}
     for i, row in enumerate(load_jsonl(p), start=1):
@@ -366,14 +369,64 @@ def score_classification(
     except ValueError as exc:
         raise EvalRefused(str(exc)) from None
 
+    # Presence, not truthiness: `calibration: {}` means "on, with defaults".
+    calib = cfg.get("calibration")
+    confidences = _confidences(scored, pred_by_uid) if calib is not None else None
+
     def compute(indices) -> dict[str, Any]:
-        return M.classification_metrics(
+        out = M.classification_metrics(
             [y_true[i] for i in indices], [y_pred[i] for i in indices], labels,
         )
+        if confidences is not None:
+            cal = M.calibration_metrics(
+                [y_true[i] for i in indices], [y_pred[i] for i in indices],
+                [confidences[i] for i in indices], labels,
+                n_bins=calib.get("n_bins", 10),
+                coverage_target=calib.get("coverage_target", 0.6),
+            )
+            # ECE is lifted to the top level so it is a tracked, printed metric;
+            # the curve and bins stay nested -- they are the result, not a column.
+            out["ece"] = cal.pop("ece")
+            out["calibration"] = cal
+        return out
 
     return compute_with_breakdown(
         scored, cfg["breakdown"], compute, min_cell_n=cfg["min_cell_n"],
     )
+
+
+def _confidences(scored: list[dict[str, Any]],
+                 pred_by_uid: dict[str, dict[str, Any]]) -> list[float] | None:
+    """Each prediction's `confidence`, or None when no row carries one.
+
+    None is the generated baseline's case -- majority_class has no confidence to
+    calibrate -- and `evaluate()` refuses a MODEL run without them before it
+    gets here. A run with SOME confidences is refused outright: calibrating the
+    rows that happen to have one is a different population from the run.
+    """
+    present = [pred_by_uid[r["uid"]].get("confidence") for r in scored]
+    if all(c is None for c in present):
+        return None
+    out: list[float] = []
+    for r, c in zip(scored, present, strict=True):
+        if isinstance(c, bool) or not isinstance(c, (int, float)) or not 0.0 <= c <= 1.0:
+            raise EvalRefused(
+                f"{r['uid']}: calibration needs a `confidence` in [0, 1] on every "
+                f"prediction; got {c!r}."
+            )
+        probs = pred_by_uid[r["uid"]].get("probs")
+        # A full distribution that does not sum to 1 means the confidence beside
+        # it came from somewhere else than the model says. A single-entry dict is
+        # the legacy {verdict: confidence} shape and carries no distribution.
+        if isinstance(probs, dict) and len(probs) > 1:
+            total = sum(float(v) for v in probs.values())
+            if abs(total - 1.0) > 1e-3:
+                raise EvalRefused(
+                    f"{r['uid']}: `probs` sums to {total:.4f}, not 1. Calibration "
+                    "of an unnormalised distribution measures nothing."
+                )
+        out.append(float(c))
+    return out
 
 
 def score_retrieval(
@@ -554,6 +607,42 @@ def score_normalization(
     )
 
 
+def score_faithfulness(
+    split_rows: list[dict[str, Any]],
+    pred_by_uid: dict[str, dict[str, Any]],
+    gold: dict[str, list[str]] | None,
+    cfg: dict[str, Any],
+) -> dict[str, Any]:
+    """NLI faithfulness of each explanation to its evidence (FR-16).
+
+    The NLI pass runs ONCE per row and the breakdown cells re-aggregate it: the
+    model is the expensive part and a cell is only a different subset. With a
+    `gold:` file of reference explanations, chrF against them is reported too --
+    an explanation can be perfectly faithful and say nothing (the extractive
+    baseline copies the evidence), so faithfulness alone is not quality.
+    """
+    from eval import faithfulness as F
+
+    scored = [r for r in split_rows if r["uid"] in pred_by_uid]
+    support = [F.support(pred_by_uid[r["uid"]]["explanation"],
+                         list(pred_by_uid[r["uid"]]["evidence"])) for r in scored]
+    refs = ([gold.get(r["uid"], [None])[0] for r in scored] if gold else None)
+
+    def compute(indices) -> dict[str, Any]:
+        out: dict[str, Any] = F.faithfulness_metrics([support[i] for i in indices])
+        if refs is not None:
+            pairs = [(pred_by_uid[scored[i]["uid"]]["explanation"], refs[i])
+                     for i in indices if refs[i] is not None]
+            if pairs:
+                out["chrf"] = M.normalization_metrics(
+                    [h for h, _ in pairs], [r for _, r in pairs])["chrf"]
+        return out
+
+    return compute_with_breakdown(
+        scored, cfg["breakdown"], compute, min_cell_n=cfg["min_cell_n"],
+    )
+
+
 def score(
     task: str,
     split_rows: list[dict[str, Any]],
@@ -578,6 +667,8 @@ def score(
     if task == "normalization":
         assert gold is not None
         return score_normalization(split_rows, pred_by_uid, gold, cfg)
+    if task == "faithfulness":
+        return score_faithfulness(split_rows, pred_by_uid, gold, cfg)
     # Unreachable: evaluate() rejects unsupported tasks before reaching here.
     raise EvalRefused(f"no scorer registered for task {task!r}")
 
@@ -651,6 +742,8 @@ def run_baseline(
     if name == "whole_post_span":
         # It needs the token count per row, which only the gold carries.
         kwargs["gold"] = gold
+    if name == "extractive_explanation":
+        kwargs["predictions"] = load_predictions(Path(cfg["predictions"]), cfg["task"])
     if name == "always_match":
         # The gate-removed control keeps the model's own RANKING and destroys
         # only its scores, so it has to read the run's predictions. See the
@@ -703,15 +796,11 @@ def evaluate(config_path: str | Path, out_dir: str | Path = DEFAULT_OUT_DIR,
 
     guard_baseline(cfg)
 
-    if cfg["task"] == "faithfulness":
-        raise EvalRefused(
-            "task 'faithfulness' arrives in Phase 6 with NLI-based entailment "
-            "scoring (docs/build-plan.md, 'Phase 6')."
-        )
-
     split_path = Path(cfg["split"])
     if not split_path.is_file():
         raise EvalRefused(f"split not found: {split_path}")
+    if cfg.get("calibration") is not None and cfg["task"] != "classification":
+        raise EvalRefused("`calibration:` applies to classification runs only.")
 
     # Integrity BEFORE parsing. A tampered split must be reported as a broken
     # freeze, not as whatever parse error the tampering happens to produce.
@@ -725,10 +814,19 @@ def evaluate(config_path: str | Path, out_dir: str | Path = DEFAULT_OUT_DIR,
     pred_path = Path(cfg["predictions"])
     pred_by_uid = load_predictions(pred_path, cfg["task"])
     pred_sha = sha256_file(pred_path)
+    if cfg.get("calibration") is not None and any(
+            "confidence" not in row for row in pred_by_uid.values()):
+        raise EvalRefused(
+            "this config asks for calibration (FR-13) but the predictions carry no "
+            "`confidence`. Re-run the batch with an aggregator that emits one; "
+            "the harness will not invent it."
+        )
 
     needs_gold = cfg["task"] in ("retrieval", "fast_path", "transliteration",
                                  "span", "normalization")
-    gold = load_gold_retrieval(cfg["gold"]) if needs_gold else None
+    # Faithfulness needs no gold; reference explanations, when given, add chrF.
+    wants_gold = needs_gold or (cfg["task"] == "faithfulness" and cfg.get("gold"))
+    gold = load_gold_retrieval(cfg["gold"]) if wants_gold else None
 
     # Transliteration gold covers only the rows somebody wrote a reference for --
     # 33 of the 100 hand-typed forwards. Requiring a prediction for every split
