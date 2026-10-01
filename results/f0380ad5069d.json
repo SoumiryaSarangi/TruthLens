@@ -53,7 +53,7 @@
     "n_missing": 0,
     "n_predicted": 1260
   },
-  "created_utc": "2026-10-01T04:24:45+00:00",
+  "created_utc": "2026-10-01T04:35:56+00:00",
   "delta_vs_baseline": {
     "accuracy": 0.023809523809523836,
     "macro_f1": 0.28906985088391063
@@ -82,7 +82,7 @@
   "git": {
     "branch": "main",
     "dirty": true,
-    "sha": "aa5db22cf9cf82237e9bd5b2576c73104c27367e"
+    "sha": "d32d20fa0069b02c3cf9a59e31e879d96c78eeba"
   },
   "inputs": {
     "config": {

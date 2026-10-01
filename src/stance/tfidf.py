@@ -85,29 +85,34 @@ class TfidfClaimOnlyStance(TfidfStance):
 
 def build_pipeline(claim_only: bool):
     """The sklearn pipeline both arms train. Kept here so training and loading
-    cannot drift apart."""
-    from sklearn.compose import ColumnTransformer
+    cannot drift apart.
+
+    No pandas: CI installs the core lock, which does not have it. The first
+    version routed the two fields through a DataFrame and a ColumnTransformer,
+    which passed locally and failed every stance test on the runner.
+    """
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.linear_model import LogisticRegression
-    from sklearn.pipeline import Pipeline
+    from sklearn.pipeline import FeatureUnion, Pipeline
     from sklearn.preprocessing import FunctionTransformer
 
-    def vectoriser():
-        return TfidfVectorizer(ngram_range=(1, 2), sublinear_tf=True, min_df=2,
-                               max_features=50_000)
+    def side(field: str) -> Pipeline:
+        return Pipeline([
+            ("select", FunctionTransformer(select_field, kw_args={"field": field})),
+            ("tfidf", TfidfVectorizer(ngram_range=(1, 2), sublinear_tf=True,
+                                      min_df=2, max_features=50_000)),
+        ])
 
-    columns = [("claim", vectoriser(), "claim")]
+    sides = [("claim", side("claim"))]
     if not claim_only:
-        columns.append(("evidence", vectoriser(), "evidence"))
-    features = ColumnTransformer(columns)
+        sides.append(("evidence", side("evidence")))
     return Pipeline([
-        ("frame", FunctionTransformer(_to_frame)),
-        ("features", features),
+        ("features", FeatureUnion(sides)),
         ("clf", LogisticRegression(max_iter=2000, class_weight="balanced",
                                    random_state=42)),
     ])
 
 
-def _to_frame(rows):
-    import pandas as pd
-    return pd.DataFrame(list(rows))
+def select_field(rows, field: str) -> list[str]:
+    """One text field from each row. Module-level so the pipeline pickles."""
+    return [row[field] for row in rows]
