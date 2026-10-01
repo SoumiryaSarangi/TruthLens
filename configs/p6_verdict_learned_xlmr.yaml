@@ -1,0 +1,29 @@
+# FR-11, Phase 6 decision D4: the learned aggregator, stance = xlmr.
+#
+# XLM-R + LoRA stance, train claims scored CROSS-FITTED (5 claim-level folds).
+# Retrieval as Phase 5's best: hybrid RRF@200, k 10. Aggregator: multinomial LR
+# over features of the whole top-10 stance distribution, trained on AVeriTeC
+# TRAIN (cross-fitted where the stance model is trained), temperature fitted on
+# dev (FR-13). Relevance floor off; tau_abstain 0.
+#
+# Baseline: the Phase 5 claim-only control under the RULE aggregator (0.2514,
+# 8350085fbc7f) -- the bar Phase 6 set itself. Rule vs learned for the SAME
+# stance is in the Phase 5 rows of the table. NotAClaim has zero support, so
+# macro-F1 is capped at 0.80.
+experiment: p6_verdict_learned_xlmr
+task: classification
+split: data/splits/averitec/dev.jsonl
+predictions: results/preds/p6_verdict_learned_xlmr.jsonl
+label_set: verdict_5class
+baseline: 8350085fbc7f
+breakdown: [lang, script]
+sanity_ceiling: 0.85
+calibration:
+  coverage_target: 0.6
+notes: >
+  retrieval=hybrid (rrf, depth 200, k 10), stance=xlmr, aggregate=learned
+  (data/interim/models/aggregator_xlmr, fitted temperature), relevance floor off,
+  tau_abstain 0. Three questions: current best 0.2514 (claim-only, rule); dumb
+  baseline majority_class 0.1516; invalid if train claims were scored by a stance
+  model that saw them (train_aggregator.py refuses that), or if the temperature
+  were fitted on test.

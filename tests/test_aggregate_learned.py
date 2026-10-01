@@ -198,3 +198,10 @@ def test_training_on_in_fold_stance_outputs_is_refused(tmp_path):
                       + "\n", encoding="utf-8")
     with pytest.raises(SystemExit, match="not cross-fitted"):
         train.main(["--stance", "xlmr", "--train", str(scored), "--dev", str(scored)])
+
+
+def test_temperature_override_scores_the_same_artifact_unscaled(tmp_path):
+    path = _artifact(tmp_path, temperature=5.0)
+    assert LearnedAggregator(path=path).temperature == 5.0
+    assert LearnedAggregator(path=path, temperature=1.0).temperature == 1.0
+

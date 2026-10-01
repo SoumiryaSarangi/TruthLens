@@ -659,6 +659,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--aggregate-impl", default=None, help="override the aggregator: rule|learned")
     ap.add_argument("--aggregator", default=None,
                     help="learned aggregator artifact (model.joblib) to load")
+    ap.add_argument("--temperature", type=float, default=None,
+                    help="override the aggregator's fitted temperature; 1.0 scores "
+                         "the BEFORE side of FR-13's before/after ECE")
     ap.add_argument("--stance-impl", default=None, help="override the stance impl")
     ap.add_argument("--preprocess-impl", default=None, help="override the preprocess impl")
     ap.add_argument("--claims-impl", default=None, help="override the claims impl")
@@ -719,6 +722,8 @@ def main(argv: list[str] | None = None) -> int:
         cfg.stages["aggregate"] = args.aggregate_impl
     if args.aggregator:
         cfg.stage_args.setdefault("aggregate", {})["path"] = args.aggregator
+    if args.temperature is not None:
+        cfg.stage_args.setdefault("aggregate", {})["temperature"] = args.temperature
     if args.preprocess_impl:
         cfg.stages["preprocess"] = args.preprocess_impl
     if args.claims_impl:

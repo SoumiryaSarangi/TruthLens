@@ -148,12 +148,15 @@ class LearnedAggregator:
     impl = "learned"
 
     def __init__(self, path: str | Path | None = None, stance: str | None = None,
-                 **_: object) -> None:
+                 temperature: float | None = None, **_: object) -> None:
         if path is None:
             if stance is None:
                 raise ValueError("LearnedAggregator needs `path` or `stance`")
             path = MODELS / f"aggregator_{stance}" / "model.joblib"
         self.path = Path(path)
+        # Override the fitted temperature. Exists for ONE comparison: FR-13 asks
+        # for ECE before and after scaling, and "before" is this artifact at T=1.
+        self._temperature = temperature
         self._artifact: dict | None = None
 
     def _load(self) -> dict:
@@ -180,6 +183,8 @@ class LearnedAggregator:
 
     @property
     def temperature(self) -> float:
+        if self._temperature is not None:
+            return float(self._temperature)
         return float(self._load()["temperature"])
 
     def logits(self, stance_probs, dense=None) -> list[float]:
