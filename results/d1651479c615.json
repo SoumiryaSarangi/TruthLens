@@ -1,0 +1,317 @@
+{
+  "baseline": {
+    "kind": "generated",
+    "metrics": {
+      "accuracy": 0.61,
+      "confusion": {
+        "Conflicting": {
+          "Conflicting": 0,
+          "NEI": 0,
+          "NotAClaim": 0,
+          "Refuted": 38,
+          "Supported": 0
+        },
+        "NEI": {
+          "Conflicting": 0,
+          "NEI": 0,
+          "NotAClaim": 0,
+          "Refuted": 35,
+          "Supported": 0
+        },
+        "NotAClaim": {
+          "Conflicting": 0,
+          "NEI": 0,
+          "NotAClaim": 0,
+          "Refuted": 0,
+          "Supported": 0
+        },
+        "Refuted": {
+          "Conflicting": 0,
+          "NEI": 0,
+          "NotAClaim": 0,
+          "Refuted": 305,
+          "Supported": 0
+        },
+        "Supported": {
+          "Conflicting": 0,
+          "NEI": 0,
+          "NotAClaim": 0,
+          "Refuted": 122,
+          "Supported": 0
+        }
+      },
+      "macro_f1": 0.1515527950310559,
+      "n": 500.0,
+      "per_class": {
+        "Conflicting": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 38.0
+        },
+        "NEI": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 35.0
+        },
+        "NotAClaim": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 0.0
+        },
+        "Refuted": {
+          "f1": 0.7577639751552795,
+          "precision": 0.61,
+          "recall": 1.0,
+          "support": 305.0
+        },
+        "Supported": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 122.0
+        }
+      }
+    },
+    "name": "majority_class",
+    "notes": []
+  },
+  "config_hash": "d1651479c615",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 500,
+    "n_missing": 0,
+    "n_predicted": 500
+  },
+  "created_utc": "2026-10-01T06:07:23+00:00",
+  "delta_vs_baseline": {
+    "accuracy": -0.322,
+    "macro_f1": 0.04730276274548839
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p5_verdict_hybrid_nli",
+  "git": {
+    "branch": "main",
+    "dirty": true,
+    "sha": "3f0328269987409edd1a87f5521befc146383b48"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "majority_class",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p5_verdict_hybrid_nli",
+      "label_set": "verdict_5class",
+      "metrics": {},
+      "min_cell_n": 30,
+      "notes": "retrieval=hybrid (rrf, depth 200, k 10), stance=nli, aggregate=rule (threshold 0.5), relevance floor off, tau_abstain 0. Uncalibrated confidence.\n",
+      "predictions": "results/preds/p5_verdict_hybrid_nli.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/averitec/dev.jsonl",
+      "task": "classification"
+    },
+    "config_path": "configs/p5_verdict_hybrid_nli.yaml",
+    "predictions_path": "results/preds/p5_verdict_hybrid_nli.jsonl",
+    "predictions_sha256": "8cb3e16bbe65da5b00803ce45c85a94357024b4606314187967497acbbc90171",
+    "split_path": "data/splits/averitec/dev.jsonl",
+    "split_sha256": "d994098e05100064fdde36e7f5c944b7c5e0c3503ec33dcf075293bf2b1cb14a",
+    "splits_lock_sha256": "f972ff7c3f0064fa22a8cd3f475bace63dd37c683640d993319f677545056952"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=latn": {
+        "accuracy": 0.288,
+        "confusion": {
+          "Conflicting": {
+            "Conflicting": 19,
+            "NEI": 3,
+            "NotAClaim": 0,
+            "Refuted": 9,
+            "Supported": 7
+          },
+          "NEI": {
+            "Conflicting": 13,
+            "NEI": 6,
+            "NotAClaim": 0,
+            "Refuted": 8,
+            "Supported": 8
+          },
+          "NotAClaim": {
+            "Conflicting": 0,
+            "NEI": 0,
+            "NotAClaim": 0,
+            "Refuted": 0,
+            "Supported": 0
+          },
+          "Refuted": {
+            "Conflicting": 142,
+            "NEI": 31,
+            "NotAClaim": 0,
+            "Refuted": 88,
+            "Supported": 44
+          },
+          "Supported": {
+            "Conflicting": 72,
+            "NEI": 2,
+            "NotAClaim": 0,
+            "Refuted": 17,
+            "Supported": 31
+          }
+        },
+        "macro_f1": 0.1988555577765443,
+        "n": 500.0,
+        "per_class": {
+          "Conflicting": {
+            "f1": 0.13380281690140844,
+            "precision": 0.07723577235772358,
+            "recall": 0.5,
+            "support": 38.0
+          },
+          "NEI": {
+            "f1": 0.15584415584415584,
+            "precision": 0.14285714285714285,
+            "recall": 0.17142857142857143,
+            "support": 35.0
+          },
+          "NotAClaim": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "Refuted": {
+            "f1": 0.41217798594847777,
+            "precision": 0.7213114754098361,
+            "recall": 0.28852459016393445,
+            "support": 305.0
+          },
+          "Supported": {
+            "f1": 0.29245283018867924,
+            "precision": 0.34444444444444444,
+            "recall": 0.2540983606557377,
+            "support": 122.0
+          }
+        }
+      }
+    },
+    "overall": {
+      "accuracy": 0.288,
+      "confusion": {
+        "Conflicting": {
+          "Conflicting": 19,
+          "NEI": 3,
+          "NotAClaim": 0,
+          "Refuted": 9,
+          "Supported": 7
+        },
+        "NEI": {
+          "Conflicting": 13,
+          "NEI": 6,
+          "NotAClaim": 0,
+          "Refuted": 8,
+          "Supported": 8
+        },
+        "NotAClaim": {
+          "Conflicting": 0,
+          "NEI": 0,
+          "NotAClaim": 0,
+          "Refuted": 0,
+          "Supported": 0
+        },
+        "Refuted": {
+          "Conflicting": 142,
+          "NEI": 31,
+          "NotAClaim": 0,
+          "Refuted": 88,
+          "Supported": 44
+        },
+        "Supported": {
+          "Conflicting": 72,
+          "NEI": 2,
+          "NotAClaim": 0,
+          "Refuted": 17,
+          "Supported": 31
+        }
+      },
+      "macro_f1": 0.1988555577765443,
+      "n": 500.0,
+      "per_class": {
+        "Conflicting": {
+          "f1": 0.13380281690140844,
+          "precision": 0.07723577235772358,
+          "recall": 0.5,
+          "support": 38.0
+        },
+        "NEI": {
+          "f1": 0.15584415584415584,
+          "precision": 0.14285714285714285,
+          "recall": 0.17142857142857143,
+          "support": 35.0
+        },
+        "NotAClaim": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 0.0
+        },
+        "Refuted": {
+          "f1": 0.41217798594847777,
+          "precision": 0.7213114754098361,
+          "recall": 0.28852459016393445,
+          "support": 305.0
+        },
+        "Supported": {
+          "f1": 0.29245283018867924,
+          "precision": 0.34444444444444444,
+          "recall": 0.2540983606557377,
+          "support": 122.0
+        }
+      }
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 500.0,
+        "native": 0.1988555577765443
+      }
+    },
+    "metric": "macro_f1"
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "classification",
+  "warnings": [
+    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
+  ]
+}

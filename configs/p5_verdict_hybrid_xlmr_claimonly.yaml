@@ -1,0 +1,25 @@
+# FR-10 decided here: verdict macro-F1 on AVeriTeC dev, whose gold is CLEAN.
+#
+# Retrieval: hybrid, BM25 top 200 -> BGE-M3 passage rerank -> RRF (the best
+# Success@10 of the Phase 5 ablation, 0.214). Stance: xlmr_claimonly. Aggregator: the
+# Phase 1 rule aggregator, unchanged -- replacing it is Phase 6.
+#
+# Stance: the CONTROL: XLM-R trained on the claim alone. It scores every passage of a claim identically, so this run is a claim-level verdict classifier that never reads evidence. If a full stance model cannot beat this, evidence is not reaching the verdict.
+#
+# The derived stance set can rank stance models by claim priors and penalise a
+# model for predicting Neutral on background evidence that is neutral, so it
+# selects nothing on its own. This run does.
+#
+# Reference points: majority_class 0.1516, Phase 1 (BM25 + NLI) 0.2147. NotAClaim
+# has zero support on AVeriTeC, so macro-F1 is structurally capped at 0.80.
+experiment: p5_verdict_hybrid_xlmr_claimonly
+task: classification
+split: data/splits/averitec/dev.jsonl
+predictions: results/preds/p5_verdict_hybrid_xlmr_claimonly.jsonl
+label_set: verdict_5class
+baseline: majority_class
+breakdown: [lang, script]
+sanity_ceiling: 0.85
+notes: >
+  retrieval=hybrid (rrf, depth 200, k 10), stance=xlmr_claimonly, aggregate=rule (threshold
+  0.5), relevance floor off, tau_abstain 0. Uncalibrated confidence.
