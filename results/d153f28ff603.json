@@ -1,0 +1,138 @@
+{
+  "baseline": {
+    "experiment": "p1_bm25_retrieval",
+    "kind": "prior_run",
+    "metrics": {
+      "mrr": 0.06563174603174604,
+      "n": 500.0,
+      "recall@1": 0.020035714285714285,
+      "recall@10": 0.09465476190476192,
+      "recall@5": 0.061321428571428575,
+      "success@1": 0.036,
+      "success@10": 0.158,
+      "success@5": 0.098
+    },
+    "name": "cb8f6f0f3b5c"
+  },
+  "config_hash": "d153f28ff603",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 500,
+    "n_missing": 0,
+    "n_predicted": 500
+  },
+  "created_utc": "2026-10-01T05:47:33+00:00",
+  "delta_vs_baseline": {
+    "mrr": 0.02315793650793653,
+    "recall@1": 0.009666666666666667,
+    "recall@10": 0.030500000000000013,
+    "recall@5": 0.01850000000000001,
+    "success@1": 0.012000000000000004,
+    "success@10": 0.055999999999999994,
+    "success@5": 0.034
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p5_retrieval_hybrid_rrf_n200",
+  "git": {
+    "branch": "main",
+    "dirty": true,
+    "sha": "cb9b15e79a9098e3ee067ccc3cca982d22edc90d"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": true,
+      "baseline": "cb8f6f0f3b5c",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p5_retrieval_hybrid_rrf_n200",
+      "gold": "data/gold/averitec_dev_retrieval.jsonl",
+      "metrics": {
+        "retrieval": {
+          "k": [
+            1,
+            5,
+            10
+          ]
+        }
+      },
+      "min_cell_n": 30,
+      "notes": "retrieval=hybrid, depth 200, fusion rrf, BGE-M3 at 256 tokens, CLS-pooled, passages of 1,000 chars, documents truncated to 4,000 chars. Baseline is the Phase 1 BM25 run over the same pools (cb8f6f0f3b5c). Stance always_neutral for the retrieval run, so nothing but ranking is measured.\n",
+      "predictions": "results/preds/p5_retrieval_hybrid_rrf_n200.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/averitec/dev.jsonl",
+      "task": "retrieval"
+    },
+    "config_path": "configs/p5_retrieval_hybrid_rrf_n200.yaml",
+    "predictions_path": "results/preds/p5_retrieval_hybrid_rrf_n200.jsonl",
+    "predictions_sha256": "c4ca6ebd1bb4cadea8075820590e2b5bb77455f3aab0a941e735b0ec6bbddbed",
+    "split_path": "data/splits/averitec/dev.jsonl",
+    "split_sha256": "d994098e05100064fdde36e7f5c944b7c5e0c3503ec33dcf075293bf2b1cb14a",
+    "splits_lock_sha256": "f972ff7c3f0064fa22a8cd3f475bace63dd37c683640d993319f677545056952"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=latn": {
+        "mrr": 0.08878968253968257,
+        "n": 500.0,
+        "recall@1": 0.029702380952380952,
+        "recall@10": 0.12515476190476194,
+        "recall@5": 0.07982142857142858,
+        "success@1": 0.048,
+        "success@10": 0.214,
+        "success@5": 0.132
+      }
+    },
+    "overall": {
+      "mrr": 0.08878968253968257,
+      "n": 500.0,
+      "recall@1": 0.029702380952380952,
+      "recall@10": 0.12515476190476194,
+      "recall@5": 0.07982142857142858,
+      "success@1": 0.048,
+      "success@10": 0.214,
+      "success@5": 0.132
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 500.0,
+        "native": 0.08878968253968257
+      }
+    },
+    "metric": "mrr"
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "retrieval",
+  "warnings": [
+    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
+  ]
+}

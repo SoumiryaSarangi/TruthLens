@@ -248,7 +248,41 @@ looping in Python over all 78,077 documents once per query term, so a long OCR
 post costs proportionally more. Budget ~30–60 minutes for a 3,153-row split, and
 do not run it beside a GPU job — see below.
 
+### The AVeriTeC knowledge stores (Phase 5)
+
+| Store | Archives | Cache | Build time |
+| --- | --- | --- | --- |
+| dev | `dev_knowledge_store.zip`, 11.5 GB | `averitec_kb_dev/`, 1.4 GB | 11 min |
+| train | 3 zips, 63.5 GB | `averitec_kb_train/` | 8 h (contended; ~70 min alone) |
+
+**The train store is required, not optional**: the local test split is 307 claims
+held out of train.json, so their evidence lives there. The official test store
+(40.7 GB) is never needed -- its labels are not public. The builder refuses an
+archive `DOWNLOADS.json` does not vouch for, builds into `.partial/`, and verifies
+the claim-to-file mapping before publishing.
+
+### The passage-vector cache (Phase 5)
+
+`data/interim/dense_cache/<key>/{claim_idx}.npz` -- BGE-M3 vectors for each
+candidate document's ~1,000-character passages, keyed by document, so one build
+at the deepest depth makes every shallower depth and fusion rule a read. Built by
+`scripts/build_dense_cache.py`, which goes through the retriever's own code path.
+
+- **103-116 passages/s alone; 3/s beside another heavy job.** That is not a typo.
+- ~880 passages per claim at depth 200, ~2,170 at depth 500.
+- Process private memory jumps to ~6.5 GiB on the first claim (torch, CUDA and
+  the model -- committed, mostly untouched) and then stays flat. That is not a
+  leak; measured claim by claim.
+
 ### Do not run two jobs at once on this machine
+
+**Phase 5 relearned this.** The train knowledge-store build streams 63 GB of zips
+through the file cache, evicting everything else; running the dense-cache build
+beside it took free RAM to 1.06 GB and dropped it from 56 to 3 passages/s, an
+ETA of 29 hours. Alone, it ran at 116/s. The rule below is about memory and disk
+as much as VRAM.
+
+Earlier evidence for the same rule:
 
 16 GB of RAM, and it is the binding constraint more often than VRAM. Running the
 BM25 matcher (which holds the tokenized pool and its document-frequency dicts,
