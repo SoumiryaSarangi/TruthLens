@@ -20,7 +20,9 @@ without them. CI depends on that.
 
 from __future__ import annotations
 
+import threading
 from dataclasses import dataclass
+from typing import ClassVar
 
 MODEL_ID = "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7"
 
@@ -54,6 +56,13 @@ class NLIStance:
         self._tokenizer = None
         self._id2stance: dict[int, str] = {}
 
+    # One loaded copy per (model, device) for the whole process. The served
+    # pipeline reads this model three times -- stance, the faithfulness gate and
+    # (in evaluation) the faithfulness grader -- and three copies would be
+    # ~1.8 GB of a ~4.9 GiB card for identical weights.
+    _LOADED: ClassVar[dict[tuple[str, str], tuple[object, object]]] = {}
+    _LOCK: ClassVar[threading.Lock] = threading.Lock()
+
     def load(self) -> None:
         if self._model is not None:
             return
@@ -61,11 +70,15 @@ class NLIStance:
         from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
         self._device = self._device or ("cuda" if torch.cuda.is_available() else "cpu")
-        self._tokenizer = AutoTokenizer.from_pretrained(self.model_id)
-        model = AutoModelForSequenceClassification.from_pretrained(self.model_id)
-        if self._device == "cuda":
-            model = model.half()
-        self._model = model.to(self._device).eval()
+        with NLIStance._LOCK:
+            key = (self.model_id, self._device)
+            if key not in NLIStance._LOADED:
+                tokenizer = AutoTokenizer.from_pretrained(self.model_id)
+                model = AutoModelForSequenceClassification.from_pretrained(self.model_id)
+                if self._device == "cuda":
+                    model = model.half()
+                NLIStance._LOADED[key] = (tokenizer, model.to(self._device).eval())
+            self._tokenizer, self._model = NLIStance._LOADED[key]
 
         # Build the id->stance map from the model's own config.
         for idx, label in self._model.config.id2label.items():

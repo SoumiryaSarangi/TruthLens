@@ -73,19 +73,21 @@ def support(explanation: str, evidence: Sequence[str],
     that clear the threshold for it -- which is what citations are made from.
     """
     sents = sentences(explanation)
-    passages = [p for p in evidence if p and p.strip()]
-    if not sents or not passages:
+    # Indices into the evidence AS GIVEN, so `supporting` can be turned straight
+    # into citations; empty passages are skipped, not renumbered around.
+    kept = [(j, p) for j, p in enumerate(evidence) if p and p.strip()]
+    if not sents or not kept:
         return {"sentences": sents, "entailment": [0.0] * len(sents),
                 "supporting": [[] for _ in sents], "faithful": False}
     scorer = scorer or get_scorer()
-    pairs = [(p, s) for s in sents for p in passages]
+    pairs = [(p, s) for s in sents for _, p in kept]
     probs = scorer(pairs)
-    width = len(passages)
+    width = len(kept)
     best, supporting = [], []
     for i in range(len(sents)):
         row = probs[i * width:(i + 1) * width]
         best.append(max(row))
-        supporting.append([j for j, v in enumerate(row) if v >= ENTAIL_THRESHOLD])
+        supporting.append([kept[c][0] for c, v in enumerate(row) if v >= ENTAIL_THRESHOLD])
     return {"sentences": sents, "entailment": best, "supporting": supporting,
             "faithful": all(v >= ENTAIL_THRESHOLD for v in best)}
 

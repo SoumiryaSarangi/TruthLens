@@ -89,3 +89,6 @@ register("aggregate", "rule", "pipeline.aggregate", "RuleAggregator")
 register("aggregate", "learned", "pipeline.aggregate", "LearnedAggregator")
 register("generation", "template", "generation.template", "TemplateExplainer")
 register("faithfulness", "stub", "faithfulness.stub", "StubFaithfulness")
+# Phase 6: generated explanations, served only through the NLI gate (FR-15/16).
+register("generation", "indicbart", "generation.indicbart", "IndicBARTExplainer")
+register("faithfulness", "nli", "faithfulness.nli", "NLIFaithfulness")

@@ -25,6 +25,7 @@ from pathlib import Path
 
 from common.io_jsonl import load_jsonl, write_jsonl
 from common.seeds import set_all_seeds
+from pipeline import registry
 from pipeline.contracts import Trace
 from pipeline.orchestrator import Orchestrator, PipelineConfig
 from retrieval.kb import claim_index_from_uid, kb_split_from_source_id
@@ -98,7 +99,8 @@ def run_stance(split_path: Path, cfg: PipelineConfig, out: Path,
 
 
 def run_passages(split_path: Path, cfg: PipelineConfig, out: Path, k: int = 20,
-                 limit: int | None = None, allow_degraded: bool = False) -> dict[str, int]:
+                 limit: int | None = None, allow_degraded: bool = False,
+                 offset: int = 0) -> dict[str, int]:
     """Retrieve once, score stance many times (Phase 6, decision D1).
 
     Writes each AVeriTeC claim's top-`k` passages -- the exact text the
@@ -107,12 +109,15 @@ def run_passages(split_path: Path, cfg: PipelineConfig, out: Path, k: int = 20,
     fold and k then reads this file instead of re-running retrieval.
     """
     set_all_seeds()
-    rows = load_jsonl(split_path)
+    # `offset` shards a long split into runs that each finish: rows are written
+    # only at the end, so a run killed at 95% would otherwise lose everything.
+    rows = load_jsonl(split_path)[offset:]
     if limit:
         rows = rows[:limit]
     texts = load_texts(split_path)
     cfg.split = evidence_store_for(rows, split_path)
-    print(f"  evidence pools from the {cfg.split} knowledge store, k={k}")
+    print(f"  evidence pools from the {cfg.split} knowledge store, k={k}, "
+          f"rows {offset}..{offset + len(rows) - 1}")
     orch = Orchestrator(cfg)
     counts = {"n": 0, "degraded": 0, "no_evidence": 0}
     written: list[dict] = []
@@ -142,6 +147,62 @@ def run_passages(split_path: Path, cfg: PipelineConfig, out: Path, k: int = 20,
     if counts["degraded"] and not allow_degraded:
         raise SystemExit(f"{counts['degraded']}/{counts['n']} claims ran DEGRADED; "
                          "nothing written.")
+    write_jsonl(out, written)
+    print(f"  wrote {len(written)} rows -> {out}")
+    return counts
+
+
+def run_explain(split_path: Path, cfg: PipelineConfig, out: Path, evidence: str,
+                decoding: str, limit: int | None = None) -> dict[str, int]:
+    """Raw generated explanations for `task: faithfulness` (FR-15, FR-16).
+
+    RAW, before the gate: grading what the orchestrator serves would grade the
+    gate, which passes only entailed text by construction. Two inputs:
+
+    * `retrieved` -- what the served pipeline does: the claim's hybrid passages
+      and the verdict the configured stance + aggregator gave.
+    * `gold` -- the oracle: the claim's AVeriTeC QA evidence and gold verdict,
+      which is what the explainer was trained on. The gap between the two is
+      what retrieval costs the explanation.
+
+    Each row carries the evidence the model saw, which is what it is graded
+    against.
+    """
+    from generation.explain_data import examples
+
+    set_all_seeds()
+    rows = load_jsonl(split_path)
+    if limit:
+        rows = rows[:limit]
+    orch = None
+    gold = {}
+    if evidence == "gold":
+        gold = {ex["uid"]: ex for ex in examples(split_path.stem)}
+    else:
+        cfg.split = evidence_store_for(rows, split_path)
+        orch = Orchestrator(cfg)
+    texts = load_texts(split_path)
+    explainer = registry.build("generation", "indicbart", decoding=decoding)
+    written, counts, started = [], {"n": 0, "empty": 0}, time.time()
+    for i, row in enumerate(rows, start=1):
+        if evidence == "gold":
+            ex = gold[row["uid"]]
+            claim, verdict, passages = ex["claim"], ex["verdict"], ex["evidence"]
+        else:
+            trace = orch.verify(texts[row["uid"]],
+                                claim_idx=claim_index_from_uid(row["source_id"]))
+            res = trace.results[0]
+            claim, verdict = res.claim.text, res.verdict
+            passages = [p.text for p in res.passages]
+        passages = passages[:explainer.k]
+        text = explainer.generate(claim, verdict, passages, decoding=decoding) if passages else ""
+        counts["n"] += 1
+        counts["empty"] += not text
+        written.append({"uid": row["uid"], "explanation": text, "evidence": passages,
+                        "verdict": verdict, "decoding": decoding, "input": evidence})
+        if i % 50 == 0 or i == len(rows):
+            rate = i / max(time.time() - started, 1e-6)
+            print(f"  {i:4}/{len(rows)}  {rate:5.2f} claims/s", flush=True)
     write_jsonl(out, written)
     print(f"  wrote {len(written)} rows -> {out}")
     return counts
@@ -593,7 +654,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--stage", default="both",
                     choices=["retrieval", "verdict", "both", "lang", "translit",
                              "match", "fastpath", "checkworthy", "span",
-                             "normalize", "stance", "passages"])
+                             "normalize", "stance", "passages", "explain"])
     ap.add_argument("--impl", default=None, help="override the retrieval impl")
     ap.add_argument("--aggregate-impl", default=None, help="override the aggregator: rule|learned")
     ap.add_argument("--aggregator", default=None,
@@ -641,7 +702,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out-retrieval", default=None)
     ap.add_argument("--out-verdict", default=None)
     ap.add_argument("--k", type=int, default=None)
+    ap.add_argument("--evidence", default="retrieved", choices=["retrieved", "gold"],
+                    help="--stage explain: served passages, or the gold QA oracle")
+    ap.add_argument("--decoding", default="beam", choices=["greedy", "beam", "nucleus"])
     ap.add_argument("--limit", type=int, default=None)
+    ap.add_argument("--offset", type=int, default=0, help="--stage passages: skip rows")
     args = ap.parse_args(argv)
 
     cfg = (PipelineConfig.load(args.pipeline_config) if args.pipeline_config
@@ -691,12 +756,22 @@ def main(argv: list[str] | None = None) -> int:
               f"| {counts['capped']} capped at MAX_CLAIMS")
         return 0
 
+    if args.stage == "explain":
+        out = Path(args.out or "results/preds/explain.jsonl")
+        print(f"pipeline: evidence={args.evidence} decoding={args.decoding} "
+              f"stance={cfg.stages['stance']} aggregate={cfg.stages['aggregate']}")
+        counts = run_explain(Path(args.split), cfg, out, args.evidence, args.decoding,
+                             args.limit)
+        print(f"  {counts['n']} claims | {counts['empty']} empty explanations")
+        return 0
+
     if args.stage == "passages":
         out = Path(args.out or "results/preds/passages.jsonl")
         print(f"pipeline: retrieval={cfg.stages['retrieval']} "
               f"args={cfg.stage_args.get('retrieval', {})}")
         counts = run_passages(Path(args.split), cfg, out, k=args.k or 20,
-                              limit=args.limit, allow_degraded=args.allow_degraded)
+                              limit=args.limit, allow_degraded=args.allow_degraded,
+                              offset=args.offset)
         print(f"  {counts['n']} claims | {counts['no_evidence']} with no evidence "
               f"| {counts['degraded']} degraded")
         return 0

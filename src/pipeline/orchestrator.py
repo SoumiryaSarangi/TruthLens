@@ -10,6 +10,7 @@ registry and import their own dependencies lazily.
 
 from __future__ import annotations
 
+import concurrent.futures
 import time
 import uuid
 from dataclasses import dataclass
@@ -20,6 +21,9 @@ import yaml
 
 from pipeline import registry
 from pipeline.contracts import MAX_CLAIMS, ClaimResult, Passage, Trace
+
+# SYSTEM_DESIGN 11: "Generation error or over 8 s -> template explanation".
+GENERATION_TIMEOUT_S = 8.0
 
 
 @dataclass
@@ -108,6 +112,9 @@ class Orchestrator:
             )
         self.generator = make("generation")
         self.faithfulness = make("faithfulness")
+        # FR-18: the template always exists, whatever `generation` is set to.
+        self.template = registry.build("generation", "template")
+        self._gen_pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
     # -- helpers --------------------------------------------------------------
     @staticmethod
@@ -243,17 +250,71 @@ class Orchestrator:
                           lambda: self.aggregator.aggregate(probs, dense=dense))
         abstained = agg.confidence < self.cfg.tau_abstain          # FR-14
 
-        explanation, cited = self.generator.explain(agg.verdict, passages,
-                                                    abstained=abstained)
+        explanation, cited, source, faith = self._explain(
+            trace, claim.text, agg.verdict, passages, abstained)
         return ClaimResult(
             claim=claim, path="evidence", match=None, passages=passages,
             verdict=agg.verdict, confidence=agg.confidence, abstained=abstained,
             verdict_probs=getattr(agg, "probs", None),
-            explanation=explanation, explanation_source="template",
-            explanation_lang=trace.pre.lang if trace.pre else "en",
-            cited=cited,
-            faithfulness=self.faithfulness.score(explanation, [p.text for p in passages]),
+            explanation=explanation, explanation_source=source,
+            explanation_lang=("en" if source == "generated"
+                              else trace.pre.lang if trace.pre else "en"),
+            cited=cited, faithfulness=faith,
         )
+
+    def _explain(self, trace: Trace, claim_text: str, verdict: str,
+                 passages: list[Passage], abstained: bool):
+        """Generated text only if every sentence passes the NLI gate (FR-15/16/18).
+
+        Returns (explanation, cited, source, faithfulness). Every way generated
+        text can fail -- abstained, timeout, error, no gate, an unentailed
+        sentence -- falls back to the template, and each is recorded, because
+        `explanation_source: template` alone cannot say WHY.
+        """
+        def template(note: str | None = None):
+            if note:
+                trace.record("generation", self.generator.impl, 0.0, note)
+            text, cited = self.template.explain(verdict, passages, abstained=abstained)
+            return text, cited, "template", None
+
+        if self.generator.impl == "template":
+            return template()
+        if abstained:
+            # SYSTEM_DESIGN 11: never fluent prose for an answer the system
+            # declined to stand behind.
+            return template("abstained: template explanation by rule")
+        if not hasattr(self.faithfulness, "check"):
+            return template(f"no faithfulness gate ({self.faithfulness.impl}); "
+                            "generated text is never served ungated")
+
+        t0 = time.perf_counter()
+        future = self._gen_pool.submit(self.generator.explain, verdict, passages,
+                                       claim=claim_text)
+        try:
+            raw, _ = future.result(timeout=GENERATION_TIMEOUT_S)
+        except concurrent.futures.TimeoutError:
+            return template(f"degraded: generation over {GENERATION_TIMEOUT_S:.0f} s; "
+                            "template served")
+        except Exception as exc:
+            return template(f"degraded: generation failed ({type(exc).__name__}); "
+                            "template served")
+        trace.record("generation", self.generator.impl,
+                     (time.perf_counter() - t0) * 1000)
+
+        texts = [p.text for p in passages]
+        try:
+            check = self._timed(trace, "faithfulness", self.faithfulness.impl,
+                                lambda: self.faithfulness.check(raw, texts))
+        except Exception as exc:
+            return template(f"degraded: faithfulness check failed "
+                            f"({type(exc).__name__}); template served")
+        if not check["faithful"]:
+            weakest = min(check["entailment"]) if check["entailment"] else 0.0
+            return template(f"faithfulness: generated explanation failed the NLI gate "
+                            f"(weakest sentence entailment {weakest:.2f}); template served")
+        cited_idx = sorted({j for js in check["supporting"] for j in js})
+        return (raw, [passages[j].passage_id for j in cited_idx], "generated",
+                min(check["entailment"]))
 
     # -- result constructors --------------------------------------------------
     def _to_passages(self, claim_text: str, scored, lexical: bool = False,

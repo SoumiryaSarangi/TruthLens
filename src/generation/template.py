@@ -34,7 +34,8 @@ class TemplateExplainer:
     def __init__(self, max_cited: int = 3, **_: object):
         self.max_cited = max_cited
 
-    def explain(self, verdict: str, passages: list, *, abstained: bool = False) -> tuple[str, list[str]]:
+    def explain(self, verdict: str, passages: list, *, abstained: bool = False,
+                claim: str | None = None) -> tuple[str, list[str]]:
         """Returns (explanation, cited passage ids)."""
         head = VERDICT_PHRASE.get(verdict, VERDICT_PHRASE["NEI"])
 
