@@ -12,6 +12,18 @@
       "n_lines": 2666,
       "sha256": "a322259c4bcdb60fd97ceded69df8a493935592236888768d67db03a7a5d7313"
     },
+    "averitec_stance/dev.jsonl": {
+      "n_lines": 1260,
+      "sha256": "56e9b4305038b005a5841b41ba7b0eac01de8eba405b5e9dbcf7cd40e238eb33"
+    },
+    "averitec_stance/test.jsonl": {
+      "n_lines": 789,
+      "sha256": "4b5d0b50687e2711462cb9abe1c006adf091d31d683f8e656c2c9427e1ffbdb4"
+    },
+    "averitec_stance/train.jsonl": {
+      "n_lines": 6616,
+      "sha256": "fe6738056b9a5a70943165ec83883c02b1191ad140862e4e5c4b9f0e3340895d"
+    },
     "checkthat25_t2/dev.jsonl": {
       "n_lines": 1271,
       "sha256": "273a553aed83c44c54338040d2b8a4164da5aa0b25c6a3174e1d41b04194368b"

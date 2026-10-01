@@ -96,6 +96,33 @@ def map_averitec_label(label: str) -> str:
         ) from None
 
 
+# Stance gold for FR-10, derived from a claim's verdict because AVeriTeC has no
+# per-evidence stance annotation anywhere. `None` means "exclude": a Conflicting
+# claim's evidence genuinely points both ways, so no single stance is right for
+# an individual answer, and guessing one would put noise into the gold.
+_AVERITEC_TO_STANCE: dict[str, str | None] = {
+    "Supported": "Supports",
+    "Refuted": "Refutes",
+    "Not Enough Evidence": "Neutral",
+    "Conflicting Evidence/Cherrypicking": None,
+}
+
+
+def map_averitec_stance(label: str) -> str | None:
+    """The stance every QA answer of a claim inherits from its verdict, or None.
+
+    This is PROPAGATED gold, and noisy by construction: a background question
+    asked for a Refuted claim ("Who is X?") is labelled Refutes too. Scores on
+    data built from it measure agreement with the claim's verdict, not stance
+    accuracy -- which is why verdict macro-F1 on AVeriTeC dev, whose gold is
+    clean, is what decides the stance model.
+    """
+    if label not in _AVERITEC_TO_STANCE:
+        raise ValueError(f"{label!r} is not an AVeriTeC label; expected one of "
+                         f"{sorted(_AVERITEC_TO_STANCE)}")
+    return _AVERITEC_TO_STANCE[label]
+
+
 def get_label_set(name: str) -> tuple[str, ...]:
     try:
         return LABEL_SETS[name]

@@ -19,9 +19,9 @@ from pathlib import Path
 from typing import Any, NamedTuple
 
 from common.hashing import sha1_text
-from common.io_jsonl import load_json
+from common.io_jsonl import load_json, load_jsonl
 from common.seeds import SEED
-from data.labels import map_averitec_label
+from data.labels import map_averitec_label, map_averitec_stance
 from data.normalize import char_shingles, normalize_for_hashing
 from data.script_id import detect_script, script_purity
 from data.simhash import simhash_hex
@@ -35,10 +35,16 @@ csv.field_size_limit(min(sys.maxsize, 2**31 - 1))
 
 
 class Row(NamedTuple):
-    """A loaded example: the manifest record, plus the text that stays local."""
+    """A loaded example: the manifest record, plus the text that stays local.
+
+    `extra` carries fields beyond the single `text` into the gitignored interim
+    file -- a pair task's two halves, for instance. It never reaches the split
+    record, which `validate_split_record` keeps to a fixed schema.
+    """
 
     record: dict[str, Any]
     text: str
+    extra: dict[str, str] | None = None
 
 
 def _make_record(
@@ -484,6 +490,126 @@ def xclaim_checkworthy_rows() -> dict[str, list[Row]]:
     return out
 
 
+# -----------------------------------------------------------------------------
+# Stance, derived from AVeriTeC's QA annotations (FR-10)
+# -----------------------------------------------------------------------------
+
+# ALWAYS the committed splits -- never a build's output directory. A
+# reproducibility check rebuilds into a temporary directory, and reading splits
+# from there would find none; this is the same trap `build_splits.py` documents
+# for cross-dataset dedup.
+AVERITEC_SPLITS = Path("data/splits/averitec")
+UNANSWERABLE = "Unanswerable"
+
+
+def averitec_split_membership(root: Path = AVERITEC_SPLITS) -> dict[str, str]:
+    """`averitec:train.json:2557` -> the split that claim was frozen into."""
+    membership: dict[str, str] = {}
+    for split in ("train", "dev", "test"):
+        path = root / f"{split}.jsonl"
+        if not path.is_file():
+            raise FileNotFoundError(
+                f"{path} is missing. averitec_stance inherits its splits from the "
+                "committed AVeriTeC splits, so those must exist first."
+            )
+        for record in load_jsonl(path):
+            membership[record["source_id"]] = split
+    return membership
+
+
+def averitec_evidence(question: dict[str, Any], answer: dict[str, Any]) -> str:
+    """The evidence text for one QA answer: question, answer, explanation.
+
+    The question is kept because the answer alone is often meaningless -- a
+    Boolean answer is literally "No", and "No" to WHAT is the whole content.
+    """
+    parts = [(question.get("question") or "").strip(),
+             (answer.get("answer") or "").strip(),
+             (answer.get("boolean_explanation") or "").strip()]
+    return " ".join(p for p in parts if p)
+
+
+def pair_text(claim: str, evidence: str) -> str:
+    """The single string a pair is hashed and SimHashed by.
+
+    The PAIR, not the claim: every answer of one claim shares the claim text, so
+    hashing the claim alone would let within-train dedup keep one arbitrary
+    answer per claim and cut ~6.6k training rows to ~2.6k.
+    """
+    return f"{claim}\n{evidence}"
+
+
+def stance_parent_source_id(source_id: str) -> str:
+    """`averitec_stance:train.json:2557:q0:a1` -> `averitec:train.json:2557`."""
+    _, file_part, index = source_id.split(":")[:3]
+    return f"averitec:{file_part}:{index}"
+
+
+def averitec_stance_rows(splits_root: Path = AVERITEC_SPLITS) -> dict[str, list[Row]]:
+    """(claim, evidence) -> Supports / Refutes / Neutral, one row per QA answer.
+
+    FR-10 needs stance gold and none exists: AVeriTeC annotates a verdict per
+    CLAIM and QA evidence per claim, but no stance per piece of evidence. So each
+    answer inherits its claim's verdict (`labels.map_averitec_stance`), with two
+    exceptions that are deviations worth stating:
+
+    * **Conflicting claims are excluded** -- their evidence points both ways, so
+      no one stance is right for a given answer.
+    * **Unanswerable answers are Neutral, whatever the verdict.** They are all
+      the literal string "No answer could be found."; labelled with the verdict,
+      ~5% of rows would teach a model that finding nothing means Refutes.
+
+    **Split membership is inherited, never recomputed.** The local AVeriTeC test
+    split is 307 claims held out of the public train.json, so a derived row's
+    split comes from its parent claim's frozen split -- otherwise answers from a
+    test claim could train the stance model. Claims AVeriTeC's own dedup dropped
+    are dropped here too.
+
+    Duplicate answers within one claim are emitted once, so dev and test are
+    de-duplicated the same way train is even though the build's dedup never
+    touches eval splits.
+    """
+    membership = averitec_split_membership(splits_root)
+    out: dict[str, list[Row]] = {"train": [], "dev": [], "test": []}
+    counters = {split: 0 for split in out}
+    for file_name in ("train.json", "dev.json"):
+        for i, item in enumerate(load_json(RAW / "averitec" / file_name)):
+            parent = f"averitec:{file_name}:{i}"
+            split = membership.get(parent)
+            if split is None:
+                continue
+            verdict_stance = map_averitec_stance(item["label"])
+            if verdict_stance is None:
+                continue
+            claim = (item.get("claim") or "").strip()
+            if not claim:
+                continue
+            seen: set[str] = set()
+            for qi, question in enumerate(item.get("questions") or []):
+                for ai, answer in enumerate(question.get("answers") or []):
+                    evidence = averitec_evidence(question, answer)
+                    key = normalize_for_hashing(evidence)
+                    if not evidence or key in seen:
+                        continue
+                    seen.add(key)
+                    label = ("Neutral" if answer.get("answer_type") == UNANSWERABLE
+                             else verdict_stance)
+                    text = pair_text(claim, evidence)
+                    record = _make_record(
+                        dataset="averitec_stance", split=split,
+                        index=counters[split], lang="en", text=text,
+                        source_id=f"averitec_stance:{file_name}:{i}:q{qi}:a{ai}",
+                        label=label, label_set="stance_3class",
+                    )
+                    counters[split] += 1
+                    out[split].append(Row(
+                        record=record, text=text,
+                        extra={"claim": claim, "evidence": evidence,
+                               "answer_type": answer.get("answer_type") or ""},
+                    ))
+    return out
+
+
 # CheckThat! ships each language under its own code, and they are not uniform:
 # English is `eng` while Hindi and Punjabi are `hi` and `pa`.
 CHECKTHAT_LANGS = {"en": "eng", "hi": "hi", "pa": "pa"}
@@ -561,6 +687,7 @@ LOADERS = {
     "handtyped": handtyped_rows,
     "checkthat25_t2": checkthat_rows,
     "xclaim_cw": xclaim_checkworthy_rows,
+    "averitec_stance": averitec_stance_rows,
 }
 
 # What each loader needs on disk. Used to skip a dataset whose source is not
@@ -581,6 +708,9 @@ LOADER_SOURCES: dict[str, tuple[Path, ...]] = {
     "handtyped": (RAW / "handtyped" / "forwards.csv",),
     # Derived from X-CLAIM's own CSVs, so it depends on exactly those files.
     "xclaim_cw": (RAW / "x_claim" / "train-en.csv",),
+    # Derived from AVeriTeC's QA annotations; also reads the COMMITTED averitec
+    # splits for membership, but those are not raw sources and do not belong here.
+    "averitec_stance": (RAW / "averitec" / "train.json", RAW / "averitec" / "dev.json"),
     "checkthat25_t2": (RAW / "checkthat25_t2" / "train-eng.csv",
                        RAW / "checkthat25_t2" / "train-hi.csv",
                        RAW / "checkthat25_t2" / "train-pa.csv"),

@@ -45,6 +45,58 @@ def load_texts(split_path: Path) -> dict[str, str]:
     return {r["uid"]: r["text"] for r in load_jsonl(path)}
 
 
+def load_pairs(split_path: Path) -> dict[str, tuple[str, str]]:
+    """uid -> (claim, evidence) for a pair dataset such as averitec_stance."""
+    dataset, name = split_path.parent.name, split_path.stem
+    path = INTERIM / dataset / f"{name}.jsonl"
+    if not path.is_file():
+        raise FileNotFoundError(f"no materialised text at {path}; run `make data`.")
+    pairs: dict[str, tuple[str, str]] = {}
+    for row in load_jsonl(path):
+        if "claim" not in row or "evidence" not in row:
+            raise ValueError(
+                f"{path} is not a pair dataset: its rows have no `claim`/`evidence`. "
+                "--stage stance needs one, e.g. data/splits/averitec_stance/."
+            )
+        pairs[row["uid"]] = (row["claim"], row["evidence"])
+    return pairs
+
+
+def run_stance(split_path: Path, cfg: PipelineConfig, out: Path,
+               limit: int | None = None) -> dict[str, int]:
+    """Score the stance stage alone on (claim, evidence) pairs (FR-10).
+
+    Calls `orch.stance.label(claim, [evidence...])` -- the exact call the
+    orchestrator makes on retrieved passages -- so which text is the premise and
+    which the hypothesis is decided in one place, not re-decided here (FR-24).
+    Rows are grouped by claim so a claim's answers go through in one batch.
+    """
+    set_all_seeds()
+    rows = load_jsonl(split_path)
+    if limit:
+        rows = rows[:limit]
+    pairs = load_pairs(split_path)
+    orch = Orchestrator(cfg)
+
+    by_claim: dict[str, list[str]] = {}
+    for row in rows:
+        by_claim.setdefault(pairs[row["uid"]][0], []).append(row["uid"])
+
+    predictions: list[dict] = []
+    started = time.time()
+    for n, (claim, uids) in enumerate(by_claim.items(), start=1):
+        results = orch.stance.label(claim, [pairs[u][1] for u in uids])
+        for uid, result in zip(uids, results, strict=True):
+            predictions.append({"uid": uid, "pred": result.stance, "probs": result.probs})
+        if n % 200 == 0 or n == len(by_claim):
+            print(f"  {n}/{len(by_claim)} claims  "
+                  f"{(time.time() - started) / 60:.1f} min", flush=True)
+
+    write_jsonl(out, predictions)
+    print(f"  wrote {len(predictions)} rows -> {out}")
+    return {"n": len(predictions), "claims": len(by_claim)}
+
+
 def run_preprocess(
     split_path: Path,
     cfg: PipelineConfig,
@@ -488,7 +540,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--stage", default="both",
                     choices=["retrieval", "verdict", "both", "lang", "translit",
                              "match", "fastpath", "checkworthy", "span",
-                             "normalize"])
+                             "normalize", "stance"])
     ap.add_argument("--impl", default=None, help="override the retrieval impl")
     ap.add_argument("--stance-impl", default=None, help="override the stance impl")
     ap.add_argument("--preprocess-impl", default=None, help="override the preprocess impl")
@@ -577,6 +629,13 @@ def main(argv: list[str] | None = None) -> int:
                             gate=args.gate)
         print(f"  {counts['n']} rows | {counts['checkworthy']} check-worthy "
               f"| {counts['capped']} capped at MAX_CLAIMS")
+        return 0
+
+    if args.stage == "stance":
+        out = Path(args.out or "results/preds/stance.jsonl")
+        print(f"pipeline: stance={cfg.stages['stance']}")
+        counts = run_stance(Path(args.split), cfg, out, args.limit)
+        print(f"  {counts['n']} pairs over {counts['claims']} claims")
         return 0
 
     if args.stage == "fastpath":

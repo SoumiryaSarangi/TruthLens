@@ -1,0 +1,44 @@
+{
+  "counts": {
+    "dev": {
+      "en/latn": 1260,
+      "lang=en": 1260,
+      "script=latn": 1260,
+      "total": 1260
+    },
+    "test": {
+      "en/latn": 789,
+      "lang=en": 789,
+      "script=latn": 789,
+      "total": 789
+    },
+    "train": {
+      "en/latn": 6616,
+      "lang=en": 6616,
+      "script=latn": 6616,
+      "total": 6616
+    }
+  },
+  "created_utc": "2026-09-30T21:19:45+00:00",
+  "dataset": "averitec_stance",
+  "deduplication": {
+    "cross_dataset_near_duplicates_reported_not_dropped": 0,
+    "dropped_from_train": {
+      "exact_match_in_eval": 0,
+      "in_another_dataset_eval_split": 0,
+      "near_duplicate_in_eval": 0,
+      "within_train_duplicate": 0
+    },
+    "left_in_place": {
+      "dev_internal_duplicates": 0,
+      "dev_test_overlap": 0,
+      "test_internal_duplicates": 0
+    },
+    "policy": "train yields to eval; dev and test are never modified"
+  },
+  "notes": [
+    "Derived from AVeriTeC's QA annotations: one row per answer, pair = (claim, question + answer + boolean explanation). The label is the claim's VERDICT propagated to every answer (Supported->Supports, Refuted->Refutes, Not Enough Evidence->Neutral), so it is noisy by construction. Conflicting claims are excluded; Unanswerable answers are Neutral whatever the verdict; duplicate answers within a claim are emitted once. Split membership is INHERITED from the committed averitec splits by parent source_id, so the 307 locally held-out test claims can never train a stance model."
+  ],
+  "seed": 42,
+  "source": {}
+}

@@ -450,6 +450,19 @@ def cmd_build(args) -> int:
                 "train is correspondingly smaller than the official train."
             )
 
+        if name == "averitec_stance":
+            notes.append(
+                "Derived from AVeriTeC's QA annotations: one row per answer, pair = "
+                "(claim, question + answer + boolean explanation). The label is the "
+                "claim's VERDICT propagated to every answer (Supported->Supports, "
+                "Refuted->Refutes, Not Enough Evidence->Neutral), so it is noisy by "
+                "construction. Conflicting claims are excluded; Unanswerable answers "
+                "are Neutral whatever the verdict; duplicate answers within a claim "
+                "are emitted once. Split membership is INHERITED from the committed "
+                "averitec splits by parent source_id, so the 307 locally held-out "
+                "test claims can never train a stance model."
+            )
+
         # Always the REAL committed splits, never `out_root`. A reproducibility
         # check builds into a temp directory, and reading eval splits from there
         # would find none -- so the rebuild would skip cross-dataset dedup and
@@ -482,7 +495,10 @@ def cmd_build(args) -> int:
             # Text stays local: data/interim/ is gitignored.
             write_jsonl(
                 interim_root / name / f"{split}.jsonl",
-                [{"uid": r.record["uid"], "text": r.text} for r in rows],
+                # `extra` carries a pair task's two halves; every other
+                # dataset's interim file comes out exactly as before.
+                [{"uid": r.record["uid"], "text": r.text, **(r.extra or {})}
+                 for r in rows],
             )
             counts = per_split_counts({split: records})[split]
             manifest_counts[split] = counts

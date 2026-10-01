@@ -54,7 +54,12 @@ from retrieval.kb import CACHE_ROOT as KB_CACHE_ROOT
 from retrieval.kb import Document
 
 FUSIONS = ("rrf", "weighted", "dense")
-_MEMO_LIMIT = 50_000
+# The in-memory passage memo only has to outlive one claim: `best_paragraph` is
+# called right after `topk` for the same documents. 50,000 entries grew the
+# cache-warming process ~5 MB per claim -- 550 MB by claim 110 -- on a machine
+# where the train knowledge-store build was already squeezing RAM. A few claims'
+# worth is all the reuse there is.
+_MEMO_LIMIT = 2_000
 
 
 # -----------------------------------------------------------------------------

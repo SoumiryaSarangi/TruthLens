@@ -182,3 +182,30 @@ def test_no_train_row_appears_in_another_datasets_eval_split():
           "scripts/build_splits.py takes the other datasets' eval rows via "
           "`load_external_evals`."
     )
+
+
+def test_averitec_stance_inherits_averitec_split_membership():
+    """A derived stance row must sit in its parent claim's frozen split.
+
+    The hash checks above cannot see this: a (claim, evidence) pair never hashes
+    equal to a bare claim. And it matters more than most leakage, because the
+    local AVeriTeC TEST split is 307 claims held out of train.json -- a row that
+    took its split from the file name would train on a test claim's evidence.
+    Committed manifests only, so it runs in CI.
+    """
+    stance_root = Path("data/splits/averitec_stance")
+    if not stance_root.is_dir():
+        pytest.skip("averitec_stance is not built")
+    from data.loaders import stance_parent_source_id
+
+    parent_split = {}
+    for split in ("train", "dev", "test"):
+        for record in load_jsonl(Path("data/splits/averitec") / f"{split}.jsonl"):
+            parent_split[record["source_id"]] = split
+    wrong = []
+    for split in ("train", "dev", "test"):
+        for record in load_jsonl(stance_root / f"{split}.jsonl"):
+            parent = stance_parent_source_id(record["source_id"])
+            if parent_split.get(parent) != split:
+                wrong.append((record["uid"], parent, parent_split.get(parent)))
+    assert not wrong, f"{len(wrong)} stance rows are not in their claim's split: {wrong[:3]}"

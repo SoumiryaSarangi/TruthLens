@@ -78,6 +78,8 @@ register("retrieval", "bm25_factcheck", "retrieval.factcheck_bm25",
          "FactCheckBM25Retriever")
 register("stance", "nli", "stance.nli", "NLIStance")
 register("stance", "always_neutral", "stance.baseline", "AlwaysNeutralStance")
+register("stance", "tfidf", "stance.tfidf", "TfidfStance")
+register("stance", "tfidf_claimonly", "stance.tfidf", "TfidfClaimOnlyStance")
 register("aggregate", "rule", "pipeline.aggregate", "RuleAggregator")
 register("generation", "template", "generation.template", "TemplateExplainer")
 register("faithfulness", "stub", "faithfulness.stub", "StubFaithfulness")
