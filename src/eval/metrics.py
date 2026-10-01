@@ -254,6 +254,39 @@ def calibration_metrics(
     }
 
 
+def paired_bootstrap_delta(
+    y_true: Sequence[str], pred_a: Sequence[str], pred_b: Sequence[str],
+    labels: Sequence[str], n_resamples: int = 1000, seed: int = 42,
+) -> dict[str, float]:
+    """Macro-F1(a) - macro-F1(b), with a 95% CI from a PAIRED bootstrap.
+
+    Paired: each resample draws the same claims for both systems, so the
+    interval reflects how the two disagree on claims, not how hard the sample
+    happened to be. With 35-38 claims in the rare classes, one claim moves a
+    class F1 by ~0.03, and a delta inside its interval is not a finding.
+    """
+    import random
+
+    n = len(y_true)
+    if not n:
+        return {"delta": 0.0, "ci95_low": 0.0, "ci95_high": 0.0, "p_a_better": 0.0}
+    rng = random.Random(seed)
+    deltas = []
+    for _ in range(n_resamples):
+        idx = [rng.randrange(n) for _ in range(n)]
+        yt = [y_true[i] for i in idx]
+        deltas.append(macro_f1(yt, [pred_a[i] for i in idx], labels)
+                      - macro_f1(yt, [pred_b[i] for i in idx], labels))
+    deltas.sort()
+    return {
+        "delta": macro_f1(y_true, pred_a, labels) - macro_f1(y_true, pred_b, labels),
+        "ci95_low": deltas[int(0.025 * n_resamples)],
+        "ci95_high": deltas[min(int(0.975 * n_resamples), n_resamples - 1)],
+        "p_a_better": sum(d > 0 for d in deltas) / n_resamples,
+        "n_resamples": float(n_resamples),
+    }
+
+
 def coverage_accuracy_curve(
     confidences: Sequence[float], correct: Sequence[bool], n_points: int = 21,
 ) -> list[dict[str, float]]:

@@ -773,6 +773,42 @@ def run_baseline(
     return {"name": name, "kind": "generated", "metrics": scored["overall"], "notes": notes}
 
 
+def paired_vs_baseline(cfg: dict[str, Any], split_rows: list[dict[str, Any]],
+                       pred_by_uid: dict[str, dict[str, Any]], base: dict[str, Any],
+                       out_dir: str | Path) -> dict[str, Any] | None:
+    """Paired-bootstrap CI on the macro-F1 delta against a PRIOR-RUN baseline.
+
+    Opt-in (`paired_bootstrap: <resamples>`), classification only, and only
+    against a prior run -- a generated baseline is a policy, not a system that
+    made its own predictions on these claims. The prior run's predictions are
+    re-read and must still match the sha256 it was scored with; otherwise the
+    comparison would pair this run with something nobody scored.
+    """
+    n = cfg.get("paired_bootstrap")
+    if not n:
+        return None
+    if cfg["task"] != "classification" or base.get("kind") != "prior_run":
+        raise EvalRefused("`paired_bootstrap` needs task: classification and a "
+                          "config_hash baseline (a prior run on the same split).")
+    prior = load_json(Path(out_dir) / f"{base['name']}.json")["inputs"]
+    if Path(prior["split_path"]).as_posix() != Path(cfg["split"]).as_posix():
+        raise EvalRefused(f"baseline {base['name']} was scored on {prior['split_path']}, "
+                          f"this run on {cfg['split']}; a paired comparison needs one split.")
+    prior_path = Path(prior["predictions_path"])
+    if not prior_path.is_file() or sha256_file(prior_path) != prior["predictions_sha256"]:
+        raise EvalRefused(f"baseline predictions {prior_path} are missing or changed since "
+                          f"run {base['name']} scored them; re-score the baseline first.")
+    other = load_predictions(prior_path, "classification")
+    gold_field = cfg.get("gold_field", "label")
+    rows = [r for r in split_rows if r["uid"] in pred_by_uid and r["uid"] in other]
+    out = M.paired_bootstrap_delta(
+        [r[gold_field] for r in rows], [pred_by_uid[r["uid"]]["pred"] for r in rows],
+        [other[r["uid"]]["pred"] for r in rows], get_label_set(cfg["label_set"]),
+        n_resamples=int(n), seed=cfg["seed"])
+    out["n"] = float(len(rows))
+    return out
+
+
 def delta_vs_baseline(model: dict[str, Any], base: dict[str, Any]) -> dict[str, float]:
     out: dict[str, float] = {}
     for key, value in model.items():
@@ -905,6 +941,7 @@ def evaluate(config_path: str | Path, out_dir: str | Path = DEFAULT_OUT_DIR,
         "native_vs_romanized": {"metric": gap_metric, "by_lang": gaps},
         "baseline": base,
         "delta_vs_baseline": delta_vs_baseline(scored["overall"], base["metrics"]),
+        "paired_vs_baseline": paired_vs_baseline(cfg, split_rows, pred_by_uid, base, out_dir),
         "warnings": warnings,
     }
 

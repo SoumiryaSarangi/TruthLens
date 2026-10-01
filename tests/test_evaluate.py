@@ -736,3 +736,36 @@ def test_fast_path_metrics_are_broken_down_by_script(tmp_path):
     gold, preds = _fastpath_setup(tmp_path)
     doc = evaluate(_fastpath_config(tmp_path, gold, preds), tmp_path)
     assert "fastpath_aucc" in doc["metrics"]["by"]["lang=hi,script=latn"]
+
+
+def _prior_run(tmp_path: Path) -> tuple[str, Path]:
+    """Score a copy of the fixture predictions; return its hash and the copy."""
+    preds = tmp_path / "prior.jsonl"
+    shutil.copy(Path("tests/fixtures/toy_clean/predictions_demo.jsonl"), preds)
+    cfg = write_config(tmp_path, predictions=str(preds))
+    return evaluate(cfg, tmp_path)["config_hash"], preds
+
+
+def test_paired_bootstrap_against_a_prior_run(tmp_path):
+    prior, _ = _prior_run(tmp_path)
+    (tmp_path / "b").mkdir()
+    cfg = write_config(tmp_path / "b", baseline=prior, paired_bootstrap=200)
+    doc = evaluate(cfg, tmp_path)
+    paired = doc["paired_vs_baseline"]
+    assert paired["delta"] == 0.0 and paired["n"] == 9.0      # same predictions
+
+
+def test_paired_bootstrap_refuses_a_baseline_whose_predictions_changed(tmp_path):
+    prior, preds = _prior_run(tmp_path)
+    preds.write_text(preds.read_text(encoding="utf-8").replace("Supported", "Refuted"),
+                     encoding="utf-8")
+    (tmp_path / "b").mkdir()
+    cfg = write_config(tmp_path / "b", baseline=prior, paired_bootstrap=200)
+    with pytest.raises(EvalRefused, match="changed since"):
+        evaluate(cfg, tmp_path)
+
+
+def test_paired_bootstrap_refuses_a_generated_baseline(tmp_path):
+    cfg = write_config(tmp_path, paired_bootstrap=200)
+    with pytest.raises(EvalRefused, match="config_hash baseline"):
+        evaluate(cfg, tmp_path)

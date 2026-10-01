@@ -405,3 +405,19 @@ def test_calibration_metrics_curve_carries_macro_f1():
     assert out["coverage_curve"][0]["macro_f1"] == pytest.approx(0.5)   # A right, B absent
     assert out["ece"] == pytest.approx((abs(1 - 0.9) + abs(0 - 0.6)) / 2)
 
+
+
+def test_paired_bootstrap_of_a_system_against_itself_is_exactly_zero():
+    from eval.metrics import paired_bootstrap_delta
+    y = ["A", "B", "A", "B"] * 10
+    p = ["A", "A", "B", "B"] * 10
+    out = paired_bootstrap_delta(y, p, p, ["A", "B"], n_resamples=200)
+    assert out["delta"] == out["ci95_low"] == out["ci95_high"] == 0.0
+    assert out["p_a_better"] == 0.0
+
+
+def test_paired_bootstrap_of_a_clearly_better_system_excludes_zero():
+    from eval.metrics import paired_bootstrap_delta
+    y = ["A", "B"] * 50
+    out = paired_bootstrap_delta(y, y, ["A"] * 100, ["A", "B"], n_resamples=200)
+    assert out["delta"] > 0 and out["ci95_low"] > 0 and out["p_a_better"] == 1.0

@@ -177,6 +177,11 @@
         }
       },
       "description": "Classification only (FR-13, FR-14). Requires a `confidence` on every prediction; reports ECE, reliability bins, the coverage curve and the operating point. Deliberately not in DEFAULTS, so existing config hashes do not move."
+    },
+    "paired_bootstrap": {
+      "type": "integer",
+      "minimum": 100,
+      "description": "Resamples for a paired-bootstrap 95% CI on the macro-F1 delta against a prior-run (config_hash) baseline. Classification only; refuses if the baseline's predictions changed. Not in DEFAULTS."
     }
   },
   "allOf": [

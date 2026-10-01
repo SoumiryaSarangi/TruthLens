@@ -6,16 +6,17 @@
 # TRAIN (cross-fitted where the stance model is trained), temperature fitted on
 # dev (FR-13). Relevance floor off; tau_abstain 0.
 #
-# Baseline: the Phase 5 claim-only control under the RULE aggregator (0.2514,
-# 8350085fbc7f) -- the bar Phase 6 set itself. Rule vs learned for the SAME
-# stance is in the Phase 5 rows of the table. NotAClaim has zero support, so
-# macro-F1 is capped at 0.80.
+# Baseline: the same control under the Phase 5 RULE aggregator (0.2514,
+# 8350085fbc7f) -- the bar Phase 6 set itself -- so the delta is what the learned
+# aggregator alone is worth. Paired bootstrap: same 500 claims, 95% CI on the
+# delta. NotAClaim has zero support, so macro-F1 is capped at 0.80.
 experiment: p6_verdict_learned_xlmr_claimonly
 task: classification
 split: data/splits/averitec/dev.jsonl
 predictions: results/preds/p6_verdict_learned_xlmr_claimonly.jsonl
 label_set: verdict_5class
 baseline: 8350085fbc7f
+paired_bootstrap: 2000
 breakdown: [lang, script]
 sanity_ceiling: 0.85
 calibration:
