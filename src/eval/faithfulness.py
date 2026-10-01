@@ -96,11 +96,12 @@ def faithfulness_metrics(rows: Sequence[dict[str, Any]]) -> dict[str, float]:
     """Aggregate `support()` results. An empty explanation counts as unfaithful."""
     n = len(rows)
     if not n:
-        return {"faithful_rate": 0.0, "mean_min_entailment": 0.0,
+        return {"n": 0.0, "faithful_rate": 0.0, "mean_min_entailment": 0.0,
                 "mean_sentence_entailment": 0.0, "n_sentences_mean": 0.0}
     mins = [min(r["entailment"]) if r["entailment"] else 0.0 for r in rows]
     flat = [v for r in rows for v in r["entailment"]]
     return {
+        "n": float(n),
         "faithful_rate": sum(1 for r in rows if r["faithful"]) / n,
         "mean_min_entailment": sum(mins) / n,
         "mean_sentence_entailment": sum(flat) / len(flat) if flat else 0.0,

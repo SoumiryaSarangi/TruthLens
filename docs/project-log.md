@@ -36,7 +36,7 @@ historical rationale, lowest precedence.
 **Precedence when documents disagree:** code and tests > `CLAUDE.md` >
 `docs/specs/` > `docs/build-plan.md`.
 
-**Fifteen things that are easy to get wrong here:**
+**Seventeen things that are easy to get wrong here:**
 
 1. **Accuracy is close to meaningless on AVeriTeC.** Majority class scores 61%.
    Lead with macro-F1, always beside its baseline.
@@ -101,10 +101,19 @@ historical rationale, lowest precedence.
 15. **A fact-check's claim field is the misinformation.** It is right for
     retrieval and inverted as evidence. `retrieval/corpus.py` reads a
     fact-check as its title; do not "simplify" that back.
+16. **A small gap needs an interval before it is a finding.** Phase 6's D4 turned
+    on 0.015 macro-F1 over 500 claims, where one claim moves a rare class's F1
+    by ~0.03. `paired_bootstrap:` in an eval config gives the 95% CI against a
+    prior run; XLM-R's "loss" to its control was a tie.
+17. **Faithful is not the same as consistent.** An explanation entailed by some
+    retrieved passage can still be the rumour itself: the gate passed a
+    word-for-word copy of a refuted claim because one passage asserted it. The
+    gate now also rejects, under any verdict but Supported, a sentence that
+    entails the claim.
 
-**Where things stand (2026-10-01):** Phases 1-5 complete; **Phase 6 is next**
--- learned aggregator, relevance floor, calibration, abstention, generation. The
-ordered list is in `docs/phase-plan.md` under "Next: Phase 6".
+**Where things stand (2026-10-02):** Phases 1-6 complete; **Phase 7 is next**
+-- the one test-split run, the served-stance decision, error analysis, demo and
+report. The ordered list is in `docs/phase-plan.md` under "Next: Phase 7".
 
 **To get running:** `make setup` then `make test`. The environment is already
 built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
@@ -115,19 +124,19 @@ built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
 
 | | |
 | --- | --- |
-| **Current phase** | **Phase 5 COMPLETE (2026-10-01); Phase 6 next.** Hybrid retrieval lifts Success@10 0.158 -> 0.214; the rule aggregator is now the bottleneck (the claim-only stance control, 0.2514, beats every evidence-reading arm), so Phase 6's bar is 0.2514. The demo corpus (hi/pa Wikipedia leads + fact-checks) gives free text an evidence path; real forwards through it showed XLM-R stance ignores evidence there, so NLI is served. |
+| **Current phase** | **Phase 6 COMPLETE (2026-10-02); Phase 7 next** -- the final test number, the served-stance decision, error analysis, demo, report. The learned aggregator beats the rule (+0.0435, CI excludes 0), but **no stance model that reads evidence beats the claim-only control** (0.2949). Served: NLI stance (provisional, owner's call), learned aggregator, tau_abstain 0.317, floor off, IndicBART explanations behind an NLI gate. |
 | **Clock** | Target **2026-10-12**, no fixed external deadline (confirmed 2026-09-30). Phases 1-4 done; Phase 5 started 2026-09-30. Phases 6 and 7 remain. |
 | **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |
 | **Python** | 3.11.16 via uv, in `.venv`. System Python is 3.13 and is not used. |
-| **Served config** | `configs/pipeline/dev.yaml` -- preprocess `hybrid`, claims `heuristic`, matching `factcheck` (tau_match 0.90), retrieval `hybrid` (RRF@200), free text `corpus`, stance `nli` (provisional), relevance floor off. `tests/test_orchestrator.py` loads the real file. |
-| **Tests** | 548 passing, 2 skipped, 2 gpu-deselected |
+| **Served config** | `configs/pipeline/dev.yaml` -- preprocess `hybrid`, claims `heuristic`, matching `factcheck` (tau_match 0.90), retrieval `hybrid` (RRF@200), free text `corpus`, stance `nli`, aggregate `learned`, tau_abstain 0.317, floor off, generation `indicbart` (beam) behind faithfulness `nli`. `make serve` warms up first. |
+| **Tests** | 599 passing, 2 skipped, 2 gpu-deselected |
 | **Datasets in hand** | AVeriTeC, X-CLAIM, MultiClaim, handtyped (FR-26), Dakshina, **CheckThat! 2025 T2** |
 | **Datasets waiting** | None. Every dataset is downloaded, split, locked and leakage-checked. |
 | **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
-| **Models trained** | Romanized LID, in-domain Word2Vec, **9 XLM-R+LoRA adapters** (5 span arms, check-worthiness, the Phase 4 cross-encoder, stance and its claim-only twin), a BiLSTM stance model, and two TF-IDF stance models. |
-| **Numbers so far** | Span token-F1 **0.7463** (baseline 0.6851) - claim matching MRR **0.5244** (BM25 0.3826, random 0.0002) - fast-path gate AUCC **0.5842** (gate-removed 0.4284) - LID ~0.86 on the hand-typed set - transliteration CER 0.4281 - AVeriTeC verdict macro-F1 0.2147. **FR-6**: zero-shot NLI 0.5938 vs 0.4595 majority, 7/15 real negatives, but it rejects 21% of real claims so the SERVED config runs the rules. **FR-8**: no safe operating point. |
-| **CI** | Checked with `gh run list` after every push (last green: `6dce339`). A sha here goes stale the moment the next commit lands -- check, do not trust. Runs take ~2 min. `gh` is at `C:\Program Files\GitHub CLI\gh.exe`, NOT on this shell's PATH. |
+| **Models trained** | Romanized LID, in-domain Word2Vec, **24 XLM-R+LoRA adapters** (5 span arms, check-worthiness, the Phase 4 cross-encoder, stance and its claim-only twin, and 5 folds of each for cross-fitting), 6 BiLSTM stance models (full + 5 folds), two TF-IDF stance models, 4 learned aggregators, and the IndicBART+LoRA explainer. |
+| **Numbers so far** | Span token-F1 **0.7463** (baseline 0.6851) - claim matching MRR **0.5244** (BM25 0.3826, random 0.0002) - fast-path gate AUCC **0.5842** (gate-removed 0.4284) - LID ~0.86 on the hand-typed set - transliteration CER 0.4281 - AVeriTeC retrieval Success@10 **0.214** (BM25 0.158) - AVeriTeC verdict macro-F1 **0.2949** (learned aggregator, claim-only control; majority 0.1516; served NLI arm 0.2135) - served ECE **0.0384** (0.0590 before temperature) - explanation faithfulness 0.524 (beam, retrieved). **FR-6**: zero-shot NLI 0.5938 vs 0.4595 majority, 7/15 real negatives, but it rejects 21% of real claims so the SERVED config runs the rules. **FR-8**: no safe operating point. |
+| **CI** | Checked with `gh run list` after every push (last green checked: `e43a614`). A sha here goes stale the moment the next commit lands -- check, do not trust. Runs take ~2 min. `gh` is at `C:\Program Files\GitHub CLI\gh.exe`, NOT on this shell's PATH. |
 
 ---
 
@@ -2165,6 +2174,220 @@ Served config: retrieval `hybrid` (RRF, depth 200), free text `corpus`, stance
 imported torch, which CI's core lock lacks -- CI was red for two pushes
 (`cb9b15e`, `838e7b9`) before `6dce339`. Suite: 548 passing.
 
+## 2026-10-02 — Phase 6: aggregation, calibration, abstention, grounded generation
+
+FR-11 (aggregation), FR-12's floor value, FR-13 (calibration), FR-14
+(abstention), FR-15/16/18 (generation behind an NLI gate), and plan decision D4
+-- which stance model the verdict uses. Phase 5 handed over one problem: the rule
+aggregator (max P(Supports) / max P(Refutes) over k passages) rewarded stance
+models for ignoring evidence, so the claim-only control won the verdict (0.2514)
+and that became this phase's bar.
+
+### Decided with the project owner before building
+
+1. **Cross-fit the stance models** for the aggregator's training data. XLM-R and
+   the BiLSTM were trained on every QA answer of every train claim, labelled with
+   that claim's verdict; scored on those claims, they would hand the aggregator
+   outputs far more confidently right than on any unseen claim. Five claim-level
+   folds (a seeded hash of the claim id, so no claim straddles two), ~35 min of
+   GPU in total -- XLM-R trains in 2.6 min per fold.
+2. **English explanations** from IndicBART, behind the NLI gate. AVeriTeC's ~3,000
+   justifications are the only explanation gold and they are English; hi/pa input
+   gets an English explanation (cut-list item 3). No regression: every
+   explanation was English before.
+
+### Infrastructure first
+
+- **The harness now scores calibration** (opt-in `calibration:`): ECE,
+  reliability bins, the coverage curve with macro-F1 at each point, and the
+  abstention operating point -- the lowest tau whose coverage is <= 60%, a
+  criterion fixed in the plan before any number was seen. Opt-in and outside
+  DEFAULTS, so no existing config hash moved.
+- **`task: faithfulness` is implemented** in `src/eval/`: an explanation is
+  faithful iff EVERY sentence is entailed (mDeBERTa XNLI, P >= 0.5) by some
+  passage it was shown. The pipeline's gate calls the same function, so "passed
+  the gate" and "graded faithful" cannot mean different things.
+- **Paired bootstrap** (opt-in `paired_bootstrap:`): a 95% CI on the macro-F1
+  delta against a prior run, resampling the same claims for both systems. Added
+  mid-phase when D4 turned on a 0.015 gap: with 35-38 claims in the rare classes,
+  one claim moves a class F1 by ~0.03.
+- **Retrieve once, score many times.** `--stage passages` caches each claim's
+  top-20 hybrid passages; every stance arm, fold and k reads that file. The
+  offline features and the live orchestrator agree on 500/500 dev verdicts for
+  XLM-R, its control and the BiLSTM (confidence within 1e-6); NLI 496/500
+  (within 0.045), fp16 mDeBERTa at 512 tokens being sensitive to batch padding.
+
+### D4: no stance model that reads evidence beats the claim-only control
+
+Learned aggregator: multinomial LR over 19 features of the whole top-10 stance
+distribution in rank order, balanced class weights, trained on cross-fitted
+AVeriTeC train, temperature fitted on dev. AVeriTeC dev, macro-F1, paired
+bootstrap over the same 500 claims:
+
+| stance | macro-F1 | accuracy | vs learned control [95% CI] |
+| --- | --- | --- | --- |
+| **XLM-R claim-only (control)** | **0.2949** | 0.470 | (+0.0435 vs the rule, [+0.007, +0.078]) |
+| XLM-R | 0.2802 | 0.490 | -0.015 [-0.062, +0.030] -- a tie |
+| BiLSTM | 0.2340 | 0.388 | -0.061 [-0.100, -0.018] |
+| zero-shot NLI | 0.2135 | 0.320 | -0.081 [-0.124, -0.039] |
+| *Phase 5 bar: control, rule* | *0.2514* | *0.582* | |
+
+Two findings:
+
+1. **The learned aggregator is a real gain**, and its CI excludes zero. It does
+   what it was built for: Conflicting F1 goes from 0.000 under the rule to ~0.20
+   for both XLM-R arms (38 dev claims).
+2. **Reading the evidence adds nothing measurable on AVeriTeC.** XLM-R ties its
+   claim-only twin; NLI and the BiLSTM are significantly worse. Phase 5's
+   derived-stance result (+0.0484 for XLM-R over its twin) does not survive to
+   the verdict. The cross-fitting matters to this conclusion: without it the
+   evidence arms' train features would have been inflated, and the comparison
+   would have favoured them for the wrong reason.
+
+**The served stance stays `nli`**, by the approved plan's rule (no arm beats the
+control -> report it, keep the served stance). That keeps the arm with the
+weakest AVeriTeC number (accuracy 0.32 against a 0.61 majority class) and the
+only one seen reading evidence on real forwards (Phase 5). That is a product
+trade-off, not a measurement, and it is put to the project owner below.
+
+### Floor, temperature, abstention -- all on dev
+
+- **Relevance floor: off.** On the served arm, floors 0.45 and 0.50 abstain on
+  zero dev claims; 0.55 abstains on 3 (-0.0028, [-0.0062, 0.0000]); 0.60 on 9
+  (-0.0065, [-0.0118, -0.0021]). It cannot be tuned on AVeriTeC at all: pools are
+  retrieved FOR each claim (Phase 5: median distractor cosine 0.555). On the demo
+  corpus, where it would matter, there is no gold.
+- **Temperature (FR-13):** ECE 0.0590 at T=1 -> **0.0384** at the fitted
+  T=1.389; macro-F1 unchanged, as temperature cannot move an argmax. Fitted on
+  the same 500 dev claims; the out-of-sample ECE is the test split's, in
+  Phase 7. (XLM-R's T came out 0.795: balanced class weights left it
+  UNDER-confident -- the opposite of what the plan predicted.)
+- **tau_abstain (FR-14) = 0.317**, by the pre-fixed criterion. It answers 60% of
+  dev claims and lifts accuracy only 0.320 -> 0.353: the served arm's
+  confidences are honest and flat (0.28-0.42 for almost every claim). For
+  comparison, XLM-R goes 0.49 -> 0.57 at 60% and 0.69 at 24%.
+
+### Generation: IndicBART + LoRA, behind the gate
+
+Trained on train claims (by frozen split membership -- iterating train.json would
+train on the local test split; tested) with their gold QA evidence, targets the
+justifications with "according to the QA pairs" phrasing removed. bf16, 4 epochs,
+loss 3.20 -> 2.64, 4.5 min, 3.70 GiB. Raw output, pre-gate, dev:
+
+| decoding | input | faithful | chrF vs justification |
+| --- | --- | --- | --- |
+| **beam** (served) | retrieved passages | **0.524** | **0.237** |
+| greedy | retrieved passages | 0.500 | 0.233 |
+| nucleus (p=0.9) | retrieved passages | 0.408 | 0.185 |
+| beam | gold QA (oracle) | 0.272 | 0.243 |
+| *extractive baseline* | *retrieved passages* | *0.628* | *0.200* |
+| *extractive baseline* | *gold QA* | *0.826* | *0.185* |
+
+Beam wins on both measures, so it is served. Nucleus sampling buys variety and
+pays in unsupported sentences, falling below the extractive baseline even on
+chrF. No generator matches the extractive baseline's faithfulness, which copies
+the evidence by construction -- that is why chrF sits beside it.
+
+Against the plan's prediction, explanations are **more** faithful on retrieved
+passages than on the gold QA they were trained with, for two measured reasons:
+retrieved evidence is 8x longer (median 4,464 vs 542 characters), so the model
+copies spans and copied spans are entailed; and 216-249 of 500 explanations
+carry a verdict sentence ("Therefore, the claim is refuted") that no passage can
+entail. The second is a limitation of the metric as CLAUDE.md defines it --
+reported, not redefined. With gold QA the model also paraphrased its way into
+contradictions ("Robert E. Lee was not a slave owner"), which the gate exists to
+stop.
+
+### The served pipeline, end to end
+
+The seven Phase 5 forwards through `configs/pipeline/dev.yaml` and then through
+`make serve` over HTTP:
+
+| forward | truth | served | explanation |
+| --- | --- | --- | --- |
+| दिल्ली भारत की राजधानी है | true | **Supported** | generated, cites e1, e3 |
+| Narendra Modi Gujarat ke mukhyamantri rahe hain | true | Refuted | gate failed -> template |
+| Taj Mahal Shah Jahan ne banwaya tha | true | Refuted | gate failed -> template |
+| ਲਾਹੌਰ ... ਰਾਜਧਾਨੀ ਹੈ | true | **abstained**, leaning Supported | template, by rule |
+| hot water kills the coronavirus | false | **Refuted** | generated |
+| नींबू पानी ... कैंसर ठीक | false | **Refuted** | generated |
+| har student ko 6000 rupaye milenge | false | **Refuted** | template (see below) |
+
+Five right or abstaining in the right direction, two true claims refuted -- both
+from fact-check titles about a *different* claim on the same entity, or a
+disambiguation page. Peak VRAM with every model resident: **2.51 GiB** of the
+~4.9 GiB card. Warm latency 1.3-3.6 s.
+
+**The gate passed the rumour as its own explanation.** For the Rs 6000 forward,
+verdict Refuted, the explainer returned the claim itself, word for word, and it
+cleared the faithfulness gate at 0.99 -- a retrieved passage asserted the rumour,
+so the sentence was "faithful" to it. Served, the system would have shown the
+misinformation as its explanation for refuting it. Faithful to some passage is
+not consistent with the verdict: under any verdict but Supported, a generated
+sentence that entails the claim now fails the gate (entailment 0.73 here).
+
+**The first request after start-up always got the template:** the explainer
+loads lazily inside the 8 s generation budget. `make serve` now sends a warm-up
+request (56 s) before taking traffic, as SYSTEM_DESIGN 13 always said it should.
+
+**Confidence bands** come from the served arm's dev reliability bins (UI_UX 7):
+medium 0.40, where dev accuracy first reaches 0.5; high 0.50, where it reaches
+0.75 -- on 3 claims, which is thin and said so in `app/main.py`.
+
+### The attention figure (Unit IV)
+
+`docs/figures/explainer_attention.png`, a dev claim chosen by a stated rule:
+**73% of the decoder's cross-attention lands on the trailing `</s> <2en>` tags**
+(an attention sink) and ~17% on the evidence passages. The first render left the
+tags out and showed rows summing to 0.27 -- a figure hiding most of the attention
+would have invited exactly the wrong reading. Reported with its caveat: attention
+shows where the decoder looked, not why it wrote what it wrote. The rule-chosen
+explanation also contradicts itself ("There is no evidence ... Therefore, the
+claim is refuted") -- the gate's reason to exist, kept rather than swapped for a
+prettier example.
+
+### Bugs found on the way
+
+- **IndicBART went to NaN loss under fp16** in epoch 1 (mBART-family models
+  overflow fp16). bf16 for training and inference; a non-finite loss now stops
+  the run at its first step.
+- **transformers 5 reads `spiece.model` through protobuf**; without it, it falls
+  back to a tiktoken reader and fails with an error about tiktoken. Added to the
+  ML lock.
+- **IndicBART's `<2en>` and `</s>` survive `skip_special_tokens`** and would have
+  reached the user and been graded as words. Stripped.
+- **`calibration: {}` read as off** (an empty dict is falsy). Presence, not
+  truthiness.
+- **`aggregate: learned` without a path did not know its stance**, and a missing
+  artifact crashed start-up. The orchestrator passes the stance; a missing
+  artifact degrades to the rule with a trace note.
+- **Background jobs here are killed at ~30 min**, and the batch runner writes
+  only at the end: the train passages run was stopped at 29 min ETA and re-run as
+  two shards (`--offset`).
+
+### For the project owner: the served stance
+
+| | NLI (served) | XLM-R |
+| --- | --- | --- |
+| AVeriTeC dev macro-F1 / accuracy | 0.2135 / 0.320 | 0.2802 / 0.490 |
+| vs claim-only control | significantly worse | tie |
+| on real forwards (Phase 5) | reads the evidence | labels as its claim-only twin |
+
+### Cut, and why
+
+- **The k ablation.** D4 found that reading evidence adds nothing measurable
+  over the claim prior; how many passages the aggregator reads cannot matter
+  much when the passages do not move the verdict. The cached passages hold 20
+  per claim, so it is a cheap Phase 7 addition if wanted.
+- **The prompted-LLM comparison** -- slack-only by the plan.
+
+### Phase 6 -- COMPLETE 2026-10-02
+
+FR-11 to FR-16 and FR-18 are built and measured; FR-17 (explanation language)
+is cut to English as decided. Served: hybrid retrieval, NLI stance, learned
+aggregator, tau_abstain 0.317, floor off, IndicBART behind the NLI gate.
+Suite: 599 passing. The test split is untouched; its one run is Phase 7's.
+
 ## Phase 3 gaps — CLOSED 2026-09-24
 
 All four are built. They were, in the order the previous section ranked them:
@@ -2185,57 +2408,36 @@ complete.** The remaining FR-6 limitation is a data problem with a named owner:
 
 ## Next
 
-**Phase 5 — evidence retrieval and stance (Days 7-8)**, with two Phase 4
-follow-ups that are worth Day 6 first.
+**Phase 7 -- demo, ablations, report (Days 12-14). Code freezes at the end of
+Day 12; Days 13-14 are writing and demo polish only.** In order:
 
-**Phase 4 follow-ups, in order of expected value.** All three come out of the
-diagnosis in the Phase 4 entry rather than out of hope:
+1. **The final test-split number, once.** `TRUTHLENS_ALLOW_TEST=1`, the served
+   pipeline over the 307 locked AVeriTeC test claims (their passage vectors are
+   cached), reported beside majority_class and the claim-only control. It is
+   also the out-of-sample ECE that dev cannot give.
+2. **The served-stance decision** (Phase 6 entry, "For the project owner").
+3. **Error analysis**: ten real failure cases per language (build plan), the
+   seven demo forwards among them.
+4. **Ablation tables** via `make table`; the k ablation if wanted (cached
+   passages make it cheap).
+5. **The demo script** in `UI_UX.md` §11, and native-speaker review of the hi/pa
+   UI strings before anyone sees it.
+6. **The report**, including the ethics section and every cut recorded with its
+   reason (SRS §7 acceptance).
 
-1. **Present the fast path as a related fact-check, not a verdict.** Cheapest of
-   the three, and it is a `UI_UX.md` change rather than a model. At 68% precision
-   the top match is genuinely useful as *"here is a fact-check that may be about
-   this"* and dishonest as *"already checked, verdict Refuted"*.
-2. **A within-query reranker objective.** The trained cross-encoder learned to
-   score fact-checks rather than pairs, and that is measured three ways, so a
-   listwise softmax over each post's candidate list is a specific change with a
-   specific prediction. ~3 hours of GPU.
-3. **`BAAI/bge-reranker-v2-m3`**, declined during planning on download risk
-   (~2.3 GB on a connection this project has documented as unreliable). That
-   decision looks worse now than it did.
-
-**Phase 5's first task is the demo corpus**, decided Day 5 and recorded in
-`SYSTEM_DESIGN.md` §14: retrieve-then-rerank over the AVeriTeC dev knowledge
-store (BM25 to top-100, dense over those, ~0.3 GB, ~15 min), the existing
-fact-check index as a second evidence source, and Hindi/Punjabi Wikipedia **lead
-sections only**. Verify the real dump sizes before committing GPU time.
-
-**The floor to beat, per component:**
+**The floor to beat, per component** (dev unless noted):
 
 | component | metric | current | baseline |
 | --- | --- | --- | --- |
 | Claim span, joint | token F1 | **0.7463** | 0.6851 whole-post |
 | Claim matching | MRR / R@10 | **0.5244 / 0.6688** | 0.3826 BM25, 0.0002 random |
 | Fast-path gate | AUCC | **0.5842** | 0.4284 gate-removed |
-| Language ID, hand-typed | accuracy | ~0.86 | 0.6400 majority |
-| Transliteration, 33 pa pairs | CER | **0.4281** | 0.8518 identity |
 | Check-worthiness, hand-typed | macro-F1 | **0.5938** zero-shot NLI | 0.4595 majority |
-| AVeriTeC retrieval | R@10 | 0.0947 | 0.0121 random |
-| AVeriTeC verdict | macro-F1 | 0.2147 | 0.1516 majority |
-
-**Every component is above its baseline, and two of them are not therefore
-usable.**
-
-- **Check-worthiness** clears majority by +0.1343 and rejects 21% of real
-  claims, so the served config runs the rules instead. The constraint is data:
-  15 real no-claim messages in the entire project is enough to measure an
-  operating point and not enough to choose one.
-- **The fast-path gate** beats its gate-removed control by +0.1557 AUCC and
-  still has no safe operating point: 1.7% coverage at 18% wrong citations, or
-  40% coverage at 37%. FR-8 is measured, not demo-ready.
-
-That pairing is the Phase 4 lesson in one line: **above a baseline is not the
-same as good enough to ship**, and the gap between them is a question about what
-an error costs the user, which no metric in this harness answers.
+| AVeriTeC retrieval | Success@10 | **0.214** hybrid | 0.158 BM25 |
+| AVeriTeC verdict | macro-F1 | **0.2949** claim-only control, learned | 0.1516 majority |
+| AVeriTeC verdict, served (NLI) | macro-F1 | 0.2135 | 0.1516 majority |
+| Calibration, served | ECE | **0.0384** | 0.0590 at T=1 |
+| Explanations, beam, retrieved | NLI-faithful | 0.524 | 0.628 extractive |
 
 ### Open items
 
@@ -2246,8 +2448,10 @@ an error costs the user, which no metric in this harness answers.
   (it would install CPU torch over the CUDA build). Options: a character-level
   seq2seq trained on Dakshina's word pairs, or IndicXlit behind a subprocess
   boundary in its own venv. See the Phase 2 entry for why it matters.
-- **Knowledge store train split (63.52 GB) — REQUIRED, and this line used to say
-  otherwise.** It said the train store was "only needed if training retrieval on
+- ~~**Knowledge store train split (63.52 GB)**~~ **BUILT (Phase 5), and its
+  passage vectors cached at depth 200 (2026-10-01, 5.7 GB; test 307/307, train
+  2,662/2,666 -- the other four have no text).** The original note follows.
+  **REQUIRED, and this line used to say otherwise.** It said the train store was "only needed if training retrieval on
   AVeriTeC". Wrong: AVeriTeC's official test labels are withheld, so this
   project's locked **test split is 307 claims carved from the public
   `train.json`** (Phase 0 decision), and their evidence pools live in the TRAIN

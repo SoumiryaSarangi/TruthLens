@@ -11,15 +11,12 @@ seconds without reading the whole plan.
 
 ## Current phase
 
-**Phase 5 COMPLETE (2026-10-01) — Phase 6 is next.** Hybrid retrieval beats
-BM25 (Success@10 0.158 → 0.214), and that exposed the Phase 1 rule aggregator:
-it turns confident evidence in both directions into `Conflicting`, so on the
-verdict the **claim-only stance control (0.2514) beats every stance model that
-reads evidence**. The stance choice moves to Phase 6, against a learned
-aggregator, and Phase 6's bar is 0.2514. The demo corpus (hi/pa Wikipedia leads
-+ 78,077 fact-checks) is built and served; real forwards through it showed XLM-R
-stance ignoring evidence there, so the served stance is `nli` for now. Full
-results: the 2026-10-01 entry in `project-log.md`.
+**Phase 6 COMPLETE (2026-10-02) — Phase 7 is next.** The learned aggregator
+beats the rule (+0.0435 macro-F1, CI excludes 0), but **no stance model that
+reads evidence beats the claim-only control** (0.2949) — XLM-R ties it, NLI and
+the BiLSTM lose. Calibration halves ECE (0.059 → 0.038); abstention is set on dev
+(τ 0.317); IndicBART explanations are served only through an NLI gate. Full
+results: the 2026-10-02 entry in `project-log.md`.
 
 Target date **2026-10-12**, no fixed external deadline (confirmed 2026-09-30).
 
@@ -35,7 +32,7 @@ on 1.7% of posts and still cites the wrong fact-check about 1 time in 5. Both
 rerankers were built and both lose to the raw cosine as a gate. The results are
 below; the diagnosis is in `project-log.md`.
 
-The clock is **14 days**. **Phases 1-5 are done** (2026-10-01); target
+The clock is **14 days**. **Phases 1-6 are done** (2026-10-02); target
 2026-10-12, no fixed external deadline. Phase 1 shipped the vertical
 slice; Phase 2 shipped the language layer and the native-vs-romanized table,
 which is the research contribution. Code freezes at the end of Day 12.
@@ -65,11 +62,13 @@ statically. Stages import their models lazily inside methods.
 | Knowledge stores | `data/raw/averitec_kb/` + cache | **dev and train** built; `retrieval/kb.py` is the one map of archives to splits |
 | Retrieval | `src/retrieval/` | BM25, dense, **hybrid** (RRF@200, passage vectors cached), **corpus** (demo, free text) |
 | Stance | `src/stance/` | NLI, TF-IDF, BiLSTM, XLM-R+LoRA, each trained arm with a claim-only twin |
+| Aggregation | `src/pipeline/aggregate.py` | rule, and the **learned** LR (cross-fitted, temperature-scaled) |
+| Generation | `src/generation/`, `src/faithfulness/` | template; **IndicBART+LoRA** behind the NLI gate |
 | Demo corpus | `data/interim/evidence/` | hi/pa Wikipedia leads + fact-checks; `scripts/build_evidence_index.py` |
 | **Pipeline** | `src/pipeline/` | **Done** — contracts, registry, orchestrator, batch |
 | **Stage baselines** | `src/{preprocess,claims,matching,retrieval,stance,generation,faithfulness}/` | **Done** — 8 impls |
 | **API + UI** | `app/` | **Done** — `/verify`, `/health`, `/version`, plain page |
-| Tests | `tests/` | 548 passing, 2 skipped, 2 gpu-deselected |
+| Tests | `tests/` | 599 passing, 2 skipped, 2 gpu-deselected |
 | CI | `.github/workflows/ci.yml` | Green — `check` + `data` (splits reproduce from source) |
 
 ## Phase 1 results — the floor everything must beat
@@ -267,29 +266,42 @@ All on AVeriTeC dev. Full tables and diagnosis: the 2026-10-01 entry in
 - **Train knowledge store built** (`averitec_kb_train/`); 54% of train gold docs
   have no text.
 
-## Next: Phase 6 — aggregation, calibration, grounded generation (Days 9-11)
+## Phase 6 results (2026-10-02) — the aggregator works; evidence still does not
 
-The bar for every verdict claim in Phase 6 is **0.2514** (the claim-only control),
-not 0.2147. In order:
+AVeriTeC dev, paired bootstrap over the same 500 claims. Full tables: the
+2026-10-02 entry in `project-log.md`.
 
-1. **Learned aggregator (FR-11).** Logistic regression over stance features that
-   see the whole distribution over k passages, not just the max; trained on
-   AVeriTeC **train** (its KB is now built; the batch runner derives the store
-   from each row's source_id). Ablate k. Then make D4: choose the stance model
-   against it, with the claim-only twin as the control that must lose.
-2. **Relevance floor (FR-12)**, chosen on dev by verdict macro-F1 with the
-   abstention rate beside it.
-3. **Calibration (FR-13)**: temperature scaling on dev, ECE before and after;
-   then **τ_abstain (FR-14)** on dev, recorded in `configs/pipeline/dev.yaml`.
-4. **Generation (FR-15/16/18)**: IndicBART (decided 2026-09-21), NLI faithfulness
-   gate that falls back to the template.
-5. **Rerun the seven demo forwards** (project log, "the demo corpus") through the
-   served config after each change; hard negatives for the aggregator are
-   fact-check titles that debunk a *different* claim about the same entity.
+| Component | Number | Reference |
+| --- | --- | --- |
+| Verdict, learned aggregator, claim-only control | macro-F1 **0.2949** | rule 0.2514 (+0.0435, CI [+0.007, +0.078]) |
+| Verdict, XLM-R / BiLSTM / NLI | 0.2802 / 0.2340 / 0.2135 | vs control: tie / worse / worse |
+| Calibration, served arm | ECE **0.0384** | 0.0590 at T=1 |
+| Abstention, served arm | τ 0.317 → 60% coverage, accuracy 0.320 → 0.353 | criterion fixed before measuring |
+| Relevance floor | off | every floor tried abstained 0-9 claims and only lowered macro-F1 |
+| Explanations, beam on retrieved | NLI-faithful **0.524**, chrF 0.237 | extractive 0.628 / 0.200 |
 
-Still open from Phase 4, not yet scheduled: present the fast path as a **related
-fact-check rather than a verdict** (`UI_UX.md`), and a within-query reranker
-objective. Cut first if time runs short: the optional `bge-reranker-v2-m3` arm.
+- **Served stance is still NLI**, by the plan's rule — the weakest AVeriTeC arm
+  and the only one seen reading evidence on real forwards. **Owner's decision,
+  first thing in Phase 7.**
+- The gate also rejects a generated sentence that restates the claim under a
+  verdict other than Supported — found on a real forward, where it passed the
+  rumour itself.
+- Cut: the k ablation (moot once evidence does not move the verdict; cheap later)
+  and the prompted-LLM comparison (slack only).
+
+## Next: Phase 7 — demo, ablations, report (Days 12-14)
+
+Code freezes at the end of Day 12. In order:
+
+1. **The served-stance decision** (NLI vs XLM-R; the trade-off is in the log).
+2. **The final test-split number, once** — `TRUTHLENS_ALLOW_TEST=1`, served
+   pipeline, 307 claims, beside majority and the claim-only control; also the
+   out-of-sample ECE.
+3. **Error analysis** — ten real failure cases per language.
+4. **Ablation tables** (`make table`); the k ablation if wanted.
+5. **Demo script** (`UI_UX.md` §11) after native-speaker review of the hi/pa
+   UI strings.
+6. **Report**, with every cut recorded with its reason (SRS §7).
 
 ### Needs a human — I cannot do these
 

@@ -345,6 +345,8 @@ The harness has no span task yet. Adding one in Phase 3 is a harness change and 
 
 Resident at inference: **~2.8 GB of weights**, leaving room for activations inside the 5.5 GB ceiling (NFR-3). Measure it with `torch.cuda.max_memory_allocated()` and write the figure into `docs/environment.md`, rather than trusting this estimate.
 
+**Measured, Phase 6:** the served pipeline with every model resident (BGE-M3 shared by matcher and corpus, NLI shared by stance and the faithfulness gate, IndicBART in bf16) peaks at **2.51 GiB**. Recorded in `docs/environment.md`.
+
 Training: one model at a time, API server stopped, LoRA via `peft`, fp16, gradient checkpointing, batch size found by halving until it fits. Queue long runs overnight.
 
 **Two environment facts the current docs get wrong:**
@@ -360,6 +362,8 @@ Training: one model at a time, API server stopped, LoRA via `peft`, fp16, gradie
 | Matcher or index unavailable | Evidence path only | `degraded: no fast path` |
 | Generation error or over 8 s | Template explanation | `explanation_source = "template"` |
 | Explanation fails NLI check | Template explanation | `faithfulness` kept, source = template |
+| Generated explanation entails the claim under a verdict other than Supported | Template explanation | trace note `restates the claim` (Phase 6: it had passed the rumour itself) |
+| No trained aggregator artifact (CI, fresh clone) | Rule aggregator | `degraded: no aggregator artifact; rule aggregator` |
 | Verdict abstained (`confidence < τ_abstain`) | Template explanation, never generated prose | `explanation_source = "template"` |
 | Zero passages retrieved | `NEI`, `abstained = true` | FR-12 |
 | Transliteration fails | Continue on original text, script stays `latn` | `degraded: no transliteration` |
@@ -388,7 +392,7 @@ make serve                          # exists. uvicorn app.main:app
 make index                          # PHASE 4/5, not Phase 1 -- see below
 ```
 
-Single process, models loaded once at startup, one warm-up request so the first real request isn't a cold one.
+Single process, models loaded once at startup, one warm-up request so the first real request isn't a cold one. Built in Phase 6: `make serve` sets `TRUTHLENS_WARMUP=1` and the app sends the request (~56 s) before taking traffic; without it the first request's explanation always timed out to the template.
 
 **There is no `make index` in Phase 1, by design.** AVeriTeC ranks within a
 claim's own candidate pool (§7), so retrieval builds a BM25 index over ~1000
@@ -406,7 +410,7 @@ archive into per-claim JSONL. That is a cache, not an index.
 | --- | --- | --- |
 | ~~Demo corpus composition~~ | **DECIDED Day 5 — see below** | Day 5 |
 | Stance gold source | AVeriTeC QA-derived, FEVER warm-start if too thin | Day 7 |
-| Learned aggregator form | Logistic regression over stance features | Day 9 |
+| ~~Learned aggregator form~~ | **DECIDED Phase 6**: multinomial LR over 19 features of the whole top-10 stance distribution, cross-fitted stance on train, temperature on dev (`pipeline/aggregate.py`) | Day 9 |
 | Manipulation flags | Zero-shot plus rules, or dropped | Day 11 |
 
 ### Demo corpus, decided Day 5 (2026-09-24)

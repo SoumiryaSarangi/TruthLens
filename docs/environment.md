@@ -299,6 +299,30 @@ against (`retrieval/corpus.py`, decision D7). Built by
 - The fact-check text in `docs.jsonl` is MultiClaim's and is not redistributed;
   the directory is gitignored with the rest of `data/interim/`.
 
+### Phase 6 costs, measured
+
+| Job | Cost |
+| --- | --- |
+| XLM-R stance, one fold (~80% of train) | 2.6 min, 3.92 GiB peak |
+| XLM-R claim-only, one fold | 0.7 min, 2.4 GiB |
+| BiLSTM stance, one fold | 0.4 min |
+| Top-20 hybrid passages, cached vectors | 2.3-2.6 claims/s (train 2,666 in two shards) |
+| Scoring 20 passages per claim: XLM-R / NLI | ~5 / ~5.5 claims/s |
+| IndicBART + LoRA explainer, 4 epochs, bf16 | 4.5 min, 3.70 GiB peak |
+| **Served pipeline, every model resident** | **2.51 GiB peak** of ~4.9 GiB |
+| `make serve` warm-up request | 56 s; warm requests 1.3-5.5 s |
+
+**Three environment traps from this phase:**
+
+- **IndicBART needs `protobuf`.** transformers 5 reads `spiece.model` through it;
+  without it, it falls back to a tiktoken reader and the error mentions tiktoken,
+  which is the wrong lead. Both are in the ML lock now.
+- **Never fp16 for IndicBART.** It went to NaN loss in epoch 1 under fp16
+  autocast. bf16 (supported on this RTX 4050) for training and inference.
+- **Background jobs in an agent session are killed at ~30 minutes**, and the
+  batch runner writes only at the end. Long runs are sharded (`--offset`,
+  `--limit`) or run in your own terminal, as the 6-hour train passage cache was.
+
 ### Do not run two jobs at once on this machine
 
 **Phase 5 relearned this.** The train knowledge-store build streams 63 GB of zips
