@@ -276,7 +276,7 @@
     "n_missing": 0,
     "n_predicted": 500
   },
-  "created_utc": "2026-10-01T18:00:38+00:00",
+  "created_utc": "2026-10-01T19:18:27+00:00",
   "delta_vs_baseline": {
     "accuracy": 0.0,
     "macro_f1": 0.0
@@ -304,8 +304,8 @@
   "experiment": "p6_verdict_floor_045",
   "git": {
     "branch": "main",
-    "dirty": true,
-    "sha": "6bc00b18bc3cd519d9730204c23b80ac3fb56b31"
+    "dirty": false,
+    "sha": "2dcdb00dfdc71d1f09c07af28f37a4634aaf336c"
   },
   "inputs": {
     "config": {
@@ -511,7 +511,5 @@
     "transformers": true
   },
   "task": "classification",
-  "warnings": [
-    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
-  ]
+  "warnings": []
 }

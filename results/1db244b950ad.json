@@ -6,6 +6,7 @@
       "faithful_rate": 0.628,
       "mean_min_entailment": 0.6168838709588162,
       "mean_sentence_entailment": 0.6168838709588162,
+      "n": 500.0,
       "n_sentences_mean": 1.0
     },
     "name": "extractive_explanation",
@@ -18,7 +19,7 @@
     "n_missing": 0,
     "n_predicted": 500
   },
-  "created_utc": "2026-10-01T18:39:58+00:00",
+  "created_utc": "2026-10-01T19:20:39+00:00",
   "delta_vs_baseline": {
     "chrf": 0.036991999800444375,
     "faithful_rate": -0.10399999999999998,
@@ -49,7 +50,7 @@
   "git": {
     "branch": "main",
     "dirty": false,
-    "sha": "ded2d39bf21fe268325b98c173586feba1ad8c2f"
+    "sha": "2dcdb00dfdc71d1f09c07af28f37a4634aaf336c"
   },
   "inputs": {
     "config": {
@@ -93,6 +94,7 @@
       "faithful_rate": 0.524,
       "mean_min_entailment": 0.5301712667555839,
       "mean_sentence_entailment": 0.5813893488939471,
+      "n": 500.0,
       "n_sentences_mean": 1.272
     }
   },
