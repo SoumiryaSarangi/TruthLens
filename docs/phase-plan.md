@@ -302,6 +302,11 @@ Code freezes at the end of Day 12. In order:
 5. **Demo script** (`UI_UX.md` §11) after native-speaker review of the hi/pa
    UI strings.
 6. **Report**, with every cut recorded with its reason (SRS §7).
+7. **49 older results are marked "dirty tree"** in `docs/results.md` (Phase 5: 23,
+   Phase 2: 15, Phase 3: 8, Phase 1: 3) -- most likely scored while their configs
+   were untracked, as the Phase 6 floor runs were. Re-score each from a clean tree
+   ONLY after checking its predictions file still matches the recorded sha256;
+   some names were reused by later runs, and other configs chain to these hashes.
 
 ### Needs a human — I cannot do these
 
