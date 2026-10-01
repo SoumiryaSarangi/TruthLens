@@ -1,0 +1,28 @@
+# FR-10 stance, ANSWERED rows only: the claim-only shortcut control.
+#
+# The 38 dev rows whose answer is Unanswerable are all the literal string "No
+# answer could be found.", relabelled Neutral when the dataset was derived. A
+# lexical model reads that string, not the evidence: TF-IDF got 38/38 of them
+# against 3/38 for this claim-only twin. So on the full set, most of TF-IDF's
+# "evidence lift" is one string. This config scores the 1,222 ANSWERED rows,
+# where reading the evidence is the only way to beat the claim prior.
+#
+# Scored through the harness via allow_partial: the predictions file covers
+# exactly the answered rows. The split is unchanged -- it is frozen.
+#
+# CAVEAT on the baseline row: majority_class is generated for all 1,260 rows,
+# not the 1,222 scored here, so its delta is approximate. The comparisons that
+# matter -- full models against THIS run -- chain to it by config hash and are
+# exact.
+experiment: p5_stance_xlmr_claimonly_answered
+task: classification
+split: data/splits/averitec_stance/dev.jsonl
+predictions: results/preds/p5_stance_xlmr_claimonly_answered.jsonl
+label_set: stance_3class
+baseline: majority_class
+breakdown: [lang, script]
+allow_partial: true
+notes: >
+  Implementation: stance=xlmr_claimonly, never sees the evidence. Answered rows
+  only (1,222 of 1,260); the 38 Unanswerable rows are excluded because a single
+  literal string decides them.

@@ -1,0 +1,221 @@
+{
+  "baseline": {
+    "kind": "generated",
+    "metrics": {
+      "accuracy": 0.665079365079365,
+      "confusion": {
+        "Neutral": {
+          "Neutral": 0,
+          "Refutes": 113,
+          "Supports": 0
+        },
+        "Refutes": {
+          "Neutral": 0,
+          "Refutes": 838,
+          "Supports": 0
+        },
+        "Supports": {
+          "Neutral": 0,
+          "Refutes": 309,
+          "Supports": 0
+        }
+      },
+      "macro_f1": 0.26628535112805846,
+      "n": 1260.0,
+      "per_class": {
+        "Neutral": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 113.0
+        },
+        "Refutes": {
+          "f1": 0.7988560533841754,
+          "precision": 0.665079365079365,
+          "recall": 1.0,
+          "support": 838.0
+        },
+        "Supports": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 309.0
+        }
+      }
+    },
+    "name": "majority_class",
+    "notes": []
+  },
+  "config_hash": "69af8034ac39",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 1260,
+    "n_missing": 0,
+    "n_predicted": 1260
+  },
+  "created_utc": "2026-10-01T04:45:06+00:00",
+  "delta_vs_baseline": {
+    "accuracy": -0.05714285714285716,
+    "macro_f1": 0.2343206372213102
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p5_stance_bilstm",
+  "git": {
+    "branch": "main",
+    "dirty": true,
+    "sha": "ff8626f5dfbeaa5a8c2fd19af4d2ce6762dbcfc7"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "majority_class",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p5_stance_bilstm",
+      "label_set": "stance_3class",
+      "metrics": {},
+      "min_cell_n": 30,
+      "notes": "Implementation: stance=bilstm -- siamese BiLSTM with attention pooling over frozen XLM-R input embeddings, InferSent comparison features. The PRD's stance baseline (Unit III).\n",
+      "predictions": "results/preds/p5_stance_bilstm.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/averitec_stance/dev.jsonl",
+      "task": "classification"
+    },
+    "config_path": "configs/p5_stance_bilstm.yaml",
+    "predictions_path": "results/preds/p5_stance_bilstm.jsonl",
+    "predictions_sha256": "4dfd46d8327e90e3e73157f3c5a777ef1ce6a353c4f55f83e37b3bd864fe9d37",
+    "split_path": "data/splits/averitec_stance/dev.jsonl",
+    "split_sha256": "56e9b4305038b005a5841b41ba7b0eac01de8eba405b5e9dbcf7cd40e238eb33",
+    "splits_lock_sha256": "f972ff7c3f0064fa22a8cd3f475bace63dd37c683640d993319f677545056952"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=latn": {
+        "accuracy": 0.6079365079365079,
+        "confusion": {
+          "Neutral": {
+            "Neutral": 45,
+            "Refutes": 41,
+            "Supports": 27
+          },
+          "Refutes": {
+            "Neutral": 53,
+            "Refutes": 595,
+            "Supports": 190
+          },
+          "Supports": {
+            "Neutral": 21,
+            "Refutes": 162,
+            "Supports": 126
+          }
+        },
+        "macro_f1": 0.5006059883493686,
+        "n": 1260.0,
+        "per_class": {
+          "Neutral": {
+            "f1": 0.3879310344827587,
+            "precision": 0.37815126050420167,
+            "recall": 0.39823008849557523,
+            "support": 113.0
+          },
+          "Refutes": {
+            "f1": 0.7273838630806846,
+            "precision": 0.7456140350877193,
+            "recall": 0.7100238663484487,
+            "support": 838.0
+          },
+          "Supports": {
+            "f1": 0.38650306748466257,
+            "precision": 0.3673469387755102,
+            "recall": 0.4077669902912621,
+            "support": 309.0
+          }
+        }
+      }
+    },
+    "overall": {
+      "accuracy": 0.6079365079365079,
+      "confusion": {
+        "Neutral": {
+          "Neutral": 45,
+          "Refutes": 41,
+          "Supports": 27
+        },
+        "Refutes": {
+          "Neutral": 53,
+          "Refutes": 595,
+          "Supports": 190
+        },
+        "Supports": {
+          "Neutral": 21,
+          "Refutes": 162,
+          "Supports": 126
+        }
+      },
+      "macro_f1": 0.5006059883493686,
+      "n": 1260.0,
+      "per_class": {
+        "Neutral": {
+          "f1": 0.3879310344827587,
+          "precision": 0.37815126050420167,
+          "recall": 0.39823008849557523,
+          "support": 113.0
+        },
+        "Refutes": {
+          "f1": 0.7273838630806846,
+          "precision": 0.7456140350877193,
+          "recall": 0.7100238663484487,
+          "support": 838.0
+        },
+        "Supports": {
+          "f1": 0.38650306748466257,
+          "precision": 0.3673469387755102,
+          "recall": 0.4077669902912621,
+          "support": 309.0
+        }
+      }
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 1260.0,
+        "native": 0.5006059883493686
+      }
+    },
+    "metric": "macro_f1"
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "classification",
+  "warnings": [
+    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
+  ]
+}

@@ -1,0 +1,18 @@
+# FR-10 stance on the DERIVED averitec_stance dev set -- model selection only.
+#
+# 1,260 (claim, evidence) pairs from 453 AVeriTeC dev claims. The gold is each
+# claim's VERDICT propagated to every one of its QA answers, so it is noisy by
+# construction: dev row 0 is "Where was the claim first published? It was first
+# published on Sccopertino", labelled Refutes because its claim is Refuted.
+# This number measures agreement with the propagated verdict, not stance
+# accuracy. AVeriTeC dev VERDICT macro-F1, whose gold is clean, decides which
+# stance model ships. Refutes is 66.5% of dev, so lead with macro-F1.
+experiment: p5_stance_xlmr_claimonly
+task: classification
+split: data/splits/averitec_stance/dev.jsonl
+predictions: results/preds/p5_stance_xlmr_claimonly.jsonl
+label_set: stance_3class
+baseline: majority_class
+breakdown: [lang, script]
+notes: >
+  Implementation: stance=xlmr_claimonly -- the SHORTCUT CONTROL for xlmr: the same XLM-R + LoRA, trained identically, seeing ONLY the claim.
