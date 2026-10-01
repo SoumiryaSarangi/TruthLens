@@ -97,6 +97,56 @@ def run_stance(split_path: Path, cfg: PipelineConfig, out: Path,
     return {"n": len(predictions), "claims": len(by_claim)}
 
 
+def run_passages(split_path: Path, cfg: PipelineConfig, out: Path, k: int = 20,
+                 limit: int | None = None, allow_degraded: bool = False) -> dict[str, int]:
+    """Retrieve once, score stance many times (Phase 6, decision D1).
+
+    Writes each AVeriTeC claim's top-`k` passages -- the exact text the
+    orchestrator would hand the stance model, from the same preprocess, claims
+    and retriever stages -- with each passage's dense cosine. Every stance arm,
+    fold and k then reads this file instead of re-running retrieval.
+    """
+    set_all_seeds()
+    rows = load_jsonl(split_path)
+    if limit:
+        rows = rows[:limit]
+    texts = load_texts(split_path)
+    cfg.split = evidence_store_for(rows, split_path)
+    print(f"  evidence pools from the {cfg.split} knowledge store, k={k}")
+    orch = Orchestrator(cfg)
+    counts = {"n": 0, "degraded": 0, "no_evidence": 0}
+    written: list[dict] = []
+    started = time.time()
+    for i, row in enumerate(rows, start=1):
+        trace = Trace(request_id=row["uid"])
+        orch.preprocess.run(trace, texts[row["uid"]])
+        orch.claims.extract(trace)
+        claim = trace.claims[0].text
+        ranking = orch.retriever.topk(claim, claim_index_from_uid(row["source_id"]), k)
+        if getattr(ranking, "note", None):
+            counts["degraded"] += 1
+        passages = orch._to_passages(claim, ranking) if ranking else []
+        counts["n"] += 1
+        counts["no_evidence"] += not passages
+        written.append({
+            "uid": row["uid"], "source_id": row["source_id"], "claim": claim,
+            "passages": [{"doc_id": p.doc_id, "text": p.text,
+                          "retrieval_score": p.retrieval_score,
+                          "dense_score": getattr(sd, "dense_score", None)}
+                         for p, sd in zip(passages, ranking, strict=True)],
+        })
+        if i % 100 == 0 or i == len(rows):
+            rate = i / max(time.time() - started, 1e-6)
+            print(f"  {i:5}/{len(rows)}  {rate:5.2f} claims/s  "
+                  f"eta {(len(rows) - i) / max(rate, 1e-6) / 60:5.1f} min", flush=True)
+    if counts["degraded"] and not allow_degraded:
+        raise SystemExit(f"{counts['degraded']}/{counts['n']} claims ran DEGRADED; "
+                         "nothing written.")
+    write_jsonl(out, written)
+    print(f"  wrote {len(written)} rows -> {out}")
+    return counts
+
+
 def run_preprocess(
     split_path: Path,
     cfg: PipelineConfig,
@@ -505,7 +555,10 @@ def run(
             verdict_out.append({
                 "uid": uid,
                 "pred": result.verdict,
-                "probs": {result.verdict: result.confidence},
+                # The full distribution when the aggregator has one (FR-13 is
+                # measured on it); the rule's single winning probability otherwise.
+                "probs": result.verdict_probs or {result.verdict: result.confidence},
+                "confidence": result.confidence,
             })
 
         if i % 25 == 0 or i == len(rows):
@@ -540,8 +593,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--stage", default="both",
                     choices=["retrieval", "verdict", "both", "lang", "translit",
                              "match", "fastpath", "checkworthy", "span",
-                             "normalize", "stance"])
+                             "normalize", "stance", "passages"])
     ap.add_argument("--impl", default=None, help="override the retrieval impl")
+    ap.add_argument("--aggregate-impl", default=None, help="override the aggregator: rule|learned")
+    ap.add_argument("--aggregator", default=None,
+                    help="learned aggregator artifact (model.joblib) to load")
     ap.add_argument("--stance-impl", default=None, help="override the stance impl")
     ap.add_argument("--preprocess-impl", default=None, help="override the preprocess impl")
     ap.add_argument("--claims-impl", default=None, help="override the claims impl")
@@ -594,6 +650,10 @@ def main(argv: list[str] | None = None) -> int:
         cfg.stages["retrieval"] = args.impl
     if args.stance_impl:
         cfg.stages["stance"] = args.stance_impl
+    if args.aggregate_impl:
+        cfg.stages["aggregate"] = args.aggregate_impl
+    if args.aggregator:
+        cfg.stage_args.setdefault("aggregate", {})["path"] = args.aggregator
     if args.preprocess_impl:
         cfg.stages["preprocess"] = args.preprocess_impl
     if args.claims_impl:
@@ -629,6 +689,16 @@ def main(argv: list[str] | None = None) -> int:
                             gate=args.gate)
         print(f"  {counts['n']} rows | {counts['checkworthy']} check-worthy "
               f"| {counts['capped']} capped at MAX_CLAIMS")
+        return 0
+
+    if args.stage == "passages":
+        out = Path(args.out or "results/preds/passages.jsonl")
+        print(f"pipeline: retrieval={cfg.stages['retrieval']} "
+              f"args={cfg.stage_args.get('retrieval', {})}")
+        counts = run_passages(Path(args.split), cfg, out, k=args.k or 20,
+                              limit=args.limit, allow_degraded=args.allow_degraded)
+        print(f"  {counts['n']} claims | {counts['no_evidence']} with no evidence "
+              f"| {counts['degraded']} degraded")
         return 0
 
     if args.stage == "stance":

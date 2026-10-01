@@ -95,6 +95,17 @@ class Orchestrator:
                 "retrieval", impl, **{**args.get("free_text_retrieval", {}), "k": cfg.k})
         self.stance = make("stance")
         self.aggregator = make("aggregate")
+        # A learned aggregator reads ONE stance model's probabilities. Fed another
+        # model's, it produces a confident distribution over noise and never
+        # says so -- so the pairing is checked once, here, not trusted.
+        trained_on = getattr(self.aggregator, "stance", None)
+        if trained_on is not None and trained_on != s["stance"]:
+            from pipeline.aggregate import AggregatorMismatch
+
+            raise AggregatorMismatch(
+                f"aggregate impl {s['aggregate']!r} was trained on stance "
+                f"{trained_on!r} but this pipeline runs stance {s['stance']!r}."
+            )
         self.generator = make("generation")
         self.faithfulness = make("faithfulness")
 
@@ -227,8 +238,9 @@ class Orchestrator:
             passage.stance_prob = res.prob
             probs.append(res.probs)
 
+        dense = [getattr(sd, "dense_score", None) for sd in scored][:len(probs)]
         agg = self._timed(trace, "aggregate", self.aggregator.impl,
-                          lambda: self.aggregator.aggregate(probs))
+                          lambda: self.aggregator.aggregate(probs, dense=dense))
         abstained = agg.confidence < self.cfg.tau_abstain          # FR-14
 
         explanation, cited = self.generator.explain(agg.verdict, passages,
@@ -236,6 +248,7 @@ class Orchestrator:
         return ClaimResult(
             claim=claim, path="evidence", match=None, passages=passages,
             verdict=agg.verdict, confidence=agg.confidence, abstained=abstained,
+            verdict_probs=getattr(agg, "probs", None),
             explanation=explanation, explanation_source="template",
             explanation_lang=trace.pre.lang if trace.pre else "en",
             cited=cited,

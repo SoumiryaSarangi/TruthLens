@@ -29,7 +29,9 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from common.io_jsonl import load_jsonl  # noqa: E402
 from common.seeds import SEED, set_all_seeds  # noqa: E402
+from data.loaders import stance_parent_source_id  # noqa: E402
 from stance.bilstm import MAX_TOKENS, MODELS, PAD, STANCES, UNK, Vocab, build_net  # noqa: E402
+from stance.folds import N_FOLDS, fold_of  # noqa: E402
 
 TOKENIZER = "xlm-roberta-base"
 SPLIT = Path("data/splits/averitec_stance/train.jsonl")
@@ -42,6 +44,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--batch-size", type=int, default=64)
     ap.add_argument("--lr", type=float, default=1e-3)
     ap.add_argument("--hidden", type=int, default=256)
+    # Phase 6 cross-fitting (decision D2): train on every claim OUTSIDE this
+    # fold, so the claims inside it can be scored by a model that never saw them.
+    ap.add_argument("--fold", type=int, default=None)
+    ap.add_argument("--n-folds", type=int, default=N_FOLDS)
     args = ap.parse_args(argv)
     set_all_seeds(SEED)
 
@@ -49,8 +55,15 @@ def main(argv: list[str] | None = None) -> int:
     import torch
     from transformers import AutoModel, AutoTokenizer
 
-    out_dir = MODELS / "stance_bilstm"
-    labels = {r["uid"]: r["label"] for r in load_jsonl(SPLIT)}
+    out_dir = MODELS / ("stance_bilstm" if args.fold is None
+                        else f"stance_bilstm_fold{args.fold}")
+    split = list(load_jsonl(SPLIT))
+    labels = {r["uid"]: r["label"] for r in split}
+    if args.fold is not None:
+        held_out = {r["uid"] for r in split
+                    if fold_of(stance_parent_source_id(r["source_id"]),
+                               args.n_folds) == args.fold}
+        labels = {u: lab for u, lab in labels.items() if u not in held_out}
     rows = [r for r in load_jsonl(INTERIM) if r["uid"] in labels]
     y = [STANCES.index(labels[r["uid"]]) for r in rows]
     print(f"stance_bilstm: {len(rows)} pairs "
@@ -108,7 +121,7 @@ def main(argv: list[str] | None = None) -> int:
         "tokenizer": TOKENIZER, "n_rows": int(embeddings.shape[0]),
         "dim": int(embeddings.shape[1]), "hidden": args.hidden}), encoding="utf-8")
     (out_dir / "training.json").write_text(json.dumps({
-        "seed": SEED, "epochs": args.epochs, "batch_size": args.batch_size,
+        "seed": SEED, "fold": args.fold, "epochs": args.epochs, "batch_size": args.batch_size,
         "lr": args.lr, "hidden": args.hidden, "n_train": len(rows),
         "vocab_rows": int(embeddings.shape[0]),
         "minutes": round((time.time() - started) / 60, 1)}, indent=2), encoding="utf-8")

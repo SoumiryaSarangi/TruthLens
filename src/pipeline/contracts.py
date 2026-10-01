@@ -97,6 +97,9 @@ class ClaimResult(BaseModel):
     explanation_lang: Lang
     cited: list[str] = Field(default_factory=list)
     faithfulness: float | None = None
+    # The aggregator's full verdict distribution, when it has one (the learned
+    # aggregator does; the rule does not). What calibration is measured on.
+    verdict_probs: dict[str, float] | None = None
     manipulation_flags: list[str] = Field(default_factory=list)
 
     @field_validator("explanation_source")

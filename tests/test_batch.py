@@ -141,3 +141,39 @@ def test_verdict_output_scores_through_the_real_harness(toy):
 def _schema_path():
     from pathlib import Path
     return Path(__file__).resolve().parents[1] / "configs" / "_schema" / "eval.schema.json"
+
+
+def test_verdict_rows_carry_a_confidence_for_calibration(toy):
+    tmp, _, _ = toy
+    _run(toy)
+    rows = list(load_jsonl(tmp / "preds_v.jsonl"))
+    assert all(0.0 <= r["confidence"] <= 1.0 for r in rows)
+
+
+def test_passages_stage_writes_what_the_orchestrator_would_read(toy):
+    """D1: retrieval once; every stance arm reads this file."""
+    from pipeline.batch import run_passages
+
+    tmp, split, kb = toy
+    import pipeline.batch as batch_mod
+
+    original = batch_mod.Orchestrator
+
+    def patched(config):
+        orch = original(config)
+        orch.retriever.store = KnowledgeStore("dev", cache_root=kb)
+        return orch
+
+    batch_mod.Orchestrator = patched
+    try:
+        counts = run_passages(split, PipelineConfig(), tmp / "passages.jsonl", k=2)
+    finally:
+        batch_mod.Orchestrator = original
+    rows = list(load_jsonl(tmp / "passages.jsonl"))
+    assert counts["n"] == 2 and len(rows) == 2
+    first = rows[0]
+    assert first["claim"] == "Nursing posts were restored in 2020."
+    assert first["passages"][0]["doc_id"] == "gold_0"
+    assert "nursing posts" in first["passages"][0]["text"].lower()
+    assert set(first["passages"][0]) == {"doc_id", "text", "retrieval_score", "dense_score"}
+

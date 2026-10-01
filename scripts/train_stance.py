@@ -43,6 +43,8 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from common.io_jsonl import load_jsonl  # noqa: E402
 from common.seeds import SEED, set_all_seeds  # noqa: E402
+from data.loaders import stance_parent_source_id  # noqa: E402
+from stance.folds import N_FOLDS, fold_of  # noqa: E402
 from stance.xlmr import MODELS, STANCES  # noqa: E402
 
 BASE_MODEL = "xlm-roberta-base"
@@ -60,12 +62,24 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--max-length", type=int, default=256)
     ap.add_argument("--lora-r", type=int, default=16)
     ap.add_argument("--lora-alpha", type=int, default=32)
+    # Phase 6 cross-fitting (decision D2): train on every claim OUTSIDE this
+    # fold, so the claims inside it can be scored by a model that never saw them.
+    ap.add_argument("--fold", type=int, default=None)
+    ap.add_argument("--n-folds", type=int, default=N_FOLDS)
     args = ap.parse_args(argv)
     set_all_seeds(SEED)
 
     name = "stance_xlmr_claimonly" if args.claim_only else "stance_xlmr"
+    if args.fold is not None:
+        name += f"_fold{args.fold}"
     out_dir = MODELS / name
-    labels = {r["uid"]: r["label"] for r in load_jsonl(SPLIT)}
+    split = list(load_jsonl(SPLIT))
+    labels = {r["uid"]: r["label"] for r in split}
+    if args.fold is not None:
+        held_out = {r["uid"] for r in split
+                    if fold_of(stance_parent_source_id(r["source_id"]),
+                               args.n_folds) == args.fold}
+        labels = {u: lab for u, lab in labels.items() if u not in held_out}
     rows = [r for r in load_jsonl(INTERIM) if r["uid"] in labels]
     counts = collections.Counter(labels[r["uid"]] for r in rows)
     print(f"{name}: {len(rows)} pairs over {len({r['claim'] for r in rows})} claims "
@@ -136,6 +150,7 @@ def main(argv: list[str] | None = None) -> int:
     peak = torch.cuda.max_memory_allocated() / 2**30 if torch.cuda.is_available() else 0.0
     (out_dir / "training.json").write_text(json.dumps({
         "claim_only": args.claim_only, "base_model": BASE_MODEL, "seed": SEED,
+        "fold": args.fold, "n_folds": args.n_folds if args.fold is not None else None,
         "epochs": args.epochs, "batch_size": batch_size, "lr": args.lr,
         "max_length": args.max_length, "lora_r": args.lora_r,
         "lora_alpha": args.lora_alpha, "n_train": len(rows),
