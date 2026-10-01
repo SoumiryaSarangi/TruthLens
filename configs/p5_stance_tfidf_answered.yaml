@@ -1,0 +1,18 @@
+# FR-10 stance, ANSWERED rows only, against the claim-only twin.
+#
+# The baseline is the claim-only TF-IDF run on the SAME 1,222 answered rows
+# (config hash 23cbb4f8e845), so delta_vs_baseline is exactly "how much this
+# model gains by reading the evidence" -- the number the claim prior cannot
+# fake. The 38 Unanswerable rows are excluded because one literal string ("No
+# answer could be found.") decides them. Split unchanged; it is frozen.
+experiment: p5_stance_tfidf_answered
+task: classification
+split: data/splits/averitec_stance/dev.jsonl
+predictions: results/preds/p5_stance_tfidf_answered.jsonl
+label_set: stance_3class
+baseline: 23cbb4f8e845
+breakdown: [lang, script]
+allow_partial: true
+notes: >
+  Implementation: stance=tfidf. Answered rows only (1,222 of 1,260). Baseline is
+  the claim-only twin on the same rows, so the delta is the evidence lift.
