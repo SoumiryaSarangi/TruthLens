@@ -91,9 +91,11 @@ class XLMRStance:
     def label(self, claim: str, passages: list[str]) -> list[StanceResult]:
         if not passages:
             return []
+        # Loaded first: a missing adapter refuses with how to train it, and that
+        # refusal must not depend on torch being installed (CI's core lock).
+        tokenizer, model = self._load()
         import torch
 
-        tokenizer, model = self._load()
         first, second = self.inputs(claim, passages)
         out: list[StanceResult] = []
         for start in range(0, len(first), self.batch_size):

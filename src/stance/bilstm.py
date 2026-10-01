@@ -143,9 +143,10 @@ class BiLSTMStance:
     def label(self, claim: str, passages: list[str]) -> list[StanceResult]:
         if not passages:
             return []
+        # Loaded first, so a missing model refuses whether or not torch is here.
+        net = self._load()
         import torch
 
-        net = self._load()
         out: list[StanceResult] = []
         for start in range(0, len(passages), self.batch_size):
             batch = passages[start:start + self.batch_size]
@@ -160,9 +161,10 @@ class BiLSTMStance:
 
     def attend(self, text: str) -> list[tuple[str, float]]:
         """(token, attention weight) over one text -- the Unit IV figure."""
+        # Loaded first, so a missing model refuses whether or not torch is here.
+        net = self._load()
         import torch
 
-        net = self._load()
         ids, _ = self._tensors([text], [text])
         with torch.inference_mode():
             _, weights = net.encode(ids)
