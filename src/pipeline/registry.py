@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from typing import Any
 
 STAGES = ("preprocess", "claims", "matching", "retrieval", "stance",
-          "aggregate", "generation", "faithfulness")
+          "aggregate", "generation", "faithfulness", "manipulation")
 
 
 @dataclass(frozen=True)
@@ -61,6 +61,10 @@ def all_registrations() -> list[Registration]:
 # -----------------------------------------------------------------------------
 # Phase 1 baselines. Registered by path -- nothing is imported until used.
 # -----------------------------------------------------------------------------
+# FR-19 (P2), optional like free_text_retrieval: not in DEFAULT_STAGES, so no
+# evaluation config runs it. Flags only; it never touches a verdict.
+register("manipulation", "none", "manipulation.flags", "NoFlags")
+register("manipulation", "rules_nli", "manipulation.flags", "RulesNLIFlags")
 register("preprocess", "passthrough", "preprocess.passthrough", "PassthroughPreprocess")
 register("preprocess", "full", "preprocess.language", "LanguagePreprocess")
 register("preprocess", "hybrid", "preprocess.language", "HybridPreprocess")

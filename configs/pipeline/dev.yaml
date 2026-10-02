@@ -136,6 +136,11 @@ stages:
   # retrieved passages pass.
   generation: indicbart
   faithfulness: nli
+  # Phase 7 (FR-19, P2): SemEval-2023 T3 technique flags by keyword rules plus
+  # zero-shot NLI on the resident model. UNMEASURED -- no SemEval gold was ever
+  # obtained -- so verified by demo only. Runs after every verdict is decided and
+  # only copies its list onto the results; it cannot move a verdict.
+  manipulation: rules_nli
 
 stage_args:
   aggregate:

@@ -119,6 +119,9 @@ class Orchestrator:
         self.faithfulness = make("faithfulness")
         # FR-18: the template always exists, whatever `generation` is set to.
         self.template = registry.build("generation", "template")
+        # FR-19, optional: absent means no flags, as for every evaluation config.
+        self.manipulation = registry.build(
+            "manipulation", s.get("manipulation", "none"), **args.get("manipulation", {}))
         self._gen_pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
     # -- helpers --------------------------------------------------------------
@@ -131,6 +134,25 @@ class Orchestrator:
 
     # -- the flow -------------------------------------------------------------
     def verify(self, text: str, claim_idx: int | None = None) -> Trace:
+        trace = self._decide(text, claim_idx)
+        # FR-19: flags are computed only AFTER every verdict is decided and are
+        # copied onto the results, so no flag can move a verdict, a confidence
+        # or an abstention. A failing flagger degrades to no flags (NFR-7).
+        if trace.results and trace.pre is not None:
+            try:
+                flags = self._timed(
+                    trace, "manipulation", self.manipulation.impl,
+                    lambda: self.manipulation.flags(trace.pre.original,
+                                                    trace.pre.transliterated))
+            except Exception as exc:
+                trace.record("manipulation", self.manipulation.impl, 0.0,
+                             f"degraded: flagging failed ({type(exc).__name__}); no flags")
+                flags = []
+            for result in trace.results:
+                result.manipulation_flags = list(flags)
+        return trace
+
+    def _decide(self, text: str, claim_idx: int | None) -> Trace:
         trace = Trace(request_id=uuid.uuid4().hex[:12])
 
         self._timed(trace, "preprocess", self.preprocess.impl,
