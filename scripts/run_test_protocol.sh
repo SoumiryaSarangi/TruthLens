@@ -2,6 +2,7 @@
 # The one test-split run, exactly as docs/test-protocol.md pre-registers it.
 #
 #   bash scripts/run_test_protocol.sh            # from the repo root, Git Bash
+#   bash scripts/run_test_protocol.sh 11         # resume at protocol step 11
 #
 # Runs every prediction command (each proven on dev to reproduce its dev twin
 # byte for byte), writes the three configs that pair against a run produced
@@ -10,10 +11,12 @@
 # is the final run, and nothing on test feeds back into any choice.
 #
 # Takes ~1.5 h, most of it the explainer (#7). Each step writes before the next
-# starts, so a crash can be resumed by commenting out the finished steps -- a
+# starts, so a crash resumes at a step number (steps before it are skipped) -- a
 # re-run is allowed only for a crash, a refusal or a non-metric bug, and is
 # logged with its cause (protocol, rule 2).
 set -euo pipefail
+FROM=${1:-1}
+step() { [ "$1" -ge "$FROM" ]; }
 
 export TRUTHLENS_ALLOW_TEST=1 PYTHONIOENCODING=utf-8 PYTHONPATH=src
 PY=.venv/Scripts/python.exe
@@ -61,7 +64,7 @@ open(f"configs/{name}.yaml", "w", encoding="utf-8", newline="\n").write(
 print(f"wrote configs/{name}.yaml (baseline {base})")
 EOF
 }
-
+if step 1; then
 echo "== #1 control, #2-4 served, #5 served at T=1 (AVeriTeC test, evidence path)"
 $B --split $AV --stage verdict $EVIDENCE --stance-impl xlmr_claimonly --aggregate-impl learned \
    --aggregator data/interim/models/aggregator_xlmr_claimonly/model.joblib \
@@ -82,7 +85,9 @@ $EVAL configs/p7_test_verdict_served_majority.yaml
 runtime_config p7_test_calibration_served_t1 p6_calibration_served_t1 \
    results/preds/p7_test_verdict_served_t1.jsonl "$SERVED" "{calibration: {coverage_target: 0.6, tau: 0.3835}}"
 $EVAL configs/p7_test_calibration_served_t1.yaml
+fi
 
+if step 6; then
 echo "== #6 evidence retrieval"
 $B --split $AV --stage retrieval --impl bm25 --stance-impl always_neutral \
    --out results/preds/p7_test_retrieval_bm25.jsonl
@@ -93,24 +98,36 @@ BM25=$(hash_of p7_test_retrieval_bm25)
 runtime_config p7_test_retrieval_hybrid p5_retrieval_hybrid_rrf_n200 \
    results/preds/p7_test_retrieval_hybrid.jsonl "$BM25"
 $EVAL configs/p7_test_retrieval_hybrid.yaml
+fi
 
-echo "== #8-11 claim spans (X-CLAIM test, romanized test)"
+if step 8; then
+echo "== #8-10 claim spans (X-CLAIM test, romanized test)"
 $B --split data/splits/x_claim/test.jsonl --stage span --claims-impl xlmr \
    --out results/preds/p7_test_span_joint.jsonl
 $B --split data/splits/x_claim/test.jsonl --stage span --claims-impl heuristic_span \
    --out results/preds/p7_test_span_served.jsonl
 $B --split data/splits/x_claim_romanized/test.jsonl --stage span --claims-impl xlmr \
    --out results/preds/p7_test_span_romanized_joint.jsonl
-for c in p7_test_span_joint p7_test_span_served p7_test_span_romanized_joint \
-         p7_test_span_native_matched_joint; do $EVAL configs/$c.yaml; done
+for c in p7_test_span_joint p7_test_span_served p7_test_span_romanized_joint; do
+  $EVAL configs/$c.yaml
+done
+fi
 
+if step 11; then
+echo "== #11 the joint model's native predictions on the romanized posts' gold"
+$EVAL configs/p7_test_span_native_matched_joint.yaml
+fi
+
+if step 12; then
 echo "== #12-13 claim matching and the fast path (MultiClaim test)"
 $B --split data/splits/multiclaim/test.jsonl --stage match --encoder bge_m3 \
    --out results/preds/p7_test_match_bge_m3.jsonl
 $B --split data/splits/multiclaim/test.jsonl --stage match --impl bm25_factcheck \
    --out results/preds/p7_test_match_bm25.jsonl
 for c in p7_test_match_bge_m3 p7_test_match_bm25 p7_test_fastpath_bge_m3; do $EVAL configs/$c.yaml; done
+fi
 
+if step 14; then
 echo "== #14 normalization, #15 language ID"
 $B --split data/splits/checkthat25_t2/test.jsonl --stage normalize --preprocess-impl hybrid \
    --claims-impl xlmr --out results/preds/p7_test_normalize_extractive.jsonl
@@ -118,10 +135,23 @@ $B --split data/splits/multiclaim/test.jsonl --stage lang --preprocess-impl hybr
    --out results/preds/p7_test_lid_hybrid.jsonl
 $EVAL configs/p7_test_normalize_extractive.yaml
 $EVAL configs/p7_test_lid_hybrid.yaml
+fi
 
-echo "== #7 explanations (longest: ~1 h)"
+if step 16; then
+echo "== #7 explanations (longest: ~1 h, so last)"
 $B --split $AV --stage explain --evidence retrieved --decoding beam $EVIDENCE \
    --stance-impl nli --aggregate-impl learned --out results/preds/p7_test_explain_beam.jsonl
 $EVAL configs/p7_test_faithfulness_beam.yaml
+fi
+
+echo "== provenance: results scored while the run-time configs were untracked carry a"
+echo "   'dirty tree' flag; re-score exactly those from a clean tree -- same hash, same"
+echo "   metrics, or refused (scripts/check_result_provenance.py)"
+if [ -z "$(git status --porcelain -- src configs scripts)" ]; then
+  "$PY" scripts/check_result_provenance.py --rescore
+else
+  echo "   SKIPPED: the run-time configs are not committed yet. Commit configs/p7_test_*.yaml,"
+  echo "   then: bash scripts/run_test_protocol.sh 99   (runs only this step)"
+fi
 
 echo "== done $(date -u +%FT%TZ). Results: results/*.json for experiments p7_test_*; log: $LOG"

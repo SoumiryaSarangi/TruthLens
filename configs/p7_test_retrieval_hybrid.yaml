@@ -1,0 +1,21 @@
+# Test protocol: written by scripts/run_test_protocol.sh from p5_retrieval_hybrid_rrf_n200.yaml.
+# Baseline f98e27174df6 is the test run this one pairs against.
+experiment: p7_test_retrieval_hybrid
+task: retrieval
+split: data/splits/averitec/test.jsonl
+gold: data/gold/averitec_test_retrieval.jsonl
+predictions: results/preds/p7_test_retrieval_hybrid.jsonl
+baseline: f98e27174df6
+metrics:
+  retrieval:
+    k:
+    - 1
+    - 5
+    - 10
+breakdown:
+- lang
+- script
+allow_partial: true
+notes: FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1.
+  Written at run time from p5_retrieval_hybrid_rrf_n200; only split, predictions,
+  gold and the baseline hash differ.

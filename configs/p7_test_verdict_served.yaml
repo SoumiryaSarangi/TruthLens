@@ -1,0 +1,19 @@
+# Test protocol: written by scripts/run_test_protocol.sh from p6_verdict_served.yaml.
+# Baseline 36e3f8e6094c is the test run this one pairs against.
+experiment: p7_test_verdict_served
+task: classification
+split: data/splits/averitec/test.jsonl
+predictions: results/preds/p7_test_verdict_served.jsonl
+label_set: verdict_5class
+baseline: 36e3f8e6094c
+paired_bootstrap: 2000
+breakdown:
+- lang
+- script
+sanity_ceiling: 0.85
+calibration:
+  coverage_target: 0.6
+  tau: 0.3835
+notes: FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1.
+  Written at run time from p6_verdict_served; only split, predictions, gold and the
+  baseline hash differ.
