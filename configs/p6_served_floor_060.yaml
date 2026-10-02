@@ -1,0 +1,15 @@
+# FR-12 floor sweep for the served arm: relevance floor 0.60 on the best passage's
+# dense cosine; NEI + abstained below it. Baseline: floor off (164d2289c90b),
+# paired. 0.45 and 0.50 abstain on no dev claim for ANY stance (the floor reads
+# retrieval only, measured on the NLI arm), so only these two can move anything.
+experiment: p6_served_floor_060
+task: classification
+split: data/splits/averitec/dev.jsonl
+predictions: results/preds/p6_served_floor_060.jsonl
+label_set: verdict_5class
+baseline: 164d2289c90b
+paired_bootstrap: 2000
+breakdown: [lang, script]
+sanity_ceiling: 0.85
+notes: >
+  served arm (stance xlmr_nli, aggregator_xlmr_nli_prior), dev only.
