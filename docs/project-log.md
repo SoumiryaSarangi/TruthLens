@@ -111,11 +111,14 @@ historical rationale, lowest precedence.
     gate now also rejects, under any verdict but Supported, a sentence that
     entails the claim.
 
-**Where things stand (2026-10-02):** Phases 1-6 complete and the served stance
-decided (`xlmr_nli`: XLM-R decides the verdict, NLI labels the passages shown --
-entry "The served stance: XLM-R decides, NLI shows"). **Phase 7 is next**,
-starting with the one test-split run; then error analysis, demo and report. The
-ordered list is in `docs/phase-plan.md` under "Next: Phase 7".
+**Where things stand (2026-10-02):** Phases 1-6 complete; **Phase 7 code is
+frozen** (tag `code-freeze`). Done: test-split locks, FR-26 romanized spans,
+FR-19 flags, the demo page and chips, a new served extractor
+(`claims: heuristic_span`), NFR-1/2/3 measured, and every test command proven
+on dev. **Next: the one test run**, exactly as `docs/test-protocol.md` says, then
+error analysis (`docs/error-analysis.md`, taxonomy fixed), the report
+(`docs/report.md`) and the acceptance matrix (`docs/acceptance.md`). Entries
+"Phase 7, steps 1-4" and "steps 5-6" below.
 
 **Phase 6/7 working files, all gitignored and on this machine** (rebuild
 commands in each script's docstring): cached top-20 passages per AVeriTeC claim
@@ -2518,6 +2521,69 @@ model at P >= 0.90, at most three. Flags are computed after every verdict is
 decided and only copied onto results -- tested with the stage on and off.
 **Unmeasured**: SemEval data was never obtained, so FR-19 is demo-verified, as
 the SRS allows for a P2.
+
+## 2026-10-02 — Phase 7, steps 5-6: the demo page, a new served extractor, and the code freeze
+
+**The served extractor changed (owner's call, rule fixed first).** Choosing the
+"long forward" demo chip showed the served `claims: heuristic` verifying every
+sentence of 4+ words: "Dosto dhyan se padho!!" ("friends, read carefully") was
+checked and **refuted at 0.83, in the High band**. Measured, the rule had never
+been scored on FR-7: span F1 **0.7095** on X-CLAIM dev (6debf902eac4), barely
+above whole-post 0.6851, against the joint span model's 0.7463.
+`claims/heuristic_span.py` keeps the heuristic's check-worthiness gate (the span
+model cannot say "no claim") and keeps candidate sentences by the share of their
+tokens the span model tags: span F1 **0.7374** (e1b2227b28d9). Rule fixed before
+measuring: serve it unless significantly worse on AVeriTeC dev. Isolated run,
+only the claims stage changed: **-0.0030, CI [-0.0115, +0.0041]**
+(268b03cffbd4). Served. Every rant tried now verifies only its claim.
+
+**Every dev verdict number is the evidence path -- and the test must be too.**
+The first comparison run used the full served config and disagreed with the
+served run on 28 single-sentence claims, which the extractor cannot touch. Cause:
+the served run 164d2289c90b (and every Phase 5-6 verdict run) was produced
+WITHOUT `--pipeline-config` -- default stages, no fact-check matcher. With the
+matcher on, the fast path answered AVeriTeC claims by finding **the claim's own
+source fact-check** (dev 00070: CheckYourFact on the same Fauci claim, cosine
+0.95). AVeriTeC's rules exclude the source article as evidence. Measured as a
+labelled diagnostic, p7_verdict_fullpipe_dev (5d4fd8d511e6): +0.0017 macro-F1 --
+small, but a lookup, not verification. So the AVeriTeC verdict, dev and test, is
+the evidence path with no matcher; the fast path is measured on MultiClaim. The
+test protocol said otherwise in its first draft and was corrected before any
+test prediction existed.
+
+**Test commands proven on dev.** Each test command is its dev twin's with
+`--split` changed; re-run on dev, all twelve reproduce their dev predictions
+byte for byte (the explainer on its first 20 claims). Table in
+`docs/test-protocol.md`.
+
+**The demo page (FR-23).** The WhatsApp-styled page of UI_UX §3-§9 replaces the
+Phase 1 page. `tests/test_ui_static.py` checks WCAG AA for every token pair in
+light and dark -- it caught muted text on the dark outgoing bubble at 3.72:1 --
+plus string coverage per locale and that no confidence cut point is hard-coded.
+Rendering real `/verify` responses through `app.js` in Node found a pipeline
+bug: the English template explanation was labelled with the INPUT language, so
+the card marked English text `lang="hi"` and hid the "explanation in English"
+note. Fixed in the orchestrator.
+
+**The six demo chips** (`app/static/samples.json`, our own wording) were each
+chosen by running candidates through the served pipeline, and
+`scripts/demo_check.py` fails if one stops showing its path. **The fast path is
+nearly unreachable at the served tau_match 0.90:** correct matches for natural
+phrasings of well-known hoaxes scored 0.75-0.86, and even a fact-check's own
+headline reworded scored 0.864; the chip that clears it (pineapple juice and
+cough syrup, 0.919) is a close restatement. tau was not lowered for the demo.
+Candidate runs also added a regression forward: the TRUE "Harmandir Sahib is in
+Amritsar" is refuted at 0.59 -- the error analysis's first question again.
+
+**NFR-1/2/3 measured** (`scripts/measure_latency.py`): evidence path p95 2.51 s
+(budget 10), fast path p95 0.62 s (3), cold start 61 s (90), **peak VRAM 4.60
+GiB** -- within NFR-3's 5.12 GiB but ~0.3 GiB from what Windows leaves usable,
+now that the span model is resident.
+
+**Cut: the k ablation** (first on the plan's sacrifice list). Reason unchanged
+from Phase 6: evidence does not move the verdict beyond the claim prior (D4), so
+how many passages the aggregator reads cannot matter much; the cached passages
+keep it cheap for later.
 
 ## Phase 3 gaps — CLOSED 2026-09-24
 

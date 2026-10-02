@@ -11,13 +11,14 @@ seconds without reading the whole plan.
 
 ## Current phase
 
-**Phase 6 COMPLETE (2026-10-02) — Phase 7 is next.** The learned aggregator
-beats the rule (+0.0435 macro-F1, CI excludes 0), but **no stance model that
-reads evidence beats the claim-only control** (0.2949) — XLM-R ties it, NLI and
-the BiLSTM lose. Calibration halves ECE (0.059 → 0.038); abstention is set on dev
-(τ 0.3835); IndicBART explanations are served only through an NLI gate. Served
-stance: `xlmr_nli` — XLM-R decides the verdict, NLI labels the passages shown. Full
-results: the 2026-10-02 entry in `project-log.md`.
+**Phase 7 — code frozen (2026-10-02); the test run is next.** Built in Phase 7:
+test-split locks for every entry point and a fixed-τ harness metric; FR-26's
+romanized X-CLAIM set (Hindi span F1 0.7805 → 0.7468 romanized, Punjabi ~equal);
+FR-19 flags (rules + zero-shot NLI, unmeasured); the WhatsApp-styled page with
+six demo chips and `scripts/demo_check.py`; a new served extractor,
+`heuristic_span` (span F1 0.7095 → 0.7374, verdict unchanged within CI);
+NFR-1/2/3 met (VRAM tight: 4.60 GiB). The one test run follows
+`docs/test-protocol.md`, every command proven on dev byte for byte.
 
 Target date **2026-10-12**, no fixed external deadline (confirmed 2026-09-30).
 
