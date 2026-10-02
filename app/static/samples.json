@@ -16,7 +16,7 @@
   ],
   "regression": [
     {"truth": "true", "served": "abstained:Supported", "text": "दिल्ली भारत की राजधानी है"},
-    {"truth": "true", "served": "Refuted", "text": "Narendra Modi Gujarat ke mukhyamantri rahe hain"},
+    {"truth": "true", "served": "abstained:NEI", "text": "Narendra Modi Gujarat ke mukhyamantri rahe hain"},
     {"truth": "true", "served": "Refuted", "text": "Taj Mahal Shah Jahan ne banwaya tha"},
     {"truth": "true", "served": "abstained:Supported", "text": "ਲਾਹੌਰ ਪਾਕਿਸਤਾਨ ਦੇ ਪੰਜਾਬ ਸੂਬੇ ਦੀ ਰਾਜਧਾਨੀ ਹੈ"},
     {"truth": "true", "served": "Refuted", "text": "ਹਰਿਮੰਦਰ ਸਾਹਿਬ ਅੰਮ੍ਰਿਤਸਰ ਵਿੱਚ ਸਥਿਤ ਹੈ"},

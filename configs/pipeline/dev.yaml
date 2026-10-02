@@ -42,6 +42,21 @@ tau_match: 0.90
 # tau_abstain applies to the evidence path only.
 tau_abstain: 0.3835
 
+# AFTER THE TEST RUN (Phase 7; docs/report.md §8a). Free text only -- AVeriTeC
+# and MultiClaim numbers cannot move. "Taj Mahal Shah Jahan ne banwaya tha" was
+# refuted at 0.72: the transliterator garbled the names (तज महल शह जहन), the
+# claim was searched in Latin letters anyway, and none of the ten passages said
+# who built it. Search romanized hi/pa with the claim's native-script form too.
+free_text_translit_query: true
+# TRIED AND REJECTED, same day: abstain when no passage contains half the
+# claim's content words (pipeline/relevance.py; 1/2 fixed before running it).
+# On the demo forwards it stopped one wrong refutation but abstained on a
+# well-supported one -- the lemon-water claim's best evidence is a SPANISH
+# fact-check and a Hindi page with an inflected verb, and word overlap sees
+# neither (coverage 0.00 and 0.40). Word overlap cannot judge the cross-lingual
+# evidence this corpus is full of. Off.
+free_text_coverage: null
+
 # relevance_floor (FR-12): OFF, chosen on dev in Phase 6 by verdict macro-F1.
 # 0.45 and 0.50 abstain on zero dev claims; 0.55 and 0.60 abstain on 3 and 9 and
 # only lower macro-F1 (0.60: -0.0065, CI excludes 0). AVeriTeC pools are
@@ -153,6 +168,10 @@ stages:
   manipulation: rules_nli
 
 stage_args:
+  preprocess:
+    # Post-test: Dakshina lexicon first, rules for the rest. Hand-typed Punjabi
+    # CER 0.4281 -> 0.3359 (p7_translit_handtyped_lexicon), the rule fixed first.
+    translit: lexicon
   aggregate:
     path: data/interim/models/aggregator_xlmr_nli_prior/model.joblib
   generation:

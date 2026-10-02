@@ -54,6 +54,11 @@ class LanguagePreprocess:
             self._translit = build_transliterator(self.translit_impl)
         return self._translit
 
+    def transliterate(self, text: str, lang: str) -> str:
+        """The same romanized -> native conversion `run` applies, for one span
+        of text (a claim sentence) rather than the whole forward."""
+        return self._transliterator().to_native(text, lang)
+
     def run(self, trace: Trace, text: str) -> Trace:
         cleaned = strip_artefacts(text)
         script = detect_script(cleaned)

@@ -1,0 +1,8 @@
+# Post-test (Phase 7): the served preprocessing with the lexicon-first
+# transliterator, for evaluating it in isolation (p7_translit_handtyped_lexicon).
+name: translit_lexicon
+stages:
+  preprocess: hybrid
+stage_args:
+  preprocess:
+    translit: lexicon

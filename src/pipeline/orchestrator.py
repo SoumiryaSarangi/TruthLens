@@ -45,6 +45,15 @@ class PipelineConfig:
     # unbounded and RRF is rank-based -- so the floor reads `dense_score`. Off by
     # default; chosen on dev by verdict macro-F1, like tau.
     relevance_floor: float | None = None
+    # Free text only (post-test, Phase 7), both off by default so no evaluation
+    # config changes. `free_text_translit_query`: search romanized hi/pa with
+    # the claim AND its native-script transliteration -- the claim text itself
+    # stays in Latin letters, so without this the Hindi/Punjabi corpus is
+    # searched in the wrong script. `free_text_coverage`: abstain when no
+    # passage contains this share of the claim's content words
+    # (pipeline/relevance.py).
+    free_text_translit_query: bool = False
+    free_text_coverage: float | None = None
     stages: dict[str, str] | None = None
     stage_args: dict[str, dict[str, Any]] | None = None
 
@@ -73,6 +82,8 @@ class PipelineConfig:
         return {"name": self.name, "split": self.split, "k": self.k,
                 "tau_match": self.tau_match, "tau_abstain": self.tau_abstain,
                 "relevance_floor": self.relevance_floor,
+                "free_text_translit_query": self.free_text_translit_query,
+                "free_text_coverage": self.free_text_coverage,
                 "stages": dict(self.stages or {})}
 
 
@@ -207,10 +218,11 @@ class Orchestrator:
             return self._nei_abstain(claim, "No evidence corpus is available for "
                                             "free-text input.")
 
+        forms = self._claim_forms(trace, claim, claim_idx)
+        query = " ".join(forms)
         try:
             scored = self._timed(trace, "retrieval", retriever.impl,
-                                 lambda: retriever.topk(claim.text, claim_idx,
-                                                        self.cfg.k))
+                                 lambda: retriever.topk(query, claim_idx, self.cfg.k))
         except Exception as exc:
             trace.record("retrieval", retriever.impl, 0.0,
                          f"degraded: retrieval failed ({type(exc).__name__})")
@@ -230,12 +242,12 @@ class Orchestrator:
         # thing SYSTEM_DESIGN 11 says must never happen. The lexical selector
         # needs no model, so it is the fallback.
         try:
-            passages = self._to_passages(claim.text, scored, retriever=retriever)
+            passages = self._to_passages(query, scored, retriever=retriever)
         except Exception as exc:
             trace.record("retrieval", retriever.impl, 0.0,
                          f"degraded: passage selection failed ({type(exc).__name__}); "
                          "lexical paragraphs")
-            passages = self._to_passages(claim.text, scored, lexical=True)
+            passages = self._to_passages(query, scored, lexical=True)
 
         # FR-12, the half that did not exist: sources were found, but none is
         # relevant enough to judge from. Abstaining here costs an NEI; reading
@@ -285,6 +297,20 @@ class Orchestrator:
                          "degraded: no aggregator artifact; rule aggregator")
             agg = RuleAggregator().aggregate(probs)
         abstained = agg.confidence < self.cfg.tau_abstain          # FR-14
+        # Free text: if no passage even mentions most of the claim, the verdict
+        # is the stance model's claim prior talking, not the evidence -- the
+        # Taj Mahal failure. Abstain, keeping the leaning (pipeline/relevance.py).
+        if claim_idx is None and self.cfg.free_text_coverage is not None and not abstained:
+            from pipeline.relevance import covers_claim
+
+            covered, best = covers_claim(
+                forms, [f"{p.title or ''} {p.text}" for p in passages],
+                threshold=self.cfg.free_text_coverage)
+            if not covered:
+                abstained = True
+                trace.record("relevance", "coverage", 0.0,
+                             f"no passage covers the claim (best {best:.2f} < "
+                             f"{self.cfg.free_text_coverage:.2f}): abstained")
 
         explanation, cited, source, faith = self._explain(
             trace, claim.text, agg.verdict, passages, abstained)
@@ -300,6 +326,24 @@ class Orchestrator:
             explanation_lang="en",
             cited=cited, faithfulness=faith,
         )
+
+    def _claim_forms(self, trace: Trace, claim, claim_idx: int | None) -> list[str]:
+        """The claim as typed, plus its native-script form for romanized hi/pa
+        free text when `free_text_translit_query` is on."""
+        forms = [claim.text]
+        pre = trace.pre
+        if (claim_idx is None and self.cfg.free_text_translit_query and pre is not None
+                and pre.transliterated and pre.lang in ("hi", "pa")):
+            transliterate = getattr(self.preprocess, "transliterate", None)
+            try:
+                native = transliterate(claim.text, pre.lang) if transliterate else None
+            except Exception as exc:
+                trace.record("preprocess", self.preprocess.impl, 0.0,
+                             f"degraded: claim transliteration failed ({type(exc).__name__})")
+                native = None
+            if native and native != claim.text:
+                forms.append(native)
+        return forms
 
     def _explain(self, trace: Trace, claim_text: str, verdict: str,
                  passages: list[Passage], abstained: bool):

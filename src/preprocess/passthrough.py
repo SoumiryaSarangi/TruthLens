@@ -20,6 +20,12 @@ class PassthroughPreprocess:
     name = "preprocess"
     impl = "passthrough"
 
+    def __init__(self, **_: object) -> None:
+        # Accepts and ignores the full stage's arguments (`translit`, `lid`), as
+        # the template explainer does, so a config written for the served
+        # preprocess can be run with this baseline swapped in.
+        pass
+
     def run(self, trace: Trace, text: str) -> Trace:
         cleaned = strip_artefacts(text)
 

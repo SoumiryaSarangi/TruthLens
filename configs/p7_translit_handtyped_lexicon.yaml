@@ -1,0 +1,22 @@
+# AFTER THE TEST RUN (Phase 7), dev only. FR-5 with the lexicon-first
+# transliterator (preprocess/translit.py, LexiconTransliterator): Dakshina's
+# train lexicon read backwards, the rules for every word it lacks.
+#
+# Why: "Taj Mahal Shah Jahan ne banwaya tha" transliterated to तज महल शह जहन,
+# retrieval never reached the Taj Mahal article, and a true claim was refuted at
+# 0.72. Decision rule fixed before this run: adopt it if CER on these 33
+# hand-typed Punjabi pairs is below the rule-based 0.4281 (f141a4d92b33).
+#
+#   python -m pipeline.batch --split data/splits/handtyped/dev.jsonl --stage translit \
+#       --pipeline-config configs/pipeline/translit_lexicon.yaml \
+#       --out results/preds/p7_translit_handtyped_lexicon.jsonl
+experiment: p7_translit_handtyped_lexicon
+task: transliteration
+split: data/splits/handtyped/dev.jsonl
+gold: data/gold/handtyped_dev_translit.jsonl
+predictions: results/preds/p7_translit_handtyped_lexicon.jsonl
+baseline: f141a4d92b33
+breakdown: [lang, script]
+notes: >
+  Baseline is the rule-based transliterator's run (p2_translit_handtyped_hybrid),
+  so the delta reads directly as what the lexicon buys. n=33.
