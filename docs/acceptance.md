@@ -47,9 +47,9 @@ with the reason.
 
 | ID | Method | Evidence | Status |
 | --- | --- | --- | --- |
-| NFR-1 | test (timed) | `scripts/measure_latency.py` → `docs/environment.md` | pending |
-| NFR-2 | review | same | pending |
-| NFR-3 | review | same; Phase 6: 3.56 GiB peak | pending |
+| NFR-1 | test (timed) | `scripts/measure_latency.py` → `docs/environment.md`: evidence p95 2.51 s (≤ 10), fast p95 0.62 s (≤ 3) | V |
+| NFR-2 | review | same: cold start 61 s (≤ 90) | V |
+| NFR-3 | review | same: 4.60 GiB peak (≤ 5.12 GiB) | V\* — ~0.3 GiB headroom against the ~4.9 GiB Windows leaves usable |
 | NFR-4 | review | `docs/environment.md`: one GPU job at a time | V |
 | NFR-5 | test | `tests/test_provenance.py`; every result carries config hash, git SHA, env | V |
 | NFR-6 | test | `make leakage`; test lock in `evaluate.py`, `pipeline/batch.py`, `score_passages.py` (`common/test_guard.py`) | V |

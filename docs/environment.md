@@ -323,6 +323,32 @@ against (`retrieval/corpus.py`, decision D7). Built by
   batch runner writes only at the end. Long runs are sharded (`--offset`,
   `--limit`) or run in your own terminal, as the 6-hour train passage cache was.
 
+### Phase 7: the served pipeline against NFR-1/2/3 (measured 2026-10-02)
+
+`python scripts/measure_latency.py` on the final served config
+(`claims: heuristic_span`, `manipulation: rules_nli`, IndicBART explanations),
+in-process through `Orchestrator.verify` -- the code `POST /verify` calls.
+74 warm requests: the demo chips and regression forwards, 40 AVeriTeC dev claims
+as free text (seed 42), 20 MultiClaim dev posts the fast path answers.
+
+| | Measured | Budget | |
+| --- | --- | --- | --- |
+| NFR-1 evidence path, p50 / p95 (n=62) | 1.33 s / **2.51 s** (max 10.8 s) | p95 ≤ 10 s | met |
+| NFR-1 fast path, p50 / p95 (n=11) | 0.22 s / **0.62 s** | p95 ≤ 3 s | met |
+| NFR-2 cold start, process start to first full answer | **61 s** | ≤ 90 s | met |
+| NFR-3 peak VRAM, every model resident | **4.60 GiB** | ≤ 5.5 GB (5.12 GiB) | met, **tight** |
+
+**VRAM is the margin to watch.** 4.60 GiB is up from Phase 6's 3.56: the span
+model (claims `heuristic_span`) is now resident beside both stance models, NLI,
+BGE-M3 and IndicBART. Windows leaves ~4.9 GiB of the 6 GiB usable, so the
+served pipeline has ~0.3 GiB of headroom on this card -- nothing else should
+run on the GPU while `make serve` is up (NFR-4 already says so for training).
+The 10.8 s maximum is one long multi-claim request; it is under the p95, which
+is what the budget is written on.
+
+Verdict-only batch runs pass `--generation-impl template` (the verdict is decided
+before any explanation is written): AVeriTeC dev in ~12 min instead of ~60.
+
 ### Do not run two jobs at once on this machine
 
 **Phase 5 relearned this.** The train knowledge-store build streams 63 GB of zips
