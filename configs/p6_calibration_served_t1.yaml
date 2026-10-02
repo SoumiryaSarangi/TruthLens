@@ -1,0 +1,15 @@
+# FR-13 BEFORE side for the served arm: aggregator_xlmr_nli_prior at T=1.0. Baseline
+# is the AFTER run (164d2289c90b, fitted T=0.795); macro-F1 cannot move, only
+# the confidences do.
+experiment: p6_calibration_served_t1
+task: classification
+split: data/splits/averitec/dev.jsonl
+predictions: results/preds/p6_calibration_served_t1.jsonl
+label_set: verdict_5class
+baseline: 164d2289c90b
+breakdown: [lang, script]
+sanity_ceiling: 0.85
+calibration:
+  coverage_target: 0.6
+notes: >
+  served arm (stance xlmr_nli, aggregator_xlmr_nli_prior), dev only.
