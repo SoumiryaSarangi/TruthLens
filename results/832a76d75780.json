@@ -1,0 +1,108 @@
+{
+  "baseline": {
+    "experiment": "p2_translit_handtyped_hybrid",
+    "kind": "prior_run",
+    "metrics": {
+      "cer": 0.4280503978779841,
+      "exact_match": 0.0,
+      "n": 33.0,
+      "wer": 0.7253086419753086
+    },
+    "name": "f141a4d92b33"
+  },
+  "config_hash": "832a76d75780",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 33,
+    "n_missing": 0,
+    "n_predicted": 100
+  },
+  "created_utc": "2026-10-02T11:14:18+00:00",
+  "delta_vs_baseline": {
+    "cer": -0.09217506631299738,
+    "exact_match": 0.0,
+    "wer": -0.12654320987654322
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p7_translit_handtyped_lexicon",
+  "git": {
+    "branch": "main",
+    "dirty": false,
+    "sha": "41b05082d041240174777d181bca6b1cad73e1e8"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "f141a4d92b33",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p7_translit_handtyped_lexicon",
+      "gold": "data/gold/handtyped_dev_translit.jsonl",
+      "metrics": {},
+      "min_cell_n": 30,
+      "notes": "Baseline is the rule-based transliterator's run (p2_translit_handtyped_hybrid), so the delta reads directly as what the lexicon buys. n=33.\n",
+      "predictions": "results/preds/p7_translit_handtyped_lexicon.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/handtyped/dev.jsonl",
+      "task": "transliteration"
+    },
+    "config_path": "configs/p7_translit_handtyped_lexicon.yaml",
+    "predictions_path": "results/preds/p7_translit_handtyped_lexicon.jsonl",
+    "predictions_sha256": "1dee86d109513808e6933001409168126b0e7cf0a2f20853f929de0ad3ed7512",
+    "split_path": "data/splits/handtyped/dev.jsonl",
+    "split_sha256": "d74288f9df6836036f14b0d98765b37f551930fa2c61370e3d027fe926a1bbd9",
+    "splits_lock_sha256": "8d1d9f49a48b32e03f1a0c2be1c050d7a108b4f7bfe127753f812df66a00e717"
+  },
+  "metrics": {
+    "by": {
+      "lang=pa,script=latn": {
+        "cer": 0.3358753315649867,
+        "exact_match": 0.0,
+        "n": 33.0,
+        "wer": 0.5987654320987654
+      }
+    },
+    "overall": {
+      "cer": 0.3358753315649867,
+      "exact_match": 0.0,
+      "n": 33.0,
+      "wer": 0.5987654320987654
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {},
+    "metric": "cer"
+  },
+  "paired_vs_baseline": null,
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "transliteration",
+  "warnings": []
+}
