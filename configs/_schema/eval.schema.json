@@ -174,6 +174,12 @@
           "maximum": 1,
           "default": 0.6,
           "description": "The abstention operating point: the lowest tau whose coverage is <= this. Fixed in the Phase 6 plan before any number was seen."
+        },
+        "tau": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "A FIXED abstention threshold, chosen elsewhere (on dev). Reports coverage and selective scores at exactly this tau as `at_tau`. The operating point above re-chooses tau on the split being scored, which on test would be choosing on test; this is how a test run reports the served tau instead."
         }
       },
       "description": "Classification only (FR-13, FR-14). Requires a `confidence` on every prediction; reports ECE, reliability bins, the coverage curve and the operating point. Deliberately not in DEFAULTS, so existing config hashes do not move."

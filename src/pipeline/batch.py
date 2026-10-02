@@ -23,6 +23,7 @@ import sys
 import time
 from pathlib import Path
 
+from common import test_guard
 from common.io_jsonl import load_jsonl, write_jsonl
 from common.seeds import set_all_seeds
 from pipeline import registry
@@ -711,6 +712,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--offset", type=int, default=0, help="--stage passages: skip rows")
     args = ap.parse_args(argv)
+    try:
+        test_guard.require_allowed(Path(args.split), load_jsonl(args.split),
+                                   what=f"--stage {args.stage}")
+    except test_guard.TestSplitLocked as exc:
+        print(f"REFUSED: {exc}", file=sys.stderr)
+        return 2
 
     cfg = (PipelineConfig.load(args.pipeline_config) if args.pipeline_config
            else PipelineConfig())

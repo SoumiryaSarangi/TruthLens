@@ -306,6 +306,17 @@ def test_calibration_reports_ece_curve_and_operating_point(tmp_path):
     assert cal["coverage_curve"][-1]["coverage"] == 1.0
     assert "macro_f1" in cal["coverage_curve"][0]
     assert cal["operating_point"]["coverage"] <= 0.6
+    assert "at_tau" not in cal
+
+
+def test_calibration_at_a_fixed_tau_reports_that_tau(tmp_path):
+    """A test run applies dev's tau; it must not re-choose one on test."""
+    preds = _with_confidence(tmp_path, conf=lambda i, row: row["probs"][row["pred"]])
+    cfg = write_config(tmp_path, predictions=str(preds),
+                       calibration={"tau": 0.5})
+    cal = evaluate(cfg, tmp_path)["metrics"]["overall"]["calibration"]
+    assert cal["at_tau"]["tau"] == 0.5
+    assert 0.0 <= cal["at_tau"]["coverage"] <= 1.0
 
 
 def test_calibration_config_does_not_move_existing_hashes(tmp_path):

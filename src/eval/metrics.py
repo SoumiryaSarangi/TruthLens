@@ -225,10 +225,33 @@ def operating_point(
     }
 
 
+def selective_at_tau(
+    y_true: Sequence[str], y_pred: Sequence[str], confidences: Sequence[float],
+    labels: Sequence[str], tau: float,
+) -> dict[str, float]:
+    """Coverage and selective scores at a FIXED threshold chosen elsewhere.
+
+    `operating_point` chooses tau on the rows it is given; on a test split that
+    is choosing on test (FR-14 forbids it). This only applies a tau that dev
+    already chose, with the same semantics: answered iff confidence >= tau.
+    """
+    n = len(confidences)
+    kept = [i for i in range(n) if confidences[i] >= tau]
+    yt = [y_true[i] for i in kept]
+    yp = [y_pred[i] for i in kept]
+    return {
+        "tau": float(tau),
+        "coverage": len(kept) / n if n else 0.0,
+        "n_kept": float(len(kept)),
+        "selective_accuracy": accuracy(yt, yp),
+        "selective_macro_f1": macro_f1(yt, yp, labels) if kept else 0.0,
+    }
+
+
 def calibration_metrics(
     y_true: Sequence[str], y_pred: Sequence[str], confidences: Sequence[float],
     labels: Sequence[str], n_bins: int = 10, coverage_target: float = 0.6,
-    n_points: int = 21,
+    n_points: int = 21, tau: float | None = None,
 ) -> dict[str, Any]:
     """ECE, its reliability bins, the coverage curve and the abstention point.
 
@@ -244,7 +267,7 @@ def calibration_metrics(
         kept = order[:int(point["n_kept"])]
         point["macro_f1"] = macro_f1([y_true[i] for i in kept],
                                      [y_pred[i] for i in kept], labels)
-    return {
+    out = {
         "ece": expected_calibration_error(confidences, correct, n_bins=n_bins),
         "mean_confidence": sum(confidences) / len(confidences) if confidences else 0.0,
         "reliability": reliability_bins(confidences, correct, n_bins=n_bins),
@@ -252,6 +275,9 @@ def calibration_metrics(
         "operating_point": operating_point(y_true, y_pred, confidences, labels,
                                            coverage_target),
     }
+    if tau is not None:
+        out["at_tau"] = selective_at_tau(y_true, y_pred, confidences, labels, tau)
+    return out
 
 
 def paired_bootstrap_delta(

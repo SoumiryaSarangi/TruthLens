@@ -165,9 +165,10 @@ def test_orchestrator_refuses_an_aggregator_trained_on_another_stance_model(tmp_
 # -----------------------------------------------------------------------------
 
 
-def _passages_file(tmp_path: Path, source: str) -> Path:
+def _passages_file(tmp_path: Path, source: str,
+                   uid: str = "averitec:en:train:00000") -> Path:
     path = tmp_path / "passages.jsonl"
-    write_jsonl(path, [{"uid": "u0", "source_id": source, "claim": "c",
+    write_jsonl(path, [{"uid": uid, "source_id": source, "claim": "c",
                         "passages": [{"text": "p", "dense_score": 0.5}]}])
     return path
 
@@ -181,10 +182,31 @@ def test_scoring_train_claims_with_the_model_that_saw_them_is_refused(tmp_path):
 
 def test_folds_on_dev_claims_are_refused(tmp_path):
     score = _script("score_passages")
-    rows = [{"uid": "u0", "source_id": "averitec:train.json:3", "claim": "c", "passages": []},
-            {"uid": "u1", "source_id": "averitec:dev.json:3", "claim": "c", "passages": []}]
+    rows = [{"uid": "averitec:en:train:00000", "source_id": "averitec:train.json:3",
+             "claim": "c", "passages": []},
+            {"uid": "averitec:en:dev:00000", "source_id": "averitec:dev.json:3",
+             "claim": "c", "passages": []}]
     path = tmp_path / "mixed.jsonl"
     write_jsonl(path, rows)
+    with pytest.raises(SystemExit, match="train claims only"):
+        score.main(["--passages", str(path), "--stance", "xlmr", "--folds",
+                    "--out", str(tmp_path / "o.jsonl")])
+
+
+def test_scoring_test_claims_needs_the_test_flag(tmp_path, no_test_split_override):
+    """Test claims are carved from train.json: the lock must read the uid."""
+    score = _script("score_passages")
+    path = _passages_file(tmp_path, "averitec:train.json:2557", uid="averitec:en:test:00000")
+    with pytest.raises(SystemExit, match="TEST split"):
+        score.main(["--passages", str(path), "--stance", "xlmr",
+                    "--out", str(tmp_path / "o.jsonl")])
+
+
+def test_test_claims_are_not_mistaken_for_train_claims(tmp_path, allow_test_split):
+    """A test claim's source_id says train.json; it must not trip the in-fold
+    refusal or be cross-fitted -- it is scored by the full model, like dev."""
+    score = _script("score_passages")
+    path = _passages_file(tmp_path, "averitec:train.json:2557", uid="averitec:en:test:00000")
     with pytest.raises(SystemExit, match="train claims only"):
         score.main(["--passages", str(path), "--stance", "xlmr", "--folds",
                     "--out", str(tmp_path / "o.jsonl")])

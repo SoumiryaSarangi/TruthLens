@@ -25,6 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from common.io_jsonl import load_jsonl, write_jsonl  # noqa: E402
+from pipeline.batch import evidence_store_for  # noqa: E402
 from retrieval.kb import KnowledgeStore, claim_index_from_uid  # noqa: E402
 
 
@@ -34,13 +35,15 @@ def build(split: str) -> int:
         print(f"missing {split_path}")
         return 2
 
-    store = KnowledgeStore(split)
+    rows = load_jsonl(split_path)
+    # The store comes from the rows' source_ids, not the split's name: the local
+    # TEST split is held out of train.json, so its pools are in the TRAIN store.
+    store = KnowledgeStore(evidence_store_for(rows, split_path))
     if not store.has_cache:
         print("no KB cache; run `python scripts/build_kb_cache.py` first "
               "(reading the zip directly would work but takes ~40 min)")
         return 2
 
-    rows = load_jsonl(split_path)
     out, missing = [], []
     for row in rows:
         idx = claim_index_from_uid(row["source_id"])

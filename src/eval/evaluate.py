@@ -25,7 +25,6 @@ from __future__ import annotations
 
 import argparse
 import itertools
-import os
 import random
 import re
 import sys
@@ -36,6 +35,7 @@ from typing import Any
 import jsonschema
 import yaml
 
+from common import test_guard
 from common.hashing import canonical_json, sha256_bytes, sha256_file
 from common.io_jsonl import JsonlError, load_json, load_jsonl, write_json
 from common.provenance import env_info, git_info
@@ -117,16 +117,11 @@ def guard_baseline(cfg: dict[str, Any]) -> None:
 
 
 def guard_test_split(split_path: Path, split_rows: list[dict[str, Any]]) -> None:
-    """Guardrail 2."""
-    is_test = split_path.stem == "test" or any(r.get("split") == "test" for r in split_rows)
-    if is_test and os.environ.get("TRUTHLENS_ALLOW_TEST") != "1":
-        raise EvalRefused(
-            f"{split_path} is a TEST split.\n"
-            "The test set is for the final reported number, not for model selection. "
-            "Every time it is looked at, it becomes a little less of a test set.\n"
-            "If this really is the final run, set TRUTHLENS_ALLOW_TEST=1 and say so in "
-            "the config's `notes:`."
-        )
+    """Guardrail 2. The rule lives in `common.test_guard`, shared with batch."""
+    try:
+        test_guard.require_allowed(split_path, split_rows, what="scoring")
+    except test_guard.TestSplitLocked as exc:
+        raise EvalRefused(str(exc)) from None
 
 
 def find_lock_for(split_path: Path) -> Path | None:
@@ -383,6 +378,7 @@ def score_classification(
                 [confidences[i] for i in indices], labels,
                 n_bins=calib.get("n_bins", 10),
                 coverage_target=calib.get("coverage_target", 0.6),
+                tau=calib.get("tau"),
             )
             # ECE is lifted to the top level so it is a tracked, printed metric;
             # the curve and bins stay nested -- they are the result, not a column.

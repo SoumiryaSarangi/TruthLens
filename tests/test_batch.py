@@ -177,3 +177,14 @@ def test_passages_stage_writes_what_the_orchestrator_would_read(toy):
     assert "nursing posts" in first["passages"][0]["text"].lower()
     assert set(first["passages"][0]) == {"doc_id", "text", "retrieval_score", "dense_score"}
 
+
+
+def test_batch_refuses_a_test_split_without_the_flag(tmp_path, no_test_split_override,
+                                                       capsys):
+    """Scoring is not the only way to look at test: writing its predictions is
+    one too, so the runner asks for the same flag before any model runs."""
+    from pipeline.batch import main
+    split = tmp_path / "test.jsonl"
+    write_jsonl(split, [{"uid": "toy:en:test:00000", "split": "test"}])
+    assert main(["--split", str(split), "--stage", "verdict"]) == 2
+    assert "TEST split" in capsys.readouterr().err

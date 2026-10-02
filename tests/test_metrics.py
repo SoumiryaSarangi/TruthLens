@@ -399,6 +399,26 @@ def test_operating_point_when_ties_make_the_target_unreachable():
     assert op["coverage"] == 0.0 and op["n_kept"] == 0.0 and op["tau"] > 0.5
 
 
+def test_selective_at_a_fixed_tau_applies_it_without_choosing():
+    from eval.metrics import selective_at_tau
+    y = ["A", "A", "B", "B", "A"]
+    p = ["A", "B", "B", "A", "A"]
+    conf = [0.9, 0.8, 0.8, 0.4, 0.3]
+    # tau=0.4 keeps rows 0-3 (>= is inclusive), 2 of them right.
+    at = selective_at_tau(y, p, conf, ["A", "B"], tau=0.4)
+    assert at["tau"] == 0.4 and at["coverage"] == 0.8 and at["n_kept"] == 4.0
+    assert at["selective_accuracy"] == pytest.approx(0.5)
+    none = selective_at_tau(y, p, conf, ["A", "B"], tau=0.95)
+    assert none["coverage"] == 0.0 and none["selective_macro_f1"] == 0.0
+
+
+def test_calibration_metrics_reports_at_tau_only_when_asked():
+    from eval.metrics import calibration_metrics
+    args = (["A", "B"], ["A", "A"], [0.9, 0.6], ["A", "B"])
+    assert "at_tau" not in calibration_metrics(*args)
+    assert calibration_metrics(*args, tau=0.7)["at_tau"]["coverage"] == 0.5
+
+
 def test_calibration_metrics_curve_carries_macro_f1():
     from eval.metrics import calibration_metrics
     out = calibration_metrics(["A", "B"], ["A", "A"], [0.9, 0.6], ["A", "B"], n_points=2)

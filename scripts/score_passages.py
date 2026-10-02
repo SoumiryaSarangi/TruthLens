@@ -28,6 +28,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from common import test_guard  # noqa: E402
 from common.io_jsonl import load_jsonl, write_jsonl  # noqa: E402
 from common.seeds import set_all_seeds  # noqa: E402
 from pipeline import registry  # noqa: E402
@@ -64,7 +65,13 @@ def main(argv: list[str] | None = None) -> int:
     set_all_seeds()
 
     rows = list(load_jsonl(args.passages))
-    on_train = [r for r in rows if ":train.json:" in r["source_id"]]
+    try:
+        test_guard.require_allowed(None, rows, what="stance scoring")
+    except test_guard.TestSplitLocked as exc:
+        raise SystemExit(f"REFUSED: {exc}") from None
+    # By the uid's split, NOT the source_id: the 307 test claims are carved from
+    # AVeriTeC's train.json, so their source_ids say train.json too.
+    on_train = [r for r in rows if test_guard.uid_split(r["uid"]) == "train"]
     trained = args.stance in TRAINED
     if args.folds and len(on_train) != len(rows):
         raise SystemExit("--folds applies to train claims only; this file mixes splits.")
