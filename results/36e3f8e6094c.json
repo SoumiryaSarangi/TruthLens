@@ -1,0 +1,316 @@
+{
+  "baseline": {
+    "kind": "generated",
+    "metrics": {
+      "accuracy": 0.5667752442996743,
+      "confusion": {
+        "Conflicting": {
+          "Conflicting": 0,
+          "NEI": 0,
+          "NotAClaim": 0,
+          "Refuted": 20,
+          "Supported": 0
+        },
+        "NEI": {
+          "Conflicting": 0,
+          "NEI": 0,
+          "NotAClaim": 0,
+          "Refuted": 28,
+          "Supported": 0
+        },
+        "NotAClaim": {
+          "Conflicting": 0,
+          "NEI": 0,
+          "NotAClaim": 0,
+          "Refuted": 0,
+          "Supported": 0
+        },
+        "Refuted": {
+          "Conflicting": 0,
+          "NEI": 0,
+          "NotAClaim": 0,
+          "Refuted": 174,
+          "Supported": 0
+        },
+        "Supported": {
+          "Conflicting": 0,
+          "NEI": 0,
+          "NotAClaim": 0,
+          "Refuted": 85,
+          "Supported": 0
+        }
+      },
+      "macro_f1": 0.1446985446985447,
+      "n": 307.0,
+      "per_class": {
+        "Conflicting": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 20.0
+        },
+        "NEI": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 28.0
+        },
+        "NotAClaim": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 0.0
+        },
+        "Refuted": {
+          "f1": 0.7234927234927235,
+          "precision": 0.5667752442996743,
+          "recall": 1.0,
+          "support": 174.0
+        },
+        "Supported": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 85.0
+        }
+      }
+    },
+    "name": "majority_class",
+    "notes": []
+  },
+  "config_hash": "36e3f8e6094c",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 307,
+    "n_missing": 0,
+    "n_predicted": 307
+  },
+  "created_utc": "2026-10-02T09:44:25+00:00",
+  "delta_vs_baseline": {
+    "accuracy": -0.08143322475570036,
+    "macro_f1": 0.1638113258742967
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p7_test_verdict_control",
+  "git": {
+    "branch": "main",
+    "dirty": false,
+    "sha": "055b4a32af097be0ad11582cdf59a861dc2a666a"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "majority_class",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p7_test_verdict_control",
+      "label_set": "verdict_5class",
+      "metrics": {},
+      "min_cell_n": 30,
+      "notes": "FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1. Dev twin: ab1cc94cd247 (0.2949).\n",
+      "predictions": "results/preds/p7_test_verdict_control.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/averitec/test.jsonl",
+      "task": "classification"
+    },
+    "config_path": "configs/p7_test_verdict_control.yaml",
+    "predictions_path": "results/preds/p7_test_verdict_control.jsonl",
+    "predictions_sha256": "afd05228b7c506780044c68010463dad1d4b0346095acbaead1c5dae62797687",
+    "split_path": "data/splits/averitec/test.jsonl",
+    "split_sha256": "bad8a9ca888884056510a3d53791bc7c52243cac9281a1a4c14fe36ead5911e2",
+    "splits_lock_sha256": "8d1d9f49a48b32e03f1a0c2be1c050d7a108b4f7bfe127753f812df66a00e717"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=latn": {
+        "accuracy": 0.48534201954397393,
+        "confusion": {
+          "Conflicting": {
+            "Conflicting": 6,
+            "NEI": 7,
+            "NotAClaim": 0,
+            "Refuted": 2,
+            "Supported": 5
+          },
+          "NEI": {
+            "Conflicting": 5,
+            "NEI": 9,
+            "NotAClaim": 0,
+            "Refuted": 6,
+            "Supported": 8
+          },
+          "NotAClaim": {
+            "Conflicting": 0,
+            "NEI": 0,
+            "NotAClaim": 0,
+            "Refuted": 0,
+            "Supported": 0
+          },
+          "Refuted": {
+            "Conflicting": 41,
+            "NEI": 20,
+            "NotAClaim": 0,
+            "Refuted": 89,
+            "Supported": 24
+          },
+          "Supported": {
+            "Conflicting": 19,
+            "NEI": 13,
+            "NotAClaim": 0,
+            "Refuted": 8,
+            "Supported": 45
+          }
+        },
+        "macro_f1": 0.3085098705728414,
+        "n": 307.0,
+        "per_class": {
+          "Conflicting": {
+            "f1": 0.13186813186813187,
+            "precision": 0.08450704225352113,
+            "recall": 0.3,
+            "support": 20.0
+          },
+          "NEI": {
+            "f1": 0.23376623376623376,
+            "precision": 0.1836734693877551,
+            "recall": 0.32142857142857145,
+            "support": 28.0
+          },
+          "NotAClaim": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "Refuted": {
+            "f1": 0.6379928315412187,
+            "precision": 0.8476190476190476,
+            "recall": 0.5114942528735632,
+            "support": 174.0
+          },
+          "Supported": {
+            "f1": 0.5389221556886229,
+            "precision": 0.5487804878048781,
+            "recall": 0.5294117647058824,
+            "support": 85.0
+          }
+        }
+      }
+    },
+    "overall": {
+      "accuracy": 0.48534201954397393,
+      "confusion": {
+        "Conflicting": {
+          "Conflicting": 6,
+          "NEI": 7,
+          "NotAClaim": 0,
+          "Refuted": 2,
+          "Supported": 5
+        },
+        "NEI": {
+          "Conflicting": 5,
+          "NEI": 9,
+          "NotAClaim": 0,
+          "Refuted": 6,
+          "Supported": 8
+        },
+        "NotAClaim": {
+          "Conflicting": 0,
+          "NEI": 0,
+          "NotAClaim": 0,
+          "Refuted": 0,
+          "Supported": 0
+        },
+        "Refuted": {
+          "Conflicting": 41,
+          "NEI": 20,
+          "NotAClaim": 0,
+          "Refuted": 89,
+          "Supported": 24
+        },
+        "Supported": {
+          "Conflicting": 19,
+          "NEI": 13,
+          "NotAClaim": 0,
+          "Refuted": 8,
+          "Supported": 45
+        }
+      },
+      "macro_f1": 0.3085098705728414,
+      "n": 307.0,
+      "per_class": {
+        "Conflicting": {
+          "f1": 0.13186813186813187,
+          "precision": 0.08450704225352113,
+          "recall": 0.3,
+          "support": 20.0
+        },
+        "NEI": {
+          "f1": 0.23376623376623376,
+          "precision": 0.1836734693877551,
+          "recall": 0.32142857142857145,
+          "support": 28.0
+        },
+        "NotAClaim": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 0.0
+        },
+        "Refuted": {
+          "f1": 0.6379928315412187,
+          "precision": 0.8476190476190476,
+          "recall": 0.5114942528735632,
+          "support": 174.0
+        },
+        "Supported": {
+          "f1": 0.5389221556886229,
+          "precision": 0.5487804878048781,
+          "recall": 0.5294117647058824,
+          "support": 85.0
+        }
+      }
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 307.0,
+        "native": 0.3085098705728414
+      }
+    },
+    "metric": "macro_f1"
+  },
+  "paired_vs_baseline": null,
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "classification",
+  "warnings": []
+}

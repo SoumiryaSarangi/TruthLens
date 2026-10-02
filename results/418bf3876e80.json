@@ -1,0 +1,137 @@
+{
+  "baseline": {
+    "kind": "generated",
+    "metrics": {
+      "exact_span_match": 0.2694300518134715,
+      "n": 193.0,
+      "token_f1": 0.693256484149856,
+      "token_precision": 0.5305222300635145,
+      "token_recall": 1.0
+    },
+    "name": "whole_post_span",
+    "notes": []
+  },
+  "config_hash": "418bf3876e80",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 193,
+    "n_missing": 0,
+    "n_predicted": 571
+  },
+  "created_utc": "2026-10-02T09:54:07+00:00",
+  "delta_vs_baseline": {
+    "exact_span_match": 0.05699481865284972,
+    "token_f1": 0.08268153802848222,
+    "token_precision": 0.18368358649129535,
+    "token_recall": -0.15064848686398402
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p7_test_span_native_matched_joint",
+  "git": {
+    "branch": "main",
+    "dirty": false,
+    "sha": "6dbed27e50fa734091579b103f3862df17b14cb4"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "whole_post_span",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p7_test_span_native_matched_joint",
+      "gold": "data/gold/x_claim_test_span_romanized_sources.jsonl",
+      "metrics": {},
+      "min_cell_n": 30,
+      "notes": "FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1. Dev twin: p7_span_native_matched_joint (02c59ee296a0).\n",
+      "predictions": "results/preds/p7_test_span_joint.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/x_claim/test.jsonl",
+      "task": "span"
+    },
+    "config_path": "configs/p7_test_span_native_matched_joint.yaml",
+    "predictions_path": "results/preds/p7_test_span_joint.jsonl",
+    "predictions_sha256": "be0ac9b0a7935421e2481d2ce901609b47a74b902faf6da5a7f1e77e39992e85",
+    "split_path": "data/splits/x_claim/test.jsonl",
+    "split_sha256": "0fbe2005f3361b1e3d982c36d20976c9bc14fe263baa375065f2ef891eaea489",
+    "splits_lock_sha256": "8d1d9f49a48b32e03f1a0c2be1c050d7a108b4f7bfe127753f812df66a00e717"
+  },
+  "metrics": {
+    "by": {
+      "lang=hi,script=deva": {
+        "exact_span_match": 0.3711340206185567,
+        "n": 97.0,
+        "token_f1": 0.8151487826871054,
+        "token_precision": 0.7373572593800979,
+        "token_recall": 0.9112903225806451
+      },
+      "lang=pa,script=deva": {
+        "exact_span_match": 0.3333333333333333,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 6.0,
+        "token_f1": 0.6285714285714284,
+        "token_precision": 0.6226415094339622,
+        "token_recall": 0.6346153846153846
+      },
+      "lang=pa,script=guru": {
+        "exact_span_match": 0.2777777777777778,
+        "n": 90.0,
+        "token_f1": 0.7394477943509997,
+        "token_precision": 0.6918052256532067,
+        "token_recall": 0.7941376959781867
+      }
+    },
+    "overall": {
+      "exact_span_match": 0.32642487046632124,
+      "n": 193.0,
+      "token_f1": 0.7759380221783382,
+      "token_precision": 0.7142058165548099,
+      "token_recall": 0.849351513136016
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "hi": {
+        "n_native": 97.0,
+        "native": 0.8151487826871054
+      },
+      "pa": {
+        "n_native": 90.0,
+        "native": 0.7394477943509997
+      }
+    },
+    "metric": "token_f1"
+  },
+  "paired_vs_baseline": null,
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "span",
+  "warnings": []
+}

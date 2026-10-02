@@ -1,0 +1,208 @@
+{
+  "baseline": {
+    "kind": "generated",
+    "metrics": {
+      "mrr": 0.0,
+      "n": 3156.0,
+      "recall@1": 0.0,
+      "recall@10": 0.0,
+      "recall@5": 0.0,
+      "success@1": 0.0,
+      "success@10": 0.0,
+      "success@5": 0.0
+    },
+    "name": "random_rank",
+    "notes": []
+  },
+  "config_hash": "c6ba8b41e869",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 3156,
+    "n_missing": 0,
+    "n_predicted": 3156
+  },
+  "created_utc": "2026-10-02T09:55:42+00:00",
+  "delta_vs_baseline": {
+    "mrr": 0.5354763916550981,
+    "recall@1": 0.38823530891021396,
+    "recall@10": 0.6756208884060593,
+    "recall@5": 0.6169143681976383,
+    "success@1": 0.4508871989860583,
+    "success@10": 0.6986692015209125,
+    "success@5": 0.6463878326996197
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p7_test_match_bge_m3",
+  "git": {
+    "branch": "main",
+    "dirty": false,
+    "sha": "6dbed27e50fa734091579b103f3862df17b14cb4"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "random_rank",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "corpus_ids": "data/interim/index/ids.json",
+      "experiment": "p7_test_match_bge_m3",
+      "gold": "data/gold/multiclaim_test_retrieval.jsonl",
+      "metrics": {
+        "retrieval": {
+          "k": [
+            1,
+            5,
+            10
+          ]
+        }
+      },
+      "min_cell_n": 30,
+      "notes": "FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1. Dev twin: p2_match_bge_m3 (3bebeaff50b0). Punjabi cells are single digits; report fractions with n.\n",
+      "predictions": "results/preds/p7_test_match_bge_m3.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/multiclaim/test.jsonl",
+      "task": "retrieval"
+    },
+    "config_path": "configs/p7_test_match_bge_m3.yaml",
+    "predictions_path": "results/preds/p7_test_match_bge_m3.jsonl",
+    "predictions_sha256": "fba46b5e2d7aadd486069cb3264132b2fd0c2392dfea5525434ffbf9326ddfc0",
+    "split_path": "data/splits/multiclaim/test.jsonl",
+    "split_sha256": "c5435d77c490dd2c41c395e2a0833376521ca19f647004985ac0013c567c7ce2",
+    "splits_lock_sha256": "8d1d9f49a48b32e03f1a0c2be1c050d7a108b4f7bfe127753f812df66a00e717"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=latn": {
+        "mrr": 0.5578890779337395,
+        "n": 2351.0,
+        "recall@1": 0.40951537002153793,
+        "recall@10": 0.6988201575823862,
+        "recall@5": 0.6363455604842251,
+        "success@1": 0.4746916205869843,
+        "success@10": 0.71714164185453,
+        "success@5": 0.6626967247979583
+      },
+      "lang=hi,script=deva": {
+        "mrr": 0.47310025849729737,
+        "n": 743.0,
+        "recall@1": 0.3276132794975326,
+        "recall@10": 0.6121579183490354,
+        "recall@5": 0.5648497083894124,
+        "success@1": 0.3822341857335128,
+        "success@10": 0.6500672947510094,
+        "success@5": 0.604306864064603
+      },
+      "lang=hi,script=latn": {
+        "mrr": 0.4736373165618448,
+        "n": 53.0,
+        "recall@1": 0.3411949685534591,
+        "recall@10": 0.5754716981132075,
+        "recall@5": 0.5330188679245284,
+        "success@1": 0.41509433962264153,
+        "success@10": 0.6037735849056604,
+        "success@5": 0.5660377358490566
+      },
+      "lang=pa,script=deva": {
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "mrr": 0.0,
+        "n": 1.0,
+        "recall@1": 0.0,
+        "recall@10": 0.0,
+        "recall@5": 0.0,
+        "success@1": 0.0,
+        "success@10": 0.0,
+        "success@5": 0.0
+      },
+      "lang=pa,script=guru": {
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "mrr": 0.10714285714285712,
+        "n": 7.0,
+        "recall@1": 0.0,
+        "recall@10": 0.42857142857142855,
+        "recall@5": 0.2857142857142857,
+        "success@1": 0.0,
+        "success@10": 0.42857142857142855,
+        "success@5": 0.2857142857142857
+      },
+      "lang=pa,script=latn": {
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "mrr": 1.0,
+        "n": 1.0,
+        "recall@1": 1.0,
+        "recall@10": 1.0,
+        "recall@5": 1.0,
+        "success@1": 1.0,
+        "success@10": 1.0,
+        "success@5": 1.0
+      }
+    },
+    "overall": {
+      "mrr": 0.5354763916550981,
+      "n": 3156.0,
+      "recall@1": 0.38823530891021396,
+      "recall@10": 0.6756208884060593,
+      "recall@5": 0.6169143681976383,
+      "success@1": 0.4508871989860583,
+      "success@10": 0.6986692015209125,
+      "success@5": 0.6463878326996197
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 2351.0,
+        "native": 0.5578890779337395
+      },
+      "hi": {
+        "gap": -0.0005370580645474576,
+        "n_native": 743.0,
+        "n_romanized": 53.0,
+        "native": 0.47310025849729737,
+        "romanized": 0.4736373165618448
+      },
+      "pa": {
+        "gap": -0.8928571428571429,
+        "n_native": 7.0,
+        "n_romanized": 1.0,
+        "native": 0.10714285714285712,
+        "romanized": 1.0
+      }
+    },
+    "metric": "mrr"
+  },
+  "paired_vs_baseline": null,
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "retrieval",
+  "warnings": []
+}

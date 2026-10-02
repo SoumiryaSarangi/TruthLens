@@ -1,0 +1,137 @@
+{
+  "baseline": {
+    "experiment": "p7_test_retrieval_bm25",
+    "kind": "prior_run",
+    "metrics": {
+      "mrr": 0.04971821519052789,
+      "n": 307.0,
+      "recall@1": 0.013409337676438655,
+      "recall@10": 0.06702342174654877,
+      "recall@5": 0.04581976112920738,
+      "success@1": 0.026058631921824105,
+      "success@10": 0.11074918566775244,
+      "success@5": 0.08143322475570032
+    },
+    "name": "f98e27174df6"
+  },
+  "config_hash": "3cd7a0719b5b",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 307,
+    "n_missing": 0,
+    "n_predicted": 307
+  },
+  "created_utc": "2026-10-02T10:05:28+00:00",
+  "delta_vs_baseline": {
+    "mrr": 0.018207434982679287,
+    "recall@1": 0.00760043431053203,
+    "recall@10": 0.020466883821932708,
+    "recall@5": 0.011129207383279036,
+    "success@1": 0.00977198697068404,
+    "success@10": 0.04234527687296419,
+    "success@5": 0.016286644951140072
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p7_test_retrieval_hybrid",
+  "git": {
+    "branch": "main",
+    "dirty": false,
+    "sha": "6dbed27e50fa734091579b103f3862df17b14cb4"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": true,
+      "baseline": "f98e27174df6",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p7_test_retrieval_hybrid",
+      "gold": "data/gold/averitec_test_retrieval.jsonl",
+      "metrics": {
+        "retrieval": {
+          "k": [
+            1,
+            5,
+            10
+          ]
+        }
+      },
+      "min_cell_n": 30,
+      "notes": "FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1. Written at run time from p5_retrieval_hybrid_rrf_n200; only split, predictions, gold and the baseline hash differ.",
+      "predictions": "results/preds/p7_test_retrieval_hybrid.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/averitec/test.jsonl",
+      "task": "retrieval"
+    },
+    "config_path": "configs/p7_test_retrieval_hybrid.yaml",
+    "predictions_path": "results/preds/p7_test_retrieval_hybrid.jsonl",
+    "predictions_sha256": "0363563031d01c91a31015ceeb5a74074bb86369d3f14105e396df3b82d33263",
+    "split_path": "data/splits/averitec/test.jsonl",
+    "split_sha256": "bad8a9ca888884056510a3d53791bc7c52243cac9281a1a4c14fe36ead5911e2",
+    "splits_lock_sha256": "8d1d9f49a48b32e03f1a0c2be1c050d7a108b4f7bfe127753f812df66a00e717"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=latn": {
+        "mrr": 0.06792565017320717,
+        "n": 307.0,
+        "recall@1": 0.021009771986970686,
+        "recall@10": 0.08749030556848147,
+        "recall@5": 0.05694896851248642,
+        "success@1": 0.035830618892508145,
+        "success@10": 0.15309446254071662,
+        "success@5": 0.09771986970684039
+      }
+    },
+    "overall": {
+      "mrr": 0.06792565017320717,
+      "n": 307.0,
+      "recall@1": 0.021009771986970686,
+      "recall@10": 0.08749030556848147,
+      "recall@5": 0.05694896851248642,
+      "success@1": 0.035830618892508145,
+      "success@10": 0.15309446254071662,
+      "success@5": 0.09771986970684039
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 307.0,
+        "native": 0.06792565017320717
+      }
+    },
+    "metric": "mrr"
+  },
+  "paired_vs_baseline": null,
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "retrieval",
+  "warnings": []
+}

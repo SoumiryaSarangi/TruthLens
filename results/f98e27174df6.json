@@ -1,0 +1,137 @@
+{
+  "baseline": {
+    "kind": "generated",
+    "metrics": {
+      "mrr": 0.00589938472674629,
+      "n": 307.0,
+      "recall@1": 0.0,
+      "recall@10": 0.007980456026058633,
+      "recall@5": 0.003257328990228013,
+      "success@1": 0.0,
+      "success@10": 0.02280130293159609,
+      "success@5": 0.009771986970684038
+    },
+    "name": "random_rank",
+    "notes": []
+  },
+  "config_hash": "f98e27174df6",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 307,
+    "n_missing": 0,
+    "n_predicted": 307
+  },
+  "created_utc": "2026-10-02T10:04:34+00:00",
+  "delta_vs_baseline": {
+    "mrr": 0.0438188304637816,
+    "recall@1": 0.013409337676438655,
+    "recall@10": 0.059042965720490136,
+    "recall@5": 0.04256243213897937,
+    "success@1": 0.026058631921824105,
+    "success@10": 0.08794788273615635,
+    "success@5": 0.07166123778501628
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p7_test_retrieval_bm25",
+  "git": {
+    "branch": "main",
+    "dirty": false,
+    "sha": "6dbed27e50fa734091579b103f3862df17b14cb4"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": true,
+      "baseline": "random_rank",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p7_test_retrieval_bm25",
+      "gold": "data/gold/averitec_test_retrieval.jsonl",
+      "metrics": {
+        "retrieval": {
+          "k": [
+            1,
+            5,
+            10
+          ]
+        }
+      },
+      "min_cell_n": 30,
+      "notes": "FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1. Dev twin: p1_bm25_retrieval (cb8f6f0f3b5c).\n",
+      "predictions": "results/preds/p7_test_retrieval_bm25.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/averitec/test.jsonl",
+      "task": "retrieval"
+    },
+    "config_path": "configs/p7_test_retrieval_bm25.yaml",
+    "predictions_path": "results/preds/p7_test_retrieval_bm25.jsonl",
+    "predictions_sha256": "0b08e219a3e9ce145e37283d64230b77f1d447b2460d59aa1caacf4ff661ba8f",
+    "split_path": "data/splits/averitec/test.jsonl",
+    "split_sha256": "bad8a9ca888884056510a3d53791bc7c52243cac9281a1a4c14fe36ead5911e2",
+    "splits_lock_sha256": "8d1d9f49a48b32e03f1a0c2be1c050d7a108b4f7bfe127753f812df66a00e717"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=latn": {
+        "mrr": 0.04971821519052789,
+        "n": 307.0,
+        "recall@1": 0.013409337676438655,
+        "recall@10": 0.06702342174654877,
+        "recall@5": 0.04581976112920738,
+        "success@1": 0.026058631921824105,
+        "success@10": 0.11074918566775244,
+        "success@5": 0.08143322475570032
+      }
+    },
+    "overall": {
+      "mrr": 0.04971821519052789,
+      "n": 307.0,
+      "recall@1": 0.013409337676438655,
+      "recall@10": 0.06702342174654877,
+      "recall@5": 0.04581976112920738,
+      "success@1": 0.026058631921824105,
+      "success@10": 0.11074918566775244,
+      "success@5": 0.08143322475570032
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 307.0,
+        "native": 0.04971821519052789
+      }
+    },
+    "metric": "mrr"
+  },
+  "paired_vs_baseline": null,
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "retrieval",
+  "warnings": []
+}

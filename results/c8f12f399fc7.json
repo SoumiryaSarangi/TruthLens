@@ -1,0 +1,161 @@
+{
+  "baseline": {
+    "kind": "generated",
+    "metrics": {
+      "chrf": 0.2785996906965634,
+      "exact_match": 0.006734006734006734,
+      "n": 1485.0
+    },
+    "name": "longest_sentence",
+    "notes": []
+  },
+  "config_hash": "c8f12f399fc7",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 1485,
+    "n_missing": 0,
+    "n_predicted": 1485
+  },
+  "created_utc": "2026-10-02T09:57:21+00:00",
+  "delta_vs_baseline": {
+    "chrf": -0.012005998603798917,
+    "exact_match": -0.0006734006734006731
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p7_test_normalize_extractive",
+  "git": {
+    "branch": "main",
+    "dirty": false,
+    "sha": "6dbed27e50fa734091579b103f3862df17b14cb4"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "longest_sentence",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p7_test_normalize_extractive",
+      "gold": "data/gold/checkthat25_t2_test_normalization.jsonl",
+      "metrics": {},
+      "min_cell_n": 30,
+      "notes": "FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1. Dev twin: p3_normalize_extractive (c080a5079e93). chrF, not METEOR (see the dev config).\n",
+      "predictions": "results/preds/p7_test_normalize_extractive.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/checkthat25_t2/test.jsonl",
+      "task": "normalization"
+    },
+    "config_path": "configs/p7_test_normalize_extractive.yaml",
+    "predictions_path": "results/preds/p7_test_normalize_extractive.jsonl",
+    "predictions_sha256": "6cc6e3dec708f6d6f0d4314d92448de3a776f4077ab65c0955b8bf010eb94ff4",
+    "split_path": "data/splits/checkthat25_t2/test.jsonl",
+    "split_sha256": "7f2e4b1120482e988f7eec13a68cf5b1ac1ef3d8bf5729ff2e10af16fd736c6d",
+    "splits_lock_sha256": "8d1d9f49a48b32e03f1a0c2be1c050d7a108b4f7bfe127753f812df66a00e717"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=deva": {
+        "chrf": 0.0027277686852154935,
+        "exact_match": 0.0,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 1.0
+      },
+      "lang=en,script=latn": {
+        "chrf": 0.25135992814689234,
+        "exact_match": 0.000778816199376947,
+        "n": 1284.0
+      },
+      "lang=hi,script=deva": {
+        "chrf": 0.35731266102708564,
+        "exact_match": 0.010416666666666666,
+        "n": 96.0
+      },
+      "lang=hi,script=latn": {
+        "chrf": 0.23736441175359618,
+        "exact_match": 0.0,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 4.0
+      },
+      "lang=pa,script=deva": {
+        "chrf": 0.11665807631561738,
+        "exact_match": 0.0,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 8.0
+      },
+      "lang=pa,script=guru": {
+        "chrf": 0.42283456223437116,
+        "exact_match": 0.08139534883720931,
+        "n": 86.0
+      },
+      "lang=pa,script=latn": {
+        "chrf": 0.09904119669407946,
+        "exact_match": 0.0,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 6.0
+      }
+    },
+    "overall": {
+      "chrf": 0.26659369209276446,
+      "exact_match": 0.006060606060606061,
+      "n": 1485.0
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 1284.0,
+        "native": 0.25135992814689234
+      },
+      "hi": {
+        "gap": 0.11994824927348946,
+        "n_native": 96.0,
+        "n_romanized": 4.0,
+        "native": 0.35731266102708564,
+        "romanized": 0.23736441175359618
+      },
+      "pa": {
+        "gap": 0.3237933655402917,
+        "n_native": 86.0,
+        "n_romanized": 6.0,
+        "native": 0.42283456223437116,
+        "romanized": 0.09904119669407946
+      }
+    },
+    "metric": "chrf"
+  },
+  "paired_vs_baseline": null,
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "normalization",
+  "warnings": []
+}

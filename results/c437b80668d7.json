@@ -1,0 +1,208 @@
+{
+  "baseline": {
+    "kind": "generated",
+    "metrics": {
+      "mrr": 0.0,
+      "n": 3156.0,
+      "recall@1": 0.0,
+      "recall@10": 0.0,
+      "recall@5": 0.0,
+      "success@1": 0.0,
+      "success@10": 0.0,
+      "success@5": 0.0
+    },
+    "name": "random_rank",
+    "notes": []
+  },
+  "config_hash": "c437b80668d7",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 3156,
+    "n_missing": 0,
+    "n_predicted": 3156
+  },
+  "created_utc": "2026-10-02T09:55:50+00:00",
+  "delta_vs_baseline": {
+    "mrr": 0.39281942181181717,
+    "recall@1": 0.29269117025771046,
+    "recall@10": 0.46569497253907893,
+    "recall@5": 0.4276035065483735,
+    "success@1": 0.34125475285171103,
+    "success@10": 0.49397972116603295,
+    "success@5": 0.45754119138149557
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p7_test_match_bm25",
+  "git": {
+    "branch": "main",
+    "dirty": false,
+    "sha": "6dbed27e50fa734091579b103f3862df17b14cb4"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "random_rank",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "corpus_ids": "data/interim/index/ids.json",
+      "experiment": "p7_test_match_bm25",
+      "gold": "data/gold/multiclaim_test_retrieval.jsonl",
+      "metrics": {
+        "retrieval": {
+          "k": [
+            1,
+            5,
+            10
+          ]
+        }
+      },
+      "min_cell_n": 30,
+      "notes": "FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1. Dev twin: p4_match_bm25 (de7ef9c9bba3).\n",
+      "predictions": "results/preds/p7_test_match_bm25.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/multiclaim/test.jsonl",
+      "task": "retrieval"
+    },
+    "config_path": "configs/p7_test_match_bm25.yaml",
+    "predictions_path": "results/preds/p7_test_match_bm25.jsonl",
+    "predictions_sha256": "4014c5f04058d3c73baa3d7286239cbebf7574eb874f0bf0107b54a9e4004fc8",
+    "split_path": "data/splits/multiclaim/test.jsonl",
+    "split_sha256": "c5435d77c490dd2c41c395e2a0833376521ca19f647004985ac0013c567c7ce2",
+    "splits_lock_sha256": "8d1d9f49a48b32e03f1a0c2be1c050d7a108b4f7bfe127753f812df66a00e717"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=latn": {
+        "mrr": 0.4655020153531426,
+        "n": 2351.0,
+        "recall@1": 0.34686658159648404,
+        "recall@10": 0.5562101233517652,
+        "recall@5": 0.5109598752303985,
+        "success@1": 0.40323266695023396,
+        "success@10": 0.584006805614632,
+        "success@5": 0.5423224159931944
+      },
+      "lang=hi,script=deva": {
+        "mrr": 0.17227616484009492,
+        "n": 743.0,
+        "recall@1": 0.1294302377747869,
+        "recall@10": 0.1908927770300583,
+        "recall@5": 0.17496635262449528,
+        "success@1": 0.15343203230148048,
+        "success@10": 0.2193808882907133,
+        "success@5": 0.20053835800807537
+      },
+      "lang=hi,script=latn": {
+        "mrr": 0.31399371069182386,
+        "n": 53.0,
+        "recall@1": 0.2279874213836478,
+        "recall@10": 0.3443396226415094,
+        "recall@5": 0.30660377358490565,
+        "success@1": 0.2830188679245283,
+        "success@10": 0.39622641509433965,
+        "success@5": 0.33962264150943394
+      },
+      "lang=pa,script=deva": {
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "mrr": 0.0,
+        "n": 1.0,
+        "recall@1": 0.0,
+        "recall@10": 0.0,
+        "recall@5": 0.0,
+        "success@1": 0.0,
+        "success@10": 0.0,
+        "success@5": 0.0
+      },
+      "lang=pa,script=guru": {
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "mrr": 0.028571428571428574,
+        "n": 7.0,
+        "recall@1": 0.0,
+        "recall@10": 0.14285714285714285,
+        "recall@5": 0.14285714285714285,
+        "success@1": 0.0,
+        "success@10": 0.14285714285714285,
+        "success@5": 0.14285714285714285
+      },
+      "lang=pa,script=latn": {
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "mrr": 0.5,
+        "n": 1.0,
+        "recall@1": 0.0,
+        "recall@10": 1.0,
+        "recall@5": 1.0,
+        "success@1": 0.0,
+        "success@10": 1.0,
+        "success@5": 1.0
+      }
+    },
+    "overall": {
+      "mrr": 0.39281942181181717,
+      "n": 3156.0,
+      "recall@1": 0.29269117025771046,
+      "recall@10": 0.46569497253907893,
+      "recall@5": 0.4276035065483735,
+      "success@1": 0.34125475285171103,
+      "success@10": 0.49397972116603295,
+      "success@5": 0.45754119138149557
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 2351.0,
+        "native": 0.4655020153531426
+      },
+      "hi": {
+        "gap": -0.14171754585172894,
+        "n_native": 743.0,
+        "n_romanized": 53.0,
+        "native": 0.17227616484009492,
+        "romanized": 0.31399371069182386
+      },
+      "pa": {
+        "gap": -0.4714285714285714,
+        "n_native": 7.0,
+        "n_romanized": 1.0,
+        "native": 0.028571428571428574,
+        "romanized": 0.5
+      }
+    },
+    "metric": "mrr"
+  },
+  "paired_vs_baseline": null,
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "retrieval",
+  "warnings": []
+}

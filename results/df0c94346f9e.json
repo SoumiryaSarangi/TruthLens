@@ -1,0 +1,571 @@
+{
+  "baseline": {
+    "kind": "generated",
+    "metrics": {
+      "accuracy": 0.7449302915082383,
+      "confusion": {
+        "en": {
+          "en": 2351,
+          "hi": 0,
+          "other": 0,
+          "pa": 0
+        },
+        "hi": {
+          "en": 796,
+          "hi": 0,
+          "other": 0,
+          "pa": 0
+        },
+        "other": {
+          "en": 0,
+          "hi": 0,
+          "other": 0,
+          "pa": 0
+        },
+        "pa": {
+          "en": 9,
+          "hi": 0,
+          "other": 0,
+          "pa": 0
+        }
+      },
+      "macro_f1": 0.21345560196114038,
+      "n": 3156.0,
+      "per_class": {
+        "en": {
+          "f1": 0.8538224078445615,
+          "precision": 0.7449302915082383,
+          "recall": 1.0,
+          "support": 2351.0
+        },
+        "hi": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 796.0
+        },
+        "other": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 0.0
+        },
+        "pa": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 9.0
+        }
+      }
+    },
+    "name": "majority_class",
+    "notes": []
+  },
+  "config_hash": "df0c94346f9e",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 3156,
+    "n_missing": 0,
+    "n_predicted": 3156
+  },
+  "created_utc": "2026-10-02T09:57:29+00:00",
+  "delta_vs_baseline": {
+    "accuracy": 0.24746514575411915,
+    "macro_f1": 0.4768395765169377
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p7_test_lid_hybrid",
+  "git": {
+    "branch": "main",
+    "dirty": false,
+    "sha": "6dbed27e50fa734091579b103f3862df17b14cb4"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "majority_class",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p7_test_lid_hybrid",
+      "gold_field": "lang",
+      "label_set": "lang_4class",
+      "metrics": {},
+      "min_cell_n": 30,
+      "notes": "FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1. Dev twin: p2_lid_multiclaim_hybrid (7f4d2e1ee058).\n",
+      "predictions": "results/preds/p7_test_lid_hybrid.jsonl",
+      "sanity_ceiling": 0.995,
+      "seed": 42,
+      "split": "data/splits/multiclaim/test.jsonl",
+      "task": "classification"
+    },
+    "config_path": "configs/p7_test_lid_hybrid.yaml",
+    "predictions_path": "results/preds/p7_test_lid_hybrid.jsonl",
+    "predictions_sha256": "573389debf2ecf36cebcc96f8183fc92c2340ef80a307696b83c75b83ffc8a59",
+    "split_path": "data/splits/multiclaim/test.jsonl",
+    "split_sha256": "c5435d77c490dd2c41c395e2a0833376521ca19f647004985ac0013c567c7ce2",
+    "splits_lock_sha256": "8d1d9f49a48b32e03f1a0c2be1c050d7a108b4f7bfe127753f812df66a00e717"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=latn": {
+        "accuracy": 0.9940450871969375,
+        "confusion": {
+          "en": {
+            "en": 2337,
+            "hi": 10,
+            "other": 3,
+            "pa": 1
+          },
+          "hi": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "other": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "pa": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          }
+        },
+        "macro_f1": 0.24925341296928327,
+        "n": 2351.0,
+        "per_class": {
+          "en": {
+            "f1": 0.9970136518771331,
+            "precision": 1.0,
+            "recall": 0.9940450871969375,
+            "support": 2351.0
+          },
+          "hi": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "other": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "pa": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          }
+        }
+      },
+      "lang=hi,script=deva": {
+        "accuracy": 1.0,
+        "confusion": {
+          "en": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "hi": {
+            "en": 0,
+            "hi": 743,
+            "other": 0,
+            "pa": 0
+          },
+          "other": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "pa": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          }
+        },
+        "macro_f1": 0.25,
+        "n": 743.0,
+        "per_class": {
+          "en": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "hi": {
+            "f1": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "support": 743.0
+          },
+          "other": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "pa": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          }
+        }
+      },
+      "lang=hi,script=latn": {
+        "accuracy": 0.8490566037735849,
+        "confusion": {
+          "en": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "hi": {
+            "en": 7,
+            "hi": 45,
+            "other": 0,
+            "pa": 1
+          },
+          "other": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "pa": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          }
+        },
+        "macro_f1": 0.22959183673469388,
+        "n": 53.0,
+        "per_class": {
+          "en": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "hi": {
+            "f1": 0.9183673469387755,
+            "precision": 1.0,
+            "recall": 0.8490566037735849,
+            "support": 53.0
+          },
+          "other": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "pa": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          }
+        }
+      },
+      "lang=pa,script=deva": {
+        "accuracy": 0.0,
+        "confusion": {
+          "en": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "hi": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "other": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "pa": {
+            "en": 0,
+            "hi": 1,
+            "other": 0,
+            "pa": 0
+          }
+        },
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "macro_f1": 0.0,
+        "n": 1.0,
+        "per_class": {
+          "en": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "hi": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "other": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "pa": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 1.0
+          }
+        }
+      },
+      "lang=pa,script=guru": {
+        "accuracy": 1.0,
+        "confusion": {
+          "en": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "hi": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "other": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "pa": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 7
+          }
+        },
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "macro_f1": 0.25,
+        "n": 7.0,
+        "per_class": {
+          "en": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "hi": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "other": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "pa": {
+            "f1": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "support": 7.0
+          }
+        }
+      },
+      "lang=pa,script=latn": {
+        "accuracy": 0.0,
+        "confusion": {
+          "en": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "hi": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "other": {
+            "en": 0,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          },
+          "pa": {
+            "en": 1,
+            "hi": 0,
+            "other": 0,
+            "pa": 0
+          }
+        },
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "macro_f1": 0.0,
+        "n": 1.0,
+        "per_class": {
+          "en": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "hi": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "other": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 0.0
+          },
+          "pa": {
+            "f1": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 1.0
+          }
+        }
+      }
+    },
+    "overall": {
+      "accuracy": 0.9923954372623575,
+      "confusion": {
+        "en": {
+          "en": 2337,
+          "hi": 10,
+          "other": 3,
+          "pa": 1
+        },
+        "hi": {
+          "en": 7,
+          "hi": 788,
+          "other": 0,
+          "pa": 1
+        },
+        "other": {
+          "en": 0,
+          "hi": 0,
+          "other": 0,
+          "pa": 0
+        },
+        "pa": {
+          "en": 1,
+          "hi": 1,
+          "other": 0,
+          "pa": 7
+        }
+      },
+      "macro_f1": 0.6902951784780781,
+      "n": 3156.0,
+      "per_class": {
+        "en": {
+          "f1": 0.9953151618398637,
+          "precision": 0.9965884861407249,
+          "recall": 0.9940450871969375,
+          "support": 2351.0
+        },
+        "hi": {
+          "f1": 0.9880877742946709,
+          "precision": 0.986232790988736,
+          "recall": 0.9899497487437185,
+          "support": 796.0
+        },
+        "other": {
+          "f1": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 0.0
+        },
+        "pa": {
+          "f1": 0.7777777777777778,
+          "precision": 0.7777777777777778,
+          "recall": 0.7777777777777778,
+          "support": 9.0
+        }
+      }
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 2351.0,
+        "native": 0.9940450871969375
+      },
+      "hi": {
+        "gap": 0.15094339622641506,
+        "n_native": 743.0,
+        "n_romanized": 53.0,
+        "native": 1.0,
+        "romanized": 0.8490566037735849
+      },
+      "pa": {
+        "gap": 1.0,
+        "n_native": 7.0,
+        "n_romanized": 1.0,
+        "native": 1.0,
+        "romanized": 0.0
+      }
+    },
+    "metric": "accuracy"
+  },
+  "paired_vs_baseline": null,
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "classification",
+  "warnings": []
+}
