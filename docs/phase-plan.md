@@ -276,8 +276,8 @@ AVeriTeC dev, paired bootstrap over the same 500 claims. Full tables: the
 | --- | --- | --- |
 | Verdict, learned aggregator, claim-only control | macro-F1 **0.2949** | rule 0.2514 (+0.0435, CI [+0.007, +0.078]) |
 | Verdict, XLM-R / BiLSTM / NLI | 0.2802 / 0.2340 / 0.2135 | vs control: tie / worse / worse |
-| Calibration, served arm | ECE **0.0384** | 0.0590 at T=1 |
-| Abstention, served arm | τ 0.317 → 60% coverage, accuracy 0.320 → 0.353 | criterion fixed before measuring |
+| Calibration, served arm (`xlmr_nli`) | ECE **0.0690** | 0.0988 at T=1 (NLI arm: 0.0384 from 0.0590) |
+| Abstention, served arm (`xlmr_nli`) | τ 0.3835 → 60% coverage, accuracy 0.490 → 0.587 | criterion fixed before measuring (NLI arm: τ 0.317, 0.320 → 0.353) |
 | Relevance floor | off | every floor tried abstained 0-9 claims and only lowered macro-F1 |
 | Explanations, beam on retrieved | NLI-faithful **0.524**, chrF 0.237 | extractive 0.628 / 0.200 |
 

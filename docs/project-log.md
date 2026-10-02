@@ -111,9 +111,21 @@ historical rationale, lowest precedence.
     gate now also rejects, under any verdict but Supported, a sentence that
     entails the claim.
 
-**Where things stand (2026-10-02):** Phases 1-6 complete; **Phase 7 is next**
--- the one test-split run, the served-stance decision, error analysis, demo and
-report. The ordered list is in `docs/phase-plan.md` under "Next: Phase 7".
+**Where things stand (2026-10-02):** Phases 1-6 complete and the served stance
+decided (`xlmr_nli`: XLM-R decides the verdict, NLI labels the passages shown --
+entry "The served stance: XLM-R decides, NLI shows"). **Phase 7 is next**,
+starting with the one test-split run; then error analysis, demo and report. The
+ordered list is in `docs/phase-plan.md` under "Next: Phase 7".
+
+**Phase 6/7 working files, all gitignored and on this machine** (rebuild
+commands in each script's docstring): cached top-20 passages per AVeriTeC claim
+`results/preds/p6_passages_{train,dev}.jsonl` (test not yet built -- `--stage
+passages` on `data/splits/averitec/test.jsonl` is step one of the test run);
+scored passages per stance arm `results/preds/p6_scored_*`; fold models
+`data/interim/models/stance_*_fold{0-4}`; aggregators
+`data/interim/models/aggregator_*` (served: `aggregator_xlmr_nli_prior`);
+explainer `data/interim/models/explainer_indicbart`; passage vectors for every
+train/dev/test claim in `data/interim/dense_cache/`.
 
 **To get running:** `make setup` then `make test`. The environment is already
 built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
@@ -2367,6 +2379,10 @@ prettier example.
 
 ### For the project owner: the served stance
 
+**SUPERSEDED the same day** -- decided as `xlmr_nli`; see the entry "The served
+stance: XLM-R decides, NLI shows" below. The table is kept as the question was
+put.
+
 | | NLI (served) | XLM-R |
 | --- | --- | --- |
 | AVeriTeC dev macro-F1 / accuracy | 0.2135 / 0.320 | 0.2802 / 0.490 |
@@ -2386,6 +2402,8 @@ prettier example.
 FR-11 to FR-16 and FR-18 are built and measured; FR-17 (explanation language)
 is cut to English as decided. Served: hybrid retrieval, NLI stance, learned
 aggregator, tau_abstain 0.317, floor off, IndicBART behind the NLI gate.
+(Superseded later the same day: served stance `xlmr_nli`, tau_abstain 0.3835 --
+next entry.)
 Suite: 599 passing. The test split is untouched; its one run is Phase 7's.
 
 ## 2026-10-02 — The served stance: XLM-R decides, NLI shows
