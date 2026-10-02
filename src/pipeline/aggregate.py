@@ -122,6 +122,36 @@ def features(stance_probs: Sequence[dict[str, float]],
     ]
 
 
+# Which stance distributions an artifact reads. "" is the plain Supports /
+# Refutes / Neutral keys every stance stage emits; "xlmr:" is XLM-R's
+# distribution as carried by the combined stage (`stance/combined.py`), which
+# shows NLI's labels but lets the verdict use XLM-R's prior too.
+SOURCES = {"base": "", "xlmr": "xlmr:"}
+
+
+def source_view(stance_probs: Sequence[dict[str, float]],
+                prefix: str) -> list[dict[str, float]]:
+    """One source's per-passage distributions, under plain keys."""
+    if not prefix:
+        return [{k: v for k, v in p.items() if ":" not in k} for p in stance_probs]
+    return [{k[len(prefix):]: v for k, v in p.items() if k.startswith(prefix)}
+            for p in stance_probs]
+
+
+def feature_names(sources: Sequence[str] = ("",)) -> tuple[str, ...]:
+    return tuple(f"{prefix}{name}" for prefix in sources for name in FEATURE_NAMES)
+
+
+def multi_features(stance_probs: Sequence[dict[str, float]],
+                   dense: Sequence[float | None] | None = None, k: int = 10,
+                   sources: Sequence[str] = ("",)) -> list[float]:
+    """`features()` per source, concatenated. One source == `features()` exactly."""
+    out: list[float] = []
+    for prefix in sources:
+        out += features(source_view(stance_probs, prefix), dense, k=k)
+    return out
+
+
 def softmax(logits: Sequence[float], temperature: float = 1.0) -> list[float]:
     scaled = [x / temperature for x in logits]
     top = max(scaled)
@@ -169,10 +199,11 @@ class LearnedAggregator:
             import joblib
 
             art = joblib.load(self.path)
-            if tuple(art["features"]) != FEATURE_NAMES:
+            art.setdefault("sources", ("",))         # artifacts from before sources
+            if tuple(art["features"]) != feature_names(art["sources"]):
                 raise AggregatorMismatch(
                     f"{self.path} was trained on features {art['features']}, this "
-                    f"code computes {FEATURE_NAMES}. Retrain it."
+                    f"code computes {feature_names(art['sources'])}. Retrain it."
                 )
             self._artifact = art
         return self._artifact
@@ -193,7 +224,7 @@ class LearnedAggregator:
 
     def logits(self, stance_probs, dense=None) -> list[float]:
         art = self._load()
-        x = features(stance_probs, dense, k=art["k"])
+        x = multi_features(stance_probs, dense, k=art["k"], sources=art["sources"])
         raw = art["model"].decision_function([x])[0]
         # sklearn orders by `classes_`; the distribution is reported in VERDICTS order.
         by_class = dict(zip(art["model"].classes_, raw, strict=True))

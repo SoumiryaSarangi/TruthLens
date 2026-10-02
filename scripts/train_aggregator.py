@@ -35,19 +35,27 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from common.io_jsonl import load_jsonl  # noqa: E402
 from common.seeds import SEED, set_all_seeds  # noqa: E402
-from pipeline.aggregate import FEATURE_NAMES, MODELS, VERDICTS, features, softmax  # noqa: E402
+from pipeline.aggregate import (  # noqa: E402
+    MODELS,
+    SOURCES,
+    VERDICTS,
+    feature_names,
+    multi_features,
+    softmax,
+)
 
 SPLITS = Path("data/splits/averitec")
 
 
-def load(scored_path: str, split: str, k: int) -> tuple[list[list[float]], list[str], list[dict]]:
+def load(scored_path: str, split: str, k: int,
+         sources: tuple[str, ...] = ("",)) -> tuple[list[list[float]], list[str], list[dict]]:
     gold = {r["uid"]: r["label"] for r in load_jsonl(SPLITS / f"{split}.jsonl")}
     rows = list(load_jsonl(scored_path))
     missing = [r["uid"] for r in rows if r["uid"] not in gold]
     if missing:
         raise SystemExit(f"{len(missing)} scored rows are not in the {split} split, "
                          f"e.g. {missing[:3]}")
-    return ([features(r["probs"], r["dense"], k=k) for r in rows],
+    return ([multi_features(r["probs"], r["dense"], k=k, sources=sources) for r in rows],
             [gold[r["uid"]] for r in rows], rows)
 
 
@@ -85,6 +93,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--k", type=int, default=10)
     ap.add_argument("--C", type=float, default=1.0)
     ap.add_argument("--name", default=None)
+    ap.add_argument("--read", default="base",
+                    help="comma-separated stance sources the aggregator reads: base "
+                         "(the plain keys) and/or xlmr (the combined stage's prior)")
     args = ap.parse_args(argv)
     set_all_seeds(SEED)
 
@@ -94,12 +105,13 @@ def main(argv: list[str] | None = None) -> int:
     from sklearn.preprocessing import StandardScaler
 
     started = time.time()
-    x_train, y_train, train_rows = load(args.train, "train", args.k)
+    sources = tuple(SOURCES[name] for name in args.read.split(","))
+    x_train, y_train, train_rows = load(args.train, "train", args.k, sources)
     folds = {r.get("fold") for r in train_rows}
-    if args.stance in ("xlmr", "xlmr_claimonly", "bilstm") and None in folds:
+    if args.stance in ("xlmr", "xlmr_claimonly", "bilstm", "xlmr_nli") and None in folds:
         raise SystemExit("REFUSED: the train file was not cross-fitted (some rows have "
                          "no fold). Score it with `score_passages.py --folds`.")
-    x_dev, y_dev, _ = load(args.dev, "dev", args.k)
+    x_dev, y_dev, _ = load(args.dev, "dev", args.k, sources)
     unknown = set(y_train) - set(VERDICTS)
     if unknown:
         raise SystemExit(f"labels {unknown} are not aggregator classes {VERDICTS}")
@@ -119,11 +131,12 @@ def main(argv: list[str] | None = None) -> int:
     name = args.name or f"aggregator_{args.stance}" + ("" if args.k == 10 else f"_k{args.k}")
     out_dir = MODELS / name
     out_dir.mkdir(parents=True, exist_ok=True)
-    joblib.dump({"model": model, "features": FEATURE_NAMES, "stance": args.stance,
-                 "k": args.k, "temperature": temperature, "classes": VERDICTS},
+    joblib.dump({"model": model, "features": feature_names(sources), "stance": args.stance,
+                 "sources": sources, "k": args.k, "temperature": temperature,
+                 "classes": VERDICTS},
                 out_dir / "model.joblib")
     (out_dir / "training.json").write_text(json.dumps({
-        "stance": args.stance, "k": args.k, "C": args.C, "seed": SEED,
+        "stance": args.stance, "reads": args.read, "k": args.k, "C": args.C, "seed": SEED,
         "n_train": len(y_train), "train_label_counts": dict(Counter(y_train)),
         "n_dev_for_temperature": len(y_dev), "temperature": round(temperature, 4),
         "dev_nll_T1": round(nll(dev_logits, y_dev, 1.0), 4),

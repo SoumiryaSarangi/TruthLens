@@ -1,0 +1,23 @@
+# The served-stance decision, made by a rule fixed BEFORE this ran: the combined
+# stage (stance/combined.py) shows NLI's per-passage labels and gives the learned
+# aggregator BOTH distributions -- NLI's and XLM-R's -- as features. Serve it if
+# it is at least as good as XLM-R alone (delta >= 0); otherwise serve XLM-R's
+# features alone behind the same NLI display.
+#
+# Baseline: the XLM-R arm (7750edef4c7a), paired over the same 500 claims.
+# Train features cross-fitted for XLM-R; NLI is zero-shot.
+experiment: p6_verdict_learned_xlmr_nli
+task: classification
+split: data/splits/averitec/dev.jsonl
+predictions: results/preds/p6_verdict_learned_xlmr_nli.jsonl
+label_set: verdict_5class
+baseline: 7750edef4c7a
+paired_bootstrap: 2000
+breakdown: [lang, script]
+sanity_ceiling: 0.85
+calibration:
+  coverage_target: 0.6
+notes: >
+  retrieval=hybrid (rrf, depth 200, k 10), stance=xlmr_nli (NLI labels shown,
+  both distributions to the aggregator), aggregate=learned
+  (aggregator_xlmr_nli_both, 38 features, fitted temperature), floor off.

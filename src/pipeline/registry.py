@@ -85,6 +85,8 @@ register("stance", "tfidf_claimonly", "stance.tfidf", "TfidfClaimOnlyStance")
 register("stance", "bilstm", "stance.bilstm", "BiLSTMStance")
 register("stance", "xlmr", "stance.xlmr", "XLMRStance")
 register("stance", "xlmr_claimonly", "stance.xlmr", "XLMRClaimOnlyStance")
+# NLI labels the passages the user sees; XLM-R's prior rides along for the verdict.
+register("stance", "xlmr_nli", "stance.combined", "CombinedStance")
 register("aggregate", "rule", "pipeline.aggregate", "RuleAggregator")
 register("aggregate", "learned", "pipeline.aggregate", "LearnedAggregator")
 register("generation", "template", "generation.template", "TemplateExplainer")

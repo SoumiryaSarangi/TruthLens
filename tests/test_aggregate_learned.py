@@ -237,3 +237,60 @@ def test_a_missing_aggregator_degrades_to_the_rule_and_says_so(tmp_path, monkeyp
     trace = orch.verify("Were nursing posts restored?", claim_idx=7)
     assert trace.results[0].verdict == "NEI"
     assert any("no aggregator artifact; rule" in (e.note or "") for e in trace.events)
+
+
+# -----------------------------------------------------------------------------
+# The combined stage: NLI labels shown, both distributions to the aggregator
+# -----------------------------------------------------------------------------
+
+
+def test_one_source_is_exactly_the_plain_features():
+    from pipeline.aggregate import multi_features
+    assert multi_features([S, R], [0.6, 0.5]) == features([S, R], [0.6, 0.5])
+
+
+def test_source_view_separates_the_two_models():
+    from pipeline.aggregate import source_view
+    merged = [{**S, **{"xlmr:" + k: v for k, v in R.items()}}]
+    assert source_view(merged, "") == [S]
+    assert source_view(merged, "xlmr:") == [R]
+
+
+def test_combined_stage_shows_nli_and_carries_xlmr_for_the_verdict():
+    from stance.combined import CombinedStance
+    from stance.nli import StanceResult
+
+    class Fake:
+        def __init__(self, probs):
+            self.probs = probs
+
+        def label(self, claim, passages):
+            best = max(self.probs, key=self.probs.get)
+            return [StanceResult(best, self.probs[best], dict(self.probs)) for _ in passages]
+
+    stage = CombinedStance.__new__(CombinedStance)
+    stage.nli, stage.xlmr = Fake(N), Fake(R)
+    out = stage.label("claim", ["p1", "p2"])
+    assert [o.stance for o in out] == ["Neutral", "Neutral"]          # NLI is shown
+    assert out[0].probs["xlmr:Refutes"] == R["Refutes"]               # XLM-R carried
+    assert out[0].probs["Neutral"] == N["Neutral"]
+
+
+def test_an_artifact_reading_two_sources_round_trips(tmp_path):
+    import joblib
+    from sklearn.linear_model import LogisticRegression
+
+    from pipeline.aggregate import feature_names, multi_features
+
+    sources = ("", "xlmr:")
+    rows = [[{**a, **{"xlmr:" + k: v for k, v in b.items()}}] * 5
+            for a, b in ((S, S), (R, R), (S, R), (N, N))]
+    x = [multi_features(r, sources=sources) for r in rows for _ in range(5)]
+    y = [v for v in VERDICTS for _ in range(5)]
+    path = tmp_path / "m.joblib"
+    joblib.dump({"model": LogisticRegression(max_iter=1000).fit(x, y),
+                 "features": feature_names(sources), "sources": sources,
+                 "stance": "xlmr_nli", "k": 10, "temperature": 1.0,
+                 "classes": VERDICTS}, path)
+    out = LearnedAggregator(path=path).aggregate(rows[0])
+    assert out.verdict == "Supported" and sum(out.probs.values()) == pytest.approx(1.0)
