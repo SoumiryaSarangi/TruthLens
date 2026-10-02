@@ -1,0 +1,15 @@
+# Test protocol #15: FR-3 language ID, hybrid, MultiClaim test.
+#
+#   TRUTHLENS_ALLOW_TEST=1 python -m pipeline.batch --split data/splits/multiclaim/test.jsonl \
+#       --stage lang --preprocess-impl hybrid --out results/preds/p7_test_lid_hybrid.jsonl
+experiment: p7_test_lid_hybrid
+task: classification
+split: data/splits/multiclaim/test.jsonl
+predictions: results/preds/p7_test_lid_hybrid.jsonl
+gold_field: lang
+label_set: lang_4class
+baseline: majority_class
+sanity_ceiling: 0.995
+breakdown: [lang, script]
+notes: >
+  FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1. Dev twin: p2_lid_multiclaim_hybrid (7f4d2e1ee058).

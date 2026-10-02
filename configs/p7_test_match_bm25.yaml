@@ -1,0 +1,17 @@
+# Test protocol #12b: claim matching, BM25 -- the lexical floor of Phase 4.
+#
+#   TRUTHLENS_ALLOW_TEST=1 python -m pipeline.batch --split data/splits/multiclaim/test.jsonl \
+#       --stage match --impl bm25_factcheck --out results/preds/p7_test_match_bm25.jsonl
+experiment: p7_test_match_bm25
+task: retrieval
+split: data/splits/multiclaim/test.jsonl
+gold: data/gold/multiclaim_test_retrieval.jsonl
+corpus_ids: data/interim/index/ids.json
+predictions: results/preds/p7_test_match_bm25.jsonl
+baseline: random_rank
+breakdown: [lang, script]
+metrics:
+  retrieval:
+    k: [1, 5, 10]
+notes: >
+  FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1. Dev twin: p4_match_bm25 (de7ef9c9bba3).

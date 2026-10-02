@@ -1,0 +1,13 @@
+# Test protocol #9: the SERVED extractor (claims: heuristic_span) on FR-7.
+#
+#   TRUTHLENS_ALLOW_TEST=1 python -m pipeline.batch --split data/splits/x_claim/test.jsonl \
+#       --stage span --claims-impl heuristic_span --out results/preds/p7_test_span_served.jsonl
+experiment: p7_test_span_served
+task: span
+split: data/splits/x_claim/test.jsonl
+gold: data/gold/x_claim_test_span.jsonl
+predictions: results/preds/p7_test_span_served.jsonl
+baseline: whole_post_span
+breakdown: [lang, script]
+notes: >
+  FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1. Dev twin: p7_span_heuristic_span.

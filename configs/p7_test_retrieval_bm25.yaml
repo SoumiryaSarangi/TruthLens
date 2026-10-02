@@ -1,0 +1,18 @@
+# Test protocol #6a: BM25 over each test claim's own evidence pool (TRAIN
+# knowledge store -- the test claims are held out of train.json).
+#
+#   TRUTHLENS_ALLOW_TEST=1 python -m pipeline.batch --split data/splits/averitec/test.jsonl \
+#       --stage retrieval --impl bm25 --out results/preds/p7_test_retrieval_bm25.jsonl
+experiment: p7_test_retrieval_bm25
+task: retrieval
+split: data/splits/averitec/test.jsonl
+gold: data/gold/averitec_test_retrieval.jsonl
+predictions: results/preds/p7_test_retrieval_bm25.jsonl
+baseline: random_rank
+metrics:
+  retrieval:
+    k: [1, 5, 10]
+breakdown: [lang, script]
+allow_partial: true
+notes: >
+  FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1. Dev twin: p1_bm25_retrieval (cb8f6f0f3b5c).

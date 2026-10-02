@@ -1,0 +1,14 @@
+# Test protocol #14: FR-7 normalization, extractive, CheckThat! 2025 T2 test.
+#
+#   TRUTHLENS_ALLOW_TEST=1 python -m pipeline.batch --split data/splits/checkthat25_t2/test.jsonl \
+#       --stage normalize --claims-impl xlmr --out results/preds/p7_test_normalize_extractive.jsonl
+experiment: p7_test_normalize_extractive
+task: normalization
+split: data/splits/checkthat25_t2/test.jsonl
+gold: data/gold/checkthat25_t2_test_normalization.jsonl
+predictions: results/preds/p7_test_normalize_extractive.jsonl
+baseline: longest_sentence
+breakdown: [lang, script]
+notes: >
+  FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1. Dev twin: p3_normalize_extractive (c080a5079e93). chrF, not METEOR
+  (see the dev config).

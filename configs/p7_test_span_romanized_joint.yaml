@@ -1,0 +1,14 @@
+# Test protocol #10: FR-26, joint span model on romanized X-CLAIM test.
+#
+#   TRUTHLENS_ALLOW_TEST=1 python -m pipeline.batch --split data/splits/x_claim_romanized/test.jsonl \
+#       --stage span --claims-impl xlmr --out results/preds/p7_test_span_romanized_joint.jsonl
+experiment: p7_test_span_romanized_joint
+task: span
+split: data/splits/x_claim_romanized/test.jsonl
+gold: data/gold/x_claim_romanized_test_span.jsonl
+predictions: results/preds/p7_test_span_romanized_joint.jsonl
+baseline: whole_post_span
+breakdown: [lang, script]
+notes: >
+  FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1. Same 193 posts as p7_test_span_native_matched_joint. Dev twin:
+  p7_span_romanized_joint (f05dd5f44b16).

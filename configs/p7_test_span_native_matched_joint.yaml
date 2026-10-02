@@ -1,0 +1,11 @@
+# Test protocol #11: the native side of #10 -- #8's predictions scored on the
+# gold of exactly the posts x_claim_romanized romanizes.
+experiment: p7_test_span_native_matched_joint
+task: span
+split: data/splits/x_claim/test.jsonl
+gold: data/gold/x_claim_test_span_romanized_sources.jsonl
+predictions: results/preds/p7_test_span_joint.jsonl
+baseline: whole_post_span
+breakdown: [lang, script]
+notes: >
+  FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1. Dev twin: p7_span_native_matched_joint (02c59ee296a0).

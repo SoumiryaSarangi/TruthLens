@@ -1,0 +1,20 @@
+# Test protocol #1: the claim-only control on the 307 locked AVeriTeC test
+# claims -- the bar every evidence-reading arm had to clear on dev (0.2949).
+#
+#   TRUTHLENS_ALLOW_TEST=1 python -m pipeline.batch --split data/splits/averitec/test.jsonl \
+#       --stage verdict --impl hybrid --depth 200 --fusion rrf --k 10 \
+#       --stance-impl xlmr_claimonly --aggregate-impl learned \
+#       --aggregator data/interim/models/aggregator_xlmr_claimonly/model.joblib \
+#       --out-verdict results/preds/p7_test_verdict_control.jsonl
+#
+# The EVIDENCE PATH exactly as on dev (no matcher -- docs/test-protocol.md).
+experiment: p7_test_verdict_control
+task: classification
+split: data/splits/averitec/test.jsonl
+predictions: results/preds/p7_test_verdict_control.jsonl
+label_set: verdict_5class
+baseline: majority_class
+breakdown: [lang, script]
+sanity_ceiling: 0.85
+notes: >
+  FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1. Dev twin: ab1cc94cd247 (0.2949).

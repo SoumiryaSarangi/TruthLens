@@ -1,0 +1,13 @@
+# Test protocol #8: FR-7 claim spans, joint XLM-R.
+#
+#   TRUTHLENS_ALLOW_TEST=1 python -m pipeline.batch --split data/splits/x_claim/test.jsonl \
+#       --stage span --claims-impl xlmr --out results/preds/p7_test_span_joint.jsonl
+experiment: p7_test_span_joint
+task: span
+split: data/splits/x_claim/test.jsonl
+gold: data/gold/x_claim_test_span.jsonl
+predictions: results/preds/p7_test_span_joint.jsonl
+baseline: whole_post_span
+breakdown: [lang, script]
+notes: >
+  FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1. Dev twin: p3_span_xlmr_joint (f599f727f473, 0.7463).

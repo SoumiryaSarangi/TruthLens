@@ -1,0 +1,18 @@
+# Test protocol #7: IndicBART + LoRA explanations, beam, on the passages the
+# served pipeline retrieves for each test claim; NLI faithfulness and chrF.
+#
+#   TRUTHLENS_ALLOW_TEST=1 python -m pipeline.batch --split data/splits/averitec/test.jsonl \
+#       --stage explain --evidence retrieved --decoding beam --impl hybrid --depth 200 \
+#       --fusion rrf --k 10 --stance-impl nli --aggregate-impl learned \
+#       --out results/preds/p7_test_explain_beam.jsonl
+#
+# Mirrors its dev twin exactly, including the NLI stance arm it was measured with.
+experiment: p7_test_faithfulness_beam
+task: faithfulness
+split: data/splits/averitec/test.jsonl
+predictions: results/preds/p7_test_explain_beam.jsonl
+gold: data/gold/averitec_test_justification.jsonl
+baseline: extractive_explanation
+breakdown: [lang, script]
+notes: >
+  FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1. Dev twin: p6_faithfulness_beam_retrieved (1db244b950ad, 0.524).

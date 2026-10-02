@@ -1,0 +1,26 @@
+# Test protocol #3: the served pipeline against always-Refuted, in one table.
+# Same predictions as p7_test_verdict_served (#2).
+#
+#   TRUTHLENS_ALLOW_TEST=1 python -m pipeline.batch --split data/splits/averitec/test.jsonl \
+#       --stage verdict --impl hybrid --depth 200 --fusion rrf --k 10 \
+#       --stance-impl xlmr_nli --aggregate-impl learned \
+#       --aggregator data/interim/models/aggregator_xlmr_nli_prior/model.joblib \
+#       --out-verdict results/preds/p7_test_verdict_served.jsonl
+#
+# The EVIDENCE PATH exactly as on dev (no matcher -- docs/test-protocol.md).
+experiment: p7_test_verdict_served_majority
+task: classification
+split: data/splits/averitec/test.jsonl
+predictions: results/preds/p7_test_verdict_served.jsonl
+label_set: verdict_5class
+baseline: majority_class
+breakdown: [lang, script]
+sanity_ceiling: 0.85
+calibration:
+  coverage_target: 0.6
+  tau: 0.3835
+notes: >
+  FINAL TEST RUN (docs/test-protocol.md), scored once with TRUTHLENS_ALLOW_TEST=1. tau 0.3835 is dev's (164d2289c90b); applied, not re-chosen.
+  majority_class reads the scored split's own majority -- Refuted, 174/307 --
+  which is also train's majority, so its predictions equal a train-chosen
+  constant.

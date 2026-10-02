@@ -144,12 +144,12 @@ A standalone local system: a Python pipeline in `src/`, served by FastAPI in `ap
 
 | Dataset | Used for | Licence / access | State |
 | --- | --- | --- | --- |
-| AVeriTeC | Verdict, evidence retrieval | CC BY-NC 4.0 | Claims in `data/splits/averitec/` · knowledge store not yet downloaded |
-| X-CLAIM | Claim spans, EN/HI/PA | Research release | In `data/splits/x_claim/` |
+| AVeriTeC | Verdict, evidence retrieval | CC BY-NC 4.0 | Claims in `data/splits/averitec/` (local test = 307 claims held out of train.json) · dev and train knowledge stores downloaded and cached; the test store is never needed |
+| X-CLAIM | Claim spans, EN/HI/PA | Research release | In `data/splits/x_claim/`; its native hi/pa dev/test posts romanized as `x_claim_romanized/` (FR-26, Phase 7) |
 | CheckThat! 2025 Task 2 | Claim normalization, EN/HI/PA | Public GitLab repo, no registration | Downloaded 2026-09-24 |
 | MultiClaim v2 | Claim matching | Restricted, not redistributable | **Acquired.** ID manifests in `data/splits/multiclaim/`; CSVs stay in gitignored `data/raw/` |
-| SemEval-2023 Task 3 | Manipulation labels (P2) | Registration | Not started |
-| Dakshina | Transliteration evaluation | Open | Not started |
+| SemEval-2023 Task 3 | Manipulation labels (P2) | Registration | Not obtained. FR-19 uses its label NAMES only and is demo-verified, unmeasured |
+| Dakshina | Transliteration evaluation | Open | Downloaded (hi, pa). Trains the romanized LID; its train lexicon builds `x_claim_romanized` |
 
 ## 6. Traceability
 
@@ -162,7 +162,9 @@ A standalone local system: a Python pipeline in `src/`, served by FastAPI in `ap
 | FR-8 | 4 | `configs/p4_*` evals |
 | FR-9, FR-10 (model versions) | 5 | `configs/p5_*` evals |
 | FR-11–17 (model versions) | 6 | `configs/p6_*` evals, abstention curve |
-| FR-19, FR-23, NFR-1, NFR-12 | 7 | demo script in `UI_UX.md` §11 |
+| FR-19, FR-23, NFR-1, NFR-12 | 7 | demo script in `UI_UX.md` §11; `scripts/demo_check.py`; `scripts/measure_latency.py`; `tests/test_ui_static.py` (contrast) |
+| FR-26 (synthetic half) | 7 | `configs/p7_span_*`, `configs/p7_romanize_handtyped*` |
+| Every P0, test split | 7 | `docs/test-protocol.md`, `configs/p7_test_*`; acceptance matrix `docs/acceptance.md` |
 
 ## 7. Acceptance
 
