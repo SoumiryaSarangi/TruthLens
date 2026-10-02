@@ -84,7 +84,17 @@ stages:
   # config answered `NotAClaim` to "Sarkar ne announce kiya hai ki har student ko
   # 6000 rupaye milenge" while accepting a Punjabi blessing. The metric never
   # showed that; two example forwards did.
-  claims: heuristic
+  #
+  # Phase 7: `heuristic_span` -- the heuristic above still decides IF there is a
+  # claim, and the joint XLM-R span model now decides WHICH sentences are claims.
+  # The heuristic alone made every 4+ word sentence a claim: span F1 0.7095 on
+  # X-CLAIM dev (p7_span_heuristic), barely above whole-post 0.6851, against the
+  # span model's 0.7463 -- and on real forwards it verified "Dosto dhyan se
+  # padho!!" and refuted it at 0.83. Rule fixed before measuring: serve it unless
+  # significantly worse on AVeriTeC dev. Delta -0.0030, CI [-0.0115, +0.0041]
+  # (268b03cffbd4 vs 164d2289c90b): served. One-sentence input never reaches the
+  # model.
+  claims: heuristic_span
   matching: factcheck
   # Phase 5. `hybrid`: BM25 top 200 -> BGE-M3 passage rerank -> RRF, the best
   # Success@10 of the ablation (0.214 vs BM25's 0.158 on AVeriTeC dev).

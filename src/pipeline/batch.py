@@ -567,9 +567,12 @@ def run(
     out_verdict: Path | None,
     limit: int | None = None,
     allow_degraded: bool = False,
+    offset: int = 0,
 ) -> dict[str, int]:
     set_all_seeds()
-    rows = load_jsonl(split_path)
+    # `offset` + `limit` shard a long run (rows are written only at the end); the
+    # shards are concatenated in split order before scoring.
+    rows = load_jsonl(split_path)[offset:]
     if limit:
         rows = rows[:limit]
     texts = load_texts(split_path)
@@ -667,6 +670,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--preprocess-impl", default=None, help="override the preprocess impl")
     ap.add_argument("--claims-impl", default=None, help="override the claims impl")
     ap.add_argument("--matching-impl", default=None, help="override the matching impl")
+    ap.add_argument("--generation-impl", default=None,
+                    help="override the explainer. The verdict is decided before any "
+                         "explanation is written, so `template` gives the served "
+                         "verdicts without an hour of IndicBART on a verdict-only run")
     ap.add_argument("--reranker", default=None,
                     help="reranker for the matching stage: none|nli|xlmr. The "
                          "bi-encoder score alone gates the fast path poorly")
@@ -710,7 +717,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="--stage explain: served passages, or the gold QA oracle")
     ap.add_argument("--decoding", default="beam", choices=["greedy", "beam", "nucleus"])
     ap.add_argument("--limit", type=int, default=None)
-    ap.add_argument("--offset", type=int, default=0, help="--stage passages: skip rows")
+    ap.add_argument("--offset", type=int, default=0,
+                    help="--stage passages|retrieval|verdict|both: skip rows (sharding)")
     args = ap.parse_args(argv)
     try:
         test_guard.require_allowed(Path(args.split), load_jsonl(args.split),
@@ -737,6 +745,8 @@ def main(argv: list[str] | None = None) -> int:
         cfg.stages["claims"] = args.claims_impl
     if args.matching_impl:
         cfg.stages["matching"] = args.matching_impl
+    if args.generation_impl:
+        cfg.stages["generation"] = args.generation_impl
     if args.reranker:
         cfg.stage_args.setdefault("matching", {})["reranker"] = args.reranker
     if args.adapter:
@@ -841,7 +851,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"pipeline: {cfg.stages}  k={cfg.k}")
     counts = run(Path(args.split), cfg, args.stage, out_r, out_v, args.limit,
-                 allow_degraded=args.allow_degraded)
+                 allow_degraded=args.allow_degraded, offset=args.offset)
     print(f"  {counts['n']} claims | {counts['no_evidence']} with no evidence "
           f"| {counts['no_pool']} with no result | {counts['degraded']} degraded "
           f"| {counts['below_floor']} below the relevance floor")

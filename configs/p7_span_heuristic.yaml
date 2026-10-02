@@ -1,0 +1,19 @@
+# FR-7: the SERVED claim extractor (`claims: heuristic` -- every sentence of 4+
+# words that is not a greeting is a claim) scored on the same task as the span
+# models. Phase 3 measured whole_post and the XLM-R arms but never the rule the
+# served pipeline actually runs; real demo forwards (Phase 7) showed it checking
+# "Dosto dhyan se padho!!" as a claim.
+#
+#   python -m pipeline.batch --split data/splits/x_claim/dev.jsonl --stage span \
+#       --claims-impl heuristic --out results/preds/p7_span_heuristic.jsonl
+experiment: p7_span_heuristic
+task: span
+split: data/splits/x_claim/dev.jsonl
+gold: data/gold/x_claim_dev_span.jsonl
+predictions: results/preds/p7_span_heuristic.jsonl
+baseline: c108ee694a53
+breakdown: [lang, script]
+notes: >
+  Baseline is p3_span_whole_post's run, as for the XLM-R arms, so the delta
+  reads as "better than predicting the whole post". Compare with
+  p3_span_xlmr_joint (0.7463).

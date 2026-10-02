@@ -1,0 +1,19 @@
+# FR-7: the SERVED extractor since Phase 7, `claims: heuristic_span` -- the
+# heuristic's candidate sentences, kept by the share of their tokens the joint
+# span model tags as claim. Compare p7_span_heuristic (the rule alone, 0.7095)
+# and p3_span_xlmr_joint (raw spans, 0.7463). Sentence-level output costs some
+# precision against raw spans by design: a whole sentence is the retrieval query.
+#
+#   python -m pipeline.batch --split data/splits/x_claim/dev.jsonl --stage span \
+#       --claims-impl heuristic_span --out results/preds/p7_span_heuristic_span.jsonl
+experiment: p7_span_heuristic_span
+task: span
+split: data/splits/x_claim/dev.jsonl
+gold: data/gold/x_claim_dev_span.jsonl
+predictions: results/preds/p7_span_heuristic_span.jsonl
+baseline: c108ee694a53
+breakdown: [lang, script]
+notes: >
+  Baseline is p3_span_whole_post's run, as for the XLM-R arms, so the delta
+  reads as "better than predicting the whole post". Compare with
+  p3_span_xlmr_joint (0.7463).

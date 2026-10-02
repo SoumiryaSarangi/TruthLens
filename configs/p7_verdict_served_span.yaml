@@ -1,0 +1,29 @@
+# Phase 7: the served arm with `claims: heuristic_span` -- the heuristic still
+# decides IF a forward holds a claim, the joint span model now decides WHICH
+# sentences are claims (claims/heuristic_span.py). Everything else is the
+# served config of 164d2289c90b.
+#
+# Decision rule, fixed before this run: serve heuristic_span unless it is
+# significantly WORSE than 164d2289c90b on AVeriTeC dev (paired-bootstrap 95% CI
+# entirely below 0). Only claims with 2+ candidate sentences can change (36 of
+# 500); the reason to switch is real forwards, where the heuristic verified
+# "Dosto dhyan se padho!!" and refuted it at 0.83 (project log, Phase 7).
+#
+#   python -m pipeline.batch --split data/splits/averitec/dev.jsonl --stage verdict \
+#       --pipeline-config configs/pipeline/dev.yaml --claims-impl heuristic_span \
+#       --out-verdict results/preds/p7_verdict_served_span.jsonl
+experiment: p7_verdict_served_span
+task: classification
+split: data/splits/averitec/dev.jsonl
+predictions: results/preds/p7_verdict_served_span.jsonl
+label_set: verdict_5class
+baseline: 164d2289c90b
+paired_bootstrap: 2000
+breakdown: [lang, script]
+sanity_ceiling: 0.85
+calibration:
+  coverage_target: 0.6
+  tau: 0.3835
+notes: >
+  Served arm with claims=heuristic_span. calibration.tau reports the served
+  tau_abstain beside the operating point this run would choose.

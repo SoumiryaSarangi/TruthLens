@@ -72,6 +72,8 @@ register("claims", "passthrough", "claims.passthrough", "PassthroughClaims")
 register("claims", "heuristic", "claims.heuristic", "HeuristicClaims")
 register("claims", "xlmr", "claims.span_xlmr", "SpanXLMRClaims")
 register("claims", "nli", "claims.nli_zeroshot", "NLIZeroShotClaims")
+# Phase 7: the heuristic gate (FR-6) + the joint span model choosing sentences (FR-7).
+register("claims", "heuristic_span", "claims.heuristic_span", "HeuristicSpanClaims")
 register("matching", "none", "matching.none_matcher", "NoMatcher")
 register("matching", "factcheck", "matching.factcheck", "FactCheckMatcher")
 register("retrieval", "bm25", "retrieval.bm25", "BM25Retriever")

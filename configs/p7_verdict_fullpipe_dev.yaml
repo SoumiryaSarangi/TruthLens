@@ -1,0 +1,27 @@
+# DIAGNOSTIC, not a candidate: the FULL served config (configs/pipeline/dev.yaml
+# with claims heuristic_span, template explanations) on AVeriTeC dev -- i.e.
+# with the fact-check fast path switched ON.
+#
+# AVeriTeC claims are taken from fact-check articles and the matcher's pool is
+# 78,077 fact-checks, so the fast path can find a claim's OWN source article
+# (dev 00070: CheckYourFact on the same Fauci claim, cosine 0.95) and return its
+# rating. AVeriTeC's rules exclude the source article as evidence; this run
+# measures how much that lookup would move the number. It is why every AVeriTeC
+# verdict number, dev and test, is the evidence path with no matcher
+# (docs/test-protocol.md).
+#
+#   python -m pipeline.batch --split data/splits/averitec/dev.jsonl --stage verdict \
+#       --pipeline-config configs/pipeline/dev.yaml --claims-impl heuristic_span \
+#       --generation-impl template --out-verdict results/preds/p7_verdict_fullpipe_dev.jsonl
+experiment: p7_verdict_fullpipe_dev
+task: classification
+split: data/splits/averitec/dev.jsonl
+predictions: results/preds/p7_verdict_fullpipe_dev.jsonl
+label_set: verdict_5class
+baseline: 164d2289c90b
+paired_bootstrap: 2000
+breakdown: [lang, script]
+sanity_ceiling: 0.85
+notes: >
+  Fast path ON over AVeriTeC claims -- a leakage diagnostic, never a reported
+  verdict number. Baseline is the evidence-path served run.
