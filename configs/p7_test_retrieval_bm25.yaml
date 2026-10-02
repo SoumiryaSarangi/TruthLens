@@ -2,7 +2,7 @@
 # knowledge store -- the test claims are held out of train.json).
 #
 #   TRUTHLENS_ALLOW_TEST=1 python -m pipeline.batch --split data/splits/averitec/test.jsonl \
-#       --stage retrieval --impl bm25 --out results/preds/p7_test_retrieval_bm25.jsonl
+#       --stage retrieval --impl bm25 --stance-impl always_neutral --out results/preds/p7_test_retrieval_bm25.jsonl
 experiment: p7_test_retrieval_bm25
 task: retrieval
 split: data/splits/averitec/test.jsonl

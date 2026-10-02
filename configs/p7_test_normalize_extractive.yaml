@@ -1,7 +1,8 @@
 # Test protocol #14: FR-7 normalization, extractive, CheckThat! 2025 T2 test.
 #
 #   TRUTHLENS_ALLOW_TEST=1 python -m pipeline.batch --split data/splits/checkthat25_t2/test.jsonl \
-#       --stage normalize --claims-impl xlmr --out results/preds/p7_test_normalize_extractive.jsonl
+#       --stage normalize --preprocess-impl hybrid --claims-impl xlmr \
+#       --out results/preds/p7_test_normalize_extractive.jsonl
 experiment: p7_test_normalize_extractive
 task: normalization
 split: data/splits/checkthat25_t2/test.jsonl

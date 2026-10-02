@@ -80,8 +80,36 @@ mirroring its dev run (1db244b950ad), which used the NLI stance arm.
 | 14 | Normalization | checkthat25_t2 test (1,485) | `p7_test_normalize_extractive` | extractive (span model) | longest_sentence |
 | 15 | Language ID | multiclaim test (3,156) | `p7_test_lid_hybrid` | hybrid (script + romanized LID) | majority_class |
 
+Three configs pair against a test run that does not exist until its predecessor
+is scored: `p7_test_verdict_served` (baseline = #1's hash),
+`p7_test_calibration_served_t1` (baseline = #2's hash) and
+`p7_test_retrieval_hybrid` (baseline = #6a's hash). They are written at run time
+as copies of their dev twins (`p6_verdict_served`, `p6_calibration_served_t1`,
+`p5_retrieval_hybrid_rrf_n200`) with only `split`, `predictions`, `gold` and
+that one hash changed, plus `calibration.tau: 0.3835` on #2.
+
 Every config breaks down by language and script; MultiClaim's Punjabi cells are
 single digits and are reported as fractions with their n.
+
+## Proof that each test command is its dev twin (2026-10-02)
+
+Each command was re-run on dev before the freeze and compared with its dev
+twin's predictions file by sha256:
+
+| Test command for | Dev twin | Result |
+| --- | --- | --- |
+| #2-4 served verdict | `p6_verdict_served.jsonl` (164d2289c90b) | byte-identical |
+| #1 claim-only control | `p6_verdict_learned_xlmr_claimonly.jsonl` | byte-identical |
+| #5 served at T=1 | `p6_calibration_served_t1.jsonl` | byte-identical |
+| #6a BM25 retrieval | `p1_bm25_retrieval.jsonl` | byte-identical |
+| #6b hybrid retrieval | `p5_retrieval_hybrid_rrf_n200.jsonl` | byte-identical |
+| #7 explanations | `p6_explain_beam_retrieved.jsonl`, first 20 claims (`--limit 20`; the full run is ~1 h) | byte-identical |
+| #8, #11 joint spans | `p3_span_xlmr_joint.jsonl` | 600/600 rows identical |
+| #9, #10 served / romanized spans | produced today by the commands in their configs (`p7_span_heuristic_span`, `p7_span_romanized_joint`) | — |
+| #12 BGE-M3 matching | `p2_match_bge_m3.jsonl` | byte-identical |
+| #12b BM25 matching | `p4_match_bm25.jsonl` | byte-identical |
+| #14 normalization | `p3_normalize_extractive.jsonl` | byte-identical |
+| #15 language ID | `p2_lid_multiclaim_hybrid.jsonl` | byte-identical |
 
 ## Not given a test number, and why
 
