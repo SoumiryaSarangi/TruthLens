@@ -2453,6 +2453,72 @@ claim prior, the price of its better AVeriTeC numbers; NLI made the same two
 errors at low confidence. The confident wrong refutation of a true claim is the
 failure the error analysis in Phase 7 should look at first.
 
+## 2026-10-02 — Phase 7, steps 1-4: test readiness, provenance, FR-26, FR-19
+
+Phase 7 runs to an approved plan: **finish the code, tag `code-freeze`, then the
+one test run**, pre-registered in `docs/test-protocol.md` before any test
+prediction exists, covering every component's dev-chosen arm (decided with the
+owner); report in Markdown; FR-19 built rather than cut (owner's call).
+
+**1. Test readiness.** Three holes found by auditing before touching test:
+- **Only scoring was locked.** `pipeline.batch` and `score_passages.py` wrote
+  test predictions without asking. Both now refuse a test split without
+  `TRUTHLENS_ALLOW_TEST=1`, through one rule shared with `evaluate.py`
+  (`common/test_guard.py`).
+- **`calibration:` re-chooses tau on the split it scores** -- on test, choosing
+  on test. `calibration.tau` now reports coverage and selective scores at a
+  FIXED tau (`at_tau`); the test run applies dev's 0.3835.
+- **`score_passages.py` read "train claim" from `source_id`**, which says
+  `train.json` for all 307 test claims (they are held out of train.json). It
+  now reads the uid's split. Latent -- nothing had run on test -- and the same
+  shape as the Phase 5 knowledge-store bug.
+Test gold built (gitignored): AVeriTeC retrieval 307/307 (674 gold docs),
+justifications 307, CheckThat normalization 1,485.
+
+**2. The 49 "dirty tree" results.** `scripts/check_result_provenance.py`
+re-hashes every input. **All 49 have byte-identical predictions and split
+files.** 23 (Phase 5) reproduce their exact config_hash and were re-scored from
+a clean tree: same hashes, same metrics, flag gone. The other 26 (Phases 1-4)
+cannot keep their hash -- the split lock has grown since (Phase 5 added
+`averitec_stance`), and the lock sha is part of the hash -- so they keep the
+flag, with this explanation. Their numbers are not in doubt; their provenance
+label is.
+
+**3. FR-26 completed: romanized X-CLAIM.** The P0 requirement named a
+transliterated X-CLAIM test set that was never built, so span identification had
+no romanization number at all.
+- `preprocess/romanize.py`: native -> informal Latin. Dakshina's train lexicon
+  (most-attested human spelling), rules with schwa deletion for unknown words,
+  one whitespace token to one token so span gold carries over.
+- `x_claim_romanized/{dev,test}` (183 / 193): X-CLAIM's native hi/pa eval posts,
+  romanized. New files only; `verify-reproducible` confirms all 21 split files
+  rebuild byte for byte with the new eval rows visible to dedup.
+- **How synthetic is it?** On the 33 hand-typed Punjabi pairs, run backwards
+  (Gurmukhi rewrite in, what the person typed as reference): CER **0.214**
+  (3f33f4e33934); rules alone 0.283 (f4374531a66c); doing nothing 0.805. A new
+  config key `baseline_texts` makes "doing nothing" echo the native source.
+
+| span token F1, same 183 dev posts | native (02c59ee296a0) | romanized (f05dd5f44b16) |
+| --- | --- | --- |
+| all | 0.8064 | 0.7921 |
+| hi | 0.7805 (deva, n=96) | **0.7468** (n=96) |
+| pa | 0.8382 guru n=76, 0.8352 deva n=11 | 0.8453 (n=87) |
+
+Hindi pays ~0.03 for romanization; **Punjabi pays nothing** -- consistent with
+Phase 3, where zero-shot tied joint on Punjabi: its span skill is cross-lingual
+transfer, which does not care about script. Synthetic romanization is cleaner
+than real typing, so these are lower bounds. The joint model was re-run on
+native dev first: 600/600 predictions identical to Phase 3's, so the comparison
+is the same model.
+
+**4. FR-19: manipulation flags.** `manipulation/flags.py`, optional stage
+`manipulation: rules_nli`, served. SemEval-2023 T3 technique names only; five by
+rules (en/hi/pa, native and romanized), two by zero-shot NLI on the resident
+model at P >= 0.90, at most three. Flags are computed after every verdict is
+decided and only copied onto results -- tested with the stage on and off.
+**Unmeasured**: SemEval data was never obtained, so FR-19 is demo-verified, as
+the SRS allows for a P2.
+
 ## Phase 3 gaps — CLOSED 2026-09-24
 
 All four are built. They were, in the order the previous section ranked them:
