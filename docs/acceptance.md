@@ -37,7 +37,7 @@ with the reason.
 | FR-20 | P0 | test | `tests/test_api.py::test_verify_returns_the_documented_shape` | V |
 | FR-21 | P0 | test | `tests/test_api.py::test_health_reports_each_stage`, `::test_version_reports_taus_and_confidence_bands` | V |
 | FR-22 | P0 | test | `tests/test_orchestrator.py::test_trace_records_every_stage_it_ran` | V |
-| FR-23 | P0 | demo | `app/static/`; `scripts/demo_check.py` exit 0; demo order 5, 1, 2, 6 | V\* — hi/pa strings await native review |
+| FR-23 | P0 | demo | `app/static/`; `scripts/demo_check.py` exit 0; demo order 5, 1, 2, 6; hi/pa strings reviewed by a native speaker (`docs/i18n-review.md`) | V |
 | FR-24 | P0 | test | `tests/test_batch.py` (batch output scores through the real harness) | V |
 | FR-25 | P0 | review | `docs/results.md`: every row carries its baseline | V |
 | FR-26 | P0 | review, eval | hand-typed 100 (`data/splits/handtyped/`); MultiClaim natural romanized; `x_claim_romanized` dev 02c59ee296a0 / f05dd5f44b16, test 67e8435985a6 vs 418bf3876e80 (same posts) | V |

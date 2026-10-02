@@ -472,9 +472,14 @@ code-mixing.
   - AVeriTeC is CC BY-NC 4.0; MultiClaim is access-restricted.
   - The hand-typed forwards are volunteers' own writing and stay local.
   - The system runs offline; input text is not logged.
-- **Unverified translations.** The Hindi and Punjabi interface strings are
-  marked unverified until a native speaker reviews them
-  (`docs/i18n-review.md`). No demo runs before that review.
+- **Translations reviewed.** The Hindi and Punjabi interface strings were
+  machine-drafted, then reviewed by a native speaker before any demo
+  (`docs/i18n-review.md`).
+  - All corrections were applied.
+  - Gendered constructions around a publisher's name were made neutral.
+  - Verdict labels now describe what the *evidence* does ("सबूत इसका खंडन करते
+    हैं", the evidence contradicts it), keeping the system's
+    evidence-not-truth framing in every language.
 
 ## 11. Limitations and cuts
 

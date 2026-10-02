@@ -111,12 +111,11 @@ historical rationale, lowest precedence.
     gate now also rejects, under any verdict but Supported, a sentence that
     entails the claim.
 
-**Where things stand (2026-10-02):** **Phase 7 is complete except the
-native-speaker review of the hi/pa UI strings** (`docs/i18n-review.md`), which
-must happen before any demo. The test run is done (entry "Phase 7: the test run,
-error analysis, report"); the report is `docs/report.md`, the acceptance matrix
-`docs/acceptance.md`. Days 13-14 are writing and demo polish only: no code, no
-new numbers.
+**Where things stand (2026-10-02):** **Phase 7 is complete.** The test run is
+scored and written up (`docs/report.md`), the acceptance matrix is closed
+(`docs/acceptance.md`), and the Hindi and Punjabi UI strings are reviewed by a
+native speaker. What remains is the live demo (`UI_UX.md` §11): run
+`python scripts/demo_check.py` before it. No code and no new numbers.
 
 **Phase 6/7 working files, all gitignored and on this machine** (rebuild
 commands in each script's docstring): cached top-20 passages per AVeriTeC claim
@@ -2648,6 +2647,27 @@ clone (697 passed, 18 skipped for gitignored data).
 
 **Still open, needs a human:** the native-speaker review of the Hindi and
 Punjabi UI strings (`docs/i18n-review.md`) before any demo.
+
+## 2026-10-02 — Phase 7 COMPLETE: the Hindi and Punjabi UI strings reviewed
+
+The project owner reviewed every Hindi and Punjabi interface string
+(`docs/i18n-review.md`). Applied exactly as given: 18 Hindi and 23 Punjabi
+strings; every `{placeholder}` survives (checked). The main changes:
+- `{publisher}` constructions made gender-neutral;
+- verdict labels rephrased to say what the evidence does ("सबूत इसका खंडन करते
+  हैं") -- the evidence-not-truth framing, in Hindi and Punjabi too;
+- everyday UI words ("पेस्ट करें", "रुझान", "ਵੇਖੋ", "ਕਾਫ਼ੀ ਸਬੂਤ ਨਹੀਂ").
+
+One change carried into English: the review notes "Alarming language"
+misdescribes SemEval's *Loaded_Language*, and the corrected hi/pa say
+"inciting" / "emotional" language, so `en.json` now reads "Emotionally loaded
+language". Both locale files now record the review in `_comment`; the
+"UNVERIFIED" guard in `tests/test_ui_static.py` accepts the reviewed form.
+Rendering the six demo responses through `app.js` in en, hi and pa: no
+unfilled placeholder, no undefined, no missing key.
+
+**Phase 7 is complete.** Every P0 requirement is verified (`docs/acceptance.md`);
+what remains is the live demo itself, after `python scripts/demo_check.py`.
 
 ## Phase 3 gaps — CLOSED 2026-09-24
 

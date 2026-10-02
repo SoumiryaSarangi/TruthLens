@@ -120,7 +120,7 @@ On the fast path, the trail shows the matched fact-check instead: publisher, hea
 | NotAClaim | 💬 | neutral, no chip | Nothing here to fact-check | इसमें जाँचने लायक कोई दावा नहीं है |
 | **Abstained** (any verdict) | ◌ | grey, **dashed border** | Not confident enough to judge | भरोसे से फ़ैसला नहीं कर सकते |
 
-Punjabi strings go in `pa.json` and **need a native speaker's review** before the demo. Hindi strings should get the same check. Wrong Punjabi in a Punjabi demo is worse than English.
+Punjabi strings go in `pa.json` and Hindi in `hi.json`; both were reviewed by a native speaker before the demo (`docs/i18n-review.md`). Wrong Punjabi in a Punjabi demo is worse than English, so any new string needs the same review.
 
 **Abstained is visibly different from NEI.** NEI says the evidence is missing. Abstained says the system doesn't trust its own answer. When abstained, the card shows the would-be verdict small and greyed — "Leaning: Refuted" — so the evaluator can see the system has an opinion and chose not to commit to it. That single detail makes the abstention story concrete in the demo.
 
@@ -176,4 +176,4 @@ Order for a live demo: 5, 1, 2, 6. Showing "nothing to check" first proves the s
 
 **Chip 1 and τ_match.** At the served τ_match 0.90 (chosen on dev) the fast path fires only on near-verbatim restatements of an indexed claim: correct matches for paraphrases of well-known hoaxes scored 0.75–0.86 (Phase 7 log). τ was not lowered for the demo; the chip is a phrasing that clears it.
 
-`?lang=hi` or `?lang=pa` on the URL switches the interface language for a demo; otherwise the browser's language is used. The Hindi and Punjabi strings are unverified until the native-speaker review in `docs/i18n-review.md` is done — no demo before it.
+`?lang=hi` or `?lang=pa` on the URL switches the interface language for a demo; otherwise the browser's language is used. The Hindi and Punjabi strings were reviewed by a native speaker on 2026-10-02 (`docs/i18n-review.md`).

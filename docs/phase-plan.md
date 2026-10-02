@@ -11,12 +11,13 @@ seconds without reading the whole plan.
 
 ## Current phase
 
-**Phase 7 — done except the native-speaker review (2026-10-02).** The one
+**Phase 7 — COMPLETE (2026-10-02).** The one
 test run is scored: served verdict 0.2622 vs claim-only control 0.3085 and
 majority 0.1447; ECE 0.039; spans 0.7220 served; matching MRR 0.5355; fast path
 81% precision at 1.7% coverage. Report `docs/report.md`, acceptance
-`docs/acceptance.md`, error analysis `docs/error-analysis.md`. Remaining: the
-hi/pa UI string review, then the demo (`UI_UX.md` §11).
+`docs/acceptance.md`, error analysis `docs/error-analysis.md`. The hi/pa UI
+strings are reviewed by a native speaker and applied. What remains is the demo
+itself (`UI_UX.md` §11): run `python scripts/demo_check.py` first.
 
 Target date **2026-10-12**, no fixed external deadline (confirmed 2026-09-30).
 
@@ -316,8 +317,9 @@ Code freezes at the end of Day 12. In order:
   `data/splits/handtyped/dev.jsonl`; the messages themselves stay in gitignored
   `data/raw/`. Leakage-clean against all four datasets, and checked directly
   against the LID classifier's training pool (0 verbatim, 0 substring).
-- **Native-speaker review of `app/static/i18n/{hi,pa}.json`** before any demo.
-  Those strings are unverified placeholders and are marked as such in the files.
+- ~~**Native-speaker review of `app/static/i18n/{hi,pa}.json`** before any demo.~~
+  **DONE 2026-10-02**: reviewed by the project owner, every correction applied
+  (`docs/i18n-review.md`).
 
 ### Open, not blocking
 
