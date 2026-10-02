@@ -414,3 +414,12 @@ def test_a_floor_with_no_dense_scores_is_recorded_rather_than_silently_skipped()
 def test_version_reports_the_relevance_floor():
     """FR-21: operating thresholds are reported, not buried in code."""
     assert "relevance_floor" in PipelineConfig(relevance_floor=0.4).describe()
+
+
+def test_a_template_explanation_is_labelled_english_whatever_the_input(kb):
+    """FR-17 is cut: every explanation is English. The label drives the UI's
+    lang attribute (screen-reader voice) and its 'explanation in English' note,
+    so a Hindi input must not label the English template `hi`."""
+    res = make(kb).verify("नर्सिंग के 4400 पद बहाल किए गए", claim_idx=7).results[0]
+    assert res.explanation_source == "template"
+    assert res.explanation_lang == "en"

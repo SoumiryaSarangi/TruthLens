@@ -293,8 +293,11 @@ class Orchestrator:
             verdict=agg.verdict, confidence=agg.confidence, abstained=abstained,
             verdict_probs=getattr(agg, "probs", None),
             explanation=explanation, explanation_source=source,
-            explanation_lang=("en" if source == "generated"
-                              else trace.pre.lang if trace.pre else "en"),
+            # Both explainers write English (FR-17 is cut to English). Reporting
+            # the INPUT language for the template made the UI mark English text
+            # lang="hi" (a screen reader reads it in a Hindi voice) and hide the
+            # "explanation is in English" note -- found rendering real responses.
+            explanation_lang="en",
             cited=cited, faithfulness=faith,
         )
 
