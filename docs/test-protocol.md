@@ -88,6 +88,15 @@ as copies of their dev twins (`p6_verdict_served`, `p6_calibration_served_t1`,
 `p5_retrieval_hybrid_rrf_n200`) with only `split`, `predictions`, `gold` and
 that one hash changed, plus `calibration.tau: 0.3835` on #2.
 
+**The runner is `scripts/run_test_protocol.sh`**: every command above in order,
+the three run-time configs, each config scored once. The run-time configs are
+untracked while they are scored, so the harness flags results scored after
+them "dirty tree"; once the run ends they are committed and
+`scripts/check_result_provenance.py --rescore` re-scores exactly those results
+from a clean tree -- the same config hash, the same metrics, only the
+provenance flag changes. That is bookkeeping, not a second look: a re-score that
+moved any number would get a different hash and is refused.
+
 Every config breaks down by language and script; MultiClaim's Punjabi cells are
 single digits and are reported as fractions with their n.
 
