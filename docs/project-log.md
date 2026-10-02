@@ -2669,6 +2669,40 @@ unfilled placeholder, no undefined, no missing key.
 **Phase 7 is complete.** Every P0 requirement is verified (`docs/acceptance.md`);
 what remains is the live demo itself, after `python scripts/demo_check.py`.
 
+## 2026-10-02 — After the test run: why the Taj Mahal was refuted, and a partial fix
+
+The owner asked why the TRUE "Taj Mahal Shah Jahan ne banwaya tha" was refuted
+(0.72, High). Traced, three causes in a row:
+1. the rule-based transliterator garbled the names (तज महल शह जहन);
+2. **nothing downstream read the transliteration** -- the claim text comes from
+   `normalized`, which stays in Latin letters, so the free-text corpus (Hindi
+   and Punjabi Wikipedia leads) was searched in the wrong script and returned
+   English fact-check titles that matched "Taj Mahal" or just "Shah";
+3. no passage said who built it, so the claim prior decided (the claim-only
+   control refutes it too).
+
+Owner chose fixes A + B, applied after the test run and measured on dev and
+the demo forwards only (report §8a; the frozen test numbers stand):
+- **A, kept.** `LexiconTransliterator` (Dakshina train lexicon read backwards,
+  rules for the rest) -- rule fixed first, met: hand-typed Punjabi CER 0.4281 ->
+  0.3359 (832a76d75780); plus `free_text_translit_query`, searching romanized
+  free text with the claim's native-script form too.
+- **B, rejected.** `free_text_coverage` (abstain when no passage holds half the
+  claim's content words; 1/2 fixed first). It abstained on the well-supported
+  lemon-water refutation: its best evidence is a Spanish fact-check (coverage
+  0.00) and a Hindi page with an inflected verb (0.40). Word overlap cannot
+  judge cross-lingual evidence. Code kept, off by default and in the served
+  config.
+
+**Outcome on the demo set:** Modi now abstains (was Refuted 0.67); the Taj Mahal
+is still Refuted but at 0.57, Medium (the search now finds Hindi pages about
+Shah Jahan's buildings -- including the legendary *black* Taj Mahal -- but not
+the one-word-titled ताजमहल article); every other forward and chip unchanged.
+Free text only, so no AVeriTeC or MultiClaim number can move.
+
+Also: `PassthroughPreprocess` now accepts and ignores the full stage's
+arguments, so a test can swap it into the served config.
+
 ## Phase 3 gaps — CLOSED 2026-09-24
 
 All four are built. They were, in the order the previous section ranked them:

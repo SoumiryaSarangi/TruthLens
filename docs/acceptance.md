@@ -19,7 +19,7 @@ with the reason.
 | FR-2 | P0 | test | `tests/test_stage_preprocess.py` | V |
 | FR-3 | P0 | test, eval | `tests/test_stage_lid.py`; MultiClaim dev 7f4d2e1ee058; test df0c94346f9e (accuracy 0.9924) | V |
 | FR-4 | P0 | test | `tests/test_stage_preprocess.py`, `src/data/script_id.py` tests | V |
-| FR-5 | P0 | test, eval | `tests/test_stage_translit.py`; hand-typed dev f141a4d92b33 (rule-based CER 0.4281, identity 0.8518) | V\* — rule-based; IndicXlit ruled out (would replace CUDA torch) |
+| FR-5 | P0 | test, eval | `tests/test_stage_translit.py`, `tests/test_post_test_fixes.py`; hand-typed dev f141a4d92b33 (rule-based CER 0.4281, identity 0.8518); served since the post-test fix: lexicon-first, CER 0.3359 (832a76d75780) | V\* — IndicXlit ruled out (would replace CUDA torch); the lexicon covers common words only |
 | FR-6 | P0 | test, eval | `tests/test_stage_claims.py`; hand-typed dev e9487da211c6 (served heuristic) | V\* — no test number (`docs/test-protocol.md`) |
 | FR-7 | P0 | test, eval | `tests/test_claims_heuristic_span.py`; X-CLAIM dev f599f727f473; test fa5bda794fa2 / 22fe569d3904 (served); CheckThat test c8f12f399fc7 (at its baseline, as on dev) | V |
 | FR-8 | P0 | eval | MultiClaim dev da5132cee8a0; test 891eecc6a90e (1.7% coverage, precision 0.81 at τ 0.90); demo chip 1 | V\* — fires on ~2% of posts at τ 0.90 |

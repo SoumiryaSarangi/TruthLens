@@ -418,6 +418,64 @@ only slightly, to 0.2819 (run 5d4fd8d511e6), but that is a lookup, not
 verification. Every AVeriTeC verdict number, dev and test, is the evidence
 path; the fast path is measured on MultiClaim.
 
+## 8a. After the test run: one fix for romanized input
+
+The test numbers above describe the frozen system and stay as they are. After
+the run, one demo failure was traced to its cause and partly fixed. The fix is
+measured on dev and on the demo forwards only.
+
+**The failure.** "Taj Mahal Shah Jahan ne banwaya tha" (the Taj Mahal was built
+by Shah Jahan; true) was refuted at 0.72, in the High band. Three things went
+wrong in a row:
+1. **The transliterator garbled the names:** तज महल शह जहन instead of ताज महल
+   शाह जहाँ. Rules cannot recover a long vowel in the middle of a word.
+2. **The claim was searched in Latin letters anyway.** Nothing downstream read
+   the transliteration, so the Hindi corpus was never searched in its own script.
+3. **With no passage saying who built it, the claim prior decided.** The
+   claim-only control refutes it too (§9).
+
+**What changed** (both apply to free text only; AVeriTeC and MultiClaim
+numbers cannot move):
+- **The transliterator now looks words up first.** It reads Dakshina's training
+  lexicon backwards, mapping a typed word to its most-attested native spelling,
+  and uses the rules only for words the lexicon lacks.
+  - Rule fixed before measuring: adopt it only if it beats the rules on the
+    hand-typed Punjabi pairs.
+  - It did: character error rate 0.3359 (run 832a76d75780) against 0.4281
+    for the rules. That also beats the rules given the true language (0.3810).
+- **Romanized Hindi and Punjabi free text is now searched with the claim's
+  native-script form as well.**
+
+**Tried and rejected: abstaining when the evidence doesn't mention the claim.**
+The rule: if no passage contains half of the claim's content words, abstain.
+The threshold was fixed before it was run.
+- On the demo forwards it stopped one wrong refutation.
+- But it abstained on a well-supported one. The lemon-water claim's best
+  evidence is a Spanish fact-check and a Hindi page with an inflected verb, and
+  word overlap scores them 0.00 and 0.40.
+- A word-overlap check cannot judge the cross-lingual evidence this corpus is
+  made of. It is kept in the code, switched off.
+
+**Result on the regression forwards:**
+
+| Forward (truth) | Before | After |
+| --- | --- | --- |
+| Narendra Modi Gujarat ke mukhyamantri rahe hain (true) | Refuted 0.67 | abstained, leaning NEI |
+| Taj Mahal Shah Jahan ne banwaya tha (true) | Refuted 0.72, High | Refuted 0.57, Medium |
+| The other six forwards and all six demo chips | — | unchanged |
+
+**What this does not fix.** The Taj Mahal is still wrong:
+- The search now finds Hindi pages about Shah Jahan's buildings, including the
+  legend of a *black* Taj Mahal.
+- It still misses the Taj Mahal article itself, whose title is one word
+  (ताजमहल), not two.
+- With no passage stating the fact, the claim prior still decides, though no
+  longer confidently.
+
+Removing that prior means retraining the verdict model with a correction for
+the claim-only signal. That needs a new dev selection, and the test split is
+spent, so it is future work.
+
 ## 9. Error analysis
 
 The method, categories and tie-break were fixed before any case was read;

@@ -164,6 +164,17 @@ refutes them too.
   confidence. On free text, the demo corpus supplies fact-check titles about
   *other* rumours on the same entity, and the failure appears.
 
+**After the test run** (report §8a), the cause of the Taj Mahal row was traced
+one step further: the transliterator had garbled the names (तज महल शह जहन), and
+the claim was searched in Latin letters, so the Hindi Wikipedia corpus was never
+searched in its own script. With lexicon-first transliteration and a
+native-script query:
+- **Modi** now abstains, leaning NEI.
+- **The Taj Mahal** is still refuted, but at Medium confidence (0.57) rather
+  than High (0.72).
+- **The Harmandir Sahib** is unchanged: it is Gurmukhi input, so it is never
+  transliterated, and its error is the prior alone.
+
 ## What the cases say
 
 1. **Retrieval fails first, wherever it applies.** Seven of ten English verdict
