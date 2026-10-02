@@ -6,33 +6,39 @@
 <title>TruthLens</title>
 <link rel="stylesheet" href="/static/styles.css">
 <!--
-  Phase 1: plain and unstyled on purpose. UI_UX.md puts the WhatsApp-styled
-  interface in Phase 7; what this page must do today is prove the API works end
-  to end and show the evidence behind a verdict.
-
-  Markup, style and behaviour are split into index.html / styles.css / app.js
-  per SYSTEM_DESIGN.md §5, with copy in i18n/ so Phase 7 can translate the
-  interface without editing code.
+  The WhatsApp-styled page of UI_UX.md §3-§9. Markup here, style in
+  styles.css, behaviour in app.js, every visible string in i18n/*.json
+  (SYSTEM_DESIGN.md §5). No framework, no build step, no web fonts: the demo
+  has to work offline (UI_UX.md §2).
 -->
 </head>
 <body>
-<h1>TruthLens <span class="muted" id="health">checking…</span></h1>
-<p class="muted">
-  Phase 1, English only. Evidence comes from an AVeriTeC claim's own candidate
-  pool, so enter a dev claim index to see the full pipeline. Free text has no
-  corpus to search yet and will correctly say so rather than guess.
-</p>
+<div class="phone">
+  <header class="topbar">
+    <span class="brand"><span aria-hidden="true">◉</span> <span data-i18n="title">TruthLens</span></span>
+    <span class="health" id="health" role="status">
+      <span class="dot" aria-hidden="true"></span><span id="health-text">…</span>
+    </span>
+  </header>
 
-<label for="idx">AVeriTeC dev claim index (0–499, optional)</label><br>
-<input id="idx" type="number" min="0" max="499" style="width:6rem">
+  <!-- aria-live so a screen reader announces each reply (UI_UX.md §9). -->
+  <main id="chat" class="chat" aria-live="polite">
+    <p class="intro" id="intro" data-i18n="intro">Paste a forwarded message. TruthLens checks it and shows you the sources.</p>
+  </main>
 
-<p><label for="text">Claim or forwarded message</label></p>
-<textarea id="text" placeholder="Paste a forwarded message…"></textarea>
-<button id="go">Check</button>
-
-<!-- aria-live so a screen reader announces the result (UI_UX.md §9). -->
-<div id="out" aria-live="polite"></div>
-
+  <footer class="bottombar">
+    <div class="chips" id="chips" role="group" aria-labelledby="chips-label">
+      <span id="chips-label" class="sr-only" data-i18n="samples_label">Try an example</span>
+    </div>
+    <form class="composer" id="composer" novalidate>
+      <label for="text" class="sr-only" data-i18n="placeholder">Paste a forwarded message…</label>
+      <textarea id="text" rows="2" maxlength="4000" data-i18n-placeholder="placeholder"
+                placeholder="Paste a forwarded message…"></textarea>
+      <button type="submit" id="send" class="send" aria-label="Send">➤</button>
+    </form>
+    <p class="composer-error" id="composer-error" role="alert" hidden></p>
+  </footer>
+</div>
 <script src="/static/app.js"></script>
 </body>
 </html>

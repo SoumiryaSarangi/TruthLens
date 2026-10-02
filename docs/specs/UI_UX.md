@@ -161,15 +161,19 @@ User accounts, history, sharing a result, uploading images or screenshots, brows
 
 ## 11. Demo script
 
-Six canned forwards, one per path, wired to the sample chips. Run through all six before every demo; if one breaks, swap the chip, don't improvise.
+Six canned forwards, one per path, wired to the sample chips (`app/static/samples.json`, our own wording — never dataset text). Run `python scripts/demo_check.py` before every demo: it sends all six (and the regression forwards) through the served pipeline and exits 1 if a chip no longer shows its path. If one breaks, swap the chip, don't improvise.
 
-| # | Input | Shows |
-| --- | --- | --- |
-| 1 | English claim with a published fact-check | Fast path, "Already checked by …" |
-| 2 | Romanized Hindi claim | Transliteration note + evidence path |
-| 3 | Gurmukhi Punjabi claim | Punjabi input, language fallback note if applicable |
-| 4 | Long emotional rant, one claim inside | Claim extraction |
-| 5 | "Good morning, stay blessed 🙏" | NotAClaim card |
-| 6 | Claim with thin evidence | Abstained card with "Leaning: …" |
+| # | Chip | Input | Shows |
+| --- | --- | --- | --- |
+| 1 | EN, fact-checked | "Pineapple juice is 500 times more effective at stopping a cough than cough syrup" | Fast path, "Already checked by …" (cosine 0.92 ≥ τ_match 0.90) |
+| 2 | Roman Hindi | "Sarkar ne announce kiya hai ki har student ko 6000 rupaye milenge" | Transliteration note + evidence path |
+| 3 | ਪੰਜਾਬੀ | "ਸਰਕਾਰ ਹਰ ਕਿਸਾਨ ਨੂੰ ਮੁਫ਼ਤ ਟਰੈਕਟਰ ਦੇ ਰਹੀ ਹੈ" | Gurmukhi input, explanation-language fallback note |
+| 4 | Long forward | A Roman-Hindi rant with one claim (lemon water cures cancer) among filler | Claim extraction: only the claim is checked; manipulation flags |
+| 5 | Greeting | "Good morning, stay blessed 🙏" | NotAClaim card |
+| 6 | Thin evidence | "ਲਾਹੌਰ ਪਾਕਿਸਤਾਨ ਦੇ ਪੰਜਾਬ ਸੂਬੇ ਦੀ ਰਾਜਧਾਨੀ ਹੈ" | Abstained card with "Leaning: …" |
 
 Order for a live demo: 5, 1, 2, 6. Showing "nothing to check" first proves the system doesn't label everything, and ending on an abstention lands the project's central argument.
+
+**Chip 1 and τ_match.** At the served τ_match 0.90 (chosen on dev) the fast path fires only on near-verbatim restatements of an indexed claim: correct matches for paraphrases of well-known hoaxes scored 0.75–0.86 (Phase 7 log). τ was not lowered for the demo; the chip is a phrasing that clears it.
+
+`?lang=hi` or `?lang=pa` on the URL switches the interface language for a demo; otherwise the browser's language is used. The Hindi and Punjabi strings are unverified until the native-speaker review in `docs/i18n-review.md` is done — no demo before it.

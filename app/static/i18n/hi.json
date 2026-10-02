@@ -1,15 +1,71 @@
 {
-  "_comment": "Phase 1 placeholder strings. UI_UX.md §6 requires a native speaker to review these before any demo — wrong Hindi in a Hindi demo is worse than English.",
+  "_comment": "UNVERIFIED. Machine-drafted Hindi; UI_UX.md §6 requires a native speaker's review before any demo (docs/i18n-review.md). Wrong Hindi in a Hindi demo is worse than English.",
+  "_lang": "hi",
   "title": "TruthLens",
   "intro": "कोई फ़ॉरवर्ड किया हुआ संदेश यहाँ चिपकाएँ। TruthLens उसे जाँचकर स्रोत दिखाएगा।",
   "placeholder": "फ़ॉरवर्ड किया हुआ संदेश…",
-  "check": "जाँचें",
+  "send": "भेजें",
+  "samples_label": "कोई उदाहरण आज़माएँ",
+  "forwarded": "फ़ॉरवर्ड किया गया",
   "checking": "जाँच हो रही है…",
-  "see_evidence": "सबूत देखें",
+  "models_ready": "मॉडल तैयार हैं",
+  "degraded": "कुछ मॉडल लोड नहीं हुए",
+  "unreachable": "API से संपर्क नहीं हो पा रहा",
+  "empty": "संदेश ख़ाली है",
+  "too_long": "संदेश बहुत लंबा है (अधिकतम 4,000 अक्षर)",
+  "error_server": "TruthLens इस संदेश की जाँच पूरी नहीं कर सका।",
+  "retry": "फिर से कोशिश करें",
+  "unsupported": "TruthLens अंग्रेज़ी, हिंदी और पंजाबी में काम करता है।",
+  "claim": "दावा",
+  "abstained_label": "भरोसे से फ़ैसला नहीं कर सकते",
+  "leaning": "झुकाव: {label}",
+  "verdict_aria": "फ़ैसला: {label}",
+  "band_title": "भरोसा {value}, डेवलपमेंट सेट पर कैलिब्रेट किया गया",
+  "path_evidence": "सबूतों से जाँचा गया",
+  "path_factcheck": "{publisher} पहले ही जाँच चुका है",
+  "already_checked": "{publisher} पहले ही जाँच चुका है",
+  "template_note": "स्रोतों से पुष्ट होने वाली व्याख्या नहीं बन सकी, इसलिए यहाँ सीधे स्रोत दिए गए हैं।",
+  "explanation_fallback": "व्याख्या अंग्रेज़ी में है — {lang} में व्याख्या अभी उपलब्ध नहीं है।",
+  "input_translit": "{lang}, रोमन लिपि में टाइप किया गया → {script} में बदला गया",
+  "input_detected": "{lang}, {script} लिपि",
+  "notaclaim_note": "TruthLens केवल तथ्यात्मक दावों की जाँच करता है। शुभकामनाओं, राय और भविष्यवाणियों में जाँचने को कुछ नहीं होता।",
+  "see_evidence": "सबूत देखें ({n})",
+  "hide_evidence": "सबूत छिपाएँ ({n})",
+  "cite_aria": "स्रोत {n} दिखाएँ",
+  "manipulation_title": "संदेश में बहकाने के तरीक़े दिखे। इनसे फ़ैसला नहीं बदलता।",
+  "unchecked": "इस संदेश के {n} और दावे नहीं जाँचे गए",
+  "unchecked_one": "इस संदेश का 1 और दावा नहीं जाँचा गया",
   "stage_trace": "चरण विवरण",
   "disclaimer": "TruthLens ग़लत हो सकता है। स्रोत ज़रूर देखें।",
-  "unsupported": "TruthLens अंग्रेज़ी, हिंदी और पंजाबी में काम करता है।",
-  "not_confident": "भरोसे से फ़ैसला नहीं कर सकते — झुकाव:",
+  "band": {
+    "High": "ऊँचा",
+    "Medium": "मध्यम",
+    "Low": "कम"
+  },
+  "stance": {
+    "Supports": "समर्थन",
+    "Refutes": "खंडन",
+    "Neutral": "तटस्थ"
+  },
+  "technique": {
+    "Appeal_to_Time": "जल्दबाज़ी का दबाव",
+    "Appeal_to_Authority": "अधिकार का हवाला",
+    "Appeal_to_Popularity": "\"सब यही कहते हैं\"",
+    "Loaded_Language": "डराने वाली भाषा",
+    "Repetition": "दोहराव",
+    "Appeal_to_Fear-Prejudice": "डर दिखाना",
+    "Exaggeration-Minimisation": "अतिशयोक्ति"
+  },
+  "lang_name": {
+    "en": "अंग्रेज़ी",
+    "hi": "हिंदी",
+    "pa": "पंजाबी"
+  },
+  "script_name": {
+    "latn": "रोमन",
+    "deva": "देवनागरी",
+    "guru": "गुरमुखी"
+  },
   "verdict": {
     "Supported": "सबूतों से पुष्ट",
     "Refuted": "सबूतों से खंडित",
@@ -18,7 +74,11 @@
     "NotAClaim": "इसमें जाँचने लायक कोई दावा नहीं है"
   },
   "icon": {
-    "Supported": "✓", "Refuted": "✕", "Conflicting": "⇄",
-    "NEI": "?", "NotAClaim": "💬", "abstained": "◌"
+    "Supported": "✓",
+    "Refuted": "✕",
+    "Conflicting": "⇄",
+    "NEI": "?",
+    "NotAClaim": "💬",
+    "abstained": "◌"
   }
 }

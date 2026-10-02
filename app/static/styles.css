@@ -1,50 +1,189 @@
-/* Phase 1: plain and functional. UI_UX.md puts the WhatsApp-styled interface in
-   Phase 7; styling it now would be polish on a pipeline whose numbers are only
-   just in. What this stylesheet must do today is keep the evidence readable.
-
-   Colour is never the only signal (UI_UX.md §6, NFR-12): every verdict carries
-   an icon and a word, and the abstained state is marked by a dashed border as
-   well as its text. */
+/* TruthLens, styled after the chat app the forward came from (UI_UX.md §1, §3).
+ *
+ * Colour is never the only signal (UI_UX.md §6, NFR-12): every verdict chip
+ * carries an icon and a word, the abstained card is dashed as well as grey, the
+ * health dot sits beside its text. Every colour is a token below, defined for
+ * light and dark; tests/test_ui_contrast.py checks each text/background pair
+ * against WCAG AA (4.5:1) in both, so a new pair belongs in that test too.
+ */
 
 :root {
-  --fg: #111;
-  --bg: #fff;
-  --muted: #555;
-  --line: #999;
-  --err: #a00;
+  --app-bg: #efeae2;
+  --bar-bg: #075e54;
+  --bar-fg: #ffffff;
+  --bubble-in: #ffffff;
+  --bubble-out: #d9fdd3;
+  --text: #111b21;
+  --muted: #4f5e66;
+  --line: #c8ccd0;
+  --link: #035f87;
+  --focus: #0a66c2;
+  --err: #a1190f;
+  --mark-bg: #fff1a8;
+
+  --supported-fg: #0b6b2f;  --supported-bg: #e3f5e8;
+  --refuted-fg: #a11a1a;    --refuted-bg: #fde8e8;
+  --conflicting-fg: #7a4500; --conflicting-bg: #fff1d6;
+  --nei-fg: #3f4a54;        --nei-bg: #eceff1;
+  --abstained-fg: #3f4a54;  --abstained-bg: #f4f5f6;
+  --chip-fg: #075e54;       --chip-bg: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root { --fg: #eee; --bg: #161616; --muted: #aaa; --line: #666; --err: #f88; }
+  :root {
+    --app-bg: #0b141a;
+    --bar-bg: #202c33;
+    --bar-fg: #e9edef;
+    --bubble-in: #202c33;
+    --bubble-out: #00473a;
+    --text: #e9edef;
+    --muted: #a6b3bb;
+    --line: #3b4a54;
+    --link: #7cc7f0;
+    --focus: #7cc7f0;
+    --err: #ff9a8f;
+    --mark-bg: #6b5900;
+
+    --supported-fg: #8fe3a8;  --supported-bg: #12321d;
+    --refuted-fg: #ffb4b4;    --refuted-bg: #3b1414;
+    --conflicting-fg: #ffd28a; --conflicting-bg: #3a2a0a;
+    --nei-fg: #c9d1d8;        --nei-bg: #262c31;
+    --abstained-fg: #c9d1d8;  --abstained-bg: #1b2328;
+    --chip-fg: #7ee0c8;       --chip-bg: #202c33;
+  }
 }
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
 
 body {
-  font-family: system-ui, "Nirmala UI", "Noto Sans Devanagari",
+  margin: 0;
+  background: var(--app-bg);
+  color: var(--text);
+  /* System fonts only: the demo must work offline. Nirmala UI covers
+     Devanagari and Gurmukhi on Windows (UI_UX.md §2). */
+  font-family: system-ui, "Segoe UI", "Nirmala UI", "Noto Sans Devanagari",
                "Noto Sans Gurmukhi", sans-serif;
-  color: var(--fg);
-  background: var(--bg);
-  max-width: 44rem;
-  margin: 2rem auto;
-  padding: 0 1rem;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.45;
 }
 
-textarea { width: 100%; min-height: 6rem; font: inherit; padding: .5rem;
-           color: var(--fg); background: var(--bg); border: 1px solid var(--line); }
-button { font: inherit; padding: .5rem 1rem; margin-top: .5rem; }
-input { font: inherit; padding: .25rem; }
+/* A phone-width column on a projector, full width on a phone (UI_UX.md §3). */
+.phone {
+  display: flex; flex-direction: column;
+  max-width: 440px; height: 100%; margin: 0 auto;
+  background: var(--app-bg);
+  border-left: 1px solid var(--line); border-right: 1px solid var(--line);
+}
+@media (max-width: 460px) { .phone { border: 0; } }
 
-.card { border: 1px solid var(--line); padding: 1rem; margin-top: 1rem; }
-.card.abstained { border-style: dashed; }
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .7rem 1rem; background: var(--bar-bg); color: var(--bar-fg);
+}
+.brand { font-weight: 600; font-size: 1.05rem; }
+.health { display: inline-flex; align-items: center; gap: .4rem; font-size: .85rem; }
+.dot { width: .6rem; height: .6rem; border-radius: 50%; background: #9aa5ab;
+       border: 1px solid var(--bar-fg); }
+.health.ok .dot { background: #25d366; }
+.health.degraded .dot { background: #f5a623; }
+.health.down .dot { background: #e5484d; }
 
-.verdict { font-weight: bold; }
-.muted { color: var(--muted); font-size: .9rem; }
-.err { color: var(--err); }
+.chat { flex: 1; overflow-y: auto; padding: 1rem .75rem; display: flex;
+        flex-direction: column; gap: .6rem; }
+.intro { align-self: center; text-align: center; color: var(--muted);
+         background: var(--bubble-in); border-radius: .6rem; padding: .5rem .8rem;
+         font-size: .9rem; margin: 0; }
 
-details { margin-top: .75rem; }
-li { margin-bottom: .5rem; }
+.bubble { max-width: 88%; padding: .5rem .7rem; border-radius: .6rem;
+          background: var(--bubble-in); color: var(--text);
+          box-shadow: 0 1px 1px rgba(0, 0, 0, .12); overflow-wrap: anywhere; }
+.bubble.out { align-self: flex-end; background: var(--bubble-out); border-top-right-radius: 0; }
+.bubble.in { align-self: flex-start; border-top-left-radius: 0; }
+.bubble .fwd { font-size: .8rem; color: var(--muted); font-style: italic; margin-bottom: .2rem; }
+.bubble .body { white-space: pre-wrap; }
+.bubble.error { color: var(--err); }
 
-/* Respect the user's motion preference (UI_UX.md §9). */
+.checking { color: var(--muted); display: inline-flex; align-items: center; gap: .5rem; }
+.spinner { width: .9rem; height: .9rem; border: 2px solid var(--line);
+           border-top-color: var(--muted); border-radius: 50%;
+           animation: spin .9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* The verdict card (UI_UX.md §5) */
+.card { width: 100%; }
+.card + .card { margin-top: .6rem; padding-top: .6rem; border-top: 1px solid var(--line); }
+.card.abstained { border: 2px dashed var(--abstained-fg); border-radius: .5rem;
+                  padding: .5rem; background: var(--abstained-bg); }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+             flex-wrap: wrap; }
+.chip { display: inline-flex; align-items: center; gap: .35rem; font-weight: 700;
+        font-size: .82rem; letter-spacing: .02em; text-transform: uppercase;
+        padding: .15rem .5rem; border-radius: .35rem; }
+.chip.Supported { color: var(--supported-fg); background: var(--supported-bg); }
+.chip.Refuted { color: var(--refuted-fg); background: var(--refuted-bg); }
+.chip.Conflicting { color: var(--conflicting-fg); background: var(--conflicting-bg); }
+.chip.NEI, .chip.abstained { color: var(--nei-fg); background: var(--nei-bg); }
+.band { font-size: .8rem; color: var(--muted); border: 1px solid var(--line);
+        border-radius: 1rem; padding: .05rem .55rem; cursor: help; }
+.leaning { font-size: .8rem; color: var(--muted); margin: .25rem 0 0; }
+.claim { margin: .45rem 0 .1rem; font-weight: 600; }
+.path { font-size: .82rem; color: var(--muted); margin: .25rem 0; }
+.explanation { margin: .35rem 0; }
+.cite { font: inherit; font-size: .8rem; font-weight: 700; color: var(--link);
+        background: none; border: 0; padding: 0 .1rem; cursor: pointer; text-decoration: underline; }
+.note { font-size: .8rem; color: var(--muted); margin: .2rem 0; }
+.flags { font-size: .82rem; color: var(--conflicting-fg); margin: .35rem 0 0; }
+
+.neutral-card .neutral-title { font-weight: 600; margin: 0 0 .2rem; }
+
+.trail-toggle { font: inherit; font-size: .85rem; color: var(--link); background: none;
+                border: 0; padding: .2rem 0; cursor: pointer; }
+.trail { list-style: none; margin: .3rem 0 0; padding: 0; }
+.trail li { border-left: 3px solid var(--line); padding: .3rem 0 .3rem .5rem; margin-bottom: .4rem; }
+.trail li:target, .trail li.flash { outline: 2px solid var(--focus); outline-offset: 2px; }
+.stance { font-size: .72rem; font-weight: 700; text-transform: uppercase; padding: .05rem .35rem;
+          border-radius: .25rem; margin-right: .3rem; }
+.stance.Supports { color: var(--supported-fg); background: var(--supported-bg); }
+.stance.Refutes { color: var(--refuted-fg); background: var(--refuted-bg); }
+.stance.Neutral { color: var(--nei-fg); background: var(--nei-bg); }
+.src { font-size: .85rem; }
+.src a { color: var(--link); }
+.domain { color: var(--muted); font-size: .78rem; }
+.passage { display: block; font-size: .85rem; margin-top: .15rem; }
+mark { background: var(--mark-bg); color: var(--text); padding: 0 .1rem; }
+
+.footnote { font-size: .8rem; color: var(--muted); margin: .45rem 0 0; }
+.disclaimer { font-size: .78rem; color: var(--muted); margin: .45rem 0 0; }
+.trace { font-size: .78rem; color: var(--muted); margin-top: .4rem; }
+.trace ul { margin: .2rem 0; padding-left: 1.1rem; }
+
+.retry { font: inherit; margin-top: .4rem; padding: .25rem .8rem; border-radius: 1rem;
+         border: 1px solid var(--line); background: var(--chip-bg); color: var(--chip-fg); cursor: pointer; }
+
+/* Composer and sample chips (UI_UX.md §3) */
+.bottombar { padding: .45rem .6rem .6rem; background: var(--app-bg); border-top: 1px solid var(--line); }
+.chips { display: flex; gap: .35rem; overflow-x: auto; padding-bottom: .4rem; }
+.sample { flex: none; font: inherit; font-size: .82rem; padding: .25rem .7rem;
+          border-radius: 1rem; border: 1px solid var(--line);
+          background: var(--chip-bg); color: var(--chip-fg); cursor: pointer; }
+.composer { display: flex; gap: .4rem; align-items: flex-end; }
+.composer textarea { flex: 1; resize: none; font: inherit; color: var(--text);
+                     background: var(--bubble-in); border: 1px solid var(--line);
+                     border-radius: 1.2rem; padding: .55rem .85rem; max-height: 9rem; }
+.send { flex: none; width: 2.6rem; height: 2.6rem; border-radius: 50%; border: 0;
+        background: var(--bar-bg); color: var(--bar-fg); font-size: 1.1rem; cursor: pointer; }
+.send:disabled { opacity: .6; cursor: wait; }
+.composer-error { color: var(--err); font-size: .85rem; margin: .35rem .2rem 0; }
+
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+           overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+/* UI_UX.md §9: no spinner animation under reduced motion -- "Checking…" only. */
 @media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; transition: none !important; }
+  * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .spinner { display: none; }
 }

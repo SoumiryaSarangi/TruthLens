@@ -1,19 +1,70 @@
 {
+  "_lang": "en",
   "title": "TruthLens",
   "intro": "Paste a forwarded message. TruthLens checks it and shows you the sources.",
   "placeholder": "Paste a forwarded message…",
-  "check": "Check",
+  "send": "Send",
+  "samples_label": "Try an example",
+  "forwarded": "Forwarded",
   "checking": "Checking…",
-  "claim_index": "AVeriTeC dev claim index (0–499, optional)",
-  "message_label": "Claim or forwarded message",
-  "see_evidence": "See evidence",
+  "models_ready": "Models ready",
+  "degraded": "Some models are not loaded",
+  "unreachable": "API unreachable",
+  "empty": "Message is empty",
+  "too_long": "Message is too long (4,000 characters at most)",
+  "error_server": "TruthLens could not finish checking this message.",
+  "retry": "Retry",
+  "unsupported": "TruthLens works with English, Hindi and Punjabi.",
+  "claim": "Claim",
+  "abstained_label": "Not confident enough to judge",
+  "leaning": "Leaning: {label}",
+  "verdict_aria": "Verdict: {label}",
+  "band_title": "Confidence {value}, calibrated on the development set",
+  "path_evidence": "Checked against evidence",
+  "path_factcheck": "Already checked by {publisher}",
+  "already_checked": "Already checked by {publisher}",
+  "template_note": "Couldn't generate an explanation that the sources back up, so this one lists them directly.",
+  "explanation_fallback": "Explanation in English — {lang} explanations aren't available yet.",
+  "input_translit": "{lang}, typed in Roman script → converted to {script}",
+  "input_detected": "{lang}, {script} script",
+  "notaclaim_note": "TruthLens only checks factual claims. Greetings, opinions and predictions have nothing to verify.",
+  "see_evidence": "See evidence ({n})",
+  "hide_evidence": "Hide evidence ({n})",
+  "cite_aria": "Show source {n}",
+  "manipulation_title": "Persuasion techniques spotted in the message. They never change the verdict.",
+  "unchecked": "{n} more claims in this message were not checked",
+  "unchecked_one": "1 more claim in this message was not checked",
   "stage_trace": "Stage trace",
   "disclaimer": "TruthLens can be wrong. Check the sources.",
-  "unsupported": "TruthLens works with English, Hindi and Punjabi.",
-  "not_confident": "Not confident enough to judge — leaning:",
-  "models_ready": "· models ready",
-  "degraded": "· degraded",
-  "unreachable": "· API unreachable",
+  "band": {
+    "High": "High",
+    "Medium": "Medium",
+    "Low": "Low"
+  },
+  "stance": {
+    "Supports": "Supports",
+    "Refutes": "Refutes",
+    "Neutral": "Neutral"
+  },
+  "technique": {
+    "Appeal_to_Time": "Pressure to act fast",
+    "Appeal_to_Authority": "Appeal to authority",
+    "Appeal_to_Popularity": "\"Everyone says so\"",
+    "Loaded_Language": "Alarming language",
+    "Repetition": "Repetition",
+    "Appeal_to_Fear-Prejudice": "Fear appeal",
+    "Exaggeration-Minimisation": "Exaggeration"
+  },
+  "lang_name": {
+    "en": "English",
+    "hi": "Hindi",
+    "pa": "Punjabi"
+  },
+  "script_name": {
+    "latn": "Latin",
+    "deva": "Devanagari",
+    "guru": "Gurmukhi"
+  },
   "verdict": {
     "Supported": "Supported by evidence",
     "Refuted": "Contradicted by evidence",
@@ -22,7 +73,11 @@
     "NotAClaim": "Nothing here to fact-check"
   },
   "icon": {
-    "Supported": "✓", "Refuted": "✕", "Conflicting": "⇄",
-    "NEI": "?", "NotAClaim": "💬", "abstained": "◌"
+    "Supported": "✓",
+    "Refuted": "✕",
+    "Conflicting": "⇄",
+    "NEI": "?",
+    "NotAClaim": "💬",
+    "abstained": "◌"
   }
 }
