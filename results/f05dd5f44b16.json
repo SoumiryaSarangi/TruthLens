@@ -1,0 +1,128 @@
+{
+  "baseline": {
+    "kind": "generated",
+    "metrics": {
+      "exact_span_match": 0.33879781420765026,
+      "n": 183.0,
+      "token_f1": 0.739031598090475,
+      "token_precision": 0.5860825671534162,
+      "token_recall": 1.0
+    },
+    "name": "whole_post_span",
+    "notes": []
+  },
+  "config_hash": "f05dd5f44b16",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 183,
+    "n_missing": 0,
+    "n_predicted": 183
+  },
+  "created_utc": "2026-10-02T06:14:10+00:00",
+  "delta_vs_baseline": {
+    "exact_span_match": 0.016393442622950838,
+    "token_f1": 0.05310599404711702,
+    "token_precision": 0.2611493879972495,
+    "token_recall": -0.2562288526607198
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p7_span_romanized_joint",
+  "git": {
+    "branch": "main",
+    "dirty": false,
+    "sha": "a0553d661f641f9b6e520a4d9f311c9226fe144c"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "whole_post_span",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p7_span_romanized_joint",
+      "gold": "data/gold/x_claim_romanized_dev_span.jsonl",
+      "metrics": {},
+      "min_cell_n": 30,
+      "notes": "Same posts as p7_span_native_matched_joint, romanized. Adapter span_xlmr_joint, default claims settings, no check-worthiness gate.\n",
+      "predictions": "results/preds/p7_span_romanized_joint.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/x_claim_romanized/dev.jsonl",
+      "task": "span"
+    },
+    "config_path": "configs/p7_span_romanized_joint.yaml",
+    "predictions_path": "results/preds/p7_span_romanized_joint.jsonl",
+    "predictions_sha256": "df33460d79c9901301dbd69e958da745fac0b84aa5fee38859f6b27c64697b24",
+    "split_path": "data/splits/x_claim_romanized/dev.jsonl",
+    "split_sha256": "05796c327d007173090b375c79a241425ea052bbf864c4599011a347b0a7e581",
+    "splits_lock_sha256": "8d1d9f49a48b32e03f1a0c2be1c050d7a108b4f7bfe127753f812df66a00e717"
+  },
+  "metrics": {
+    "by": {
+      "lang=hi,script=latn": {
+        "exact_span_match": 0.3333333333333333,
+        "n": 96.0,
+        "token_f1": 0.7468123861566485,
+        "token_precision": 0.8442004118050789,
+        "token_recall": 0.6695699510070767
+      },
+      "lang=pa,script=latn": {
+        "exact_span_match": 0.3793103448275862,
+        "n": 87.0,
+        "token_f1": 0.8452508004268944,
+        "token_precision": 0.8503937007874016,
+        "token_recall": 0.8401697312588402
+      }
+    },
+    "overall": {
+      "exact_span_match": 0.3551912568306011,
+      "n": 183.0,
+      "token_f1": 0.792137592137592,
+      "token_precision": 0.8472319551506657,
+      "token_recall": 0.7437711473392802
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "hi": {
+        "n_romanized": 96.0,
+        "romanized": 0.7468123861566485
+      },
+      "pa": {
+        "n_romanized": 87.0,
+        "romanized": 0.8452508004268944
+      }
+    },
+    "metric": "token_f1"
+  },
+  "paired_vs_baseline": null,
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "span",
+  "warnings": []
+}
