@@ -1,0 +1,22 @@
+# THE SERVED ARM, as decided 2026-10-02: stance xlmr_nli -- NLI's per-passage
+# labels shown to the user, XLM-R's distribution read by the verdict -- with the
+# learned aggregator aggregator_xlmr_nli_prior (XLM-R features only; the
+# combined-feature arm lost, a03da2746cac). Verdicts should equal the XLM-R arm's;
+# the baseline is that arm (7750edef4c7a), paired, so any difference is visible.
+#
+# Calibration block: this run sets tau_abstain (lowest tau with <= 60% coverage)
+# and the UI confidence bands (reliability bins) for the served config.
+experiment: p6_verdict_served
+task: classification
+split: data/splits/averitec/dev.jsonl
+predictions: results/preds/p6_verdict_served.jsonl
+label_set: verdict_5class
+baseline: 7750edef4c7a
+paired_bootstrap: 2000
+breakdown: [lang, script]
+sanity_ceiling: 0.85
+calibration:
+  coverage_target: 0.6
+notes: >
+  retrieval=hybrid (rrf, depth 200, k 10), stance=xlmr_nli, aggregate=learned
+  (aggregator_xlmr_nli_prior, fitted T=0.795), floor off, tau_abstain 0.
