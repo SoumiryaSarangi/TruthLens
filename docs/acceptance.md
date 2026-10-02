@@ -17,19 +17,19 @@ with the reason.
 | --- | --- | --- | --- | --- |
 | FR-1 | P0 | test | `tests/test_api.py::test_verify_rejects_empty_text`, `::test_verify_rejects_overlong_text`; UI shows 422 inline (`tests/test_ui_static.py`, demo) | V |
 | FR-2 | P0 | test | `tests/test_stage_preprocess.py` | V |
-| FR-3 | P0 | test, eval | `tests/test_stage_lid.py`; MultiClaim dev 7f4d2e1ee058; test `p7_test_lid_hybrid` | V |
+| FR-3 | P0 | test, eval | `tests/test_stage_lid.py`; MultiClaim dev 7f4d2e1ee058; test df0c94346f9e (accuracy 0.9924) | V |
 | FR-4 | P0 | test | `tests/test_stage_preprocess.py`, `src/data/script_id.py` tests | V |
 | FR-5 | P0 | test, eval | `tests/test_stage_translit.py`; hand-typed dev f141a4d92b33 (rule-based CER 0.4281, identity 0.8518) | V\* — rule-based; IndicXlit ruled out (would replace CUDA torch) |
 | FR-6 | P0 | test, eval | `tests/test_stage_claims.py`; hand-typed dev e9487da211c6 (served heuristic) | V\* — no test number (`docs/test-protocol.md`) |
-| FR-7 | P0 | test, eval | `tests/test_claims_heuristic_span.py`; X-CLAIM dev f599f727f473; test `p7_test_span_*`; CheckThat test `p7_test_normalize_extractive` | V |
-| FR-8 | P0 | eval | MultiClaim dev da5132cee8a0; test `p7_test_fastpath_bge_m3`; demo chip 1 | V\* — fires on ~2% of posts at τ 0.90 |
-| FR-9 | P0 | eval | AVeriTeC dev d153f28ff603 (hybrid) vs cb8f6f0f3b5c (BM25); test `p7_test_retrieval_*` | V |
+| FR-7 | P0 | test, eval | `tests/test_claims_heuristic_span.py`; X-CLAIM dev f599f727f473; test fa5bda794fa2 / 22fe569d3904 (served); CheckThat test c8f12f399fc7 (at its baseline, as on dev) | V |
+| FR-8 | P0 | eval | MultiClaim dev da5132cee8a0; test 891eecc6a90e (1.7% coverage, precision 0.81 at τ 0.90); demo chip 1 | V\* — fires on ~2% of posts at τ 0.90 |
+| FR-9 | P0 | eval | AVeriTeC dev d153f28ff603 (hybrid) vs cb8f6f0f3b5c (BM25); test 3cd7a0719b5b vs f98e27174df6 | V |
 | FR-10 | P0 | eval | `configs/p5_stance_*` (derived dev) | V |
-| FR-11 | P0 | eval | dev 164d2289c90b; learned vs rule, Phase 6; test `p7_test_verdict_*` | V |
+| FR-11 | P0 | eval | dev 164d2289c90b; learned vs rule, Phase 6; test 0c41481ee90d, 26e4cf2fa3d8 -- below the claim-only control on test (36e3f8e6094c); reported | V |
 | FR-12 | P0 | test | `tests/test_orchestrator.py::test_empty_pool_gives_nei_and_abstains`, `::test_nothing_above_the_relevance_floor_is_nei_abstained_with_its_passages` | V |
-| FR-13 | P0 | eval | dev ECE 0.0988 → 0.0690 (204b09b37d27 → 164d2289c90b); test `p7_test_calibration_served_t1` → `p7_test_verdict_served` | V |
-| FR-14 | P0 | eval, test | τ 0.3835 chosen on dev (164d2289c90b); `tests/test_orchestrator.py::test_abstention_threshold_is_applied`; test at fixed τ (`calibration.tau`) | V |
-| FR-15 | P0 | eval, demo | dev 1db244b950ad (faithful 0.524); test `p7_test_faithfulness_beam` | V |
+| FR-13 | P0 | eval | dev ECE 0.0988 → 0.0690 (204b09b37d27 → 164d2289c90b); test 0.0661 → 0.0390 (c3128d753fc7 → 0c41481ee90d) | V |
+| FR-14 | P0 | eval, test | τ 0.3835 chosen on dev (164d2289c90b); `tests/test_orchestrator.py::test_abstention_threshold_is_applied`; test at fixed τ: coverage 0.63, accuracy 0.500 (0c41481ee90d) | V |
+| FR-15 | P0 | eval, demo | dev 1db244b950ad (faithful 0.524); test 08ae7470902c (0.472) | V |
 | FR-16 | P0 | test, eval | `tests/test_generation_gate.py`, `tests/test_stage_faithfulness.py` | V |
 | FR-17 | P1 | demo | explanations are English; the card says so for hi/pa input | CUT — cut-list item 3 (Punjabi generation), extended to Hindi: the explainer is trained on English AVeriTeC justifications |
 | FR-18 | P0 | test | `tests/test_generation_gate.py` (gate failure, generation error, timeout); `tests/test_orchestrator.py::test_abstention_threshold_is_applied` (abstained) | V |
@@ -40,7 +40,7 @@ with the reason.
 | FR-23 | P0 | demo | `app/static/`; `scripts/demo_check.py` exit 0; demo order 5, 1, 2, 6 | V\* — hi/pa strings await native review |
 | FR-24 | P0 | test | `tests/test_batch.py` (batch output scores through the real harness) | V |
 | FR-25 | P0 | review | `docs/results.md`: every row carries its baseline | V |
-| FR-26 | P0 | review, eval | hand-typed 100 (`data/splits/handtyped/`); MultiClaim natural romanized; `x_claim_romanized` dev 02c59ee296a0 / f05dd5f44b16, test `p7_test_span_romanized_joint` | V |
+| FR-26 | P0 | review, eval | hand-typed 100 (`data/splits/handtyped/`); MultiClaim natural romanized; `x_claim_romanized` dev 02c59ee296a0 / f05dd5f44b16, test 67e8435985a6 vs 418bf3876e80 (same posts) | V |
 | FR-27 | P1 | review | `docs/figures/tsne_parallel_claims.png` | V |
 
 ## Non-functional requirements
