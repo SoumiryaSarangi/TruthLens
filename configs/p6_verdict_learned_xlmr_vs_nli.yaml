@@ -1,0 +1,15 @@
+# Decision support for the served stance: the SAME XLM-R predictions as
+# p6_verdict_learned_xlmr, paired against the served NLI arm (c2ffd949681b)
+# instead of the claim-only control, so the NLI-vs-XLM-R gap has its own 95%
+# interval over the same 500 dev claims.
+experiment: p6_verdict_learned_xlmr_vs_nli
+task: classification
+split: data/splits/averitec/dev.jsonl
+predictions: results/preds/p6_verdict_learned_xlmr.jsonl
+label_set: verdict_5class
+baseline: c2ffd949681b
+paired_bootstrap: 2000
+breakdown: [lang, script]
+sanity_ceiling: 0.85
+notes: >
+  Same run as p6_verdict_learned_xlmr; only the comparison differs.
