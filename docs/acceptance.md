@@ -56,11 +56,20 @@ with the reason.
 | NFR-7 | test | `tests/test_orchestrator.py` degradation tests; `tests/test_manipulation.py::test_a_failing_flagger_degrades_to_no_flags` | V |
 | NFR-8 | review | no request logging in `app/main.py`; no network calls in the pipeline | V |
 | NFR-9 | eval, demo | NotAClaim on opinions/greetings (demo chip 5); every verdict card shows sources | V |
-| NFR-10 | test | CI green on the final commit | pending |
+| NFR-10 | test | CI green on every Phase 7 commit; clean-clone run below | V |
 | NFR-11 | test | CI on Linux, local on Windows; `PYTHONIOENCODING=utf-8` in `make` | V |
 | NFR-12 | review | `tests/test_ui_static.py` (WCAG AA, light and dark); keyboard walk-through | V |
 
 ## Clean clone
 
-`git clone` into a fresh directory, then `make test`, `make lint`, `make leakage`
-there: *(recorded after the code freeze)*.
+`git clone` into a fresh directory (commit 4cdf650), then the three targets run
+there with the project's interpreter, 2026-10-02:
+
+| Target | Result |
+| --- | --- |
+| `make lint` | All checks passed |
+| `make leakage` | 31 passed, 2 skipped |
+| `make test` | 697 passed, 18 skipped |
+
+The 18 skips need gitignored data a clone does not have -- models, knowledge
+stores, materialised text -- which is the same situation CI is in.

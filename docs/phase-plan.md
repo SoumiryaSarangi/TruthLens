@@ -11,14 +11,12 @@ seconds without reading the whole plan.
 
 ## Current phase
 
-**Phase 7 — code frozen (2026-10-02); the test run is next.** Built in Phase 7:
-test-split locks for every entry point and a fixed-τ harness metric; FR-26's
-romanized X-CLAIM set (Hindi span F1 0.7805 → 0.7468 romanized, Punjabi ~equal);
-FR-19 flags (rules + zero-shot NLI, unmeasured); the WhatsApp-styled page with
-six demo chips and `scripts/demo_check.py`; a new served extractor,
-`heuristic_span` (span F1 0.7095 → 0.7374, verdict unchanged within CI);
-NFR-1/2/3 met (VRAM tight: 4.60 GiB). The one test run follows
-`docs/test-protocol.md`, every command proven on dev byte for byte.
+**Phase 7 — done except the native-speaker review (2026-10-02).** The one
+test run is scored: served verdict 0.2622 vs claim-only control 0.3085 and
+majority 0.1447; ECE 0.039; spans 0.7220 served; matching MRR 0.5355; fast path
+81% precision at 1.7% coverage. Report `docs/report.md`, acceptance
+`docs/acceptance.md`, error analysis `docs/error-analysis.md`. Remaining: the
+hi/pa UI string review, then the demo (`UI_UX.md` §11).
 
 Target date **2026-10-12**, no fixed external deadline (confirmed 2026-09-30).
 

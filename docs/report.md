@@ -2,12 +2,13 @@
 
 CSE472 project report · Soumirya Sarangi · draft of 2026-10-02
 
-> **Status of this draft.** Every section except §8 (test results) and the case
-> tallies of §9 is complete and built from dev-split results. The test-split
-> numbers come from the one pre-registered test run (`docs/test-protocol.md`) and
-> are filled in after it. Every figure in this report carries the results file it
-> came from — `(run <hash>)` refers to `results/<hash>.json` — and
+> **How to read the numbers.** Every number carries the results file it came
+> from: `(run <hash>)` refers to `results/<hash>.json`, and
 > `scripts/check_report_numbers.py` verifies each one against that file.
+> - **Development (dev) numbers** chose every model and threshold.
+> - **Test numbers** come from one pre-registered run on frozen code
+>   (`docs/test-protocol.md`; §8). Where the two disagree, the test number is
+>   the finding.
 
 ## 1. Summary
 
@@ -26,25 +27,43 @@ every model. This report therefore leads with macro-F1 over five classes, always
 beside the majority baseline. Because no AVeriTeC claim is `NotAClaim`, macro-F1
 on AVeriTeC is capped at 0.80 by construction.
 
-Headline findings, all on dev:
+Headline findings, on the locked test split unless marked:
 
-1. **Abstention is where the verdict becomes usable.** The served pipeline's
-   macro-F1 is 0.2802 (run 164d2289c90b) against the majority's 0.1516. At the
-   abstention threshold chosen on dev, it answers 60% of claims, and accuracy
-   on those rises from 0.49 to 0.5867 (run 164d2289c90b). Calibration halves
-   the gap between confidence and accuracy: ECE 0.0988 (run 204b09b37d27) →
-   0.0690 (run 164d2289c90b).
-2. **No stance model that reads evidence beat a control that reads only the
-   claim.** A claim-only model under the learned aggregator scores 0.2949
-   (run ab1cc94cd247). The best evidence-reading arm ties it. Much of what
-   looks like verification on AVeriTeC is the claim's wording.
-3. **Romanization costs most where retrieval meets meaning.** For Hindi, claim
-   matching drops from MRR 0.4981 on native script to 0.3585 on romanized posts
-   (run 3bebeaff50b0). Claim-span identification barely moves; for Punjabi it
-   does not move at all.
-4. **The fast path is precise only at high thresholds.** At the served τ = 0.90
-   it fires rarely, and even then a fifth of its citations are wrong (Phase 4).
-   That makes it a demo of the architecture, not a reliable shortcut yet.
+1. **Reading the evidence did not help the verdict.**
+   - **On test:** the served pipeline scores macro-F1 0.2622 (run 0c41481ee90d),
+     against 0.1447 for always-Refuted. A control that never sees the evidence,
+     only the claim, scores 0.3085 (run 36e3f8e6094c). The served pipeline is
+     lower by 0.0463, with a 95% interval of [−0.094, +0.001], just short of
+     significance.
+   - **On dev the two tied**, and that is why the evidence-reading arm was
+     served at all.
+   - **The cause** is retrieval: only 15.3% of test claims get any gold document
+     into the top 10 (Success@10 0.1531, run 3cd7a0719b5b). The system mostly
+     reasons over evidence that does not contain the answer, so the claim's
+     wording carries the verdict.
+2. **Abstention ranks claims correctly, but the threshold was set too
+   generously.**
+   - Answering only its most confident claims raises test accuracy from 0.4625
+     to 0.80 at the top 5%.
+   - At the threshold chosen on dev, accuracy reaches 0.500 (run 0c41481ee90d)
+     at 63% coverage. That is still below always-Refuted, whose accuracy is
+     0.57.
+   - **Calibration held up out of sample:** test ECE is 0.039 after temperature
+     scaling, against 0.0661 before (run c3128d753fc7).
+3. **The romanization penalty is real for claim spans; the matching penalty
+   was a measurement artefact.**
+   - **Claim spans, on identical posts:** romanizing costs Hindi 0.068 token F1
+     and Punjabi 0.061 on test (§7). On dev the costs were 0.034 and nothing.
+     This is a lower bound: synthetic romanization is cleaner than real typing.
+   - **Claim matching:** the dev "romanization penalty" did not replicate on
+     test. The data says why: two-thirds of MultiClaim's "romanized Hindi" posts
+     are Devanagari posts with Latin hashtags, or English.
+4. **The fast path is precise only where it barely fires.** At the served
+   τ_match 0.90 it answers 1.7% of posts at 81% precision (run 891eecc6a90e).
+   Wherever it fires more often, it is wrong more often.
+5. **The confident mistakes are the claim prior's.** On real forwards, the
+   system refuted three true claims. The claim-only control refutes them too
+   (§9).
 
 ## 2. Problem and users
 
@@ -269,53 +288,167 @@ showing its path. Contrast meets WCAG AA in light and dark mode
 
 ## 7. The research contribution: the romanization penalty
 
-![native vs romanized](figures/romanization_gap.png)
+![native vs romanized, test](figures/romanization_gap_test.png)
 
-| Stage | Hindi native → romanized | Punjabi native → romanized | Run(s) |
+Native script against romanized input, per stage. Each row is one split, and
+the n beside each cell is the number of posts.
+
+| Stage, split | Hindi: native → romanized | Punjabi: native → romanized | Run |
 | --- | --- | --- | --- |
-| Language ID (accuracy) | 1.00 → 0.74 (n = 737 / 57) | 1.00 → 0.00 (n = 7 / 2) | 7f4d2e1ee058 |
-| Claim matching (MRR) | 0.4981 → 0.3585 | 0.4333 → 0.5000 (n = 7 / 2) | 3bebeaff50b0 |
-| Claim span (token F1, same posts) | 0.7805 → 0.7468 | 0.8382 → 0.8453 | 02c59ee296a0 / f05dd5f44b16 |
+| Language ID (accuracy), test | 1.0000 → 0.8491 (n = 743 / 53) | 1.0000 → 0.0000 (n = 7 / 1) | df0c94346f9e |
+| Language ID (accuracy), dev | 1.0000 → 0.7368 (n = 737 / 57) | 1.0000 → 0.0000 (n = 7 / 2) | 7f4d2e1ee058 |
+| Claim matching (MRR), test | 0.4731 → 0.4736 | 0.1071 → 1.0000 (n = 7 / 1) | c6ba8b41e869 |
+| Claim matching (MRR), dev | 0.4981 → 0.3585 | 0.4333 → 0.5000 (n = 7 / 2) | 3bebeaff50b0 |
+| Claim span, native side, test (same posts) | 0.8151 (n = 97) | 0.7394 (n = 90) | 418bf3876e80 |
+| Claim span, romanized side, test (same posts) | 0.7473 (n = 97) | 0.6789 (n = 96) | 67e8435985a6 |
+| Claim span, native side, dev | 0.7805 (n = 96) | 0.8382 (n = 76) | 02c59ee296a0 |
+| Claim span, romanized side, dev | 0.7468 (n = 96) | 0.8453 (n = 87) | f05dd5f44b16 |
 
-- **Matching pays the largest measured price.** Hindi loses 28% of its MRR
-  when the post is romanized: semantic retrieval meets a script-shaped cluster
-  (§5.1).
-- **Span identification pays little.** It is a token-tagging task, and for
-  Punjabi it pays nothing, consistent with Punjabi spans being cross-lingual
-  transfer to begin with.
-- **The span row is a lower bound.** Its romanized half is synthetic. The
-  romanizer (Dakshina's lexicon, plus rules for words it lacks) is CER 0.2141
-  (run 3f33f4e33934) away from how people actually typed the same Punjabi
-  messages, against 0.8046 for doing nothing, so real romanized input will cost
-  more.
+**What holds, and what did not:**
+
+- **Claim spans pay a real penalty, in both languages, on test.**
+  - Measured on the same posts once as written and once romanized: Hindi
+    0.8151 → 0.7473, Punjabi 0.7394 → 0.6789.
+  - The Punjabi native cell counts only Gurmukhi posts; the six Devanagari
+    Punjabi posts are a separate cell too small to report.
+  - Dev showed half the Hindi penalty and none for Punjabi. Dev and test are
+    each about a hundred posts per language, so the test value is the one to
+    quote.
+  - It is a **lower bound**. The romanizer (Dakshina's lexicon, plus rules for
+    words it lacks) is CER 0.2141 (run 3f33f4e33934) away from how people
+    actually typed the same Punjabi messages, against 0.8046 for doing nothing.
+    Real typing is messier.
+- **Language ID pays it on real typing.**
+  - Romanized Hindi is identified correctly 85% of the time on test and 74% on
+    dev, against 100% for Devanagari.
+  - On the hand-typed forwards, every failure was code-mixing (§9).
+- **The claim-matching penalty seen on dev did not replicate, and it was never
+  a clean measurement.** MultiClaim's "romanized Hindi" cell is defined by
+  majority script, and on inspection most of it isn't romanized Hindi:
+
+  | | dev | test |
+  | --- | --- | --- |
+  | Posts in the cell | 57 | 53 |
+  | Devanagari posts that are Latin-majority only through hashtags and URLs | 23 | 23 |
+  | Mostly English | 14 | 13 |
+  | Hindi typed in Latin letters | 20 | 17 |
+
+  (Profiled by script and by Hindi function words; `docs/project-log.md`.) A
+  0.14 MRR gap on such a mixture is not evidence either way. A proper test
+  needs a set of real romanized posts, which this project could not collect at
+  matching scale.
 - **Punjabi matching cells are single digits** and support no conclusion.
+
+**The contribution, stated precisely.** Romanization's measured cost lands on
+the stages that read *characters*: language ID, and a claim-span tagger. There
+it costs 6–7 points of span F1 even with clean synthetic romanization. Measuring
+it in retrieval needs a cleaner romanized set than any public dataset provides.
+The cheapest fix the measurements point to is the language layer: an accurate
+transliterator before the span tagger, which IndicXlit would have been, had it
+been installable (§11).
 
 ## 8. Test results
 
-*(Filled in from the one pre-registered test run, `docs/test-protocol.md`. Every
-test command was proven on dev to reproduce its dev twin's predictions byte for
-byte before the run.)*
+These come from the one pre-registered run. Every test command was first
+proven on dev, reproducing its dev twin's predictions byte for byte. The run used
+frozen code: nothing under `src/` or `app/` changed after the `code-freeze` tag.
+Each config was scored once.
+
+| # | Component | Test result | Same-table baseline | Run |
+| --- | --- | --- | --- | --- |
+| 2-3 | Verdict, served (AVeriTeC, 307) | macro-F1 0.2622, accuracy 0.4625 | always-Refuted: macro-F1 0.1447, accuracy 0.5668 | 26e4cf2fa3d8 |
+| 1 | Verdict, claim-only control | macro-F1 0.3085, accuracy 0.4853 | always-Refuted: macro-F1 0.1447 | 36e3f8e6094c |
+| 2 | Served vs control, paired bootstrap | served 0.2622 vs control 0.3085: −0.0463, 95% interval [−0.0944, +0.0008] | — | 0c41481ee90d |
+| 4 | Abstention at the dev τ 0.3835 | coverage 0.6319; accuracy 0.5000, macro-F1 0.2627 | answering everything: accuracy 0.4625, macro-F1 0.2622 | 0c41481ee90d |
+| 5 | Calibration | ECE 0.0390 after temperature scaling | before temperature scaling: 0.0661 | c3128d753fc7 |
+| 6 | Evidence retrieval, hybrid | Success@10 0.1531, MRR 0.0679 | BM25: 0.1107, 0.0497 | 3cd7a0719b5b |
+| 6 | Evidence retrieval, BM25 | Success@10 0.1107 | random: 0.0228 | f98e27174df6 |
+| 7 | Explanations, beam, retrieved passages | faithful 0.4723, chrF 0.2370 | extractive: 0.6059, 0.1920 | 08ae7470902c |
+| 8 | Claim span, joint model (571) | token F1 0.7254 | whole post: 0.6267 | fa5bda794fa2 |
+| 9 | Claim span, served extractor | token F1 0.7220, exact match 0.3608 | whole post: 0.6267, 0.2294 | 22fe569d3904 |
+| 10 | Claim span, romanized (193) | token F1 0.7126 | whole post: 0.6933 | 67e8435985a6 |
+| 11 | Claim span, native, same 193 posts | token F1 0.7759 | whole post: 0.6933 | 418bf3876e80 |
+| 12 | Claim matching, BGE-M3 (3,156) | MRR 0.5355, Success@10 0.6987 | random: 0.0000 | c6ba8b41e869 |
+| 12 | Claim matching, BM25 | MRR 0.3928, Success@10 0.4940 | random: 0.0000 | c437b80668d7 |
+| 13 | Fast path, τ 0.90 | coverage 0.0168, precision 0.8113; AUCC 0.6176 | gate removed: AUCC 0.4605 | 891eecc6a90e |
+| 14 | Normalization (1,485) | chrF 0.2666 | longest sentence: 0.2786 | c8f12f399fc7 |
+| 15 | Language ID (3,156) | accuracy 0.9924 | majority: 0.7449 | df0c94346f9e |
+
+**The same components on dev, for comparison:**
+
+| Component | Dev result | Run |
+| --- | --- | --- |
+| Verdict, served | macro-F1 0.2802 | 164d2289c90b |
+| Verdict, claim-only control | macro-F1 0.2949 | ab1cc94cd247 |
+| Calibration | ECE 0.0690 | 164d2289c90b |
+| Retrieval, hybrid | Success@10 0.2140 | d153f28ff603 |
+| Explanations | faithful 0.5240 | 1db244b950ad |
+| Claim span, joint / served | 0.7463 | f599f727f473 |
+| Claim span, served extractor | 0.7374 | e1b2227b28d9 |
+| Claim matching, BGE-M3 | MRR 0.5244 | 3bebeaff50b0 |
+| Fast path | AUCC 0.5842 | da5132cee8a0 |
+| Normalization | chrF 0.2835 | c080a5079e93 |
+| Language ID | accuracy 0.9892 | 7f4d2e1ee058 |
+
+**Reading the test table:**
+
+- **Most components transfer.** Matching, the fast path, language ID, spans and
+  calibration score at or near their dev values; calibration is even better out
+  of sample. Normalization stays at its baseline, as on dev.
+- **The verdict does not, and that is the main finding.** The evidence-reading
+  pipeline falls below the claim-only control (−0.046, interval just touching
+  0). The gap to the majority baseline stays wide: macro-F1 0.2622 against
+  0.1447.
+- **Retrieval explains most of it.** Hybrid retrieval drops from Success@10
+  0.214 on dev to 0.153 on test. When the evidence contains the answer for only
+  one claim in six, a verdict model can do little better than read the claim,
+  and the control reads the claim without the noise.
+- **Abstention ranks correctly but under-delivers at the chosen threshold.**
+  Accuracy rises with confidence all the way to 0.80 at 5% coverage
+  (`docs/figures/abstention_curve.png`). But the dev-chosen τ answers 63% of
+  test claims at accuracy 0.500, below always-Refuted's 0.567. A product
+  setting τ for "beat the constant" would choose about 25% coverage, chosen on
+  dev, as this one was.
 
 **Why the AVeriTeC verdict excludes the fast path.** AVeriTeC claims are taken
-from fact-check articles, and the matcher's pool contains fact-checks. Run with
-the matcher on, the fast path answered dev claims by finding the claim's *own*
-source article, which AVeriTeC's rules exclude as evidence. It changed
-macro-F1 only slightly, to 0.2819 (run 5d4fd8d511e6), but that is a lookup, not
+from fact-check articles, and the matcher's pool contains fact-checks. With the
+matcher on, the fast path answered dev claims by finding the claim's *own*
+source article, which AVeriTeC's rules exclude as evidence. It moved macro-F1
+only slightly, to 0.2819 (run 5d4fd8d511e6), but that is a lookup, not
 verification. Every AVeriTeC verdict number, dev and test, is the evidence
-path. The fast path is measured on MultiClaim.
+path; the fast path is measured on MultiClaim.
 
 ## 9. Error analysis
 
-*(Method and categories fixed before any case was read: `docs/error-analysis.md`.
-Ten real failures per language, after the test run.)*
+The method, categories and tie-break were fixed before any case was read;
+ten real failures per language, plus the demo forwards. Full tables:
+`docs/error-analysis.md`.
 
-The question it starts from is the failure the demo showed: **true claims
-refuted with high confidence.** Examples are Modi as Gujarat's chief minister,
-the Taj Mahal, and the Harmandir Sahib in Amritsar, refuted at confidences up
-to 0.72. On AVeriTeC dev this happens to only 3 of the 122 Supported claims at
-confidence ≥ 0.60. The demo forwards hit it often because the demo corpus is
-Wikipedia leads plus fact-check titles, and a fact-check title about a
-*different* rumour about the same entity reads as refutation.
+| Language | Cases | Retrieval miss | Claim prior | Span boundary | NEI / Conflicting | Wrong-claim evidence | Gold ambiguity |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| English (AVeriTeC verdict) | 10 | 7 | 1 | — | 2 | — | — |
+| Hindi (matching, romanized spans) | 10 | 4 | — | 4 | — | — | 2 |
+| Punjabi (matching, romanized spans) | 10 | 4 | — | 4 | — | 1 | 1 |
+| Demo forwards (true claims refuted) | 3 | — | 3 | — | — | — | — |
+
+Six more failures, all language ID on real hand-typed forwards, are every one
+code-mixing.
+
+- **Retrieval fails first.** Seven of ten wrong English verdicts were reasoned
+  over evidence without the answer.
+- **The confident mistakes are the claim prior's.** The true claims the demo
+  refuted (Modi as Gujarat's chief minister, the Taj Mahal, the Harmandir
+  Sahib) are refuted by the claim-only control too.
+  - A model trained on fact-checked claims, which are overwhelmingly false,
+    learns that a forwarded "X did Y" is probably false.
+  - For the Harmandir Sahib, all three passages the card shows are labelled
+    *Supports* by NLI, while the verdict, read from XLM-R, is Refuted. This is
+    the cost of the served-stance design, made visible.
+- **This failure is not an AVeriTeC one.** No true test claim is refuted at
+  confidence ≥ 0.60. It appears on free text, where the demo corpus offers
+  fact-check titles about other rumours on the same entity.
+- **Some matching "failures" are annotation gaps.** Two Hindi and one Punjabi
+  top-1 matches are the same story from another publisher, unannotated.
 
 ## 10. Ethics
 

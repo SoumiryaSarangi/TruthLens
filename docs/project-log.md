@@ -111,14 +111,12 @@ historical rationale, lowest precedence.
     gate now also rejects, under any verdict but Supported, a sentence that
     entails the claim.
 
-**Where things stand (2026-10-02):** Phases 1-6 complete; **Phase 7 code is
-frozen** (tag `code-freeze`). Done: test-split locks, FR-26 romanized spans,
-FR-19 flags, the demo page and chips, a new served extractor
-(`claims: heuristic_span`), NFR-1/2/3 measured, and every test command proven
-on dev. **Next: the one test run**, exactly as `docs/test-protocol.md` says, then
-error analysis (`docs/error-analysis.md`, taxonomy fixed), the report
-(`docs/report.md`) and the acceptance matrix (`docs/acceptance.md`). Entries
-"Phase 7, steps 1-4" and "steps 5-6" below.
+**Where things stand (2026-10-02):** **Phase 7 is complete except the
+native-speaker review of the hi/pa UI strings** (`docs/i18n-review.md`), which
+must happen before any demo. The test run is done (entry "Phase 7: the test run,
+error analysis, report"); the report is `docs/report.md`, the acceptance matrix
+`docs/acceptance.md`. Days 13-14 are writing and demo polish only: no code, no
+new numbers.
 
 **Phase 6/7 working files, all gitignored and on this machine** (rebuild
 commands in each script's docstring): cached top-20 passages per AVeriTeC claim
@@ -2584,6 +2582,72 @@ now that the span model is resident.
 from Phase 6: evidence does not move the verdict beyond the claim prior (D4), so
 how many passages the aggregator reads cannot matter much; the cached passages
 keep it cheap for later.
+
+## 2026-10-02 — Phase 7: the test run, error analysis, report
+
+**The one test run** followed `docs/test-protocol.md` on frozen code
+(`git diff code-freeze -- src app` is empty for every test result), run by the
+project owner -- the permission system refuses the agent the test flag, as it
+should. It stopped once, at #11, on a missing file: the native gold restricted
+to the romanized posts had been built for dev only (the builder gained that
+output after the test gold was first built). A non-metric failure; rebuilt, and
+the runner resumed at #11 (rule 2). The run-time configs were untracked when
+scored, so eight results carried a dirty flag; re-scored from a clean tree, all
+eight kept their hash and every metric was identical to the first scoring.
+
+**What test says, against dev:**
+
+| | test | dev |
+| --- | --- | --- |
+| verdict, served (macro-F1) | 0.2622 (0c41481ee90d) | 0.2802 |
+| verdict, claim-only control | **0.3085** (36e3f8e6094c) | 0.2949 |
+| served vs control | **-0.0463, CI [-0.094, +0.001]** | tie |
+| ECE, after / before T | 0.039 / 0.066 | 0.069 / 0.099 |
+| at tau 0.3835: coverage, accuracy | 0.63, 0.500 (majority 0.567) | 0.60, 0.587 (majority 0.61) |
+| retrieval Success@10 | 0.153 (BM25 0.111) | 0.214 |
+| spans, joint / served | 0.7254 / 0.7220 | 0.7463 / 0.7374 |
+| spans on the same posts, native -> romanized | hi 0.8151 -> 0.7473, pa 0.7394 -> 0.6789 | hi -0.034, pa +0.007 |
+| matching MRR (BGE-M3 / BM25) | 0.5355 / 0.3928 | 0.5244 / 0.3826 |
+| matching, hi native vs "romanized" | 0.4731 vs 0.4736 | 0.4981 vs 0.3585 |
+| fast path at 0.90 | 1.7% answered, precision 0.81 | ~2%, ~0.8 |
+| explanations, faithful | 0.472 (extractive 0.606) | 0.524 |
+| LID accuracy | 0.9924 | 0.9892 |
+
+**Three findings the test changed:**
+
+1. **Reading evidence did not help the verdict -- it may have hurt.** Phase 6's
+   D4 found no evidence-reading arm beats the claim-only control on dev; on
+   test the served arm falls below it, nearly significantly. The cause is
+   retrieval: 15.3% of test claims get a gold document into the top 10.
+2. **Abstention ranks correctly but the 60% operating point is too generous**:
+   accuracy rises to 0.80 at 5% coverage, but at the dev tau it stays under
+   always-Refuted. Recorded, not re-tuned (that would be choosing on test).
+3. **The matching romanization gap was a measurement artefact.** Profiled,
+   MultiClaim's hi/latn cell is 23 Devanagari posts made Latin-majority by
+   hashtags and URLs, 13 mostly English, and 17 romanized Hindi (test; dev
+   23/14/20). The clean romanization measurement is the span task on identical
+   posts, where test shows a 6-7 point penalty in BOTH languages (dev showed
+   none for Punjabi). The report's contribution section was rewritten to say so.
+
+**Error analysis** (`docs/error-analysis.md`; taxonomy fixed first, one
+tie-break -- P > R > W > L > S > C > X > G -- added at the first two-category
+case, before the Hindi and Punjabi sheets were read): English R 7, C 2, P 1;
+Hindi R 4, S 4, G 2; Punjabi R 4, S 4, G 1, W 1; six hand-typed LID failures,
+all code-mixing. **The confident refutations of true demo forwards are the
+claim prior**: the claim-only control refutes Modi, the Taj Mahal and the
+Harmandir Sahib too, and for the Harmandir Sahib every passage the card shows
+is labelled Supports while the verdict says Refuted -- the served-stance
+design's cost, visible. None of this appears on AVeriTeC test (0 true claims
+refuted at >= 0.60; dev 3/122).
+
+**Report and acceptance.** `docs/report.md` complete; 50 runs cited, every
+number checked against its results file by `scripts/check_report_numbers.py`.
+`docs/acceptance.md`: every P0 verified or verified with a stated limitation,
+every cut recorded; `make lint`, `make leakage`, `make test` pass on a clean
+clone (697 passed, 18 skipped for gitignored data).
+
+**Still open, needs a human:** the native-speaker review of the Hindi and
+Punjabi UI strings (`docs/i18n-review.md`) before any demo.
 
 ## Phase 3 gaps — CLOSED 2026-09-24
 
