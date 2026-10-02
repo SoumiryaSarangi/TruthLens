@@ -1,0 +1,21 @@
+# FR-26: how far the SYNTHETIC romanizer that built x_claim_romanized is from
+# how people really type Punjabi. Input: the Gurmukhi rewrite of each hand-typed
+# forward; reference: what the person typed. Built by
+# scripts/build_romanize_check.py (both sides lowercased: case is not
+# transliteration).
+#
+# Baseline: identity_transliteration echoing the GURMUKHI (baseline_texts) --
+# doing nothing. The split's own text is the typed reference, so echoing it
+# would be a perfect floor; baseline_texts names the real source.
+experiment: p7_romanize_handtyped
+task: transliteration
+split: data/splits/handtyped/dev.jsonl
+gold: data/gold/handtyped_dev_romanize.jsonl
+predictions: results/preds/p7_romanize_handtyped.jsonl
+baseline: identity_transliteration
+baseline_texts: data/interim/handtyped/dev_native.jsonl
+breakdown: [lang, script]
+notes: >
+  Romanizer = Dakshina train lexicon (most-attested spelling) + rules for
+  unknown words. CER here is the distance between synthetic and real romanized
+  Punjabi; x_claim_romanized numbers inherit it.

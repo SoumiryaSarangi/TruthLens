@@ -734,7 +734,13 @@ def run_baseline(
                               "gold_field": cfg.get("gold_field", "label")}
     notes: list[str] = []
     if name in ("identity_transliteration", "longest_sentence"):
-        kwargs["texts"] = load_interim_texts(Path(cfg["split"]))
+        if cfg.get("baseline_texts"):
+            path = Path(cfg["baseline_texts"])
+            if not path.is_file():
+                raise EvalRefused(f"baseline_texts {path} does not exist.")
+            kwargs["texts"] = {r["uid"]: r["text"] for r in load_jsonl(path)}
+        else:
+            kwargs["texts"] = load_interim_texts(Path(cfg["split"]))
     if name == "whole_post_span":
         # It needs the token count per row, which only the gold carries.
         kwargs["gold"] = gold

@@ -184,6 +184,10 @@
       },
       "description": "Classification only (FR-13, FR-14). Requires a `confidence` on every prediction; reports ECE, reliability bins, the coverage curve and the operating point. Deliberately not in DEFAULTS, so existing config hashes do not move."
     },
+    "baseline_texts": {
+      "type": "string",
+      "description": "A {uid, text} JSONL the text-echoing baselines (identity_transliteration, longest_sentence) read INSTEAD of data/interim/. For a reverse direction -- native to Latin -- the split's own text is the reference, so echoing it would score a perfect floor; this names the real source. Not in DEFAULTS."
+    },
     "paired_bootstrap": {
       "type": "integer",
       "minimum": 100,

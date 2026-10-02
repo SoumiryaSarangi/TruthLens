@@ -1,0 +1,20 @@
+# FR-26, the romanized side of the span-identification gap: the joint XLM-R
+# span model (trained on native X-CLAIM, never on romanized text) over the same
+# Hindi and Punjabi dev posts, romanized by preprocess/romanize.py.
+#
+#   python -m pipeline.batch --split data/splits/x_claim_romanized/dev.jsonl \
+#       --stage span --claims-impl xlmr --out results/preds/p7_span_romanized_joint.jsonl
+#
+# Synthetic romanization is cleaner than real typing (CER 0.214 against the
+# hand-typed Punjabi pairs, p7_romanize_handtyped), so the gap measured here is
+# a LOWER bound on what real romanized input costs.
+experiment: p7_span_romanized_joint
+task: span
+split: data/splits/x_claim_romanized/dev.jsonl
+gold: data/gold/x_claim_romanized_dev_span.jsonl
+predictions: results/preds/p7_span_romanized_joint.jsonl
+baseline: whole_post_span
+breakdown: [lang, script]
+notes: >
+  Same posts as p7_span_native_matched_joint, romanized. Adapter
+  span_xlmr_joint, default claims settings, no check-worthiness gate.

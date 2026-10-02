@@ -1,6 +1,7 @@
 """Emit the claim-span gold the eval harness needs (FR-7).
 
     python scripts/build_span_gold.py --split dev
+    python scripts/build_span_gold.py --dataset x_claim_romanized --split test
 
 X-CLAIM is a span-identification dataset: each post comes with the token index
 range that IS the claim. The loader keeps only the joined text, and the split
@@ -39,7 +40,7 @@ from common.io_jsonl import load_jsonl, write_jsonl  # noqa: E402
 from data.labels import SPAN_BIO  # noqa: E402
 
 RAW = Path("data/raw/x_claim")
-SPLITS = Path("data/splits/x_claim")
+SPLITS_ROOT = Path("data/splits")
 GOLD = Path("data/gold")
 
 BEGIN, INSIDE, OUTSIDE = SPAN_BIO  # ("B-CLAIM", "I-CLAIM", "O")
@@ -122,8 +123,15 @@ def raw_rows(lang: str, split: str) -> list[dict[str, str]]:
         return list(csv.DictReader(fh))
 
 
-def build(split: str) -> int:
-    split_path = SPLITS / f"{split}.jsonl"
+def build(split: str, dataset: str = "x_claim") -> int:
+    """`x_claim_romanized` rows point at the same raw CSV rows through their
+    source_id; romanization maps token to token, so the BIO gold is the
+    native row's, and its tokens are the romanized post's."""
+    split_path = SPLITS_ROOT / dataset / f"{split}.jsonl"
+    texts: dict[str, str] = {}
+    if dataset != "x_claim":
+        interim = Path("data/interim") / dataset / f"{split}.jsonl"
+        texts = {r["uid"]: r["text"] for r in load_jsonl(interim)}
     if not split_path.is_file():
         print(f"missing {split_path}")
         return 2
@@ -153,12 +161,29 @@ def build(split: str) -> int:
             unusable["unparseable or multi-span"] += 1
             continue
         tokens, start, end = parsed
+        if texts:
+            romanized = texts[row["uid"]].split()
+            if len(romanized) != len(tokens):
+                unusable["romanized token count differs"] += 1
+                continue
+            tokens = romanized
         out.append({"uid": row["uid"], "bio": to_bio(len(tokens), start, end),
                     "tokens": tokens})
 
     GOLD.mkdir(parents=True, exist_ok=True)
-    dest = GOLD / f"x_claim_{split}_span.jsonl"
+    dest = GOLD / f"{dataset}_{split}_span.jsonl"
     write_jsonl(dest, out)
+    if dataset == "x_claim_romanized":
+        # The same posts in their native script: X-CLAIM's own gold restricted
+        # to the romanized rows' parents (same CSV row, so the same uid index).
+        # Scoring the native predictions against THIS gives the gap on
+        # identical posts, not on two different populations.
+        native = {r["uid"]: r for r in load_jsonl(GOLD / f"x_claim_{split}_span.jsonl")}
+        parents = [native[r["uid"].replace("x_claim_romanized:", "x_claim:", 1)]
+                   for r in out]
+        matched = GOLD / f"x_claim_{split}_span_romanized_sources.jsonl"
+        write_jsonl(matched, parents)
+        print(f"wrote {matched}  n={len(parents)} (native gold, same posts)")
     print(f"wrote {dest}  n={len(out)} of {sum(1 for _ in load_jsonl(split_path))}")
     for reason, n in unusable.items():
         print(f"  skipped, {reason}: {n}")
@@ -176,11 +201,14 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python scripts/build_span_gold.py")
     parser.add_argument("--split", default="dev", choices=["train", "dev", "test"])
     parser.add_argument("--all", action="store_true", help="build every split")
+    parser.add_argument("--dataset", default="x_claim", choices=["x_claim", "x_claim_romanized"])
     args = parser.parse_args(argv)
     splits = ("train", "dev", "test") if args.all else (args.split,)
+    if args.dataset == "x_claim_romanized":
+        splits = tuple(s for s in splits if s != "train")      # eval-only dataset
     for split in splits:
         print(f"{split}:")
-        code = build(split)
+        code = build(split, args.dataset)
         if code:
             return code
     return 0

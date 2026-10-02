@@ -488,6 +488,24 @@ def test_transliteration_scores_cer_wer_and_exact_match(tmp_path):
     assert overall["exact_match"] == 1.0
 
 
+def test_baseline_texts_names_the_source_the_identity_baseline_echoes(tmp_path):
+    """Native -> Latin: the split's own text is the reference, so the echo has
+    to read the real source or "do nothing" would score a perfect CER."""
+    gold, preds = _translit_setup(tmp_path, "abcd")
+    uid = load_jsonl(Path("tests/fixtures/toy_clean/dev.jsonl"))[0]["uid"]
+    source = tmp_path / "native.jsonl"
+    source.write_text(json.dumps({"uid": uid, "text": "wxyz"}) + "\n", encoding="utf-8")
+    cfg = write_config(
+        tmp_path, task="transliteration", label_set=None,
+        gold=str(gold).replace("\\", "/"), predictions=str(preds).replace("\\", "/"),
+        baseline="identity_transliteration",
+        baseline_texts=str(source).replace("\\", "/"),
+    )
+    doc = evaluate(cfg, tmp_path)
+    assert doc["baseline"]["metrics"]["cer"] == 1.0          # "wxyz" vs "abcd"
+    assert doc["metrics"]["overall"]["cer"] == 0.0
+
+
 def test_transliteration_gold_may_cover_only_some_split_rows(tmp_path):
     """33 of 100 hand-typed forwards carry a Gurmukhi reference.
 

@@ -64,6 +64,14 @@
       "n_lines": 4472,
       "sha256": "1458b53334eecb091846dbc9f763ffc41ea021a1033fe1ebce96d7027d211106"
     },
+    "x_claim_romanized/dev.jsonl": {
+      "n_lines": 183,
+      "sha256": "05796c327d007173090b375c79a241425ea052bbf864c4599011a347b0a7e581"
+    },
+    "x_claim_romanized/test.jsonl": {
+      "n_lines": 193,
+      "sha256": "106c9f48b5937bfee8643ddef69f1918a0895325defa9604ec2e629dcfea4373"
+    },
     "xclaim_cw/dev.jsonl": {
       "n_lines": 963,
       "sha256": "290d53057ac75ef2bf56c716f08095a492ed4d90698d7a90e47cc0369fd64903"

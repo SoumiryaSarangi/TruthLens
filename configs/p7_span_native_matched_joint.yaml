@@ -1,0 +1,17 @@
+# FR-26, the native side of the romanization gap for span identification.
+#
+# The joint arm's EXISTING dev predictions (p3_span_xlmr_joint), scored against
+# X-CLAIM's gold restricted to exactly the posts that x_claim_romanized
+# romanizes (scripts/build_span_gold.py --dataset x_claim_romanized). The span
+# harness scores the gold's rows, so this and p7_span_romanized_joint are the
+# same 183 posts -- once as written, once romanized. No new inference.
+experiment: p7_span_native_matched_joint
+task: span
+split: data/splits/x_claim/dev.jsonl
+gold: data/gold/x_claim_dev_span_romanized_sources.jsonl
+predictions: results/preds/p3_span_xlmr_joint.jsonl
+baseline: whole_post_span
+breakdown: [lang, script]
+notes: >
+  Native script, hi (deva) and pa (guru + deva), the posts x_claim_romanized was
+  built from. Read beside p7_span_romanized_joint: same posts, same model.

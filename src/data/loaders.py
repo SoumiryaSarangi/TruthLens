@@ -680,6 +680,43 @@ def xclaim_rows() -> dict[str, list[Row]]:
     return out
 
 
+def xclaim_romanized_rows() -> dict[str, list[Row]]:
+    """X-CLAIM's native-script Hindi and Punjabi dev/test posts, romanized (FR-26).
+
+    The synthetic half of the romanized evaluation (the natural half is the
+    hand-typed forwards and MultiClaim's own Latin-script posts). Built by
+    `preprocess/romanize.py` -- Dakshina's train lexicon, rules for the rest --
+    one whitespace token to one token, so X-CLAIM's token-indexed span gold
+    applies unchanged and `scripts/build_span_gold.py --dataset
+    x_claim_romanized` rebuilds it through `source_id`.
+
+    Eval splits only: nothing trains on synthetic romanization, so there is no
+    train split to leak into. Rows already in Latin script are left out -- they
+    are real romanized text and are scored in x_claim itself. English is left
+    out by definition.
+    """
+    from preprocess.romanize import romanize
+
+    out: dict[str, list[Row]] = {"dev": [], "test": []}
+    for split in out:
+        for lang in ("hi", "pa"):
+            for row in load_xclaim(lang, split):
+                if row.record["script"] not in ("deva", "guru"):
+                    continue
+                index = int(row.record["source_id"].rsplit(":", 1)[1])
+                text = romanize(row.text)
+                out[split].append(Row(
+                    record=_make_record(
+                        dataset="x_claim_romanized", split=split, index=index,
+                        lang=lang, text=text,
+                        source_id=f"x_claim_romanized:{split}-{lang}:{index}",
+                        label=None, label_set=None,
+                    ),
+                    text=text,
+                ))
+    return out
+
+
 LOADERS = {
     "averitec": averitec_rows,
     "x_claim": xclaim_rows,
@@ -688,6 +725,7 @@ LOADERS = {
     "checkthat25_t2": checkthat_rows,
     "xclaim_cw": xclaim_checkworthy_rows,
     "averitec_stance": averitec_stance_rows,
+    "x_claim_romanized": xclaim_romanized_rows,
 }
 
 # What each loader needs on disk. Used to skip a dataset whose source is not
@@ -711,6 +749,11 @@ LOADER_SOURCES: dict[str, tuple[Path, ...]] = {
     # Derived from AVeriTeC's QA annotations; also reads the COMMITTED averitec
     # splits for membership, but those are not raw sources and do not belong here.
     "averitec_stance": (RAW / "averitec" / "train.json", RAW / "averitec" / "dev.json"),
+    # X-CLAIM romanized by Dakshina's lexicon: both are sources. Dakshina is not
+    # fetched in CI, so CI reports this one unverifiable, like MultiClaim.
+    "x_claim_romanized": (RAW / "x_claim" / "dev-hi.csv", RAW / "x_claim" / "test-pa.csv",
+                          RAW / "dakshina" / "extracted" / "hi" / "hi.translit.sampled.train.tsv",
+                          RAW / "dakshina" / "extracted" / "pa" / "pa.translit.sampled.train.tsv"),
     "checkthat25_t2": (RAW / "checkthat25_t2" / "train-eng.csv",
                        RAW / "checkthat25_t2" / "train-hi.csv",
                        RAW / "checkthat25_t2" / "train-pa.csv"),
