@@ -1,0 +1,181 @@
+{
+  "baseline": {
+    "experiment": "p3_span_whole_post",
+    "kind": "prior_run",
+    "metrics": {
+      "exact_span_match": 0.25833333333333336,
+      "n": 600.0,
+      "token_f1": 0.6850797085308812,
+      "token_precision": 0.5210047430064854,
+      "token_recall": 1.0
+    },
+    "name": "c108ee694a53"
+  },
+  "config_hash": "e1b2227b28d9",
+  "coverage": {
+    "coverage": 1.0,
+    "n_gold": 600,
+    "n_missing": 0,
+    "n_predicted": 600
+  },
+  "created_utc": "2026-10-02T07:04:56+00:00",
+  "delta_vs_baseline": {
+    "exact_span_match": 0.0733333333333333,
+    "token_f1": 0.05236185543001981,
+    "token_precision": 0.15866623231666388,
+    "token_recall": -0.19405480724570368
+  },
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p7_span_heuristic_span",
+  "git": {
+    "branch": "main",
+    "dirty": false,
+    "sha": "be4b0ddee899d1bea4b0e1cb0ef6af55922300f2"
+  },
+  "inputs": {
+    "config": {
+      "allow_partial": false,
+      "baseline": "c108ee694a53",
+      "breakdown": [
+        "lang",
+        "script"
+      ],
+      "experiment": "p7_span_heuristic_span",
+      "gold": "data/gold/x_claim_dev_span.jsonl",
+      "metrics": {},
+      "min_cell_n": 30,
+      "notes": "Baseline is p3_span_whole_post's run, as for the XLM-R arms, so the delta reads as \"better than predicting the whole post\". Compare with p3_span_xlmr_joint (0.7463).\n",
+      "predictions": "results/preds/p7_span_heuristic_span.jsonl",
+      "sanity_ceiling": 0.85,
+      "seed": 42,
+      "split": "data/splits/x_claim/dev.jsonl",
+      "task": "span"
+    },
+    "config_path": "configs/p7_span_heuristic_span.yaml",
+    "predictions_path": "results/preds/p7_span_heuristic_span.jsonl",
+    "predictions_sha256": "1b0a3f0c9dd8f04b9c2853d0d392d3d4b2dad8455fcc4d64ed9231030b4e560d",
+    "split_path": "data/splits/x_claim/dev.jsonl",
+    "split_sha256": "acc94da887669db4a256a76b3b3ed49adfa5d6d9a5e59dee7714ae3d22c69fb1",
+    "splits_lock_sha256": "8d1d9f49a48b32e03f1a0c2be1c050d7a108b4f7bfe127753f812df66a00e717"
+  },
+  "metrics": {
+    "by": {
+      "lang=en,script=deva": {
+        "exact_span_match": 0.125,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 8.0,
+        "token_f1": 0.5498652291105122,
+        "token_precision": 0.425,
+        "token_recall": 0.7786259541984732
+      },
+      "lang=en,script=latn": {
+        "exact_span_match": 0.25510204081632654,
+        "n": 392.0,
+        "token_f1": 0.7138147262266469,
+        "token_precision": 0.6555450011873665,
+        "token_recall": 0.7834539520363275
+      },
+      "lang=hi,script=deva": {
+        "exact_span_match": 0.4791666666666667,
+        "n": 96.0,
+        "token_f1": 0.7911392405063291,
+        "token_precision": 0.7672634271099744,
+        "token_recall": 0.8165487207403375
+      },
+      "lang=hi,script=latn": {
+        "exact_span_match": 0.75,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 4.0,
+        "token_f1": 0.8737864077669902,
+        "token_precision": 0.7758620689655172,
+        "token_recall": 1.0
+      },
+      "lang=pa,script=deva": {
+        "exact_span_match": 0.45454545454545453,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 11.0,
+        "token_f1": 0.8164383561643835,
+        "token_precision": 0.7198067632850241,
+        "token_recall": 0.9430379746835443
+      },
+      "lang=pa,script=guru": {
+        "exact_span_match": 0.5131578947368421,
+        "n": 76.0,
+        "token_f1": 0.8326620285609666,
+        "token_precision": 0.7708474576271186,
+        "token_recall": 0.9052547770700637
+      },
+      "lang=pa,script=latn": {
+        "exact_span_match": 0.38461538461538464,
+        "low_n": true,
+        "low_n_threshold": 30.0,
+        "n": 13.0,
+        "token_f1": 0.7317073170731706,
+        "token_precision": 0.7142857142857143,
+        "token_recall": 0.75
+      }
+    },
+    "overall": {
+      "exact_span_match": 0.33166666666666667,
+      "n": 600.0,
+      "token_f1": 0.737441563960901,
+      "token_precision": 0.6796709753231492,
+      "token_recall": 0.8059451927542963
+    }
+  },
+  "native_vs_romanized": {
+    "by_lang": {
+      "en": {
+        "n_native": 392.0,
+        "native": 0.7138147262266469
+      },
+      "hi": {
+        "gap": -0.08264716726066113,
+        "n_native": 96.0,
+        "n_romanized": 4.0,
+        "native": 0.7911392405063291,
+        "romanized": 0.8737864077669902
+      },
+      "pa": {
+        "gap": 0.100954711487796,
+        "n_native": 76.0,
+        "n_romanized": 13.0,
+        "native": 0.8326620285609666,
+        "romanized": 0.7317073170731706
+      }
+    },
+    "metric": "token_f1"
+  },
+  "paired_vs_baseline": null,
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "span",
+  "warnings": []
+}
