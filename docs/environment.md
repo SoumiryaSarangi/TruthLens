@@ -309,7 +309,7 @@ against (`retrieval/corpus.py`, decision D7). Built by
 | Top-20 hybrid passages, cached vectors | 2.3-2.6 claims/s (train 2,666 in two shards) |
 | Scoring 20 passages per claim: XLM-R / NLI | ~5 / ~5.5 claims/s |
 | IndicBART + LoRA explainer, 4 epochs, bf16 | 4.5 min, 3.70 GiB peak |
-| **Served pipeline, every model resident** | **2.51 GiB peak** of ~4.9 GiB |
+| **Served pipeline, every model resident** | **3.56 GiB peak** of ~4.9 GiB with both stance models (`xlmr_nli`); 2.51 GiB with NLI alone |
 | `make serve` warm-up request | 56 s; warm requests 1.3-5.5 s |
 
 **Three environment traps from this phase:**

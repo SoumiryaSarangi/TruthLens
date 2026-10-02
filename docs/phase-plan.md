@@ -15,7 +15,8 @@ seconds without reading the whole plan.
 beats the rule (+0.0435 macro-F1, CI excludes 0), but **no stance model that
 reads evidence beats the claim-only control** (0.2949) — XLM-R ties it, NLI and
 the BiLSTM lose. Calibration halves ECE (0.059 → 0.038); abstention is set on dev
-(τ 0.317); IndicBART explanations are served only through an NLI gate. Full
+(τ 0.3835); IndicBART explanations are served only through an NLI gate. Served
+stance: `xlmr_nli` — XLM-R decides the verdict, NLI labels the passages shown. Full
 results: the 2026-10-02 entry in `project-log.md`.
 
 Target date **2026-10-12**, no fixed external deadline (confirmed 2026-09-30).
@@ -280,9 +281,9 @@ AVeriTeC dev, paired bootstrap over the same 500 claims. Full tables: the
 | Relevance floor | off | every floor tried abstained 0-9 claims and only lowered macro-F1 |
 | Explanations, beam on retrieved | NLI-faithful **0.524**, chrF 0.237 | extractive 0.628 / 0.200 |
 
-- **Served stance is still NLI**, by the plan's rule — the weakest AVeriTeC arm
-  and the only one seen reading evidence on real forwards. **Owner's decision,
-  first thing in Phase 7.**
+- **Served stance DECIDED (2026-10-02): `xlmr_nli`** — XLM-R decides the verdict
+  (+0.067 over NLI, CI [+0.022, +0.112]), NLI labels the passages the user sees.
+  τ 0.3835 (accuracy 0.49 → 0.587 at 60% coverage), ECE 0.069, floor off.
 - The gate also rejects a generated sentence that restates the claim under a
   verdict other than Supported — found on a real forward, where it passed the
   rumour itself.
@@ -293,7 +294,7 @@ AVeriTeC dev, paired bootstrap over the same 500 claims. Full tables: the
 
 Code freezes at the end of Day 12. In order:
 
-1. **The served-stance decision** (NLI vs XLM-R; the trade-off is in the log).
+1. ~~The served-stance decision~~ **DONE: `xlmr_nli`** (log, 2026-10-02).
 2. **The final test-split number, once** — `TRUTHLENS_ALLOW_TEST=1`, served
    pipeline, 307 claims, beside majority and the claim-only control; also the
    out-of-sample ECE.

@@ -345,7 +345,7 @@ The harness has no span task yet. Adding one in Phase 3 is a harness change and 
 
 Resident at inference: **~2.8 GB of weights**, leaving room for activations inside the 5.5 GB ceiling (NFR-3). Measure it with `torch.cuda.max_memory_allocated()` and write the figure into `docs/environment.md`, rather than trusting this estimate.
 
-**Measured, Phase 6:** the served pipeline with every model resident (BGE-M3 shared by matcher and corpus, NLI shared by stance and the faithfulness gate, IndicBART in bf16) peaks at **2.51 GiB**. Recorded in `docs/environment.md`.
+**Measured, Phase 6:** the served pipeline with every model resident (BGE-M3 shared by matcher and corpus, NLI shared by stance and the faithfulness gate, IndicBART in bf16) peaks at **2.51 GiB** with NLI stance, and **3.56 GiB** with the served `xlmr_nli` stage (XLM-R and NLI both resident). Recorded in `docs/environment.md`.
 
 Training: one model at a time, API server stopped, LoRA via `peft`, fp16, gradient checkpointing, batch size found by halving until it fits. Queue long runs overnight.
 

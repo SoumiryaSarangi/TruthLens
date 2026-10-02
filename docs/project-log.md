@@ -124,18 +124,18 @@ built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
 
 | | |
 | --- | --- |
-| **Current phase** | **Phase 6 COMPLETE (2026-10-02); Phase 7 next** -- the final test number, the served-stance decision, error analysis, demo, report. The learned aggregator beats the rule (+0.0435, CI excludes 0), but **no stance model that reads evidence beats the claim-only control** (0.2949). Served: NLI stance (provisional, owner's call), learned aggregator, tau_abstain 0.317, floor off, IndicBART explanations behind an NLI gate. |
+| **Current phase** | **Phase 6 COMPLETE (2026-10-02); Phase 7 next** -- the one test-split run, error analysis, demo, report. The learned aggregator beats the rule (+0.0435, CI excludes 0), but **no stance model that reads evidence beats the claim-only control** (0.2949). Served stance DECIDED: `xlmr_nli` -- XLM-R decides the verdict (0.2802; +0.067 over NLI), NLI labels the passages the user sees. |
 | **Clock** | Target **2026-10-12**, no fixed external deadline (confirmed 2026-09-30). Phases 1-4 done; Phase 5 started 2026-09-30. Phases 6 and 7 remain. |
 | **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |
 | **Python** | 3.11.16 via uv, in `.venv`. System Python is 3.13 and is not used. |
-| **Served config** | `configs/pipeline/dev.yaml` -- preprocess `hybrid`, claims `heuristic`, matching `factcheck` (tau_match 0.90), retrieval `hybrid` (RRF@200), free text `corpus`, stance `nli`, aggregate `learned`, tau_abstain 0.317, floor off, generation `indicbart` (beam) behind faithfulness `nli`. `make serve` warms up first. |
+| **Served config** | `configs/pipeline/dev.yaml` -- preprocess `hybrid`, claims `heuristic`, matching `factcheck` (tau_match 0.90), retrieval `hybrid` (RRF@200), free text `corpus`, stance `xlmr_nli`, aggregate `learned` (aggregator_xlmr_nli_prior), tau_abstain 0.3835, floor off, generation `indicbart` (beam) behind faithfulness `nli`. `make serve` warms up first. |
 | **Tests** | 599 passing, 2 skipped, 2 gpu-deselected |
 | **Datasets in hand** | AVeriTeC, X-CLAIM, MultiClaim, handtyped (FR-26), Dakshina, **CheckThat! 2025 T2** |
 | **Datasets waiting** | None. Every dataset is downloaded, split, locked and leakage-checked. |
 | **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
 | **Models trained** | Romanized LID, in-domain Word2Vec, **24 XLM-R+LoRA adapters** (5 span arms, check-worthiness, the Phase 4 cross-encoder, stance and its claim-only twin, and 5 folds of each for cross-fitting), 6 BiLSTM stance models (full + 5 folds), two TF-IDF stance models, 4 learned aggregators, and the IndicBART+LoRA explainer. |
-| **Numbers so far** | Span token-F1 **0.7463** (baseline 0.6851) - claim matching MRR **0.5244** (BM25 0.3826, random 0.0002) - fast-path gate AUCC **0.5842** (gate-removed 0.4284) - LID ~0.86 on the hand-typed set - transliteration CER 0.4281 - AVeriTeC retrieval Success@10 **0.214** (BM25 0.158) - AVeriTeC verdict macro-F1 **0.2949** (learned aggregator, claim-only control; majority 0.1516; served NLI arm 0.2135) - served ECE **0.0384** (0.0590 before temperature) - explanation faithfulness 0.524 (beam, retrieved). **FR-6**: zero-shot NLI 0.5938 vs 0.4595 majority, 7/15 real negatives, but it rejects 21% of real claims so the SERVED config runs the rules. **FR-8**: no safe operating point. |
+| **Numbers so far** | Span token-F1 **0.7463** (baseline 0.6851) - claim matching MRR **0.5244** (BM25 0.3826, random 0.0002) - fast-path gate AUCC **0.5842** (gate-removed 0.4284) - LID ~0.86 on the hand-typed set - transliteration CER 0.4281 - AVeriTeC retrieval Success@10 **0.214** (BM25 0.158) - AVeriTeC verdict macro-F1 **0.2949** (learned aggregator, claim-only control; majority 0.1516; served arm 0.2802) - served ECE **0.0690** (0.0988 before temperature) - explanation faithfulness 0.524 (beam, retrieved). **FR-6**: zero-shot NLI 0.5938 vs 0.4595 majority, 7/15 real negatives, but it rejects 21% of real claims so the SERVED config runs the rules. **FR-8**: no safe operating point. |
 | **CI** | Checked with `gh run list` after every push (last green checked: `e43a614`). A sha here goes stale the moment the next commit lands -- check, do not trust. Runs take ~2 min. `gh` is at `C:\Program Files\GitHub CLI\gh.exe`, NOT on this shell's PATH. |
 
 ---
@@ -2388,6 +2388,53 @@ is cut to English as decided. Served: hybrid retrieval, NLI stance, learned
 aggregator, tau_abstain 0.317, floor off, IndicBART behind the NLI gate.
 Suite: 599 passing. The test split is untouched; its one run is Phase 7's.
 
+## 2026-10-02 — The served stance: XLM-R decides, NLI shows
+
+Phase 6 ended with the served stance as an open question, and the project owner
+delegated it: "I just want the best results." Decided on measurements, with
+every rule written down before the run it governed.
+
+**The two candidates are good at different jobs.**
+
+| | NLI | XLM-R |
+| --- | --- | --- |
+| AVeriTeC dev verdict macro-F1 / accuracy | 0.2135 / 0.320 | **0.2802 / 0.490** |
+| XLM-R vs NLI, paired (24d42acb4fea) | | **+0.067 [+0.022, +0.112]** |
+| accuracy at 60% coverage (abstention) | 0.353 | **0.587** |
+| per-passage labels on the demo forwards | honest (10/10 Delhi leads Support) | ~all "Refutes", whatever the passage says |
+
+Re-run under the learned aggregator, XLM-R still labelled nearly every passage of
+the seven demo forwards Refutes -- the Phase 5 finding survives the new
+aggregator. And those labels are not internal: the template explanation prints
+them ("[2] Rajdhani Express contradicts it").
+
+**So each model does the job it is measurably good at.** A new stance stage,
+`xlmr_nli` (`stance/combined.py`), runs both: the passage labels the user sees
+are NLI's, and the verdict's aggregator reads XLM-R's distribution. One more
+arm was tried first, by a rule fixed beforehand -- give the aggregator BOTH
+distributions, and serve that if it is at least as good as XLM-R alone. It was
+not: **-0.029 [-0.063, +0.006]** (a03da2746cac), so the aggregator reads XLM-R
+alone. The served verdicts equal the XLM-R arm's on 500/500 dev claims.
+
+**Re-chosen on dev for this arm**, by the same pre-fixed rules as Phase 6:
+
+- **tau_abstain 0.3835** -- 60% coverage, accuracy 0.490 -> 0.587, selective
+  macro-F1 0.280 -> 0.311. Abstention now does something.
+- **Floor off** -- 0.55 abstains 3 claims (-0.0028), 0.60 abstains 9 (-0.0074,
+  CI excludes 0); 0.45 and 0.50 touch no claim for any stance.
+- **ECE 0.0988 at T=1 -> 0.0690** at the fitted T=0.795.
+- **Confidence bands** medium 0.40 (dev accuracy first >= 0.5: 0.52, n=148),
+  high 0.60 (0.74, n=35).
+- **Peak VRAM 3.56 GiB** with both stance models resident.
+
+**What it costs, stated for the report.** On the seven demo forwards the served
+config gets three false claims Refuted and abstains on two true ones while
+leaning Supported -- and still refutes two TRUE claims (Modi as Gujarat CM, the
+Taj Mahal) at confidence 0.67 and 0.72, inside the "high" band. That is XLM-R's
+claim prior, the price of its better AVeriTeC numbers; NLI made the same two
+errors at low confidence. The confident wrong refutation of a true claim is the
+failure the error analysis in Phase 7 should look at first.
+
 ## Phase 3 gaps — CLOSED 2026-09-24
 
 All four are built. They were, in the order the previous section ranked them:
@@ -2411,11 +2458,11 @@ complete.** The remaining FR-6 limitation is a data problem with a named owner:
 **Phase 7 -- demo, ablations, report (Days 12-14). Code freezes at the end of
 Day 12; Days 13-14 are writing and demo polish only.** In order:
 
+1. ~~The served-stance decision~~ **DONE 2026-10-02: `xlmr_nli`** (entry above).
 1. **The final test-split number, once.** `TRUTHLENS_ALLOW_TEST=1`, the served
    pipeline over the 307 locked AVeriTeC test claims (their passage vectors are
    cached), reported beside majority_class and the claim-only control. It is
    also the out-of-sample ECE that dev cannot give.
-2. **The served-stance decision** (Phase 6 entry, "For the project owner").
 3. **Error analysis**: ten real failure cases per language (build plan), the
    seven demo forwards among them.
 4. **Ablation tables** via `make table`; the k ablation if wanted (cached
@@ -2435,8 +2482,8 @@ Day 12; Days 13-14 are writing and demo polish only.** In order:
 | Check-worthiness, hand-typed | macro-F1 | **0.5938** zero-shot NLI | 0.4595 majority |
 | AVeriTeC retrieval | Success@10 | **0.214** hybrid | 0.158 BM25 |
 | AVeriTeC verdict | macro-F1 | **0.2949** claim-only control, learned | 0.1516 majority |
-| AVeriTeC verdict, served (NLI) | macro-F1 | 0.2135 | 0.1516 majority |
-| Calibration, served | ECE | **0.0384** | 0.0590 at T=1 |
+| AVeriTeC verdict, served (xlmr_nli) | macro-F1 | 0.2802 | 0.1516 majority |
+| Calibration, served | ECE | **0.0690** | 0.0988 at T=1 |
 | Explanations, beam, retrieved | NLI-faithful | 0.524 | 0.628 extractive |
 
 ### Open items
