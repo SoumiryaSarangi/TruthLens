@@ -21,7 +21,7 @@
     "n_missing": 0,
     "n_predicted": 500
   },
-  "created_utc": "2026-10-01T05:03:08+00:00",
+  "created_utc": "2026-10-02T05:57:48+00:00",
   "delta_vs_baseline": {
     "mrr": 0.0691817374702869,
     "recall@1": 0.01775,
@@ -54,8 +54,8 @@
   "experiment": "p5_retrieval_bm25_depth",
   "git": {
     "branch": "main",
-    "dirty": true,
-    "sha": "8aa446532643e3355d4131522727cb8ac7dcb09c"
+    "dirty": false,
+    "sha": "d0a9f9644de29f3dae7e418015f0cab145096c3f"
   },
   "inputs": {
     "config": {
@@ -144,6 +144,7 @@
     },
     "metric": "mrr"
   },
+  "paired_vs_baseline": null,
   "seed": 42,
   "seeded_libraries": {
     "numpy": true,
@@ -152,7 +153,5 @@
     "transformers": true
   },
   "task": "retrieval",
-  "warnings": [
-    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
-  ]
+  "warnings": []
 }

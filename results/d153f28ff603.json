@@ -21,7 +21,7 @@
     "n_missing": 0,
     "n_predicted": 500
   },
-  "created_utc": "2026-10-01T05:47:33+00:00",
+  "created_utc": "2026-10-02T05:58:16+00:00",
   "delta_vs_baseline": {
     "mrr": 0.02315793650793653,
     "recall@1": 0.009666666666666667,
@@ -54,8 +54,8 @@
   "experiment": "p5_retrieval_hybrid_rrf_n200",
   "git": {
     "branch": "main",
-    "dirty": true,
-    "sha": "cb9b15e79a9098e3ee067ccc3cca982d22edc90d"
+    "dirty": false,
+    "sha": "d0a9f9644de29f3dae7e418015f0cab145096c3f"
   },
   "inputs": {
     "config": {
@@ -124,6 +124,7 @@
     },
     "metric": "mrr"
   },
+  "paired_vs_baseline": null,
   "seed": 42,
   "seeded_libraries": {
     "numpy": true,
@@ -132,7 +133,5 @@
     "transformers": true
   },
   "task": "retrieval",
-  "warnings": [
-    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
-  ]
+  "warnings": []
 }

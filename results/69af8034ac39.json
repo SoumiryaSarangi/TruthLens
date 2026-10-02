@@ -53,7 +53,7 @@
     "n_missing": 0,
     "n_predicted": 1260
   },
-  "created_utc": "2026-10-01T04:45:06+00:00",
+  "created_utc": "2026-10-02T05:56:06+00:00",
   "delta_vs_baseline": {
     "accuracy": -0.05714285714285716,
     "macro_f1": 0.2343206372213102
@@ -81,8 +81,8 @@
   "experiment": "p5_stance_bilstm",
   "git": {
     "branch": "main",
-    "dirty": true,
-    "sha": "ff8626f5dfbeaa5a8c2fd19af4d2ce6762dbcfc7"
+    "dirty": false,
+    "sha": "d0a9f9644de29f3dae7e418015f0cab145096c3f"
   },
   "inputs": {
     "config": {
@@ -207,6 +207,7 @@
     },
     "metric": "macro_f1"
   },
+  "paired_vs_baseline": null,
   "seed": 42,
   "seeded_libraries": {
     "numpy": true,
@@ -215,7 +216,5 @@
     "transformers": true
   },
   "task": "classification",
-  "warnings": [
-    "Working tree was DIRTY at eval time: the committed code does not reproduce this number."
-  ]
+  "warnings": []
 }
