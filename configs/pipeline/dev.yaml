@@ -31,15 +31,16 @@ tau_match: 0.90
 
 # tau_abstain (FR-14): chosen on DEV by the criterion fixed in the Phase 6 plan
 # before any number was seen -- the lowest tau whose coverage is <= 60% -- on the
-# served arm (NLI stance, learned aggregator, temperature-scaled; run
-# c2ffd949681b). At 0.317 the system answers 60% of dev claims; accuracy on
-# those rises only 0.320 -> 0.353, because this arm's confidences are honest
-# and flat (0.28-0.42 for almost every claim; ECE 0.038). Abstention buys
-# little here, and that is the finding, not a reason to move the criterion.
+# served arm (stance xlmr_nli, aggregator_xlmr_nli_prior, temperature-scaled;
+# run 164d2289c90b). At 0.3835 the system answers 60% of dev claims and accuracy
+# on those rises 0.490 -> 0.587 (selective macro-F1 0.280 -> 0.311).
+#
+# (It was 0.317 for one day, on the NLI arm, where abstaining bought almost
+# nothing: 0.320 -> 0.353.)
 #
 # Fast-path confidence is a raw retrieval cosine, not a calibrated probability;
 # tau_abstain applies to the evidence path only.
-tau_abstain: 0.317
+tau_abstain: 0.3835
 
 # relevance_floor (FR-12): OFF, chosen on dev in Phase 6 by verdict macro-F1.
 # 0.45 and 0.50 abstain on zero dev claims; 0.55 and 0.60 abstain on 3 and 9 and
@@ -112,15 +113,22 @@ stages:
   # Phase 6, D4, against the learned aggregator: NO evidence-reading stance model
   # beats the claim-only control (0.2949) on AVeriTeC dev. xlmr 0.2802 (tie,
   # CI -0.062..+0.030), bilstm 0.2340 and nli 0.2135 (both significantly worse).
-  # The approved plan's rule: no arm beats the control -> report it, and the
-  # served stance stays. That keeps the arm with the weakest AVeriTeC number and
-  # the only one seen reading evidence on real forwards -- an open product
-  # trade-off, put to the project owner in the Phase 6 log entry.
-  stance: nli
+  #
+  # DECIDED 2026-10-02 (the project owner delegated it): `xlmr_nli`. Each model
+  # does the job it is measurably good at:
+  #   * the VERDICT reads XLM-R -- +0.067 macro-F1 over NLI, CI [+0.022, +0.112]
+  #     (24d42acb4fea), accuracy 0.49 vs 0.32, and abstention that works;
+  #   * the per-passage LABELS the user sees come from NLI -- XLM-R labels nearly
+  #     every passage Refutes whatever it says (Phase 5 and 6 demo forwards), and
+  #     the template explanation prints those labels.
+  # Feeding NLI's distribution to the verdict as well was tried and lost
+  # (-0.029, CI [-0.063, +0.006], a03da2746cac), so the aggregator reads XLM-R
+  # alone. The verdicts equal the XLM-R arm's, 500/500 (164d2289c90b).
+  stance: xlmr_nli
   # Phase 6 (FR-11): logistic regression over the whole top-10 stance
-  # distribution, temperature-scaled on dev; artifact aggregator_nli, found by
-  # the stance name. +0.0435 macro-F1 over the rule on the claim-only control
-  # (CI excludes 0); it fixes the rule's Conflicting over-fire.
+  # distribution, temperature-scaled on dev (T=0.795). +0.0435 macro-F1 over the
+  # rule on the claim-only control (CI excludes 0); it fixes the rule's
+  # Conflicting over-fire. Artifact path in stage_args below.
   aggregate: learned
   # Phase 6 (FR-15/16/18): IndicBART + LoRA, English, beam. Served ONLY when
   # every sentence passes the NLI gate; otherwise -- and always when abstained
@@ -130,6 +138,8 @@ stages:
   faithfulness: nli
 
 stage_args:
+  aggregate:
+    path: data/interim/models/aggregator_xlmr_nli_prior/model.joblib
   generation:
     decoding: beam
   stance:

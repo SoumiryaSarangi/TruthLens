@@ -29,12 +29,12 @@ DEFAULT_CONFIG = Path("configs/pipeline/dev.yaml")
 MAX_CHARS = 4000        # FR-1
 
 # UI_UX.md §7: the confidence bands are served, never hard-coded in JavaScript.
-# Cut points from the calibration curve of the SERVED arm on dev (run
-# c2ffd949681b, temperature-scaled): `medium` is the reliability-bin edge where
-# dev accuracy first reaches 0.5 (bin 0.40-0.50: 0.54, n=39), `high` where it
-# reaches 0.75 (bin 0.50+: n=3 -- thin, and said so). Below tau_abstain (0.317)
-# the card is abstained, not "low". These move with the served arm.
-CONFIDENCE_BANDS = {"high": 0.50, "medium": 0.40}
+# Cut points from the reliability bins of the SERVED arm on dev (run
+# 164d2289c90b, temperature-scaled): `medium` is the bin edge where dev accuracy
+# first reaches 0.5 (0.40-0.50: 0.52, n=148); `high` the edge of the
+# best-supported bin near 0.75 (0.60-0.70: 0.74, n=35). Below tau_abstain
+# (0.3835) the card is abstained, not "low". These move with the served arm.
+CONFIDENCE_BANDS = {"high": 0.60, "medium": 0.40}
 
 # A statement that runs every stage -- check-worthy, the demo corpus, stance,
 # the aggregator, generation and the gate -- so the first real request is not
