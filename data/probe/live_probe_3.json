@@ -1,0 +1,278 @@
+{
+  "_comment": "Live-search PROBE SET 3 (post-test Phase 7, route A): FRESH claims for validating the English route (claim translated to English, judged against English Wikipedia). Drafted and committed BEFORE the route's code was frozen or run on any claim of this set; sets 1 and 2 are used up (set 2 is a diagnostic only for route A). Entities are disjoint from sets 1 and 2 except where a swap needs a known partner (Tagore, Chandigarh, Guru Nanak). Heavy on single-entity swaps (wrong capital, wrong first, wrong state, wrong river mouth), the failure that rejected the verdict path twice. Same scoring and adoption rule as sets 1 and 2 (scripts/live_probe.py). Our own wording; a demo set, not a benchmark. label: true | false | unverifiable. Labels are DRAFTED by the assistant, PENDING the project owner's approval.",
+  "claims": [
+    {
+      "id": "en-t1",
+      "style": "en",
+      "label": "true",
+      "text": "The Brahmaputra river flows through Assam",
+      "why": "Wikipedia: Brahmaputra River"
+    },
+    {
+      "id": "en-t2",
+      "style": "en",
+      "label": "true",
+      "text": "Bengaluru is the capital of Karnataka",
+      "why": "Wikipedia: Bengaluru"
+    },
+    {
+      "id": "en-t3",
+      "style": "en",
+      "label": "true",
+      "text": "Lata Mangeshkar was awarded the Bharat Ratna",
+      "why": "Wikipedia: Lata Mangeshkar (Bharat Ratna, 2001)"
+    },
+    {
+      "id": "en-t4",
+      "style": "en",
+      "label": "true",
+      "text": "The Thar Desert is in Rajasthan",
+      "why": "Wikipedia: Thar Desert"
+    },
+    {
+      "id": "en-t5",
+      "style": "en",
+      "label": "true",
+      "text": "Sardar Vallabhbhai Patel was India's first Deputy Prime Minister",
+      "why": "Wikipedia: Vallabhbhai Patel"
+    },
+    {
+      "id": "en-t6",
+      "style": "en",
+      "label": "true",
+      "text": "Lahore is in Pakistan",
+      "why": "Wikipedia: Lahore"
+    },
+    {
+      "id": "en-f1",
+      "style": "en",
+      "label": "false",
+      "text": "Chennai is the capital of Kerala",
+      "why": "Chennai is the capital of Tamil Nadu; Kerala's is Thiruvananthapuram (Wikipedia: Chennai, Kerala)"
+    },
+    {
+      "id": "en-f2",
+      "style": "en",
+      "label": "false",
+      "text": "Bankim Chandra Chatterjee wrote Jana Gana Mana",
+      "why": "Jana Gana Mana was written by Rabindranath Tagore; Bankim Chandra wrote Vande Mataram (Wikipedia: Jana Gana Mana)"
+    },
+    {
+      "id": "en-f3",
+      "style": "en",
+      "label": "false",
+      "text": "The Sun rises in the west",
+      "why": "The Sun rises in the east"
+    },
+    {
+      "id": "en-f4",
+      "style": "en",
+      "label": "false",
+      "text": "Dr B. R. Ambedkar was India's first President",
+      "why": "India's first President was Rajendra Prasad (Wikipedia: President of India)"
+    },
+    {
+      "id": "en-f5",
+      "style": "en",
+      "label": "false",
+      "text": "The Ganges flows into the Arabian Sea",
+      "why": "The Ganges empties into the Bay of Bengal (Wikipedia: Ganges)"
+    },
+    {
+      "id": "en-f6",
+      "style": "en",
+      "label": "false",
+      "text": "Cricket was invented in India",
+      "why": "Cricket originated in south-east England (Wikipedia: Cricket)"
+    },
+    {
+      "id": "en-f7",
+      "style": "en",
+      "label": "false",
+      "text": "Lightning never strikes the same place twice",
+      "why": "A well-known myth; tall structures are struck repeatedly (Wikipedia: Lightning)"
+    },
+    {
+      "id": "hd-t1",
+      "style": "hi-deva",
+      "label": "true",
+      "text": "दिल्ली भारत की राजधानी है",
+      "why": "Wikipedia: Delhi / New Delhi, capital of India"
+    },
+    {
+      "id": "hd-t2",
+      "style": "hi-deva",
+      "label": "true",
+      "text": "ब्रह्मपुत्र नदी असम से होकर बहती है",
+      "why": "Wikipedia: Brahmaputra River"
+    },
+    {
+      "id": "hd-t3",
+      "style": "hi-deva",
+      "label": "true",
+      "text": "सरदार वल्लभभाई पटेल भारत के पहले उपप्रधानमंत्री थे",
+      "why": "Wikipedia: Vallabhbhai Patel"
+    },
+    {
+      "id": "hd-f1",
+      "style": "hi-deva",
+      "label": "false",
+      "text": "चेन्नई केरल की राजधानी है",
+      "why": "Chennai is the capital of Tamil Nadu (Wikipedia: Chennai)"
+    },
+    {
+      "id": "hd-f2",
+      "style": "hi-deva",
+      "label": "false",
+      "text": "गंगा नदी अरब सागर में गिरती है",
+      "why": "The Ganges empties into the Bay of Bengal (Wikipedia: Ganges)"
+    },
+    {
+      "id": "hd-f3",
+      "style": "hi-deva",
+      "label": "false",
+      "text": "डॉ. भीमराव आंबेडकर भारत के पहले राष्ट्रपति थे",
+      "why": "India's first President was Rajendra Prasad (Wikipedia: President of India)"
+    },
+    {
+      "id": "hd-f4",
+      "style": "hi-deva",
+      "label": "false",
+      "text": "बेंगलुरु तमिलनाडु की राजधानी है",
+      "why": "Bengaluru is the capital of Karnataka; Tamil Nadu's is Chennai (Wikipedia: Bengaluru)"
+    },
+    {
+      "id": "hl-t1",
+      "style": "hi-latn",
+      "label": "true",
+      "text": "Delhi India ki rajdhani hai",
+      "why": "Wikipedia: Delhi / New Delhi, capital of India"
+    },
+    {
+      "id": "hl-t2",
+      "style": "hi-latn",
+      "label": "true",
+      "text": "Brahmaputra nadi Assam se hokar behti hai",
+      "why": "Wikipedia: Brahmaputra River"
+    },
+    {
+      "id": "hl-t3",
+      "style": "hi-latn",
+      "label": "true",
+      "text": "Bengaluru Karnataka ki rajdhani hai",
+      "why": "Wikipedia: Bengaluru"
+    },
+    {
+      "id": "hl-f1",
+      "style": "hi-latn",
+      "label": "false",
+      "text": "Chennai Kerala ki rajdhani hai",
+      "why": "Chennai is the capital of Tamil Nadu (Wikipedia: Chennai)"
+    },
+    {
+      "id": "hl-f2",
+      "style": "hi-latn",
+      "label": "false",
+      "text": "Ambedkar ji India ke pehle rashtrapati the",
+      "why": "India's first President was Rajendra Prasad (Wikipedia: President of India)"
+    },
+    {
+      "id": "hl-f3",
+      "style": "hi-latn",
+      "label": "false",
+      "text": "Ganga nadi Arabian Sea mein girti hai",
+      "why": "The Ganges empties into the Bay of Bengal (Wikipedia: Ganges)"
+    },
+    {
+      "id": "pg-t1",
+      "style": "pa-guru",
+      "label": "true",
+      "text": "ਚੰਡੀਗੜ੍ਹ ਪੰਜਾਬ ਅਤੇ ਹਰਿਆਣਾ ਦੀ ਰਾਜਧਾਨੀ ਹੈ",
+      "why": "Wikipedia: Chandigarh (joint capital)"
+    },
+    {
+      "id": "pg-t2",
+      "style": "pa-guru",
+      "label": "true",
+      "text": "ਲਾਹੌਰ ਪਾਕਿਸਤਾਨ ਵਿੱਚ ਹੈ",
+      "why": "Wikipedia: Lahore"
+    },
+    {
+      "id": "pg-t3",
+      "style": "pa-guru",
+      "label": "true",
+      "text": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ ਪਹਿਲੇ ਸਿੱਖ ਗੁਰੂ ਸਨ",
+      "why": "Wikipedia: Guru Nanak"
+    },
+    {
+      "id": "pg-f1",
+      "style": "pa-guru",
+      "label": "false",
+      "text": "ਜਲੰਧਰ ਰਾਜਸਥਾਨ ਵਿੱਚ ਹੈ",
+      "why": "Jalandhar is a city in Punjab (Wikipedia: Jalandhar)"
+    },
+    {
+      "id": "pg-f2",
+      "style": "pa-guru",
+      "label": "false",
+      "text": "ਗੁਰੂ ਗੋਬਿੰਦ ਸਿੰਘ ਜੀ ਪਹਿਲੇ ਸਿੱਖ ਗੁਰੂ ਸਨ",
+      "why": "Guru Nanak was the first Sikh Guru; Guru Gobind Singh the tenth (Wikipedia: Sikh gurus)"
+    },
+    {
+      "id": "pg-f3",
+      "style": "pa-guru",
+      "label": "false",
+      "text": "ਪਟਿਆਲਾ ਹਿਮਾਚਲ ਪ੍ਰਦੇਸ਼ ਵਿੱਚ ਹੈ",
+      "why": "Patiala is a city in Punjab (Wikipedia: Patiala)"
+    },
+    {
+      "id": "pl-t1",
+      "style": "pa-latn",
+      "label": "true",
+      "text": "Lahore Pakistan vich hai",
+      "why": "Wikipedia: Lahore"
+    },
+    {
+      "id": "pl-t2",
+      "style": "pa-latn",
+      "label": "true",
+      "text": "Guru Nanak Dev Ji pehle Sikh Guru san",
+      "why": "Wikipedia: Guru Nanak"
+    },
+    {
+      "id": "pl-f1",
+      "style": "pa-latn",
+      "label": "false",
+      "text": "Jalandhar Rajasthan vich hai",
+      "why": "Jalandhar is a city in Punjab (Wikipedia: Jalandhar)"
+    },
+    {
+      "id": "pl-f2",
+      "style": "pa-latn",
+      "label": "false",
+      "text": "Guru Gobind Singh Ji pehle Sikh Guru san",
+      "why": "Guru Nanak was the first Sikh Guru; Guru Gobind Singh the tenth (Wikipedia: Sikh gurus)"
+    },
+    {
+      "id": "un-1",
+      "style": "en",
+      "label": "unverifiable",
+      "text": "My cousin's wedding in Surat was attended by exactly 312 people",
+      "why": "a private event; no public source"
+    },
+    {
+      "id": "un-2",
+      "style": "en",
+      "label": "unverifiable",
+      "text": "The tea stall near our office closes at 9 pm on Sundays",
+      "why": "a private, local fact; no public source"
+    },
+    {
+      "id": "un-3",
+      "style": "hi-latn",
+      "label": "unverifiable",
+      "text": "Meri bahan ne kal subah teen baje ek ajeeb awaaz suni",
+      "why": "a private, unsearchable event; no public source can confirm or deny it"
+    }
+  ]
+}
