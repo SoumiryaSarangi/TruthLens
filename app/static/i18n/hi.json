@@ -1,5 +1,5 @@
 {
-  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. The live_* strings and source_name.* (live search, added 2026-10-04) were reviewed by the owner the same day; 3 corrected, 7 kept. The three live-verdict strings (live_verdict_basis, live_validated, live_no_verdict; added 2026-10-05) were reviewed by the owner the same day: all 3 corrected. The plain-card strings (the 'plain' block and the reworded intro, live_button, live_privacy and stage_trace; added 2026-10-05) were reviewed by the owner the same day: 54 corrected as given; plain.flags was kept (a grammar conflict with plain.technique, see docs/i18n-review.md).",
+  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. The live_* strings and source_name.* (live search, added 2026-10-04) were reviewed by the owner the same day; 3 corrected, 7 kept. The three live-verdict strings (live_verdict_basis, live_validated, live_no_verdict; added 2026-10-05) were reviewed by the owner the same day: all 3 corrected. The plain-card strings (the 'plain' block and the reworded intro, live_button, live_privacy and stage_trace; added 2026-10-05) were reviewed by the owner the same day: all corrected as given; plain.flags kept by the owner's decision; masculine first-person forms replaced by gender-neutral ones the same day.",
   "_lang": "hi",
   "title": "TruthLens",
   "intro": "जो संदेश आपको किसी ने भेजा है, उसे यहाँ पेस्ट करें और तीर दबाएँ। आपको दिखेगा कि वह सच या झूठ लगता है और क्यों।",
@@ -116,8 +116,8 @@
       "Supported": "मुझे जो स्रोत मिले, वे इस बात का समर्थन करते हैं।",
       "Conflicting": "मुझे जो स्रोत मिले, वे आपस में सहमत नहीं हैं।",
       "NEI": "फ़ैसला करने के लिए मुझे पर्याप्त जानकारी नहीं मिली।",
-      "abstained_Supported": "यह सच लगता है, लेकिन मैं इसे पक्का नहीं कह सकता।",
-      "abstained_Refuted": "यह झूठ लगता है, लेकिन मैं इसे पक्का नहीं कह सकता।",
+      "abstained_Supported": "यह सच लगता है, लेकिन इसे पक्का कहने लायक भरोसा नहीं है।",
+      "abstained_Refuted": "यह झूठ लगता है, लेकिन इसे पक्का कहने लायक भरोसा नहीं है।",
       "abstained_other": "पक्का कहने के लिए मुझे पर्याप्त जानकारी नहीं मिली।",
       "live_none": "मैंने ऑनलाइन भी देखा, फिर भी पक्का कहना मुश्किल है। मुझे जो मिला, वह नीचे है।",
       "live_Supported": "मैंने ऑनलाइन देखा और स्रोत भी इस बात का समर्थन करते हैं।",
@@ -149,7 +149,7 @@
     "reply": {
       "Refuted": "मैंने इस संदेश की TruthLens से जाँच की: यह झूठ लगता है। कृपया इसे आगे न भेजें।",
       "Supported": "मैंने इस संदेश की TruthLens से जाँच की: यह सच लगता है। आगे भेजने से पहले स्रोत देख लें।",
-      "check": "मैंने इस संदेश की TruthLens से जाँच की: मैं इसकी पुष्टि नहीं कर पाया। आगे भेजने से पहले कृपया जाँच लें।",
+      "check": "मैंने यह संदेश TruthLens से जाँचा: इसकी पुष्टि नहीं हो पाई। आगे भेजने से पहले कृपया जाँच लें।",
       "source": "और जानकारी: {url}"
     },
     "technique": {

@@ -139,21 +139,16 @@ added so "were not sure enough" is explicit.
 
 ## Plain-language card strings: REVIEWED and applied (added and reviewed 2026-10-05)
 
-**Reviewed by the owner on 2026-10-05: 54 of the 55 strings corrected and applied exactly as given.**
-The table below shows the machine drafts; the corrected text is in `app/static/i18n/hi.json` and
-`pa.json`. One string was NOT applied and one result needs a decision:
+**Reviewed by the owner on 2026-10-05, and every open point decided the same day.** The table below shows
+the machine drafts; the corrected text is in `app/static/i18n/hi.json` and `pa.json`. Decisions:
 
-1. **`plain.flags` (kept as drafted).** The reviewed sentence is "आपको {list} करने के लिए उकसाने की कोशिश
-   करता है" / "ਤੁਹਾਨੂੰ {list} ਕਰਨ ਲਈ ਉਕਸਾਉਣ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰਦਾ ਹੈ", which puts "करने के लिए / ਕਰਨ ਲਈ" after
-   `{list}`. The reviewed `plain.technique.*` phrases are infinitives ("डराने", "भावनाएँ भड़काने",
-   "ਡਰਾਉਣ"), and the two do not fit: it would read "आपको डराने करने के लिए ...". The previous sentence
-   ("यह संदेश {list} की कोशिश करता है") fits the reviewed phrases, so it stays. **Decision needed:** keep it, or
-   send phrases that fit the new sentence (for example nouns: "डराना", "जल्दबाज़ी").
-2. **Punjabi `plain.sure.High` and `plain.sure.Medium` are now the same sentence** ("ਮੈਨੂੰ ਕਾਫ਼ੀ ਭਰੋਸਾ
-   ਹੈ"), so a reader cannot tell "quite sure" from "fairly sure". Applied as given; please send a different
-   Punjabi sentence for one of them (the earlier draft for Medium was "ਮੈਨੂੰ ਠੀਕ-ਠਾਕ ਭਰੋਸਾ ਹੈ").
-3. Several reviewed first-person sentences use masculine forms ("कह सकता", "कर पाया", "ਕਹਿ ਸਕਦਾ", "ਕਰ ਸਕਿਆ").
-   Applied as given; if the helper should be gender-neutral, say so and I will reword them.
+1. **`plain.flags` is kept as drafted** ("यह संदेश {list} की कोशिश करता है।" / "ਇਹ ਸੁਨੇਹਾ {list} ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰਦਾ
+   ਹੈ।"): the approved `plain.technique.*` phrases are infinitives and fit exactly this pattern.
+2. **Punjabi `plain.sure.Medium` is "ਮੈਨੂੰ ਠੀਕ-ਠਾਕ ਭਰੋਸਾ ਹੈ।"**, distinct from High ("ਮੈਨੂੰ ਕਾਫ਼ੀ ਭਰੋਸਾ ਹੈ।") and Low,
+   so there are three clear levels.
+3. **The helper is gender-neutral.** The masculine forms ("कह सकता", "कर पाया", "ਕਹਿ ਸਕਦਾ", "ਕਰ ਸਕਿਆ") were
+   replaced in `plain.reason.abstained_Supported`, `plain.reason.abstained_Refuted` and `plain.reply.check`
+   ("इसे पक्का कहने लायक भरोसा नहीं है", "इसकी पुष्टि नहीं हो पाई", "ਇਸ ਦੀ ਪੁਸ਼ਟੀ ਨਹੀਂ ਹੋ ਸਕੀ").
 
 **Answer language (decided 2026-10-05).** The card answers in Hindi or Punjabi only when the message
 is written in Devanagari or Gurmukhi. Hindi or Punjabi typed in Latin letters ("Kal se WhatsApp ke paise

@@ -3011,3 +3011,8 @@ letters ("Kal se WhatsApp ke paise lagenge") is answered in English, and Hindi o
 message itself is in Devanagari or Gurmukhi (`cardLang` in `app.js`; the language switch still overrides;
 checked in `scripts/ui_plain_check.js`).
 
+**Plain card, the three open points decided by the owner (same day):** `plain.flags` kept as drafted; Punjabi
+`plain.sure.Medium` made distinct ("ਮੈਨੂੰ ਠੀਕ-ਠਾਕ ਭਰੋਸਾ ਹੈ।"); the helper made gender-neutral
+(`plain.reason.abstained_*` and `plain.reply.check` reworded in hi and pa). All 55 plain-card strings are now
+reviewed. Next: the relatives' usability test (`docs/usability-test.md`).
+
