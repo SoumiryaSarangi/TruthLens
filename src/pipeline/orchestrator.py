@@ -58,6 +58,12 @@ class PipelineConfig:
     # asks (`verify(..., live=True)`), only for free text, only for the claim sent.
     # Off by default: no evaluation config can reach the network.
     live_search: bool = False
+    # What live evidence may do. False (the default, and what is served): the card
+    # lists the relevant sources and gives NO verdict -- no NLI label ever reaches
+    # the user, so a false claim cannot be called Supported by a model misreading
+    # Hindi (probe run 1, docs/live-search-probe.md). True: the verdict path built
+    # for the probe, adopted only if a fix passes the same rule on a fresh set.
+    live_verdict: bool = False
     stages: dict[str, str] | None = None
     stage_args: dict[str, dict[str, Any]] | None = None
 
@@ -89,6 +95,7 @@ class PipelineConfig:
                 "free_text_translit_query": self.free_text_translit_query,
                 "free_text_coverage": self.free_text_coverage,
                 "live_search": self.live_search,
+                "live_verdict": self.live_verdict,
                 "stages": dict(self.stages or {})}
 
 
@@ -233,6 +240,20 @@ class Orchestrator:
                        "relevant to this claim was found.", passages=shown or None)
             out.live_sources = found.sources_used
             return out
+
+        if not self.cfg.live_verdict:
+            # Evidence only: relevant sources, no stance tags, no verdict.
+            listed = "; ".join(f"[{p.passage_id[1:]}] {p.title}" for p in shown)
+            trace.record("live", "evidence_only", 0.0,
+                         "live evidence is listed, not judged (live_verdict is off)")
+            return ClaimResult(
+                claim=claim, path="evidence", match=None, passages=shown, verdict="NEI",
+                confidence=0.0, abstained=True,
+                explanation=("TruthLens found these online sources about this claim but does "
+                             f"not give a verdict on live evidence: {listed}. Read them."),
+                explanation_source="template", explanation_lang="en",
+                cited=[p.passage_id for p in shown], live_sources=found.sources_used,
+            )
 
         try:
             labels = self._timed(trace, "stance", self.stance.impl,

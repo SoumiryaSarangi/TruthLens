@@ -128,7 +128,11 @@ class LiveEvidence:
             if result.match and hit.url == result.match.url:
                 continue
             # The review's HEADLINE, never its claim text (a rumour stated as fact).
-            result.passages.append(LivePassage(hit.title or hit.claim_text, hit.publisher or hit.title,
+            # The publisher's own rating travels with the headline: a human
+            # fact-checker's verdict, shown as theirs, never converted by a model.
+            headline = hit.title or hit.claim_text
+            text = f"{headline} — {hit.publisher or 'fact-checker'} rating: {hit.rating}" if hit.rating else headline
+            result.passages.append(LivePassage(text, hit.publisher or hit.title,
                                                hit.url, "factcheck_live", cos, hit.lang or "en"))
         for cand, cos in sorted(zip(wiki, wiki_cos, strict=True), key=lambda t: -t[1])[:self.n_wikipedia]:
             result.passages.append(LivePassage(cand.text, cand.title, cand.url, "wikipedia", cos, cand.lang))

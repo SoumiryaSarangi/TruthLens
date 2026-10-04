@@ -296,15 +296,16 @@ function verdictCard(r, inp) {
       <a href="${esc(r.match.url)}" target="_blank" rel="noopener">${esc(r.match.title)}</a></p>`;
   }
   if (n) {
-    html += `<button type="button" class="trail-toggle" aria-expanded="false"
-      aria-controls="${id}-trail">▸ ${esc(t("see_evidence", { n }))}</button>
-      <ol class="trail" id="${id}-trail" hidden>`;
+    // Live sources ARE the answer, so they start open; offline evidence starts collapsed.
+    html += `<button type="button" class="trail-toggle" aria-expanded="${liveUsed}"
+      aria-controls="${id}-trail">${liveUsed ? "▾" : "▸"} ${esc(t(liveUsed ? "hide_evidence" : "see_evidence", { n }))}</button>
+      <ol class="trail" id="${id}-trail"${liveUsed ? "" : " hidden"}>`;
     (r.passages || []).forEach((p, k) => {
-      const stance = p.stance || "Neutral";
+      const stance = p.stance;           // null on live evidence, which is listed, not judged
       const title = p.title || p.doc_id;
       const href = p.url && /^https?:/.test(p.url) ? p.url : null;
       html += `<li id="${id}-ev-${k + 1}" tabindex="-1">
-        <span class="stance ${esc(stance)}">${esc(t(`stance.${stance}`, {}, stance))}</span>
+        ${stance ? `<span class="stance ${esc(stance)}">${esc(t(`stance.${stance}`, {}, stance))}</span>` : ""}
         ${p.source ? `<span class="src-tag">${esc(t(`source_name.${p.source}`, {}, p.source))}</span>` : ""}
         <span class="src">[${k + 1}] ${href
           ? `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(title)}</a>`

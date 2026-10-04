@@ -203,7 +203,7 @@ def test_a_related_review_is_evidence_by_its_headline_not_its_claim_text(tmp_pat
     live = evidence(tmp_path, google=review("beta beta", "alpha headline", "False"))
     result = live.gather(["alpha beta gamma"], "en")
     assert result.match is None
-    assert [p.text for p in result.passages if p.source == "factcheck_live"] == ["alpha headline"]
+    assert [p.text for p in result.passages if p.source == "factcheck_live"] == ["alpha headline — FC rating: False"]
 
 
 def test_an_unmappable_rating_is_declined_never_guessed(tmp_path):

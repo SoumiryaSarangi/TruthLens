@@ -79,8 +79,9 @@ def passage(cos=0.7, source="wikipedia", title="Delhi"):
     return LivePassage(f"{title} is the capital.", title, f"https://x/{title}", source, cos, "en")
 
 
-def make(live=None, enabled=True):
-    cfg = PipelineConfig(stages={"stance": "always_neutral"}, live_search=enabled)
+def make(live=None, enabled=True, verdict=True):
+    cfg = PipelineConfig(stages={"stance": "always_neutral"}, live_search=enabled,
+                         live_verdict=verdict)
     orch = Orchestrator(cfg)
     orch._live = live
     orch.stance = FakeStance(S)
@@ -96,6 +97,55 @@ def test_live_evidence_replaces_the_offline_answer_and_says_where_it_came_from()
     assert res.live_sources == ["wikipedia"]
     assert {p.source for p in res.passages} == {"wikipedia"} and res.passages[0].stance == "Supports"
     assert any("NOT calibrated" in (e.note or "") for e in trace.events)
+
+
+# -- evidence-only mode (the served default) ----------------------------------
+
+
+class Exploding(FakeStance):
+    """Fails the test if anything asks the stance model about live evidence."""
+
+    def label(self, claim, passages):
+        raise AssertionError("evidence-only mode must not run NLI on live evidence")
+
+
+def test_evidence_only_lists_the_sources_and_gives_no_verdict():
+    live = FakeLive(LiveResult(passages=[passage(0.8), passage(0.6, title="India")],
+                               sources_used=["wikipedia", "google_factcheck"]))
+    orch = make(live, verdict=False)
+    orch.stance = Exploding(S)
+    trace = orch.verify("Delhi is the capital of India", live=True)
+    res = trace.results[0]
+    assert (res.verdict, res.abstained, res.confidence) == ("NEI", True, 0.0)
+    assert [p.stance for p in res.passages] == [None, None]
+    assert {p.source for p in res.passages} == {"wikipedia"}
+    assert "Delhi" in res.explanation and "[1]" in res.explanation and "Read them" in res.explanation
+    assert res.live_sources == ["wikipedia", "google_factcheck"]
+    assert any("listed, not judged" in (e.note or "") for e in trace.events)
+
+
+def test_a_false_claim_cannot_be_called_supported_by_a_model_misreading_the_evidence():
+    """Probe run 1: NLI called fact-check headlines that restate a rumour, and pages
+    on the same topic, 'Supports' -- and a false claim came out Supported. In
+    evidence-only mode no NLI label can reach the verdict, whatever it says."""
+    live = FakeLive(LiveResult(passages=[passage(0.8, source="factcheck_live", title="Does lemon cure cancer?")],
+                               sources_used=["google_factcheck"]))
+    orch = make(live, verdict=False)
+    orch.stance = FakeStance(S)               # a stance model that says Supports to everything
+    res = orch.verify("Lemon water cures cancer", live=True).results[0]
+    assert res.verdict == "NEI" and res.abstained
+
+
+def test_evidence_only_still_reports_nothing_relevant_honestly():
+    live = FakeLive(LiveResult(passages=[passage(0.31, title="Britannica")], sources_used=["wikipedia"]))
+    res = make(live, verdict=False).verify("Each student gets Rs 6000", live=True).results[0]
+    assert res.verdict == "NEI" and res.abstained and "nothing relevant" in res.explanation
+
+
+def test_the_served_config_serves_evidence_not_verdicts():
+    cfg = PipelineConfig.load("configs/pipeline/dev.yaml")
+    assert cfg.live_search is True and cfg.live_verdict is False
+    assert PipelineConfig().live_verdict is False
 
 
 def test_a_published_fact_check_of_this_claim_answers_it_on_the_fast_path():
