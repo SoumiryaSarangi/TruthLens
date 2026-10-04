@@ -231,3 +231,25 @@ After you correct, apply the corrections to `app/static/i18n/hi.json` and `pa.js
 | `plain.technique.Appeal_to_Fear-Prejudice` | scare you | डराने | ਡਰਾਉਣ | |
 | `plain.technique.Exaggeration-Minimisation` | exaggerate or play things down | बढ़ा-चढ़ाकर बताने | ਵਧਾ-ਚੜ੍ਹਾ ਕੇ ਦੱਸਣ | |
 | `plain.closest_label` | Closest sources I found: | सबसे क़रीबी स्रोत जो मुझे मिले: | ਸਭ ਤੋਂ ਨੇੜਲੇ ਸਰੋਤ ਜੋ ਮੈਨੂੰ ਮਿਲੇ: | |
+
+---
+
+## Honest-card strings: NOT YET REVIEWED (added 2026-10-05)
+
+Added when the offline evidence-path guess stopped being shown as a verdict (docs/specs/UI_UX.md section 5):
+the card now says it could not find a source that checks the exact claim, and a message the claim gate refuses
+gets "I didn't find a claim to check" with a "Check it anyway" button. Machine-drafted; same tone and rules as
+above (plain words, gender-neutral helper, placeholders kept). `plain.none_title` and `plain.none_note` replace
+the earlier greeting wording. After you correct them, apply the corrections to `hi.json` and `pa.json` and remove
+the "NOT YET REVIEWED (added 2026-10-05...)" sentence from their `_comment`.
+
+| key | English | Hindi | Punjabi | correction |
+| --- | --- | --- | --- | --- |
+| `lean_note` | The system's own lean, which is NOT reliable for free text: {label}. | सिस्टम का अपना झुकाव, जो खुले पाठ के लिए भरोसेमंद नहीं है: {label}। | ਸਿਸਟਮ ਦਾ ਆਪਣਾ ਝੁਕਾਅ, ਜੋ ਖੁੱਲ੍ਹੇ ਪਾਠ ਲਈ ਭਰੋਸੇਯੋਗ ਨਹੀਂ ਹੈ: {label}। | |
+| `plain.none_title` | I didn't find a claim to check | मुझे जाँचने लायक दावा नहीं मिला | ਮੈਨੂੰ ਜਾਂਚਣ ਲਈ ਦਾਅਵਾ ਨਹੀਂ ਮਿਲਿਆ | |
+| `plain.none_note` | I couldn't find a full claim to check here. If you meant a claim, write it as a full sentence, for example “The exam paper was leaked.” | यहाँ मुझे जाँचने लायक पूरा दावा नहीं मिला। अगर यह कोई दावा है, तो इसे पूरे वाक्य में लिखें, जैसे “परीक्षा का पेपर लीक हुआ।” | ਇੱਥੇ ਮੈਨੂੰ ਜਾਂਚਣ ਲਈ ਪੂਰਾ ਦਾਅਵਾ ਨਹੀਂ ਮਿਲਿਆ। ਜੇ ਇਹ ਕੋਈ ਦਾਅਵਾ ਹੈ, ਤਾਂ ਇਸਨੂੰ ਪੂਰੇ ਵਾਕ ਵਿੱਚ ਲਿਖੋ, ਜਿਵੇਂ “ਪੇਪਰ ਲੀਕ ਹੋ ਗਿਆ।” | |
+| `plain.check_anyway` | Check it anyway | फिर भी जाँचें | ਫਿਰ ਵੀ ਜਾਂਚੋ | |
+| `plain.no_exact` | I couldn't find a source that checks this exact claim. | मुझे ऐसा कोई स्रोत नहीं मिला जो ठीक इसी दावे की जाँच करता हो। | ਮੈਨੂੰ ਅਜਿਹਾ ਕੋਈ ਸਰੋਤ ਨਹੀਂ ਮਿਲਿਆ ਜੋ ਠੀਕ ਇਸੇ ਦਾਅਵੇ ਦੀ ਜਾਂਚ ਕਰਦਾ ਹੋਵੇ। | |
+| `plain.related_label` | The closest things I found (they may not be about this claim): | जो सबसे क़रीबी चीज़ें मिलीं (हो सकता है वे इस दावे के बारे में न हों): | ਜੋ ਸਭ ਤੋਂ ਨੇੜਲੀਆਂ ਚੀਜ਼ਾਂ ਮਿਲੀਆਂ (ਹੋ ਸਕਦਾ ਹੈ ਉਹ ਇਸ ਦਾਅਵੇ ਬਾਰੇ ਨਾ ਹੋਣ): | |
+| `plain.try_online` | To get a real answer, look it up online. | सही जवाब पाने के लिए इसे ऑनलाइन खोजें। | ਸਹੀ ਜਵਾਬ ਲੈਣ ਲਈ ਇਸਨੂੰ ਆਨਲਾਈਨ ਖੋਜੋ। | |
+

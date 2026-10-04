@@ -132,8 +132,8 @@
       "Medium": "I am fairly sure.",
       "Low": "I am not very sure."
     },
-    "none_title": "Nothing to check here",
-    "none_note": "This looks like a greeting or an opinion, not something that can be checked.",
+    "none_title": "I didn't find a claim to check",
+    "none_note": "I couldn't find a full claim to check here. If you meant a claim, write it as a full sentence, for example “The exam paper was leaked.”",
     "claim_label": "I checked this claim:",
     "sources_label": "Where this comes from:",
     "found_label": "What I found:",
@@ -160,6 +160,11 @@
       "Appeal_to_Fear-Prejudice": "scare you",
       "Exaggeration-Minimisation": "exaggerate or play things down"
     },
-    "closest_label": "Closest sources I found:"
-  }
+    "closest_label": "Closest sources I found:",
+    "check_anyway": "Check it anyway",
+    "no_exact": "I couldn't find a source that checks this exact claim.",
+    "related_label": "The closest things I found (they may not be about this claim):",
+    "try_online": "To get a real answer, look it up online."
+  },
+  "lean_note": "The system's own lean, which is NOT reliable for free text: {label}."
 }

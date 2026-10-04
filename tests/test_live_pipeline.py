@@ -278,7 +278,8 @@ def test_the_api_flag_defaults_off_and_is_passed_through(monkeypatch):
     seen = []
     orch = make(FakeLive(LiveResult()))
     real = orch.verify
-    orch.verify = lambda text, claim_idx=None, live=False: (seen.append(live), real(text, claim_idx, live))[1]
+    orch.verify = lambda text, claim_idx=None, live=False, force_claim=False: (
+        seen.append(live), real(text, claim_idx, live))[1]
     monkeypatch.setattr(main, "_orchestrator", orch)
     monkeypatch.setattr(main, "_config", orch.cfg)
     client = TestClient(main.app)

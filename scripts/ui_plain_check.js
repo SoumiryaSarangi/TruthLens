@@ -81,6 +81,15 @@ for (const lang of ["en", "hi", "pa"]) {
         if (re.test(fixed)) problems.push(`jargon: ${re}`);
       }
     }
+    // The offline evidence path is a guess, never an answer: "Hard to say", no verdict word, no "how sure",
+    // the live button offered, the system's lean only inside Details.
+    if (r.shows === "romanized_hindi" || r.shows === "claim_extraction") {
+      if (!main.includes("card plain abstained")) problems.push("an offline guess is not shown as an abstained, hedged card");
+      if (/Probably|quite sure|fairly sure|not very sure|I am .* sure|TRUE|FALSE/i.test(body.replace(/“[^”]*”/g, ""))) problems.push("an offline guess is worded like a verdict");
+      if (!details.includes('class="note lean"')) problems.push("the system's lean is missing from Details");
+      if (lang === "en" && !main.includes("live-btn")) problems.push("no 'look this up online' button on a guess");
+    }
+    if (r.shows === "not_a_claim" && !main.includes("act-force")) problems.push("no 'Check it anyway' button on the not-a-claim card");
     if (r.shows === "live_verdict") {
       if (!main.includes("plain-sources") || /class="sure"/.test(main)) problems.push("live verdict: sources missing, or an uncalibrated 'how sure' shown");
       if (!main.includes("Hyderabad</a>")) problems.push("live verdict: no source link");

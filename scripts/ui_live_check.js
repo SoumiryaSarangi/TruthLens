@@ -26,7 +26,8 @@ const html = (r, live) => { api.setL(live); return api.render(body(r)); };
 const cases = [
   ["button shown on an abstained card", html(base, true), ["live-btn", "live-privacy", L.live_privacy], []],
   ["button hidden when the server cannot go live", html(base, false), [], ["live-btn"]],
-  ["button hidden on a High-band card", html({ ...base, abstained: false, verdict: "Refuted", confidence: 0.7 }, true), [], ["live-btn"]],
+  // An offline evidence-path verdict is a guess, whatever its band, so the way to a real answer is always offered.
+  ["button shown on a High-band offline guess", html({ ...base, abstained: false, verdict: "Refuted", confidence: 0.7 }, true), ["live-btn"], []],
   ["button shown on a Medium-band card", html({ ...base, abstained: false, verdict: "Refuted", confidence: 0.57 }, true), ["live-btn"], []],
   ["button hidden on a fast-path card", html({ ...base, path: "fast", abstained: false, verdict: "Refuted", confidence: 0.92,
       match: { publisher: "FC", title: "t", url: "https://fc.example/x" } }, true), [], ["live-btn"]],

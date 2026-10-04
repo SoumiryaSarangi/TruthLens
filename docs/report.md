@@ -302,7 +302,17 @@ closest sources, a warning in words when the message tries to scare or rush the 
 buttons: **Listen** (the browser's own speech) and **Copy a reply** (a ready message for the family
 group). The technical card the project measured (verdict class, confidence band, explanation,
 evidence trail) sits in a closed "Details" fold, so nothing was removed. The wording says "probably"
-and "the sources I found": it reports what sources say, never the truth. A usability test with
+and "the sources I found": it reports what sources say, never the truth.
+
+**The evidence-path guess is not shown as an answer.** The owner's own questions ("Has NEET paper ever been
+leaked?", "Methyl Phenidate is good medicine for ADHD", and a trivially true "Paris is the capital of France")
+were all answered "Refuted" with unrelated or off-claim sources. That is the section 1 finding seen from the
+user's side: on free text the offline verdict mostly reflects "forwarded claims are usually false" (in the
+pre-registered test of section 8b it said Refuted for 122 of the 125 true claims and never Supported). So the card
+says "Hard to say: I couldn't find a source that checks this exact claim" and offers the online look-up; the
+system's own lean stays in Details, marked unreliable. A verdict is shown only where one was earned: a matched
+published fact-check, or the live check that passed its pre-registered test. A message the claim gate refuses
+can be sent anyway with "Check it anyway". A usability test with
 relatives, with questions and pass bars fixed beforehand, is specified in `docs/usability-test.md`;
 its results are in `docs/usability-results.md` once run. The rest of this section describes the page.
 

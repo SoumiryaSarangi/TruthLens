@@ -21,7 +21,7 @@ from typing import Any, ClassVar
 import yaml
 
 from pipeline import registry
-from pipeline.contracts import MAX_CLAIMS, ClaimResult, Passage, Trace
+from pipeline.contracts import MAX_CLAIMS, Claim, ClaimResult, Passage, Trace
 
 # SYSTEM_DESIGN 11: "Generation error or over 8 s -> template explanation".
 GENERATION_TIMEOUT_S = 8.0
@@ -184,8 +184,9 @@ class Orchestrator:
         return out
 
     # -- the flow -------------------------------------------------------------
-    def verify(self, text: str, claim_idx: int | None = None, live: bool = False) -> Trace:
-        trace = self._decide(text, claim_idx)
+    def verify(self, text: str, claim_idx: int | None = None, live: bool = False,
+               force_claim: bool = False) -> Trace:
+        trace = self._decide(text, claim_idx, force_claim)
         if live:
             self._apply_live(trace, claim_idx)
         # FR-19: flags are computed only AFTER every verdict is decided and are
@@ -448,7 +449,7 @@ class Orchestrator:
         return Passage(passage_id=f"e{i}", doc_id=p.url, text=p.text, url=p.url, title=p.title,
                        retrieval_score=max(0.0, p.cosine), source=p.source)
 
-    def _decide(self, text: str, claim_idx: int | None) -> Trace:
+    def _decide(self, text: str, claim_idx: int | None, force_claim: bool = False) -> Trace:
         trace = Trace(request_id=uuid.uuid4().hex[:12])
 
         self._timed(trace, "preprocess", self.preprocess.impl,
@@ -461,11 +462,20 @@ class Orchestrator:
 
         trace.checkworthy = self._timed(trace, "claims", self.claims.impl,
                                         lambda: self.claims.check_worthy(trace))
-        if not trace.checkworthy:
+        if not trace.checkworthy and not force_claim:
             trace.results.append(self._not_a_claim(trace))       # FR-6
             return trace
 
-        self._timed(trace, "claims", self.claims.impl, lambda: self.claims.extract(trace))
+        if not trace.checkworthy:
+            # "Check it anyway" (the reader's explicit request, never used in an evaluation): the
+            # claim gate called a short fragment ("JEE paper leaked") not a claim, so the whole text
+            # is checked as ONE claim instead of being refused.
+            trace.checkworthy = True
+            trace.claims = [Claim(claim_id="c1", text=trace.pre.normalized.strip(), span=None)]
+            trace.record("claims", self.claims.impl, 0.0,
+                         "checked anyway at the reader's request: the claim gate had called this not a claim")
+        else:
+            self._timed(trace, "claims", self.claims.impl, lambda: self.claims.extract(trace))
 
         # FR-7: at most MAX_CLAIMS are verified; the rest are LISTED as not
         # checked. Enforced here rather than trusted to the extractor, because

@@ -275,17 +275,23 @@ function plainCase(r) {
   const live = (r.live_sources || []).length > 0;
   if (r.path === "fast" && r.match && !r.abstained) return { kind: "fast", v: r.verdict, live };
   if (r.abstained) return { kind: "abstained", v: r.verdict, live };
+  // The offline evidence path is NOT presented as an answer. On free text it says "Refuted" to almost
+  // everything (122 of 125 TRUE claims in the pre-registered test; Paris is the capital of France too),
+  // because it mostly reflects "forwarded claims are usually false". A verdict is shown only when it is
+  // earned: a matched published fact-check (fast) or a live check that passed its test.
+  if (!live) return { kind: "lean", v: r.verdict, live };
   return { kind: "verdict", v: r.verdict, live };
 }
 
 function plainTitle(c, lang) {
   if (c.kind === "fast") return tl(lang, `plain.fast_title.${c.v}`);
-  if (c.kind === "abstained") return tl(lang, "plain.title.abstained");
+  if (c.kind === "abstained" || c.kind === "lean") return tl(lang, "plain.title.abstained");
   return tl(lang, `plain.title.${c.v}`);
 }
 
 function plainReason(c, r, lang) {
   if (c.kind === "fast") return tl(lang, "plain.reason.fast", { publisher: r.match?.publisher || "" });
+  if (c.kind === "lean") return tl(lang, "plain.no_exact");
   if (c.kind === "abstained") {
     if (c.live) return tl(lang, "plain.reason.live_none");
     return tl(lang, c.v === "Supported" || c.v === "Refuted" ? `plain.reason.abstained_${c.v}`
@@ -296,7 +302,7 @@ function plainReason(c, r, lang) {
 }
 
 function plainAction(c, lang) {
-  const v = c.kind === "abstained" ? null : c.v;
+  const v = c.kind === "abstained" || c.kind === "lean" ? null : c.v;
   return tl(lang, v === "Refuted" || v === "Supported" ? `plain.action.${v}` : "plain.action.check");
 }
 
@@ -307,7 +313,7 @@ function plainSources(c, r) {
   const row = (url, title) => ({ url, title, domain: domainOf(url) });
   if (c.kind === "fast") return r.match ? [row(r.match.url, r.match.title)] : [];
   const passages = (r.passages || []).filter((p) => href(p));
-  if (c.live) return passages.slice(0, 3).map((p) => row(href(p), p.title || p.doc_id));
+  if (c.live || c.kind === "lean") return passages.slice(0, 3).map((p) => row(href(p), p.title || p.doc_id));
   if (c.kind === "verdict" && (c.v === "Supported" || c.v === "Refuted")) {
     const want = c.v === "Supported" ? "Supports" : "Refutes";
     const cited = new Set(r.cited || []);
@@ -325,7 +331,7 @@ function plainFlags(r, lang) {
 }
 
 function replyText(c, sources, lang) {
-  const key = c.kind === "abstained" ? "check" : (c.v === "Refuted" || c.v === "Supported" ? c.v : "check");
+  const key = c.kind === "abstained" || c.kind === "lean" ? "check" : (c.v === "Refuted" || c.v === "Supported" ? c.v : "check");
   let text = tl(lang, `plain.reply.${key}`);
   if (sources.length) text += `\n${tl(lang, "plain.reply.source", { url: sources[0].url })}`;
   return text;
@@ -337,17 +343,22 @@ function plainCard(r, inp, idx) {
   const c = plainCase(r);
 
   if (c.kind === "none") {
+    // The claim gate refuses short fragments ("JEE paper leaked"), so the reader can overrule it.
+    const original = (inp && inp.original) || (r.claim && r.claim.text) || "";
     return `<div class="card neutral-card plain" lang="${esc(lang)}">
       <p class="neutral-title"><span aria-hidden="true">${esc(icons.NotAClaim || "💬")}</span> ${esc(tl(lang, "plain.none_title"))}</p>
-      <p class="reason">${esc(tl(lang, "plain.none_note"))}</p></div>`;
+      <p class="reason">${esc(tl(lang, "plain.none_note"))}</p>
+      ${original ? `<div class="actions"><button type="button" class="act act-force" data-text="${esc(original)}"
+        data-idx="${idx}" data-card-lang="${esc(lang)}">${esc(tl(lang, "plain.check_anyway"))}</button></div>
+        <p class="note act-note" hidden></p>` : ""}</div>`;
   }
 
   const id = `c${++cardSeq}`;
   const bandName = bandOf(r.confidence);
   const title = plainTitle(c, lang);
-  const chipClass = c.kind === "abstained" ? "abstained" : (c.v === "Conflicting" || c.v === "NEI" || c.v === "Refuted"
+  const chipClass = c.kind === "abstained" || c.kind === "lean" ? "abstained" : (c.v === "Conflicting" || c.v === "NEI" || c.v === "Refuted"
     || c.v === "Supported" ? c.v : "NEI");
-  const icon = c.kind === "abstained" ? icons.abstained : icons[c.v];
+  const icon = c.kind === "abstained" || c.kind === "lean" ? icons.abstained : icons[c.v];
   const reason = plainReason(c, r, lang);
   const action = plainAction(c, lang);
   const sources = plainSources(c, r);
@@ -355,14 +366,15 @@ function plainCard(r, inp, idx) {
   const sure = c.kind === "verdict" && !c.live && bandName ? tl(lang, `plain.sure.${bandName}`) : "";
   const speak = [title, reason, sure, action].filter(Boolean).join(" ");
 
-  let html = `<div class="card plain${c.kind === "abstained" ? " abstained" : ""}" id="${id}" lang="${esc(lang)}">
+  let html = `<div class="card plain${c.kind === "abstained" || c.kind === "lean" ? " abstained" : ""}" id="${id}" lang="${esc(lang)}">
     <p class="plain-head"><span class="chip big ${esc(chipClass)}" role="img"
       aria-label="${esc(t("verdict_aria", { label: title }))}"><span aria-hidden="true">${esc(icon || "")}</span>${esc(title)}</span></p>
     <p class="reason">${esc(reason)}${sure ? ` <span class="sure">${esc(sure)}</span>` : ""}</p>
     <p class="action">${esc(action)}</p>`;
   if (sources.length) {
-    html += `<p class="src-label">${esc(tl(lang, c.live || c.kind === "abstained" ? "plain.found_label"
-        : (c.kind === "fast" ? "plain.sources_label" : "plain.closest_label")))}</p>
+    html += `<p class="src-label">${esc(tl(lang, c.kind === "lean" ? "plain.related_label"
+        : (c.live || c.kind === "abstained" ? "plain.found_label"
+          : (c.kind === "fast" ? "plain.sources_label" : "plain.closest_label"))))}</p>
       <ul class="plain-sources">${sources.map((x) => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a>${
         x.domain ? ` <span class="domain">· ${esc(x.domain)}</span>` : ""}</li>`).join("")}</ul>`;
   }
@@ -379,13 +391,15 @@ function plainCard(r, inp, idx) {
 
   // Looking it up online: explicit, per claim, and it says exactly what it sends.
   const liveUsed = c.live;
-  if (!liveUsed && LIVE && r.path !== "fast" && r.claim?.text && (r.abstained || bandName !== "High")) {
+  if (!liveUsed && LIVE && r.path !== "fast" && r.claim?.text
+      && (c.kind === "lean" || r.abstained || bandName !== "High")) {
+    if (c.kind === "lean") html += `<p class="action">${esc(tl(lang, "plain.try_online"))}</p>`;
     html += `<button type="button" class="live-btn" data-card="${id}" data-claim="${esc(r.claim.text)}" data-idx="${idx}">
       <span aria-hidden="true">🌐</span> ${esc(tl(lang, "live_button"))}</button>
       <p class="note live-privacy">${esc(tl(lang, "live_privacy"))}</p>`;
   }
   html += `<p class="disclaimer">${esc(tl(lang, "disclaimer"))}</p>`;
-  html += `<details class="more"><summary>${esc(tl(lang, "plain.details"))}</summary>${technicalCard(r, inp, id)}</details></div>`;
+  html += `<details class="more"><summary>${esc(tl(lang, "plain.details"))}</summary>${technicalCard(r, inp, id, c.kind === "lean")}</details></div>`;
   return html;
 }
 
@@ -395,7 +409,7 @@ function verdictCard(r, inp, idx = 0) {
 
 /* The full technical card (verdict class, confidence band, explanation, evidence trail,
  * live notes, input note), inside "Details". It is the card the project measured. */
-function technicalCard(r, inp, cardId) {
+function technicalCard(r, inp, cardId, lean = false) {
   const id = cardId;
   const label = t(`verdict.${r.verdict}`, {}, r.verdict);
   const icons = S.icon || {};
@@ -421,7 +435,7 @@ function technicalCard(r, inp, cardId) {
     }
   }
 
-  let html = `<div class="technical"><div class="card-head">${head}</div>`;
+  let html = `<div class="technical">${lean ? `<p class="note lean">${esc(t("lean_note", { label }))}</p>` : ""}<div class="card-head">${head}</div>`;
   if (r.abstained) {
     html += `<p class="leaning">${esc(t("leaning", { label }))}</p>`;
   }
@@ -555,6 +569,34 @@ async function searchLive(btn) {
   }
 }
 
+/* "Check it anyway": the reader overrules the claim gate for this one message. */
+async function checkAnyway(btn) {
+  const bubble = btn.closest(".bubble");
+  const idx = Number(btn.dataset.idx || 0);
+  const lang = btn.dataset.cardLang;
+  btn.disabled = true;
+  btn.textContent = t("checking");
+  let body = null;
+  try {
+    const res = await fetch("/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: btn.dataset.text, include_trace: false, force_claim: true }),
+    });
+    if (res.ok) body = await res.json();
+  } catch (e) { /* the card stays as it was */ }
+  const result = body && body.results && body.results[0];
+  if (!result) {
+    btn.disabled = false;
+    btn.textContent = tl(lang, "plain.check_anyway");
+    const note = btn.parentElement.nextElementSibling;
+    if (note) { note.textContent = t("error_server"); note.hidden = false; }
+    return;
+  }
+  bubble._state.live[idx] = { result, input: body.input || {} };
+  renderBubble(bubble);
+}
+
 /* "Listen": the browser's own speech, in the card's language. If this device has no voice for
  * it, say so instead of reading Hindi in an English voice. */
 function speakCard(btn) {
@@ -618,6 +660,7 @@ function wire(root) {
   root.querySelectorAll(".live-btn").forEach((btn) => {
     btn.addEventListener("click", () => searchLive(btn));
   });
+  root.querySelectorAll(".act-force").forEach((btn) => btn.addEventListener("click", () => checkAnyway(btn)));
   root.querySelectorAll(".act-listen").forEach((btn) => btn.addEventListener("click", () => speakCard(btn)));
   root.querySelectorAll(".act-copy").forEach((btn) => btn.addEventListener("click", () => copyReply(btn)));
   root.querySelectorAll(".trail-toggle").forEach((btn) => {

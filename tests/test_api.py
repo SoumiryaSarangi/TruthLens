@@ -110,7 +110,7 @@ def test_the_same_text_in_two_unicode_forms_reaches_the_pipeline_identically(mon
     seen = []
 
     class FakeOrch:
-        def verify(self, text, claim_idx=None, live=False):
+        def verify(self, text, claim_idx=None, live=False, force_claim=False):
             seen.append(text)
             from pipeline.contracts import Trace
 
@@ -124,3 +124,25 @@ def test_the_same_text_in_two_unicode_forms_reaches_the_pipeline_identically(mon
     for form in (precomposed, decomposed):
         client.post("/verify", json={"text": f"ਮੁ{form}ਤ"})
     assert seen[0] == seen[1] and "\u0a5e" not in seen[0]
+
+
+def test_check_it_anyway_is_off_by_default_and_is_passed_through(monkeypatch):
+    """The reader's override of the claim gate: never on unless the request says so."""
+    import app.main as main
+    from fastapi.testclient import TestClient
+
+    from pipeline.contracts import Trace
+
+    flags = []
+
+    class FakeOrch:
+        def verify(self, text, claim_idx=None, live=False, force_claim=False):
+            flags.append(force_claim)
+            return Trace(request_id="x")
+
+    monkeypatch.setattr(main, "get_orchestrator", lambda: FakeOrch())
+    client = TestClient(main.app)
+    client.post("/verify", json={"text": "JEE paper leaked"})
+    client.post("/verify", json={"text": "JEE paper leaked", "force_claim": True})
+    assert flags == [False, True]
+

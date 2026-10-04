@@ -90,6 +90,9 @@ class VerifyRequest(BaseModel):
     # Post-test Phase 7: send THIS text to Wikipedia and Google Fact Check. False
     # unless the user clicked "search live" -- explicit, per claim (SRS NFR-8).
     live_search: bool = False
+    # "Check it anyway": the claim gate called a short fragment not a claim and the reader asked
+    # for it to be checked as one. Off unless the reader clicked; never used in an evaluation.
+    force_claim: bool = False
 
 
 # -----------------------------------------------------------------------------
@@ -111,7 +114,7 @@ def verify(req: VerifyRequest, claim_idx: int | None = Query(default=None)) -> d
     text = unicodedata.normalize("NFC", req.text)
 
     orch = get_orchestrator()
-    trace = orch.verify(text, claim_idx=claim_idx, live=req.live_search)
+    trace = orch.verify(text, claim_idx=claim_idx, live=req.live_search, force_claim=req.force_claim)
 
     pre = trace.pre
     body: dict[str, Any] = {

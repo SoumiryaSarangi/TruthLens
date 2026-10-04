@@ -423,3 +423,40 @@ def test_a_template_explanation_is_labelled_english_whatever_the_input(kb):
     res = make(kb).verify("नर्सिंग के 4400 पद बहाल किए गए", claim_idx=7).results[0]
     assert res.explanation_source == "template"
     assert res.explanation_lang == "en"
+
+
+# -----------------------------------------------------------------------------
+# "Check it anyway": the reader overrules the claim gate
+# -----------------------------------------------------------------------------
+
+
+class _RejectingGate:
+    """A claim gate that calls everything not a claim (what it said to the fragment 'JEE paper leaked')."""
+
+    impl = "rejecting_gate"
+
+    def check_worthy(self, trace):
+        return False
+
+    def extract(self, trace):
+        raise AssertionError("extract must not run when the reader forces the check")
+
+
+def test_a_fragment_the_gate_rejects_is_refused_unless_the_reader_asks_to_check_it_anyway(kb):
+    orch = make(kb)
+    orch.claims = _RejectingGate()
+    assert orch.verify("JEE paper leaked").results[0].verdict == "NotAClaim"
+
+    forced = orch.verify("JEE paper leaked", force_claim=True)
+    result = forced.results[0]
+    assert result.verdict != "NotAClaim"
+    assert result.claim.text == "JEE paper leaked"
+    assert any("checked anyway" in (e.note or "") for e in forced.events)
+
+
+def test_forcing_a_check_changes_nothing_when_the_gate_already_accepts(kb):
+    orch = make(kb)
+    plain = orch.verify("Were 4400 nursing posts restored?", claim_idx=7)
+    forced = orch.verify("Were 4400 nursing posts restored?", claim_idx=7, force_claim=True)
+    assert [r.verdict for r in plain.results] == [r.verdict for r in forced.results]
+    assert not any("checked anyway" in (e.note or "") for e in forced.events)

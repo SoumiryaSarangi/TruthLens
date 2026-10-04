@@ -29,16 +29,18 @@ Open the "Try an example" fold and press each example, then press send. Do the t
 | Task | Example | What the card says | Expected understanding |
 | --- | --- | --- | --- |
 | A | EN, fact-checked (pineapple juice) | Fact-checkers say: FALSE | It is false; do not forward it |
-| B | For a Hindi reader paste "नींबू पानी पीने से कैंसर ठीक हो जाता है"; for others Roman Hindi ("Kal se WhatsApp ke paise lagenge", answered in English because it is typed in Latin letters) or the Long forward | Probably FALSE, with a scare-tactic warning on the long forward | It is probably false; do not forward it |
+| B | For a Hindi reader paste "नींबू पानी पीने से कैंसर ठीक हो जाता है"; for others Roman Hindi ("Kal se WhatsApp ke paise lagenge", answered in English because it is typed in Latin letters) or the Long forward | Hard to say: "I couldn't find a source that checks this exact claim", a warning in words if the message tries to scare, and a "Look this up online" button | The app cannot tell; check before forwarding |
 | C | Thin evidence (Lahore, in Punjabi) | Hard to say, it looks true | Not sure; check before forwarding |
-| D | Greeting ("Good morning, stay blessed") | Nothing to check here | It is not a claim |
+| D | Greeting ("Good morning, stay blessed") | "I didn't find a claim to check", with a "Check it anyway" button | It is not a claim |
+| E | Type "Hyderabad is the capital of Telangana", press send, then "Look this up online" (needs the network and the key in `.env`; press it once beforehand so the answer is cached) | Probably TRUE, with a line saying how it was found and how it was tested | It looks true; still check the source |
 
 After each card, ask these four questions and write down the answer in the person's own words:
 
 1. **"In your own words, what is this telling you?"**  Scored *correct* if they say the message is
-   probably false / probably true / the app is not sure, as the card says for that task.
+   false / probably true / the app is not sure, as the card says for that task (A: false; B and C: the
+   app cannot tell; E: probably true).
 2. **"Would you forward this message to the family group? Why?"**  Scored *correct* if it matches
-   the "what to do" line (do not forward A and B; check first for C; D has no action).
+   the "what to do" line (do not forward A; check first for B, C and E; D has no action).
 3. **"How sure do you think the app is?"**  Scored *correct* for C if they say it is not sure.
 4. **"Was anything in the answer confusing?"**  Free text; this is the most useful question.
 
@@ -54,9 +56,9 @@ Then two extra tasks and one rating:
 
 All four must hold across the people tested:
 
-1. At least **80%** of Question 1 answers (person x task, tasks A to C) are correct.
-2. At least **80%** of Question 2 answers (tasks A to C) match the expected action.
-3. **Nobody** fails to say what to do for a false message (tasks A and B).
+1. At least **80%** of Question 1 answers (person x task, tasks A, B, C and E) are correct.
+2. At least **80%** of Question 2 answers (tasks A, B, C and E) match the expected action.
+3. **Nobody** fails to say what to do for a false message (task A) or for "Hard to say" (tasks B and C).
 4. The mean ease rating is at least **4 out of 5**, and at least **3 of 5** (or all, if fewer than
    5 are tested) find Listen or Copy a reply without help.
 

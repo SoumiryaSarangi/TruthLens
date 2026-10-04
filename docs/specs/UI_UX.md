@@ -101,7 +101,19 @@ recomputed, so no number can disagree with the evaluation. In order:
     explanation with `[n]` citations, evidence trail, live notes, input note) and the stage trace.
     Nothing was removed; it moved.
 
-A greeting or an opinion gets a single line: "Nothing to check here".
+**An offline evidence-path result is NEVER shown as a verdict (decided 2026-10-05).** When there is no
+matched published fact-check and no live result, the card says "Hard to say: I couldn't find a source that
+checks this exact claim", lists the closest things found ("they may not be about this claim"), offers "Look this
+up online" with the reason ("To get a real answer, look it up online"), and keeps the system's own lean only
+inside Details ("which is NOT reliable for free text"). Reason: on free text the evidence path mostly reflects
+"forwarded claims are usually false"; in the pre-registered test it said Refuted for 122 of 125 TRUE claims and
+never Supported, and it refuted "Paris is the capital of France". A verdict is shown only where one was earned:
+a matched published fact-check (the fast path), or the live check that passed its pre-registered test.
+
+A message the claim gate does not accept gets: "I didn't find a claim to check", an example of a full sentence,
+and a **"Check it anyway"** button that sends the whole text as one claim (the optional `force_claim` request
+flag, off by default and never used in an evaluation). The gate refuses short fragments such as "JEE paper
+leaked" (no number, name or full verb); "JEE 2025 paper leaked" is accepted.
 
 **Which language the card speaks.** Always the language and SCRIPT of the message itself; no button
 changes it, so a Punjabi forward can never come back in English because something was pressed earlier.

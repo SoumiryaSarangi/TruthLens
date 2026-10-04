@@ -3038,3 +3038,24 @@ card, the "Try an example" fold, Details, Listen, Copy a reply. The page languag
 the answer follows the message's script. The tap-target test was relaxed (buttons at least 2 rem) and a test now
 guards that no language buttons come back.
 
+### The offline guess is no longer shown as an answer (2026-10-05, after the owner's own questions)
+
+The owner tried their own questions and said the answers were not correct. They were right: "Has NEET paper ever
+been leaked?", "Has JEE paper been leaked?" and "Methyl Phenidate is good medicine for ADHD" all came back "Probably
+FALSE, I am quite sure" with unrelated or off-claim sources (a UK Cabinet Office letter, the Titan submersible,
+fact-checks about milk and sugar); "Paris is the capital of France." came back Refuted (0.49); "JEE paper leaked"
+came back "nothing to check". The cause is the section 1 finding: the offline evidence path mostly reflects "forwarded
+claims are usually false" (on the 350 fresh claims of the live protocol it said Refuted for 122 of 125 true claims
+and never Supported, results/e3044f2aa461.json). My plain wording ("the sources I found say this is not right", "I am
+quite sure") made it worse. Approved by the owner and built (UI plus one optional flag; no pipeline behaviour, API
+default or reported number changed): (1) an offline evidence-path result is shown as "Hard to say: I couldn't find a
+source that checks this exact claim", with the closest things found, the live button and its reason, and the
+system's lean only inside Details marked unreliable; verdicts are shown only for a matched fact-check (fast path) and
+the live check that passed protocol 2; (2) "not a claim" now says "I didn't find a claim to check" and offers
+**Check it anyway**, which sends `force_claim: true` (new optional field of `POST /verify`; `Orchestrator.verify(...,
+force_claim=)` skips the claim gate and checks the whole text as one claim; two tests); (3) the card never says "the
+sources I found" when it shows none. The claim gate itself is untouched (frozen): it refuses short fragments without a
+number, name or full verb ("JEE paper leaked"), and accepts "JEE 2025 paper leaked". New hi/pa strings (7) await review.
+Side effect on the demo: the Roman-Hindi and long-forward chips are now honest "Hard to say" cards; the fact-checked
+chip and live results still show verdicts.
+

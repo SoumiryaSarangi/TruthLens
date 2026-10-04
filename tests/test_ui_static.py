@@ -129,7 +129,8 @@ def _plain_keys() -> set[str]:
     keys |= {f"plain.reply.{k}" for k in ("Refuted", "Supported", "check", "source")}
     keys |= {f"plain.{k}" for k in ("none_title", "none_note", "claim_label", "sources_label", "closest_label",
                                     "found_label", "listen", "listen_stop", "listen_none", "copy", "copied",
-                                    "copy_failed", "details", "flags")}
+                                    "copy_failed", "details", "flags", "check_anyway", "no_exact",
+                                    "related_label", "try_online")}
     return keys
 
 
