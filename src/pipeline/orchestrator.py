@@ -166,6 +166,7 @@ class Orchestrator:
         self.manipulation = registry.build(
             "manipulation", s.get("manipulation", "none"), **args.get("manipulation", {}))
         self._gen_pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        self._live_capture: list | None = None   # a harness may set this to record the NLI inputs
         self._live_nli = None       # English NLI for the live verdict, built on first use
         self._translator = None     # NLLB, loaded on the first translated live request
         self._live = None           # built on the first live request, never otherwise
@@ -347,6 +348,14 @@ class Orchestrator:
                          "listed, not judged (not a page about the claim's subject, or a "
                          "fact-check of a different claim): " + "; ".join(skipped))
         nli = [i for i in judged if not relevant[i].rating_stance]
+        if self._live_capture is not None:         # evaluation harness only (scripts/live_fever.py)
+            self._live_capture.append({
+                "hypothesis": hypothesis,
+                "judged": [{"title": relevant[i].title, "source": relevant[i].source,
+                            "cosine": relevant[i].cosine,
+                            "premise": relevant[i].premise or relevant[i].text,
+                            "rating_stance": relevant[i].rating_stance} for i in judged],
+                "listed": [relevant[i].title for i in range(len(relevant)) if i not in judged]})
         try:
             labels = (self._timed(trace, "stance", self._live_stance().impl,
                                   lambda: self._live_stance().label(

@@ -64,7 +64,7 @@ goes to V1 (the simplest). The chosen variant is run on `fever_confirm` exactly 
 
 ## Decision rule (on `fever_confirm`, English, 300 claims)
 
-A variant is ADOPTED only if all three hold:
+A variant is ADOPTED only if all four hold:
 
 1. **False-Supported rate.** Among the 200 claims whose gold is Refuted or NEI, the
    share answered Supported has a 95% Wilson upper bound <= 5%. That is at most 3 of 200 (4 of 200 has an
@@ -73,6 +73,10 @@ A variant is ADOPTED only if all three hold:
    Refuted) >= 80%, and higher than V0's accuracy on the same claims' answered subset.
 3. **Hindi and Punjabi.** In each 60-claim round-trip subset, at most 2 false-Supported
    calls among the 40 claims whose gold is not Supported.
+
+4. **It must say something.** Among the 200 claims whose gold is Supported or Refuted, at
+   least 20% (40 claims) are answered CORRECTLY (a Supported call on a Supported claim, a
+   Refuted call on a Refuted claim). Added by amendment below.
 
 Reported but not gating: coverage (share answered), per-class precision and recall, the
 confusion matrix, latency, and the variant's behaviour on probe sets 2-4.
@@ -103,4 +107,20 @@ are fixed and logged; after that, none.
   false-Supported bound. 4/200 has a Wilson upper bound of 5.03%, which is above 5%, so
   the rule as stated (upper bound <= 5%) allows at most 3. The parenthetical was an
   arithmetic slip, not a change of rule; the rule's wording is unchanged.
+- 2026-10-04, before any claim is run: **what a prediction is.** The scored prediction is
+  what the user would be shown: the verdict if the card is not abstained (confidence at or
+  above the served tau_abstain, 0.3835), otherwise NEI ("not enough to judge"). A card
+  that is NotAClaim also scores as NEI. "Answered" in the decision rule therefore means a
+  Supported or Refuted prediction. For V2 and V3 the confidence is the LOWER of the two
+  models' confidences. V0 (offline) and V1-V3 are scored the same way. The consistency of
+  the harness is checked by recomputing V1 from stored probabilities and comparing with the
+  live card, claim by claim; any mismatch is reported.
+- 2026-10-04, **amendment, before any decision-set (`fever_confirm`) claim was run**: rule 4
+  was added. As first written, a variant that answered almost nothing could pass rules 1-3
+  trivially (a button that always says "not enough to judge" has a false-Supported rate of
+  zero), and shipping it would add nothing to the evidence-only button. A smoke test of
+  three `select` claims (all came back NEI) made the gap visible; the threshold, 20% of
+  the 200 checkable claims, was chosen from the design (below it the verdict would be
+  absent for four checkable claims in five), not from any result. The three smoke claims
+  stay in `select`'s results.
 

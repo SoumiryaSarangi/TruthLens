@@ -30,7 +30,7 @@ class NllbTranslator:
         self._tok = None
         self._model = None
         self._lock = threading.Lock()
-        self._cache: dict[tuple[str, str], str] = {}
+        self._cache: dict[tuple[str, str, str], str] = {}
 
     def _load(self) -> None:
         with self._lock:
@@ -47,20 +47,24 @@ class NllbTranslator:
 
     def to_english(self, text: str, lang: str) -> str:
         """English for `text` written in `lang` (native script). English passes through."""
-        if lang == "en" or lang not in NLLB_CODES or not text.strip():
+        return self.translate(text, lang, "en")
+
+    def translate(self, text: str, src: str, dst: str) -> str:
+        """`text` from `src` to `dst` (codes in NLLB_CODES). Same language passes through."""
+        if src == dst or src not in NLLB_CODES or dst not in NLLB_CODES or not text.strip():
             return text
-        key = (lang, text)
+        key = (src, dst, text)
         if key in self._cache:
             return self._cache[key]
         self._load()
         import torch
 
-        self._tok.src_lang = NLLB_CODES[lang]
+        self._tok.src_lang = NLLB_CODES[src]
         batch = self._tok(text, return_tensors="pt", truncation=True, max_length=128).to(self.device)
         with torch.no_grad():
             out = self._model.generate(
-                **batch, forced_bos_token_id=self._tok.convert_tokens_to_ids(NLLB_CODES["en"]),
+                **batch, forced_bos_token_id=self._tok.convert_tokens_to_ids(NLLB_CODES[dst]),
                 max_new_tokens=MAX_NEW_TOKENS, max_length=None, num_beams=4)
-        english = self._tok.batch_decode(out, skip_special_tokens=True)[0].strip()
-        self._cache[key] = english
-        return english
+        result = self._tok.batch_decode(out, skip_special_tokens=True)[0].strip()
+        self._cache[key] = result
+        return result
