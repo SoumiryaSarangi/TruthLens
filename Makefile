@@ -86,7 +86,7 @@ gold:
 	$(PY) scripts/build_retrieval_gold.py --split dev
 
 serve:
-	TRUTHLENS_WARMUP=1 $(PY) -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+	$(PY) scripts/serve.py
 
 # Full data pipeline: fetch, materialise into frozen splits, profile, check.
 data: download
