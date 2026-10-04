@@ -270,10 +270,15 @@ function verdictCard(r, inp) {
   }
 
   const n = (r.passages || []).length;
-  html += `<p class="explanation" lang="${esc(r.explanation_lang || "en")}">${
-    explanationHtml(r.explanation || "", id, n)}</p>`;
-  if (r.explanation_source === "template" && !r.abstained) {
-    html += `<p class="note">${esc(t("template_note"))}</p>`;
+  // A fast-path card IS the publisher's fact-check: the "Already checked by" line below
+  // says it, so the explanation (which repeats it) and the "couldn't generate" note
+  // (which is about generated text, and nothing was generated) are left out.
+  if (!(fast && r.match)) {
+    html += `<p class="explanation" lang="${esc(r.explanation_lang || "en")}">${
+      explanationHtml(r.explanation || "", id, n)}</p>`;
+    if (r.explanation_source === "template" && !r.abstained) {
+      html += `<p class="note">${esc(t("template_note"))}</p>`;
+    }
   }
 
   if (liveUsed) {
