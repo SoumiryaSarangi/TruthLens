@@ -47,7 +47,7 @@ def redact(url: str) -> str:
 class Fetcher:
     """GET -> parsed JSON, throttled, retried, cached."""
 
-    def __init__(self, cache_dir: Path | str = CACHE_DIR, min_gap_s: float = 0.35,
+    def __init__(self, cache_dir: Path | str = CACHE_DIR, min_gap_s: float = 1.0,
                  timeout_s: float = 4.0, retries: int = 2, use_cache: bool = True,
                  opener: Callable[[urllib.request.Request, float], Any] | None = None,
                  sleep: Callable[[float], None] = time.sleep,

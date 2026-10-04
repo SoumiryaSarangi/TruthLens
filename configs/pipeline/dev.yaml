@@ -59,7 +59,14 @@ free_text_coverage: null
 # Post-test Phase 7: live Wikipedia + Google Fact Check, ONLY when a request
 # asks (the UI's per-claim button), free text only. Off in every evaluation
 # config; the frozen test numbers describe the system without it.
-live_search: true
+#
+# OFF in the served config. The probe set (docs/live-search-probe.md) ran under a
+# rule fixed in advance -- "adopt only if no correct answer turns wrong" -- and
+# live search fixed 15 true claims but turned two correct refutations of FALSE
+# claims into "Supported" (lemon water cures cancer; the Sun orbits the Earth). A
+# tool against misinformation must not say Supported to a falsehood. The code,
+# tests and button stay; flip this to true only after the fix in that document.
+live_search: false
 
 # relevance_floor (FR-12): OFF, chosen on dev in Phase 6 by verdict macro-F1.
 # 0.45 and 0.50 abstain on zero dev claims; 0.55 and 0.60 abstain on 3 and 9 and

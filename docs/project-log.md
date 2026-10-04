@@ -2703,6 +2703,46 @@ Free text only, so no AVeriTeC or MultiClaim number can move.
 Also: `PassthroughPreprocess` now accepts and ignores the full stage's
 arguments, so a test can swap it into the served config.
 
+## 2026-10-04 — Live search: built, probed, NOT adopted (yet)
+
+The owner asked to put live search back in (it was cut-list item 2) to fix
+confident-wrong or undecided answers on simple true facts: Modi as Gujarat CM.
+Plan approved: Wikipedia (MediaWiki API) and the Google Fact Check Tools API,
+opt-in per claim through a button, free text only. Built in four steps (74d1749,
+1337ee8): polite cached clients (the spike was rate-limited), a live fast path
+for a published fact-check of the claim, BGE-M3 relevance (works across
+languages where word overlap did not), a UI button with its privacy note, live
+badge and Wikipedia attribution.
+
+**Two design facts from the spike, before building:** (1) the learned verdict
+model refuted four TRUE claims even given the right Wikipedia evidence -- its
+claim prior outweighs passages -- so the live path reads the NLI per-passage
+labels weighted by relevance instead; (2) irrelevant pages must not count, and
+cosine 0.5 separates them (fixed before the probe, not tuned on it).
+
+**Proof the reported numbers cannot move:** with all of it in place, the AVeriTeC
+dev verdict run is byte-identical to 164d2289c90b's predictions. Live search is
+off unless a request asks, and never applies to AVeriTeC claims.
+
+**The probe** (`docs/live-search-probe.md`; 40 claims, labels approved by the
+owner, scoring and adoption rule fixed in the script first): offline 12 correct /
+18 wrong / 10 undecided; live with both sources up (35 claims) 24 / 3 / 8.
+Fifteen true claims fixed (Modi, Delhi, Lahore, Harmandir Sahib among them);
+all three unverifiable claims went from a confident Refuted to "not enough
+evidence". **But** three FALSE claims were called Supported (lemon water cures
+cancer, the Sun orbits the Earth, Chandigarh is Himachal's capital): the NLI
+model labels a passage that is about the same topic, or a fact-check headline
+that restates the rumour, as Supports. The pre-registered rule -- no correct
+answer may turn wrong -- fails (two did). **Not adopted: `live_search: false` in
+the served config.** The button, code and tests stay.
+
+Also: Wikipedia rate-limited 5 of 40 live runs; the pipeline kept the offline
+answer and said so (as designed), the fetcher's minimum gap is now 1 s.
+
+Open: the owner chooses between showing evidence without a verdict, a fix scored
+on a fresh probe set (a fact-check's own rating as its stance; stricter
+agreement before "Supported"), or leaving it off.
+
 ## Phase 3 gaps — CLOSED 2026-09-24
 
 All four are built. They were, in the order the previous section ranked them:
