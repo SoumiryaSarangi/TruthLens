@@ -60,15 +60,18 @@ free_text_coverage: null
 # asks (the UI's per-claim button), free text only. Off in every evaluation
 # config; the frozen test numbers describe the system without it.
 #
-# SERVED AS EVIDENCE ONLY. The probe set (docs/live-search-probe.md) ran under a
-# rule fixed in advance -- "adopt a live VERDICT only if no correct answer turns
-# wrong" -- and live search fixed 15 true claims but called three FALSE claims
-# Supported (an NLI model misreading Hindi and Punjabi). So the button lists the
-# relevant Wikipedia and fact-check sources and gives no verdict: no NLI label ever
-# reaches the user. `live_verdict: true` is the verdict path, to be switched on
-# only if a fix passes the same rule on a fresh probe set.
+# SERVED WITH A VERDICT, under the rule validated in docs/live-fever-protocol-2.md
+# (variant V2): the claim is translated to English (live_translate), only a Wikipedia
+# page ABOUT the claim's subject is judged, and a verdict is shown only if two NLI
+# models (DeBERTa-v3-large and BART-large-MNLI) reach the SAME Supported or Refuted
+# verdict; otherwise there is no verdict. Pre-registered, 350 fresh claims, all four
+# gates passed (3 false-Supported of 225, 94.3% precision on the 106 answered, about
+# 30% coverage). The probe sets before it (docs/live-search-probe.md) rejected the
+# verdict path four times; protocol 1 (docs/live-fever-protocol.md) missed its
+# accuracy bar by two claims. The confidence is NOT calibrated and the card says so.
 live_search: true
-live_verdict: false
+live_verdict: true
+live_translate: true
 
 # relevance_floor (FR-12): OFF, chosen on dev in Phase 6 by verdict macro-F1.
 # 0.45 and 0.50 abstain on zero dev claims; 0.55 and 0.60 abstain on 3 and 9 and

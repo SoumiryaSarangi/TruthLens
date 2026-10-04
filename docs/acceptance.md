@@ -42,7 +42,7 @@ with the reason.
 | FR-25 | P0 | review | `docs/results.md`: every row carries its baseline | V |
 | FR-26 | P0 | review, eval | hand-typed 100 (`data/splits/handtyped/`); MultiClaim natural romanized; `x_claim_romanized` dev 02c59ee296a0 / f05dd5f44b16, test 67e8435985a6 vs 418bf3876e80 (same posts) | V |
 | FR-27 | P1 | review | `docs/figures/tsne_parallel_claims.png` | V |
-| FR-28 | P2 | test, demo | `tests/test_live_sources.py`, `tests/test_live_pipeline.py`, `scripts/ui_live_check.js`, `scripts/ui_evidence_check.js`; AVeriTeC dev byte-identical to 164d2289c90b with it in place; `docs/live-search-probe.md` | V\* — served as evidence only: the verdict path failed its adoption rule on two probe sets |
+| FR-28 | P2 | test, demo | `tests/test_live_sources.py`, `tests/test_live_pipeline.py`, `scripts/ui_live_check.js`, `scripts/ui_evidence_check.js`; AVeriTeC dev byte-identical to 164d2289c90b with it in place; `docs/live-search-probe.md` | V — served WITH a verdict under the rule pre-registered and validated in `docs/live-fever-protocol-2.md` (all four gates passed; protocol 1 missed its accuracy bar by two claims and is reported alongside); `tests/test_live_pipeline.py` covers the two-model rule; probe sets 1-4 are context |
 
 ## Non-functional requirements
 
@@ -50,7 +50,7 @@ with the reason.
 | --- | --- | --- | --- |
 | NFR-1 | test (timed) | `scripts/measure_latency.py` → `docs/environment.md`: evidence p95 2.51 s (≤ 10), fast p95 0.62 s (≤ 3) | V |
 | NFR-2 | review | same: cold start 61 s (≤ 90) | V |
-| NFR-3 | review | same: 4.60 GiB peak (≤ 5.12 GiB) | V\* — ~0.3 GiB headroom against the ~4.9 GiB Windows leaves usable |
+| NFR-3 | review | same: 4.60 GiB peak offline; with the live-verdict models held in CPU RAM and moved to the GPU one at a time, 3.81 GiB peak over 188 live clicks (`scripts/live_ship_check.py`; resident they peaked at 6.20 GiB, so they are not resident) | V |
 | NFR-4 | review | `docs/environment.md`: one GPU job at a time | V |
 | NFR-5 | test | `tests/test_provenance.py`; every result carries config hash, git SHA, env | V |
 | NFR-6 | test | `make leakage`; test lock in `evaluate.py`, `pipeline/batch.py`, `score_passages.py` (`common/test_guard.py`) | V |

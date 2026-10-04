@@ -202,10 +202,12 @@ def test_evidence_only_still_reports_nothing_relevant_honestly():
     assert res.verdict == "NEI" and res.abstained and "nothing relevant" in res.explanation
 
 
-def test_the_served_config_serves_evidence_not_verdicts():
+def test_the_served_config_serves_the_validated_live_verdict():
     cfg = PipelineConfig.load("configs/pipeline/dev.yaml")
-    assert cfg.live_search is True and cfg.live_verdict is False
-    assert PipelineConfig().live_verdict is False
+    # Served WITH a verdict since protocol 2 (docs/live-fever-protocol-2.md) passed;
+    # nothing else turns it on, so no evaluation config can reach it.
+    assert cfg.live_search is True and cfg.live_verdict is True and cfg.live_translate is True
+    assert PipelineConfig().live_verdict is False and PipelineConfig().live_translate is False
 
 
 def test_a_published_fact_check_of_this_claim_answers_it_on_the_fast_path():
@@ -304,7 +306,20 @@ def make_translating(live, translator):
     orch.cfg.live_translate = True
     orch._translator = translator
     orch._live_nli = orch.stance            # the English NLI stands in as the fake too
+    orch._live_partner_nli = Mirror(orch)   # by default the second model agrees with the first
     return orch
+
+
+class Mirror:
+    """A second NLI model that says whatever the first one says (the agreeing case)."""
+
+    impl = "mirror"
+
+    def __init__(self, orch):
+        self.orch = orch
+
+    def label(self, claim, passages):
+        return self.orch._live_nli.label(claim, passages)
 
 
 def test_a_hindi_claim_is_judged_in_english_against_english_pages():
@@ -456,3 +471,77 @@ def test_a_fact_check_of_a_different_claim_is_listed_not_judged_on_the_english_r
     res = orch.verify("Narendra Modi is the Prime Minister of India", live=True).results[0]
     assert res.verdict == "Supported"
     assert len(res.passages) == 2             # the review is still shown
+
+
+# -- the validated rule: two models must agree (protocol 2, variant V2) -------------
+
+
+def _grounded_page(title="Mumbai"):
+    return LivePassage(f"{title} is a city.", title, f"https://en/{title}", "wikipedia", 0.7, "en",
+                       premise=f"{title} is a city in India.")
+
+
+def test_two_agreeing_models_give_a_verdict_with_the_lower_confidence():
+    orch = make_translating(FakeLive(LiveResult(passages=[_grounded_page()], sources_used=["wikipedia"])),
+                            FakeTranslator("Mumbai is a city in India"))
+    orch.stance = orch._live_nli = FakeStance({"Supports": 0.97, "Refutes": 0.01, "Neutral": 0.02})
+    orch._live_partner_nli = FakeStance({"Supports": 0.80, "Refutes": 0.05, "Neutral": 0.15})
+    res = orch.verify("मुंबई भारत का एक शहर है", live=True).results[0]
+    assert res.verdict == "Supported" and not res.abstained
+    assert res.confidence == pytest.approx(0.80)          # the LOWER of the two
+
+
+def test_disagreeing_models_give_no_verdict_and_say_so():
+    orch = make_translating(FakeLive(LiveResult(passages=[_grounded_page()], sources_used=["wikipedia"])),
+                            FakeTranslator("Mumbai is a city in India"))
+    orch.stance = orch._live_nli = FakeStance(S)
+    orch._live_partner_nli = FakeStance(R)                 # the second model says Refutes
+    trace = orch.verify("मुंबई भारत का एक शहर है", live=True)
+    res = trace.results[0]
+    assert res.verdict == "NEI" and res.abstained
+    assert any("did not agree" in (e.note or "") for e in trace.events)
+
+
+def test_agreement_on_something_other_than_supported_or_refuted_is_no_verdict():
+    """Both models Neutral -> NEI, and both 'Conflicting' is also not shown: only the two
+    verdicts the protocol validated are ever shown."""
+    orch = make_translating(FakeLive(LiveResult(passages=[_grounded_page()], sources_used=["wikipedia"])),
+                            FakeTranslator("Mumbai is a city in India"))
+    orch.stance = orch._live_nli = FakeStance(N)
+    orch._live_partner_nli = FakeStance(N)
+    assert orch.verify("मुंबई भारत का एक शहर है", live=True).results[0].verdict == "NEI"
+
+
+def test_a_failing_second_model_keeps_the_offline_answer():
+    class Broken:
+        impl = "broken"
+
+        def label(self, claim, passages):
+            raise RuntimeError("out of memory")
+
+    orch = make_translating(FakeLive(LiveResult(passages=[_grounded_page()], sources_used=["wikipedia"])),
+                            FakeTranslator("Mumbai is a city in India"))
+    orch._live_partner_nli = Broken()
+    offline = orch.verify("मुंबई भारत का एक शहर है").results[0]
+    trace = orch.verify("मुंबई भारत का एक शहर है", live=True)
+    assert trace.results[0].verdict == offline.verdict
+    assert any("second NLI model failed" in (e.note or "") for e in trace.events)
+
+
+def test_the_second_model_is_not_consulted_off_the_english_route():
+    class Exploding2:
+        impl = "x"
+
+        def label(self, claim, passages):
+            raise AssertionError("the partner must not run when live_translate is off")
+
+    orch = make(FakeLive(LiveResult(passages=[passage()], sources_used=["wikipedia"])))
+    orch._live_partner_nli = Exploding2()
+    assert orch.verify("Delhi is the capital of India", live=True).results[0].verdict == "Supported"
+
+
+def test_warm_live_is_a_no_op_unless_the_live_verdict_is_on():
+    orch = make(None)
+    orch.cfg.live_verdict = False
+    orch.warm_live()                       # must not load anything or raise
+    assert orch._translator is None and orch._live_partner_nli is None

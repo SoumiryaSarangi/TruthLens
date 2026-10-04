@@ -115,3 +115,20 @@ would change that technical meaning to "tested".
 | `source_name.wikipedia` | Wikipedia | विकिपीडिया | ਵਿਕੀਪੀਡੀਆ | |
 | `source_name.factcheck_live` | Fact-check (live) | फ़ैक्ट-चेक (ऑनलाइन) | ਫ਼ੈਕਟ-ਚੈਕ (ਆਨਲਾਈਨ) | |
 | `source_name.google_factcheck` | Google Fact Check | Google Fact Check | Google Fact Check | |
+
+---
+
+## Live verdict strings: NOT YET REVIEWED (added 2026-10-05, when the live verdict shipped)
+
+Machine-drafted, same tone as above (plain words, neutral constructions). They appear on a
+card the user got by pressing the live-search button. The numbers in `live_validated` (350
+claims, 94%, 3 in 10) come from the pre-registered test in `docs/live-fever-protocol-2.md`
+and must change together with it. Please review before any demo that clicks the button on a
+claim that gets a verdict, then apply corrections to `app/static/i18n/hi.json` and `pa.json`
+and remove the "NOT YET REVIEWED" sentence from their `_comment`.
+
+| key | English | Hindi | Punjabi | correction |
+| --- | --- | --- | --- | --- |
+| `live_verdict_basis` | This verdict comes from Wikipedia text, read by two models that had to agree. | यह नतीजा विकिपीडिया के पाठ से निकला है, जिसे दो मॉडलों ने पढ़ा और जिनका सहमत होना ज़रूरी था। | ਇਹ ਨਤੀਜਾ ਵਿਕੀਪੀਡੀਆ ਦੇ ਪਾਠ ਤੋਂ ਆਇਆ ਹੈ, ਜਿਸਨੂੰ ਦੋ ਮਾਡਲਾਂ ਨੇ ਪੜ੍ਹਿਆ ਅਤੇ ਜਿਨ੍ਹਾਂ ਦਾ ਸਹਿਮਤ ਹੋਣਾ ਲਾਜ਼ਮੀ ਸੀ। | |
+| `live_validated` | In a test on 350 claims it was right 94% of the time when it gave a verdict, and it gave one for only about 3 claims in 10. | 350 दावों के परीक्षण में, जब यह नतीजा देता था तो लगभग 94% बार सही था, और यह करीब 10 में से 3 दावों पर ही नतीजा देता था। | 350 ਦਾਅਵਿਆਂ ਦੇ ਟੈਸਟ ਵਿੱਚ, ਜਦੋਂ ਇਹ ਨਤੀਜਾ ਦਿੰਦਾ ਸੀ ਤਾਂ ਲਗਭਗ 94% ਵਾਰ ਸਹੀ ਸੀ, ਅਤੇ ਇਹ ਲਗਭਗ 10 ਵਿੱਚੋਂ 3 ਦਾਅਵਿਆਂ ਉੱਤੇ ਹੀ ਨਤੀਜਾ ਦਿੰਦਾ ਸੀ। | |
+| `live_no_verdict` | The two models did not agree, or were not sure enough, so there is no verdict. Read the sources. | दोनों मॉडल सहमत नहीं हुए या पर्याप्त भरोसा नहीं था, इसलिए कोई नतीजा नहीं दिया गया। स्रोत पढ़ें। | ਦੋਵੇਂ ਮਾਡਲ ਸਹਿਮਤ ਨਹੀਂ ਹੋਏ ਜਾਂ ਕਾਫ਼ੀ ਭਰੋਸਾ ਨਹੀਂ ਸੀ, ਇਸ ਲਈ ਕੋਈ ਨਤੀਜਾ ਨਹੀਂ ਦਿੱਤਾ ਗਿਆ। ਸਰੋਤ ਵੇਖੋ। | |

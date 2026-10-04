@@ -11,6 +11,7 @@ registry and import their own dependencies lazily.
 from __future__ import annotations
 
 import concurrent.futures
+import threading
 import time
 import uuid
 from dataclasses import dataclass
@@ -108,6 +109,7 @@ class PipelineConfig:
 
 
 LIVE_NLI_MODEL = "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli"
+LIVE_PARTNER_MODEL = "facebook/bart-large-mnli"
 
 
 def _translator_device() -> str:
@@ -167,6 +169,8 @@ class Orchestrator:
             "manipulation", s.get("manipulation", "none"), **args.get("manipulation", {}))
         self._gen_pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
         self._live_capture: list | None = None   # a harness may set this to record the NLI inputs
+        self._live_partner_nli = None
+        self._live_init = threading.RLock()   # the warm-up thread and a request may both ask
         self._live_nli = None       # English NLI for the live verdict, built on first use
         self._translator = None     # NLLB, loaded on the first translated live request
         self._live = None           # built on the first live request, never otherwise
@@ -213,14 +217,44 @@ class Orchestrator:
         DeBERTa-v3-large (MNLI/FEVER/ANLI), which tells "capital of India" from
         "capital of Maharashtra" where the multilingual base model called the same
         page Supports (diagnostic, probe set 2); otherwise the served stance model."""
-        if self._live_nli is None:
-            if self.cfg.live_translate:
+        with self._live_init:
+            if self._live_nli is None:
+                if self.cfg.live_translate:
+                    from stance.nli import NLIStance
+
+                    self._live_nli = NLIStance(model_id=LIVE_NLI_MODEL, max_length=256, offload=True)
+                else:
+                    return self.stance
+            return self._live_nli
+
+    def _get_translator(self):
+        with self._live_init:
+            if self._translator is None:
+                from preprocess.translate import NllbTranslator
+
+                self._translator = NllbTranslator(device=_translator_device())
+            return self._translator
+
+    def _live_partner(self):
+        """The second NLI model of the validated rule (BART-large-MNLI)."""
+        with self._live_init:
+            if self._live_partner_nli is None:
                 from stance.nli import NLIStance
 
-                self._live_nli = NLIStance(model_id=LIVE_NLI_MODEL, max_length=256)
-            else:
-                return self.stance
-        return self._live_nli
+                self._live_partner_nli = NLIStance(model_id=LIVE_PARTNER_MODEL, max_length=256, offload=True)
+            return self._live_partner_nli
+
+    def warm_live(self) -> None:
+        """Load the live-verdict models without touching the network, so the first click
+        does not pay for loading a translator and two NLI models. No-op unless the live
+        verdict is on."""
+        if not (self.cfg.live_search and self.cfg.live_verdict and self.cfg.live_translate):
+            return
+        translator = self._get_translator()
+        translator._load()
+        translator.translate("warm-up", "en", "hi")                # compile the GPU kernels once
+        for nli in (self._live_stance(), self._live_partner()):
+            nli.label("Delhi is the capital of India.", ["Delhi is the capital city of India."])
 
     def _english_claim(self, trace: Trace, claim, forms: list[str]) -> str | None:
         """The claim in English for the live NLI, or None when it is already English
@@ -230,13 +264,10 @@ class Orchestrator:
         if lang not in ("hi", "pa"):
             return None
         try:
-            if self._translator is None:
-                from preprocess.translate import NllbTranslator
-
-                self._translator = NllbTranslator(device=_translator_device())
+            translator = self._get_translator()
             native = forms[-1] if len(forms) > 1 else claim.text
             english = self._timed(trace, "live", "translate",
-                                  lambda: self._translator.to_english(native, lang))
+                                  lambda: translator.to_english(native, lang))
         except Exception as exc:
             trace.record("live", "translate", 0.0,
                          f"degraded: claim translation failed ({type(exc).__name__}); "
@@ -373,12 +404,36 @@ class Orchestrator:
             if relevant[i].rating_stance:
                 probs[i] = RATED[relevant[i].rating_stance]
                 shown[i].stance, shown[i].stance_prob = relevant[i].rating_stance, RATED_PROB
-        verdict, confidence, dist = live_verdict([probs[i] for i in judged],
-                                                 [relevant[i].cosine for i in judged])
+        weights = [relevant[i].cosine for i in judged]
+        verdict, confidence, dist = live_verdict([probs[i] for i in judged], weights)
+        agreed = True
+        if self.cfg.live_translate and nli:
+            # THE VALIDATED RULE (docs/live-fever-protocol-2.md, variant V2): a verdict is shown
+            # only if a second NLI model, BART-large-MNLI, reaches the SAME Supported or Refuted
+            # verdict from the same passages; confidence is the lower of the two. Anything else
+            # is "no verdict". Validated on 350 fresh claims; do not change without a new protocol.
+            try:
+                partner = self._timed(
+                    trace, "stance", "bart_large_mnli",
+                    lambda: self._live_partner().label(
+                        hypothesis, [relevant[i].premise or relevant[i].text for i in nli]))
+            except Exception as exc:
+                trace.record("stance", "bart_large_mnli", 0.0,
+                             f"degraded: second NLI model failed ({type(exc).__name__}); "
+                             "offline answer kept")
+                return result
+            p_verdict, p_conf, _ = live_verdict([x.probs for x in partner],
+                                                [relevant[i].cosine for i in nli])
+            agreed = verdict == p_verdict and verdict in ("Supported", "Refuted")
+            confidence = min(confidence, p_conf)
+            if not agreed:
+                trace.record("aggregate", "live_two_model", 0.0,
+                             f"the two models did not agree ({verdict} vs {p_verdict}); no verdict")
+                verdict = "NEI"
         trace.record("aggregate", "live_weighted", 0.0,
                      "verdict from NLI labels weighted by relevance; the confidence is "
                      "NOT calibrated (no calibration set exists for live evidence)")
-        abstained = confidence < self.cfg.tau_abstain
+        abstained = confidence < self.cfg.tau_abstain or not agreed
         explanation, cited = self.template.explain(verdict, shown, abstained=abstained,
                                                     claim=claim.text)
         return ClaimResult(

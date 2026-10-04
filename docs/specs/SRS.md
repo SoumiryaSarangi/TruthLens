@@ -122,7 +122,7 @@ A standalone local system: a Python pipeline in `src/`, served by FastAPI in `ap
 | FR-25 | P0 | Every stage has a registered dumb baseline evaluated in the same table | review |
 | FR-26 | P0 | Romanized evaluation sets exist for Hindi and Punjabi: transliterated X-CLAIM test, plus ~100 hand-typed forwards, reported separately | review, eval |
 | FR-27 | P1 | Cross-lingual t-SNE figure from LaBSE embeddings of parallel claims | review |
-| FR-28 | P2 | **Live evidence.** On explicit per-claim request, search Wikipedia and Google Fact Check for the claim and list the relevant sources with their publishers' ratings. Only that claim is sent; never automatic; never applied to evaluation. No model verdict is given on live evidence (`docs/live-search-probe.md`) | test, demo |
+| FR-28 | P2 | **Live evidence.** On explicit per-claim request, search Wikipedia and Google Fact Check for the claim and list the relevant sources with their publishers' ratings, and give a verdict ONLY under the rule validated in `docs/live-fever-protocol-2.md`: the claim is translated to English, only a Wikipedia page about the claim's subject is judged, and two NLI models must reach the same Supported or Refuted verdict; otherwise no verdict. The card says the confidence is uncalibrated and states the test numbers. Only that claim is sent; never automatic; never applied to evaluation | test, demo, pre-registered FEVER measurement |
 
 ## 4. Non-functional requirements
 

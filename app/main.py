@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import threading
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -49,6 +50,15 @@ async def lifespan(_app: FastAPI):
         t0 = time.perf_counter()
         get_orchestrator().verify(WARMUP_TEXT)
         print(f"warm-up request done in {time.perf_counter() - t0:.1f} s", flush=True)
+
+        def warm_live() -> None:
+            t1 = time.perf_counter()
+            get_orchestrator().warm_live()      # live-verdict models; no network
+            print(f"live models loaded in {time.perf_counter() - t1:.1f} s", flush=True)
+
+        # In the background: the server is ready once the offline stack is (NFR-2, 90 s);
+        # a live click that arrives first waits for these models instead of failing.
+        threading.Thread(target=warm_live, name="warm-live", daemon=True).start()
     yield
 
 

@@ -111,18 +111,19 @@ historical rationale, lowest precedence.
     gate now also rejects, under any verdict but Supported, a sentence that
     entails the claim.
 
-**Where things stand (2026-10-04): the project is COMPLETE except the demo itself
+**Where things stand (2026-10-05): the project is COMPLETE except the demo itself
 and one human review.** Phases 1-7 are done. The one test run is scored and written
 up (`docs/report.md`, `docs/acceptance.md`, `docs/error-analysis.md`,
 `docs/test-protocol.md`); after it came two post-test improvements (lexicon
 transliteration + native-script query for romanized free text; live
-Wikipedia/Google Fact Check search, served as EVIDENCE ONLY -- entries "After the
-test run" and "Live search" below). **Do not change the served model or any
-reported number: the test split is spent.** What remains: (1) the owner reviews
-the NEW hi/pa strings for the live-search button (`docs/i18n-review.md`, last
-section) before any demo that clicks it; (2) the demo (`UI_UX.md` §11): run
-`python scripts/demo_check.py` first (must print OK), then `make serve`, click each
-chip once to load every model.
+Wikipedia/Google Fact Check search). **Live search now gives a VERDICT, under a rule that was
+pre-registered and passed** (entry "Live verdict shipped" at the bottom; report §8b;
+`docs/live-fever-protocol-2.md`). **Do not change the served model or any reported number:
+the test split is spent**, and the live verdict never runs in an evaluation. What remains:
+(1) the owner reviews the three NEW hi/pa live-verdict strings (`docs/i18n-review.md`, last
+section); (2) the demo (`UI_UX.md` §11): run `python scripts/demo_check.py` first (must print
+OK), then `make serve` (or `.venv\Scripts\python.exe scripts\serve.py`), click each chip once
+to load every model; the live models load in the background about 40 s after the server is ready.
 
 **Rules a new session must not re-learn:**
 - The test split is locked to the agent: `TRUTHLENS_ALLOW_TEST=1` is refused by the
@@ -156,13 +157,13 @@ built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
 
 | | |
 | --- | --- |
-| **Current phase** | **ALL PHASES COMPLETE (2026-10-04).** Phase 7 done: test run scored, report, acceptance, error analysis; native-speaker review of the hi/pa UI applied. Post-test: lexicon transliteration + native-script free-text query, live evidence-only search. Live-search hi/pa strings reviewed and applied 2026-10-04. Remaining: the demo. The test split is spent. Headline test result: served verdict macro-F1 **0.2622** vs claim-only control **0.3085** (paired -0.0463, CI [-0.094, +0.001]) and majority 0.1447. |
+| **Current phase** | **ALL PHASES COMPLETE (2026-10-04).** Phase 7 done: test run scored, report, acceptance, error analysis; native-speaker review of the hi/pa UI applied. Post-test: lexicon transliteration + native-script free-text query, live search with a pre-registered, validated two-model verdict (2026-10-05). Remaining: the owner's review of 3 new hi/pa strings, then the demo. The test split is spent. Headline test result: served verdict macro-F1 **0.2622** vs claim-only control **0.3085** (paired -0.0463, CI [-0.094, +0.001]) and majority 0.1447. |
 | **Clock** | Target **2026-10-12**, no fixed external deadline. Phases 1-7 done 2026-10-02; post-test work 2026-10-04. Days 13-14 are writing and demo polish only. |
 | **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |
 | **Python** | 3.11.16 via uv, in `.venv`. System Python is 3.13 and is not used. |
-| **Served config** | `configs/pipeline/dev.yaml` -- preprocess `hybrid` with the **lexicon** transliterator, claims **`heuristic_span`**, matching `factcheck` (tau_match 0.90), retrieval `hybrid` (RRF@200), free text `corpus` searched with the claim AND its native-script form, stance `xlmr_nli`, aggregate `learned` (aggregator_xlmr_nli_prior), tau_abstain 0.3835, floor off, generation `indicbart` (beam) behind faithfulness `nli`, **manipulation `rules_nli`**, **live_search true / live_verdict false** (evidence only). `make serve` warms up first. |
-| **Tests** | 762 passing, 2 skipped, 2 gpu-deselected (CI has no torch; many ML tests skip there). |
+| **Served config** | `configs/pipeline/dev.yaml` -- preprocess `hybrid` with the **lexicon** transliterator, claims **`heuristic_span`**, matching `factcheck` (tau_match 0.90), retrieval `hybrid` (RRF@200), free text `corpus` searched with the claim AND its native-script form, stance `xlmr_nli`, aggregate `learned` (aggregator_xlmr_nli_prior), tau_abstain 0.3835, floor off, generation `indicbart` (beam) behind faithfulness `nli`, **manipulation `rules_nli`**, **live_search / live_verdict / live_translate true** (the validated two-model rule; live models offloaded to CPU RAM between uses). `make serve` warms up first. |
+| **Tests** | 822 passing, 9 skipped, 2 gpu-deselected (CI has no torch; many ML tests skip there). |
 | **Datasets in hand** | AVeriTeC, X-CLAIM, MultiClaim, handtyped (FR-26), Dakshina, **CheckThat! 2025 T2** |
 | **Datasets waiting** | None. Every dataset is downloaded, split, locked and leakage-checked. |
 | **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
@@ -2811,18 +2812,21 @@ complete.** The remaining FR-6 limitation is a data problem with a named owner:
 Everything planned is done (Phases 1-7, the one test run, the report, the acceptance
 matrix). What remains, in order:
 
-1. ~~Owner: review the live-search hi/pa strings~~ Done 2026-10-04 (3 corrected, 7 kept).
+1. **Owner:** review the three NEW hi/pa live-verdict strings (`docs/i18n-review.md`, last
+   section; keys `live_verdict_basis`, `live_validated`, `live_no_verdict`) and apply the
+   corrections to `app/static/i18n/{hi,pa}.json`, removing the NOT YET REVIEWED sentence.
 2. **The demo** (`UI_UX.md` §11): `python scripts/demo_check.py` must print OK; then
    `make serve`; click each chip once so every model is loaded (first requests take
    30+ s). Order: greeting, fact-checked, Roman Hindi, thin evidence. The live-search
-   button on the Modi claim shows the sources and says it gives no verdict.
+   button on a claim such as "Hyderabad is the capital of Telangana" gives a verdict when the two
+   models agree (and says how it was tested); click it once beforehand so the responses are cached.
 3. **Writing/polish only** (Days 13-14): no code, no new numbers. The report is
    `docs/report.md`; re-run `scripts/check_report_numbers.py docs/report.md` after
    any edit.
 
-Optional future work, all outside the frozen result: an NLI that separates qualifiers in
-"first ..." claims (the gated English route's one remaining error, see "Entity-grounding
-gate" below), validated on a FIFTH fresh set; an accurate transliterator (IndicXlit in its own
+Optional future work, all outside the frozen result: a judge that separates qualifiers
+("first Indian" against "first Indian-born woman") and answers more than 30% of claims, under a
+new pre-registered protocol on fresh claims; an accurate transliterator (IndicXlit in its own
 venv); a correction for the verdict model's "forwarded claims are false" prior.
 
 **The floor to beat, per component** is superseded by the test table in
@@ -2941,4 +2945,44 @@ Italian "WhatsApp Gold" hoax page). The other 13 failed mostly on source relevan
 (0.20-0.46), which says how rarely romanized free text gets apt evidence offline: worth
 a sentence in the talk. Full table: `reports/romanized_chip_pick.json` (local). The old
 forward stays in `samples.json` `regression`. `demo_check.py` prints OK.
+
+### Live verdict shipped (2026-10-05): earned by two pre-registered measurements
+
+How it was reached: four hand-written probe sets rejected a live verdict (wrong answers 5, 5, 2, 1), so the
+question moved to FEVER dev (CC BY-SA, `copenlu/fever_gold_evidence`, read from the Hugging Face cache) with
+protocols and rules committed before any claim ran. **Protocol 1** (`docs/live-fever-protocol.md`; 150 claims to
+choose among V1-V3, 300 to decide): V2 (DeBERTa-v3-large and BART-large-MNLI must agree) had the fewest
+false-Supported on the first set, then on the second 3 of 200 (upper 4.3%) but 78.8% accuracy on answered
+claims against an 80% bar: **failed by two claims** (the protocol also had an arithmetic slip, "at most 4 of 200"
+for a 5% bound, caught and corrected before any run, and was amended once, before the decision set, to stop a
+verdict that answers almost nothing from passing). Reading the errors afterwards (post-hoc, said so everywhere):
+22 of 32 were FEVER "not enough info" claims V2 called Refuted, mostly absurd claims false in reality. The owner
+asked to ship anyway; I refused to call it a pass or to drop a worse fresh run, and offered a redesign (A+).
+**Protocol 2** (`docs/live-fever-protocol-2.md`, approved before any data was drawn): 350 fresh claims, the owner
+labelled the 100 FEVER-NEI claims T/F/U blind (60 false, 25 true, 15 unverifiable), gates fixed in advance:
+false-Supported upper bound <= 5% (3 of 225, 3.85%), precision >= 90% with lower bound >= 85% (100/106, 94.3%,
+88.2%), >= 50 correct on the 250 decidable claims (92), <= 2 false-Supported per language on a translated
+round trip (hi 0/33, pa 1/33). **All four passed.** Six wrong answers listed in the protocol, causes uninvestigated.
+Coverage is about 30%; caveats (FEVER-style claims, DeBERTa saw FEVER-style data, round trip, one labeller) travel
+with the numbers.
+
+Shipped (it ships labelled "validated on a pre-registered fresh set", with both protocols reported): the two-model
+agreement in `Orchestrator._live_pass`, `live_verdict` and `live_translate` on in `configs/pipeline/dev.yaml`,
+the card's notes (`live_verdict_basis`, `live_validated`, `live_no_verdict`; hi/pa NOT YET REVIEWED), report §8b,
+SRS FR-28, SYSTEM_DESIGN §15, UI_UX §5 and §11, acceptance matrix. Harness: `scripts/live_fever.py`
+(collect, score, variants, select, decide), `scripts/live_ship_check.py` (the shipped cards equal the measured
+V2 predictions on all 188 compared claims, en/hi/pa), `src/eval/metrics.false_label_rate` + Wilson interval,
+FEVER splits `fever_{select,confirm,confirm_sub,fresh,fresh_sub,fresh_truth,fresh_sub_truth}`.
+
+**Found while shipping, fixed:** resident, the three live models (NLLB 1.62, DeBERTa-large 0.81, BART-large 0.75
+GiB) pushed the peak to 6.20 GiB on a 6 GiB card (NFR-3: 5.5; real ceiling ~4.9), spilling into shared memory.
+They are now held in CPU RAM and moved to the GPU one at a time (`offload=True`, same fp16 weights, identical
+cards): peak 3.81 GiB, a live click median 2.21 s, p95 3.17 s. They load in a background thread after the
+server is ready so cold start (NFR-2) is unaffected. `make serve` itself was broken in PowerShell and cmd (a
+Unix-only environment variable); `scripts/serve.py` replaces the line.
+
+Also this session: the three Hindi/Punjabi live-search strings reviewed and applied (3 corrected, 7 kept); the
+fast-path card no longer repeats the publisher line (UI); the Roman-Hindi demo chip replaced by the pick of a rule
+written before running 14 candidates (`scripts/pick_romanized_chip.py`; only one qualified, which says how rarely
+romanized free text gets apt evidence offline).
 

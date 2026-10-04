@@ -87,6 +87,9 @@
   "live_unavailable": "Online search isn't available right now, so the earlier answer stays.",
   "live_attribution": "Wikipedia text is available under CC BY-SA 4.0.",
   "live_uncalibrated": "Confidence for online results has not been calibrated.",
+  "live_verdict_basis": "This verdict comes from Wikipedia text, read by two models that had to agree.",
+  "live_validated": "In a test on 350 claims it was right 94% of the time when it gave a verdict, and it gave one for only about 3 claims in 10.",
+  "live_no_verdict": "The two models did not agree, or were not sure enough, so there is no verdict. Read the sources.",
   "source_name": {
     "wikipedia": "Wikipedia",
     "factcheck_live": "Fact-check (live)",

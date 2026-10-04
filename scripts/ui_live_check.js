@@ -32,8 +32,14 @@ const cases = [
       match: { publisher: "FC", title: "t", url: "https://fc.example/x" } }, true), [], ["live-btn"]],
   ["live result: badge, attribution, source tag, no band", html({ ...base, abstained: false, verdict: "Supported", confidence: 0.99,
       passages: [wiki], live_sources: ["wikipedia", "google_factcheck"] }, true),
-      ["live-note", L.live_used.replace("{sources}", names), "CC BY-SA 4.0", L.live_uncalibrated, "src-tag"],
-      ["class=\"band\"", "live-btn"]],
+      ["live-note", L.live_used.replace("{sources}", names), "CC BY-SA 4.0", L.live_uncalibrated, "src-tag",
+       L.live_verdict_basis, L.live_validated],
+      ["class=\"band\"", "live-btn", L.live_no_verdict]],
+  // the two models did not agree: an abstained live card says so and points at the sources
+  ["live result, no agreement: abstained, says why", html({ ...base, abstained: true, verdict: "NEI", confidence: 0.2,
+      passages: [wiki], live_sources: ["wikipedia"] }, true),
+      ["live-note", L.live_no_verdict, L.live_validated, L.live_uncalibrated, "abstained"],
+      ["class=\"band\"", L.live_verdict_basis]],
 ];
 let bad = 0;
 for (const [name, out, want, notWant] of cases) {

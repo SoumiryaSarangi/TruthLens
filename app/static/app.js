@@ -285,7 +285,11 @@ function verdictCard(r, inp) {
     // Live results say so, never present an uncalibrated confidence as a band, and
     // carry Wikipedia's CC BY-SA attribution.
     const names = r.live_sources.map((x) => t(`source_name.${x}`, {}, x)).join(", ");
+    // A live verdict stands on two NLI models agreeing (docs/live-fever-protocol-2.md); with
+    // no agreement there is no verdict and the card says why, then points at the sources.
     html += `<p class="live-note"><span aria-hidden="true">🌐</span> ${esc(t("live_used", { sources: names }))}</p>
+      <p class="note">${esc(t(r.abstained ? "live_no_verdict" : "live_verdict_basis"))}</p>
+      <p class="note">${esc(t("live_validated"))}</p>
       <p class="note">${esc(t("live_uncalibrated"))}</p>`;
     if (r.live_sources.includes("wikipedia")) html += `<p class="note">${esc(t("live_attribution"))}</p>`;
   } else if (LIVE && r.path !== "fast" && r.claim?.text

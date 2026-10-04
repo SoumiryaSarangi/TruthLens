@@ -476,7 +476,7 @@ Removing that prior means retraining the verdict model with a correction for
 the claim-only signal. That needs a new dev selection, and the test split is
 spent, so it is future work.
 
-## 8b. After the test run: live search, tried twice and served as evidence only
+## 8b. After the test run: live search, and a verdict that was earned in the end
 
 Live search was cut-list item 2 (a static corpus, with the recency limitation
 reported). After the demo showed true claims such as "Modi was Gujarat's chief
@@ -485,65 +485,92 @@ Google Fact Check Tools API. It cannot affect any reported number: it is off in
 every evaluation, never applies to AVeriTeC, and the AVeriTeC dev run reproduces
 the served predictions byte for byte with it in place.
 
-**Two probe sets, scored under a rule fixed in advance:** adopt a live *verdict*
-only if no answer that was correct turns wrong, at least one true claim becomes
-correct, and no unverifiable claim is decided. Both sets are small demo sets,
-reported claim by claim, never as a metric.
+### Four hand-written probe sets: closer each time, never adopted
 
-| | claims | offline: correct / wrong | live: correct / wrong | rule |
+Each set was scored under a rule fixed in advance: adopt a live *verdict* only if no
+answer that was correct turns wrong, at least one true claim becomes correct, and no
+unverifiable claim is decided. The sets are small demo sets, reported claim by claim
+(`docs/live-search-probe.md`).
+
+| Set | claims | what changed before it | live: correct / wrong | rule |
 | --- | --- | --- | --- | --- |
-| Set 1 (and the 8 demo forwards) | 40 | 12 / 18 | 24 / 3 (35 with both sources up) | fails: 2 correct became wrong |
-| Set 2 (fresh, after a fix) | 35 | 10 / 12 | 15 / 5 | fails: 3 correct became wrong |
+| 1 | 40 | the first verdict path | 24 / 3 | fails: 2 correct became wrong |
+| 2 | 35 | ratings as stances, NLI on focused sentences | 15 / 5 | fails: 3 correct became wrong |
+| 3 | 39 | claim translated to English, English NLI (DeBERTa-v3-large) | 28 / 2 | fails: 1 unverifiable decided |
+| 4 | 38 | an entity-grounding gate (the judged page must be about the claim's subject) | 18 / 1 | fails: 1 correct became wrong |
 
-Live evidence repeatedly turns undecided or wrongly refuted *true* claims into
-correct ones (Modi, Delhi, Lahore, Harmandir Sahib, the Taj Mahal) and turns three
-unverifiable claims from a confident "Refuted" into "not enough evidence". It also
-calls false claims Supported, and that is the error this project must not make.
+The live-wrong count fell 5, 5, 2, 1 while the correct count rose, but a set of about
+38 claims cannot measure a rate, and one miss rejected the path with no interval either
+way. The one remaining error was "Kalpana Chawla was the first Indian to travel to
+space" called Supported, from a page that says she was the first Indian-born woman in
+space: a qualifier the NLI cannot separate.
 
-**Why, in two forms.** Run 1: the NLI model labelled topically related pages, and
-fact-check headlines that restate a rumour, as Supports. A fix aimed at exactly
-that (publishers' own ratings as stances, NLI on focused sentences, no Supported
-over a refuter) worked on the failures it was built from, and failed on fresh ones:
-"Mumbai is the capital of India" was Supported from the Mumbai page. The claims
-differ from the truth by one entity, and the NLI model's resolution in Hindi and
-Punjabi cannot see which capital.
+### Two pre-registered measurements on FEVER
 
-**What is served: evidence, not a verdict.** The button lists the relevant
-Wikipedia pages and fact-check reviews with each publisher's own rating, and says
-it gives no verdict. A false "Supported" is impossible by construction, and the
-user still reads the page that settles the claim. The verdict path stays in the
-code, off.
+So the question was moved to a benchmark large enough to put an interval on the error
+that matters, a false claim called Supported. Protocols and decision rules were written
+and committed before any claim was run (`docs/live-fever-protocol.md`,
+`docs/live-fever-protocol-2.md`); the claims are from FEVER dev (CC BY-SA), and the
+system run is exactly what the UI button runs.
 
-**A third attempt, the English route, came closest and still failed its rule.**
-The claim is translated to English (NLLB-200), English Wikipedia is read (Hindi and
-Punjabi pages through their language links), and an English NLI (DeBERTa-v3-large)
-judges it. Translation alone did not help: the multilingual NLI called the English
-Mumbai page entailment at 0.99 for "Mumbai is the capital of India"; the large
-English model calls it a contradiction at 0.95. On a third fresh set of 39 claims
-(`docs/live-search-probe.md`, run 3b) the live answer was correct on 28 against 12
-offline, wrong on 2 against 11, and all 15 true claims that offline missed became
-correct, in every language. The pre-fixed rule still rejects it: one unverifiable
-claim was refuted from a loosely related page, and one false claim (the Ganges and
-the Arabian Sea) was called Supported from pages about two other rivers. Both are
-relevance errors, not NLI errors, so fine-tuning the NLI would not fix them; an
-entity-grounding gate would, and needs a fourth fresh set. Served unchanged:
-evidence only. A first run of that set was disturbed by Wikipedia rate limits and
-re-run once, identically, with a longer pause (both runs kept).
+**Protocol 1** (450 claims in two disjoint balanced samples: 150 to choose among variants,
+300 to decide). Variant V2, in which DeBERTa-v3-large and BART-large-MNLI must give the
+same Supported or Refuted verdict or there is no verdict, had the fewest false-Supported
+calls on the first sample and was run once on the second. It gave 3 false-Supported answers
+among the 200 claims whose gold is Refuted or NEI (Wilson upper bound 0.0432, run
+4baa98b87ce4), within the 5% bar, but its accuracy on answered claims was 78.8% (82 of
+104) against a bar of 80%: **it failed by two claims**, and was not adopted. Reading its errors
+afterwards (a post-hoc reading, not a result) showed why: 22 of the 32 errors in the two
+samples were claims FEVER labels "not enough info" that V2 called Refuted, and most of those
+are absurd claims that are false in the real world ("Finding Dory was written by Harry S.
+Truman"); on claims with a decidable FEVER label V2 was right 123 of 129 times.
 
-**A fourth attempt, an entity-grounding gate, failed the same rule by one claim.** A
-Wikipedia page is judged only if its title is about the claim's subject, and a
-fact-check of a different claim is listed, not judged. On a fourth fresh set of 38
-claims the live answer was correct on 18 against 8 offline and wrong on 1 against 16;
-all five private claims were left undecided and ten true claims that offline missed
-became correct across all five scripts. The one error: "Kalpana Chawla was the first
-Indian to travel to space" was refuted offline (by the claim prior) and called Supported
-live, because the page says she was the first Indian-born woman in space and the NLI reads
-that as supporting "first Indian". That is a qualifier the NLI cannot separate, not a
-retrieval error, so it is the end of what a gate can do. The price of the gate is
-coverage: 14 of 17 false claims are undecided rather than Refuted. Across the four
-sets the live path went from 5 wrong answers to 1 and was never adopted; the project
-stops here and the served live button lists sources without a verdict
-(`docs/live-search-probe.md`, run 4).
+**Protocol 2** tested that reading on claims nobody had seen. 350 fresh FEVER claims (100
+Supported, 150 Refuted, 100 "not enough info"); the owner labelled the 100 "not enough info"
+claims true, false or unverifiable from the claim text alone, and those labels were committed
+before any claim ran. Of those 100, 60 are false in the real world and 25 true. Gold is then
+real-world truth (125 true, 210 false, 15 unverifiable). V2 was run once, with no selection
+step, against four gates fixed in advance:
+
+| Gate | Needed | V2 on 350 fresh claims | |
+| --- | --- | --- | --- |
+| 1. False-Supported among the 225 false or unverifiable claims | Wilson upper bound 5% or less | 3 answered Supported, upper bound 0.0385 (run e68b4fb0e342) | pass |
+| 2. Precision of the answers | at least 90%, lower bound at least 85% | 100 right of 106 answered: 94.3%, lower bound 88.2% | pass |
+| 3. It must say something | at least 50 of the 250 decidable claims right | 92 | pass |
+| 4. Hindi and Punjabi (60 claims translated en to hi / pa, run through the pipeline) | at most 2 false-Supported each | Hindi 0 of 33, Punjabi 1 of 33 | pass |
+
+The offline served pipeline on the same claims (run e3044f2aa461) answers 345 of 350 and
+reaches 208 correct only because its claim prior says forwards are false; V2 answers 106
+and is right on 100 of them. Always-NEI (run d5c6001307a0) is the dumb baseline. **All four
+gates passed.**
+
+The six wrong answers, none hidden: "Tottenham Hotspur F.C. is Chinese" (false) and two
+vacuous claims ("Don Bradman had years in which things happened"; "Literacy arts has been
+significantly impacted by Appropriation (art)") were called Supported; three true claims
+("Papua comprised all of a country"; "Chile is not a stable nation"; "Lalla Ward was
+declared Sarah Ward") were called Refuted. Their causes have not been investigated.
+
+### What is served now
+
+A live click gives a verdict only when both models agree on Supported or Refuted, and the
+card says so: "This verdict comes from Wikipedia text, read by two models that had to agree",
+the test numbers above in plain words, and "confidence for online results has not been
+calibrated". When they do not agree, or are not sure enough, the card shows no verdict and
+points at the sources. Pages that are not about the claim's subject, and fact-checks of other
+claims, are listed but never judged. A live verdict is therefore **validated on a stated test,
+not on WhatsApp forwards**:
+
+- it answers about 3 claims in 10 and says nothing on the rest;
+- FEVER claims are Wikipedia-style, and DeBERTa-v3-large was trained on FEVER-style data, so
+  real forwards will do worse than 94%;
+- the Hindi and Punjabi figures are a round trip through machine translation, not natural text;
+- the 100 real-world labels are one person's judgement;
+- the offline answer, with its calibrated bands, is unchanged and is what every other card shows.
+
+Protocol 1's failure and protocol 2's pass are both reported. Which numbers were fixed in
+advance (the gates, the samples, the owner's labels) and which were read after the fact (the
+reading of protocol 1's errors that motivated protocol 2) is stated above and in
+`docs/live-fever-protocol-2.md`.
 
 ## 9. Error analysis
 

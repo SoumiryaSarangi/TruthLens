@@ -498,3 +498,21 @@ so it works in Phase 0 where neither is installed.
   offline answer. A live click costs about 3 s (median 3.2 s in the probe).
 - **Network:** the only code that touches it is `retrieval/live/`, and only when a
   request sets `live_search`. Everything else is offline, as SRS C-5 requires.
+
+### Live verdict: models, memory and latency (2026-10-05)
+
+The served live path (`live_verdict`, `live_translate`) adds three models on top of the offline stack:
+NLLB-200 distilled 600M (translation), DeBERTa-v3-large and BART-large-MNLI (the two judges). Resident
+on the GPU beside the offline stack they peaked at **6.20 GiB** on a 6 GiB card (NFR-3 allows 5.5; this
+machine's real ceiling is ~4.9). So they are **held in CPU RAM** (the same fp16 weights, so the numbers
+are identical) and visit the GPU one at a time for a forward pass (`NLIStance(offload=True)`, the
+translator likewise), under a lock.
+
+Measured with `scripts/live_ship_check.py` (188 stored claims through the real orchestrator, source
+responses from the disk cache): **peak GPU memory 3.81 GiB**; a live click **median 2.21 s, p95 3.17 s**
+(add ~2-3 s on the first click of a claim whose Wikipedia and Google responses are not cached yet);
+the shipped cards are **identical on all 188** to the stored protocol-2 V2 predictions. CPU RAM for the
+three offloaded models is about 3 GB. `make serve` loads them in a BACKGROUND thread after the offline
+warm-up (about 40 s), so the server is ready when the offline stack is (NFR-2) and a live click that
+arrives first waits for them instead of failing. Translating a Hindi or Punjabi claim costs about a second more
+than an English one (the translator makes the round trip to the GPU).

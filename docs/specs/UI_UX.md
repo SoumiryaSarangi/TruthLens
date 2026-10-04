@@ -114,11 +114,16 @@ button, "Search Wikipedia & fact-checkers", with its privacy note beside it ("Th
 sends the claim to Wikipedia and Google Fact Check"). One click sends only that
 claim. The card is then replaced by a live card:
 - a 🌐 line naming the sources queried, and Wikipedia's CC BY-SA attribution;
-- **no verdict and no confidence band** -- "TruthLens found these online sources
-  ... does not give a verdict on live evidence" -- because the live evidence is
-  listed, not judged;
-- the sources, open by default, relevance-ordered, each tagged Wikipedia or
-  Fact-check; a fact-check shows its publisher's own rating.
+- **a verdict, but no confidence band**, only when the two models agree (the chip shows the
+  verdict word and icon as usual). The notes under it say: "This verdict comes from Wikipedia
+  text, read by two models that had to agree", the pre-registered test result in plain words
+  ("In a test on 350 claims it was right 94% of the time when it gave a verdict, and it gave one
+  for only about 3 claims in 10"), and "Confidence for online results has not been calibrated";
+- when the models do not agree, or are not sure enough, the card is **abstained** ("Not confident
+  enough to judge") with the note "The two models did not agree, or were not sure enough, so
+  there is no verdict. Read the sources.";
+- the sources, open by default, relevance-ordered, each tagged Wikipedia or Fact-check; a
+  fact-check shows its publisher's own rating.
 If a source is down the earlier answer stays and the note under the button says so.
 
 ## 6. Visual language for verdicts
@@ -185,6 +190,8 @@ Six canned forwards, one per path, wired to the sample chips (`app/static/sample
 | 4 | Long forward | A Roman-Hindi rant with one claim (lemon water cures cancer) among filler | Claim extraction: only the claim is checked; manipulation flags |
 | 5 | Greeting | "Good morning, stay blessed 🙏" | NotAClaim card |
 | 6 | Thin evidence | "ਲਾਹੌਰ ਪਾਕਿਸਤਾਨ ਦੇ ਪੰਜਾਬ ਸੂਬੇ ਦੀ ਰਾਜਧਾਨੀ ਹੈ" | Abstained card with "Leaning: …" |
+
+**Live verdict (optional, needs the network and the key in `.env`).** After step 6, press "Search Wikipedia & fact-checkers" on a free-text claim such as "Hyderabad is the capital of Telangana": the card gets a verdict when two models agree, with the notes under it that say what that means and how it was tested (94% of its answers right in the test, an answer for only about 3 claims in 10). On a claim the models cannot settle it says there is no verdict and lists the sources. Click the claim once beforehand so the responses are cached; do not click on many claims in quick succession (Wikipedia rate-limits at about 50 requests a minute).
 
 Order for a live demo: 5, 1, 2, 6. Showing "nothing to check" first proves the system doesn't label everything, and ending on an abstention lands the project's central argument.
 

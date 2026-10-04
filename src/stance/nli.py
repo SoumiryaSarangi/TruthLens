@@ -47,7 +47,13 @@ class NLIStance:
     impl = "nli"
 
     def __init__(self, model_id: str = MODEL_ID, batch_size: int = 16,
-                 max_length: int = 512, device: str | None = None, **_: object):
+                 max_length: int = 512, device: str | None = None, offload: bool = False,
+                 **_: object):
+        # `offload`: the weights live in CPU RAM (same fp16 as on the GPU, so the numbers are
+        # identical) and visit the GPU only for a forward pass. The live-verdict models use it:
+        # three large models resident beside the offline stack peaked at 6.2 GiB on a 6 GiB
+        # card (NFR-3 allows 5.5), and a live click is rare enough to pay a second for the move.
+        self.offload = offload
         self.model_id = model_id
         self.batch_size = batch_size
         self.max_length = max_length
@@ -62,6 +68,9 @@ class NLIStance:
     # ~1.8 GB of a ~4.9 GiB card for identical weights.
     _LOADED: ClassVar[dict[tuple[str, str], tuple[object, object]]] = {}
     _LOCK: ClassVar[threading.Lock] = threading.Lock()
+    # One offloaded model at a time on the GPU: two live clicks must not move the same
+    # weights back to the CPU under each other.
+    _OFFLOAD_LOCK: ClassVar[threading.RLock] = threading.RLock()
 
     def load(self) -> None:
         if self._model is not None:
@@ -71,13 +80,15 @@ class NLIStance:
 
         self._device = self._device or ("cuda" if torch.cuda.is_available() else "cpu")
         with NLIStance._LOCK:
-            key = (self.model_id, self._device)
+            key = (self.model_id, ("offload:" if self.offload else "") + self._device)
             if key not in NLIStance._LOADED:
                 tokenizer = AutoTokenizer.from_pretrained(self.model_id)
                 model = AutoModelForSequenceClassification.from_pretrained(self.model_id)
                 if self._device == "cuda":
                     model = model.half()
-                NLIStance._LOADED[key] = (tokenizer, model.to(self._device).eval())
+                if not self.offload:
+                    model = model.to(self._device)
+                NLIStance._LOADED[key] = (tokenizer, model.eval())
             self._tokenizer, self._model = NLIStance._LOADED[key]
 
         # Build the id->stance map from the model's own config.
@@ -105,9 +116,22 @@ class NLIStance:
         """
         if not pairs:
             return []
+        self.load()
+        if self.offload and self._device == "cuda":
+            import torch
+
+            with NLIStance._OFFLOAD_LOCK:
+                self._model.to("cuda")
+                try:
+                    return self._score(pairs)
+                finally:
+                    self._model.to("cpu")
+                    torch.cuda.empty_cache()
+        return self._score(pairs)
+
+    def _score(self, pairs: list[tuple[str, str]]) -> list[StanceResult]:
         import torch
 
-        self.load()
         out: list[StanceResult] = []
         for start in range(0, len(pairs), self.batch_size):
             batch = pairs[start : start + self.batch_size]

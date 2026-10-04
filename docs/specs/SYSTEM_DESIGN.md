@@ -467,10 +467,21 @@ snippet) and the Google Fact Check Tools API (key from `.env`, never logged or
 cached) are queried through a throttled, retrying, disk-cached fetcher; BGE-M3
 cosine ranks what comes back; below 0.5 is not evidence. A published fact-check
 of this very claim (cosine >= tau_match, rating mapped by `rating_to_verdict`)
-answers on the fast path. Otherwise the relevant sources are LISTED, with no
-verdict (`live_verdict: false`, the served default). The verdict path
-(NLI on focused sentences, ratings as stances, no Supported over a refuter) is
-built and off: it failed its adoption rule on two probe sets
-(`docs/live-search-probe.md`). Failures degrade: a source that is down keeps the
-offline answer and says so in the trace (NFR-7). Free text only; no evaluation
-config can reach it; the AVeriTeC dev run is byte-identical with it in place.
+answers on the fast path. Otherwise (`live_verdict: true`, `live_translate: true`, the served
+config) the claim is translated to English (NLLB-200 distilled 600M, on the GPU in half
+precision; romanized input from its native-script form), English Wikipedia is searched with
+the English claim as well, and Hindi or Punjabi pages are swapped for their English
+counterparts through language links. Only a Wikipedia page whose TITLE is about the claim's
+subject (`title_grounded`: every content word matches a claim word by consonant skeleton)
+is judged; other pages and fact-check reviews below tau_match are listed, never judged. Two
+NLI models read the two sentences of each judged page closest to the claim, DeBERTa-v3-large
+(MNLI/FEVER/ANLI/LingNLI/WANLI) and BART-large-MNLI; `live_verdict` turns each model's
+per-passage labels into a relevance-weighted verdict; **a verdict is shown only if both give
+the same Supported or Refuted**, with the lower of the two confidences, below tau_abstain
+the card abstains, and anything else is "no verdict" (variant V2 of
+`docs/live-fever-protocol-2.md`, validated on 350 fresh claims: 3 false-Supported of 225,
+94.3% of 106 answers right, about 30% coverage; the confidence is NOT calibrated and the
+card says so). `Orchestrator.warm_live()` loads the three live models at start-up without
+touching the network. Failures degrade: a source that is down, a failed translation or a
+failed second model keeps the offline answer and says so in the trace (NFR-7). Free text
+only; no evaluationconfig can reach it; the AVeriTeC dev run is byte-identical with it in place.

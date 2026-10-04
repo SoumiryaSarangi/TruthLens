@@ -66,7 +66,9 @@ FAISS, rank_bm25, IndicXlit (AI4Bharat), fastText LID, FastAPI.
 - Secrets: the Google Fact Check key is in a git-ignored `.env`. Never print, paste,
   log or commit it. The test split is spent (run once, `docs/test-protocol.md`): the
   agent cannot set `TRUTHLENS_ALLOW_TEST`, and nothing after it may change a reported
-  number. Live search is opt-in per claim, free text only, evidence only.
+  number. Live search is opt-in per claim, free text only, and gives a verdict ONLY under
+  the rule pre-registered and validated in `docs/live-fever-protocol-2.md` (two NLI models must
+  agree, English route); changing that rule needs a new protocol on fresh claims.
 
 - The test split is locked. Evaluating one needs `TRUTHLENS_ALLOW_TEST=1`,
   and that is for the final reported number only, not for model selection.

@@ -22,15 +22,17 @@ strings are reviewed and applied.
 - **Romanized free text:** lexicon-first transliteration + a native-script query
   (CER 0.4281 -> 0.3359 on hand-typed Punjabi). Report §8a.
 - **Live search (FR-28, cut-list item 2 restored):** Wikipedia + Google Fact Check,
-  opt-in per claim, served as EVIDENCE ONLY -- two probe sets under a pre-fixed rule
-  both rejected a live verdict (false claims called Supported). Report §8b,
-  `docs/live-search-probe.md`.
+  opt-in per claim. Four hand-written probe sets rejected a live verdict under their
+  rule (wrong answers fell 5, 5, 2, 1); two PRE-REGISTERED FEVER measurements then decided
+  it: protocol 1 missed its accuracy bar by two claims, protocol 2 (fresh claims, the owner's
+  real-world labels) passed all four gates. **Served WITH a verdict under that validated rule**
+  (the claim translated to English, a page judged only if about the claim's subject, two NLI
+  models must agree). Report §8b, `docs/live-fever-protocol.md`, `docs/live-fever-protocol-2.md`.
 
-**What remains:** the owner reviews the live-search hi/pa strings
+**What remains:** the owner reviews the three new Hindi/Punjabi live-verdict strings
 (`docs/i18n-review.md`, last section); then the demo (`UI_UX.md` §11) after
-`python scripts/demo_check.py`. Optional future work: an NLI model that resolves
-single-entity contradictions in Hindi and Punjabi (the one thing that would let a
-live verdict be adopted).
+`python scripts/demo_check.py`. Optional future work: a better judge for the qualifiers
+that still fool it ("first Indian" against "first Indian-born woman"), and more than 30% coverage.
 
 Target date **2026-10-12**, no fixed external deadline (confirmed 2026-09-30).
 

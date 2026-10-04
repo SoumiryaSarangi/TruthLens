@@ -342,3 +342,11 @@ better gate.
 
 **Decision: unchanged, live search is served as evidence only.** `live_translate` and the
 gate stay in the code, off. Further attempts would each need a fresh set; they stop here.
+
+## Superseded (2026-10-05)
+
+The question these four probe sets could not settle was decided by two pre-registered FEVER
+measurements (`docs/live-fever-protocol.md`, `docs/live-fever-protocol-2.md`): protocol 1 missed its
+accuracy bar by two claims; protocol 2, on 350 fresh claims with the owner's real-world labels,
+passed all four gates. The live verdict is served under that validated rule; the probe sets are
+kept as the record of how it was reached and as context, not as the adoption test. Report §8b.
