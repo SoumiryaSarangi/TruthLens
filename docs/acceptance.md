@@ -63,14 +63,15 @@ with the reason.
 
 ## Clean clone
 
-`git clone` into a fresh directory (commit 4cdf650), then the three targets run
-there with the project's interpreter, 2026-10-02:
+`git clone` into a fresh directory (commit 023ef3e), then the three targets run
+there with the project's interpreter, 2026-10-05 (the first run, at commit 4cdf650 on
+2026-10-02, gave 697 passed; the project has grown since):
 
 | Target | Result |
 | --- | --- |
 | `make lint` | All checks passed |
-| `make leakage` | 31 passed, 2 skipped |
-| `make test` | 697 passed, 18 skipped |
+| `make leakage` | 45 passed, 9 skipped |
+| `make test` | 807 passed, 25 skipped |
 
-The 18 skips need gitignored data a clone does not have -- models, knowledge
+The 25 skips need gitignored data a clone does not have -- models, knowledge
 stores, materialised text -- which is the same situation CI is in.
