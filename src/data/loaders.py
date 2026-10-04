@@ -717,6 +717,100 @@ def xclaim_romanized_rows() -> dict[str, list[Row]]:
     return out
 
 
+# -----------------------------------------------------------------------------
+# FEVER, for measuring the live verdict (docs/live-fever-protocol.md)
+# -----------------------------------------------------------------------------
+
+FEVER_REPO = "copenlu/fever_gold_evidence"
+FEVER_FILE = "valid.jsonl"
+FEVER_LABELS = {"SUPPORTS": "Supported", "REFUTES": "Refuted", "NOT ENOUGH INFO": "NEI"}
+FEVER_SELECT_PER_CLASS = 50
+FEVER_CONFIRM_PER_CLASS = 100
+FEVER_SUB_PER_CLASS = 20
+
+
+def fever_path() -> Path:
+    """FEVER dev as cached by huggingface_hub (downloaded once with `hf_hub_download`).
+
+    Read from the Hugging Face cache, not copied under data/raw, so there is no second
+    copy to drift; a path that does not exist means "not downloaded", which
+    `sources_available` reports as a skipped dataset, not a failure.
+    """
+    try:
+        from huggingface_hub import try_to_load_from_cache
+
+        found = try_to_load_from_cache(FEVER_REPO, FEVER_FILE, repo_type="dataset")
+        if isinstance(found, str):
+            return Path(found)
+    except Exception:       # no huggingface_hub (core CI lock), or no cache
+        pass
+    return Path("data/raw/fever_live") / FEVER_FILE
+
+
+def fever_samples() -> dict[str, list[dict[str, str]]]:
+    """The three FEVER-dev samples, deterministic from the file alone (seed 42).
+
+    Claims are de-duplicated on normalised text, shuffled within each label, and dealt
+    out: `select` first, `confirm` from what is left (so they are disjoint), and
+    `confirm_sub` is the first 20 per label of `confirm` in its own order. Each set is
+    mixed across labels (round-robin), so a truncated run is still balanced.
+    """
+    import json
+    import random
+
+    by_label: dict[str, list[dict[str, str]]] = {k: [] for k in FEVER_LABELS.values()}
+    seen: set[str] = set()
+    with fever_path().open("r", encoding="utf-8") as fh:
+        rows = [json.loads(line) for line in fh if line.strip()]
+    for item in sorted(rows, key=lambda r: str(r["id"])):
+        label = FEVER_LABELS.get(item["label"])
+        claim = (item.get("claim") or "").strip()
+        key = normalize_for_hashing(claim)
+        if label is None or not claim or key in seen:
+            continue
+        seen.add(key)
+        by_label[label].append({"claim": claim, "label": label, "fever_id": str(item["id"])})
+    rng = random.Random(SEED)
+    for label in sorted(by_label):
+        rng.shuffle(by_label[label])
+
+    def deal(n: int, taken: dict[str, int]) -> list[dict[str, str]]:
+        picked = {lab: by_label[lab][taken[lab]:taken[lab] + n] for lab in sorted(by_label)}
+        for lab in picked:
+            taken[lab] += n
+        return [picked[lab][i] for i in range(n) for lab in sorted(picked)]
+
+    taken = {lab: 0 for lab in by_label}
+    select = deal(FEVER_SELECT_PER_CLASS, taken)
+    confirm = deal(FEVER_CONFIRM_PER_CLASS, taken)
+    sub = [c for i in range(FEVER_SUB_PER_CLASS) for c in confirm[3 * i:3 * i + 3]]
+    return {"select": select, "confirm": confirm, "confirm_sub": sub}
+
+
+def _fever_rows(which: str) -> dict[str, list[Row]]:
+    rows = []
+    for i, item in enumerate(fever_samples()[which]):
+        rows.append(Row(
+            record=_make_record(
+                dataset=f"fever_{which}", split="dev", index=i, lang="en", text=item["claim"],
+                source_id=f"fever_dev:{item['fever_id']}", label=item["label"],
+                label_set="verdict_5class"),
+            text=item["claim"]))
+    return {"dev": rows}
+
+
+def fever_select_rows() -> dict[str, list[Row]]:
+    return _fever_rows("select")
+
+
+def fever_confirm_rows() -> dict[str, list[Row]]:
+    return _fever_rows("confirm")
+
+
+def fever_confirm_sub_rows() -> dict[str, list[Row]]:
+    return _fever_rows("confirm_sub")
+
+
 LOADERS = {
     "averitec": averitec_rows,
     "x_claim": xclaim_rows,
@@ -726,6 +820,9 @@ LOADERS = {
     "xclaim_cw": xclaim_checkworthy_rows,
     "averitec_stance": averitec_stance_rows,
     "x_claim_romanized": xclaim_romanized_rows,
+    "fever_select": fever_select_rows,
+    "fever_confirm": fever_confirm_rows,
+    "fever_confirm_sub": fever_confirm_sub_rows,
 }
 
 # What each loader needs on disk. Used to skip a dataset whose source is not
@@ -754,6 +851,10 @@ LOADER_SOURCES: dict[str, tuple[Path, ...]] = {
     "x_claim_romanized": (RAW / "x_claim" / "dev-hi.csv", RAW / "x_claim" / "test-pa.csv",
                           RAW / "dakshina" / "extracted" / "hi" / "hi.translit.sampled.train.tsv",
                           RAW / "dakshina" / "extracted" / "pa" / "pa.translit.sampled.train.tsv"),
+    # FEVER dev from the Hugging Face cache; the loader's own samples (seed 42).
+    "fever_select": (fever_path(),),
+    "fever_confirm": (fever_path(),),
+    "fever_confirm_sub": (fever_path(),),
     "checkthat25_t2": (RAW / "checkthat25_t2" / "train-eng.csv",
                        RAW / "checkthat25_t2" / "train-hi.csv",
                        RAW / "checkthat25_t2" / "train-pa.csv"),

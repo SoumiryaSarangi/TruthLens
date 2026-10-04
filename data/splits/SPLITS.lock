@@ -36,6 +36,18 @@
       "n_lines": 8623,
       "sha256": "9ec88426f73e98b6fe1c03f60b45d9ed4ee81d8167c04c89d2b4dfacf56862a4"
     },
+    "fever_confirm/dev.jsonl": {
+      "n_lines": 300,
+      "sha256": "2aedeea879ef0760517b1eafca36316f13386a8fac302c58815ef185479a8fe8"
+    },
+    "fever_confirm_sub/dev.jsonl": {
+      "n_lines": 60,
+      "sha256": "377fcf125d7e83e21b0af154e5dfa26f076142eb906c7c8588ceb3fe5baa5522"
+    },
+    "fever_select/dev.jsonl": {
+      "n_lines": 150,
+      "sha256": "c7fd385260f1979ab53f40a37bcc5b7cb4689018b6b78f4c88aff4e44dafd24c"
+    },
     "handtyped/dev.jsonl": {
       "n_lines": 100,
       "sha256": "d74288f9df6836036f14b0d98765b37f551930fa2c61370e3d027fe926a1bbd9"
