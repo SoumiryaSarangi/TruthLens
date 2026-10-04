@@ -802,13 +802,35 @@ def fever_samples() -> dict[str, list[dict[str, str]]]:
             "fresh": fresh, "fresh_sub": fresh_sub}
 
 
-def _fever_rows(which: str) -> dict[str, list[Row]]:
+FEVER_TRUTH_PATH = Path("data/probe/fever_fresh_nei_truth.json")
+TRUTH_TO_VERDICT = {"T": "Supported", "F": "Refuted", "U": "NEI"}
+
+
+def fever_truth_labels() -> dict[str, str]:
+    """fever_id -> real-world truth (T/F/U) for the 100 gold-NEI claims of `fever_fresh`,
+    labelled by the owner (docs/live-fever-protocol-2.md). Keyed by FEVER id: the owner's file
+    is keyed by the uid the claim had in `fever_fresh`, which is its position in that set."""
+    import json
+
+    owner = json.loads(FEVER_TRUTH_PATH.read_text(encoding="utf-8"))["labels"]
+    return {item["fever_id"]: owner[f"fever_fresh:en:dev:{i:05d}"]
+            for i, item in enumerate(fever_samples()["fresh"]) if item["label"] == "NEI"}
+
+
+def _fever_rows(which: str, truth: bool = False) -> dict[str, list[Row]]:
+    """FEVER rows; with `truth` the gold is the REAL-WORLD truth (protocol 2): gold Supported
+    stays true, gold Refuted stays false, gold NEI takes the owner's T/F/U label."""
+    owner = fever_truth_labels() if truth else {}
+    name = f"fever_{which}" + ("_truth" if truth else "")
     rows = []
     for i, item in enumerate(fever_samples()[which]):
+        label = item["label"]
+        if truth and label == "NEI":
+            label = TRUTH_TO_VERDICT[owner[item["fever_id"]]]
         rows.append(Row(
             record=_make_record(
-                dataset=f"fever_{which}", split="dev", index=i, lang="en", text=item["claim"],
-                source_id=f"fever_dev:{item['fever_id']}", label=item["label"],
+                dataset=name, split="dev", index=i, lang="en", text=item["claim"],
+                source_id=f"fever_dev:{item['fever_id']}", label=label,
                 label_set="verdict_5class"),
             text=item["claim"]))
     return {"dev": rows}
@@ -834,6 +856,14 @@ def fever_fresh_sub_rows() -> dict[str, list[Row]]:
     return _fever_rows("fresh_sub")
 
 
+def fever_fresh_truth_rows() -> dict[str, list[Row]]:
+    return _fever_rows("fresh", truth=True)
+
+
+def fever_fresh_sub_truth_rows() -> dict[str, list[Row]]:
+    return _fever_rows("fresh_sub", truth=True)
+
+
 LOADERS = {
     "averitec": averitec_rows,
     "x_claim": xclaim_rows,
@@ -848,6 +878,8 @@ LOADERS = {
     "fever_confirm_sub": fever_confirm_sub_rows,
     "fever_fresh": fever_fresh_rows,
     "fever_fresh_sub": fever_fresh_sub_rows,
+    "fever_fresh_truth": fever_fresh_truth_rows,
+    "fever_fresh_sub_truth": fever_fresh_sub_truth_rows,
 }
 
 # What each loader needs on disk. Used to skip a dataset whose source is not
@@ -882,6 +914,8 @@ LOADER_SOURCES: dict[str, tuple[Path, ...]] = {
     "fever_confirm_sub": (fever_path(),),
     "fever_fresh": (fever_path(),),
     "fever_fresh_sub": (fever_path(),),
+    "fever_fresh_truth": (fever_path(), FEVER_TRUTH_PATH),
+    "fever_fresh_sub_truth": (fever_path(), FEVER_TRUTH_PATH),
     "checkthat25_t2": (RAW / "checkthat25_t2" / "train-eng.csv",
                        RAW / "checkthat25_t2" / "train-hi.csv",
                        RAW / "checkthat25_t2" / "train-pa.csv"),

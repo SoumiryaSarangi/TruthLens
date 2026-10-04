@@ -64,3 +64,17 @@ def test_the_fresh_set_is_disjoint_from_select_and_confirm_and_leaves_them_uncha
     assert {c["fever_id"] for c in s["fresh_sub"]} <= fresh and len(s["fresh_sub"]) == 60
     # the protocol-1 sets are exactly what they were before the fresh set existed
     assert [c["fever_id"] for c in s["confirm"][:3]] == [c["fever_id"] for c in loaders.fever_samples()["confirm"][:3]]
+
+
+def test_truth_rows_take_the_owners_labels_for_nei_claims_only(fake_fever, tmp_path, monkeypatch):
+    fresh = loaders.fever_samples()["fresh"]
+    owner = {f"fever_fresh:en:dev:{i:05d}": "TFU"[i % 3] for i, c in enumerate(fresh) if c["label"] == "NEI"}
+    path = tmp_path / "truth.json"
+    path.write_text(json.dumps({"labels": owner}), encoding="utf-8")
+    monkeypatch.setattr(loaders, "FEVER_TRUTH_PATH", path)
+    rows = loaders.fever_fresh_truth_rows()["dev"]
+    assert len(rows) == 350 and rows[0].record["dataset"] == "fever_fresh_truth"
+    word = {"T": "Supported", "F": "Refuted", "U": "NEI"}
+    for i, (item, row) in enumerate(zip(fresh, rows, strict=True)):
+        want = item["label"] if item["label"] != "NEI" else word["TFU"[i % 3]]
+        assert row.record["label"] == want

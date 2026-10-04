@@ -34,7 +34,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 OUT = ROOT / "reports" / "live_fever"
-DATASETS = {"select": "fever_select", "confirm": "fever_confirm", "sub": "fever_confirm_sub"}
+DATASETS = {"select": "fever_select", "confirm": "fever_confirm", "sub": "fever_confirm_sub",
+            "fresh": "fever_fresh", "fresh_sub": "fever_fresh_sub"}
+# Protocol 2 scores ONLY V2 (plus the offline "before" and the always-NEI baseline).
+FRESH_VARIANTS = ("v0", "v2", "nei")
 MODELS = {"deberta": "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli",
           "bart": "facebook/bart-large-mnli",
           "mdeberta": "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7"}
@@ -80,8 +83,8 @@ def cmd_collect(args) -> int:
     from preprocess.translate import NllbTranslator
 
     claims = claims_of(args.set)
-    if args.lang != "en" and args.set != "sub":
-        raise SystemExit("--lang hi/pa is only defined for --set sub (the 60-claim round-trip subset)")
+    if args.lang != "en" and not args.set.endswith("sub"):
+        raise SystemExit("--lang hi/pa is only defined for the 60-claim round-trip subsets (sub, fresh_sub)")
     path = OUT / f"{stem(args)}.collect.jsonl"
     done = {r["uid"]: r for r in read_jsonl(path)}
     todo = [c for c in claims if c["uid"] not in done
@@ -211,16 +214,34 @@ def variant_predictions(rec: dict) -> dict[str, tuple[str, float]]:
     return out
 
 
+def write_config(name: str, split: str, v: str, note: str) -> None:
+    protocol = "-2" if "fresh" in name else ""
+    (ROOT / "configs" / f"{name}.yaml").write_text(
+        f"# Live verdict on FEVER (docs/live-fever-protocol{protocol}.md, pre-registered). "
+        f"Variant {v}. {note}\n"
+        f"experiment: {name}\ntask: classification\n"
+        f"split: data/splits/{split}/dev.jsonl\n"
+        f"predictions: results/preds/{name}.jsonl\n"
+        "label_set: verdict_5class\nbaseline: stratified_random\n"
+        "false_label: Supported\nbreakdown: [lang]\nsanity_ceiling: 1.0\n"
+        "calibration:\n  tau: 0.3835\n"
+        "notes: >\n  Scored predictions are what the user would be shown (abstained -> NEI)."
+        f" Variant {v}; see the protocol.\n",
+        encoding="utf-8")
+
+
 def cmd_variants(args) -> int:
     rows = read_jsonl(OUT / f"{stem(args)}.scored.jsonl")
     if not rows:
         raise SystemExit("run `score` first")
     dataset = DATASETS[args.set]
-    preds: dict[str, list[dict]] = {v: [] for v in VARIANTS}
+    fresh = args.set.startswith("fresh")
+    variants = FRESH_VARIANTS if fresh else VARIANTS
+    preds: dict[str, list[dict]] = {v: [] for v in variants}
     mismatches, degraded = [], []
     for rec in rows:
         vp = variant_predictions(rec)
-        for v in VARIANTS:
+        for v in variants:
             pred, conf = vp[v]
             preds[v].append({"uid": rec["uid"], "pred": pred, "confidence": round(float(conf), 6)})
         if vp["v1"][0] != rec["live"]["pred"]:
@@ -229,26 +250,26 @@ def cmd_variants(args) -> int:
             degraded.append(rec["uid"])
     (ROOT / "results" / "preds").mkdir(parents=True, exist_ok=True)
     (ROOT / "configs").mkdir(exist_ok=True)
-    for v in VARIANTS:
+    if fresh:   # the same claims, scored against the real-world truth split too
+        truth_uid = {r["source_id"]: r["uid"] for r in read_jsonl(
+            ROOT / "data" / "splits" / f"{dataset}_truth" / "dev.jsonl")}
+        fever_uid = {r["uid"]: r["source_id"] for r in read_jsonl(
+            ROOT / "data" / "splits" / dataset / "dev.jsonl")}
+    for v in variants:
         name = f"p8_fever_{stem(args)}_{v}"
         write_jsonl(ROOT / "results" / "preds" / f"{name}.jsonl", preds[v])
-        (ROOT / "configs" / f"{name}.yaml").write_text(
-            f"# Live verdict on FEVER (docs/live-fever-protocol.md, pre-registered). Variant {v}.\n"
-            f"experiment: {name}\ntask: classification\n"
-            f"split: data/splits/{dataset}/dev.jsonl\n"
-            f"predictions: results/preds/{name}.jsonl\n"
-            "label_set: verdict_5class\nbaseline: stratified_random\n"
-            "false_label: Supported\nbreakdown: [lang]\nsanity_ceiling: 1.0\n"
-            "calibration:\n  tau: 0.3835\n"
-            "notes: >\n  Scored predictions are what the user would be shown (abstained -> NEI)."
-            f" Variant {v} of the FEVER live-verdict measurement; see the protocol.\n",
-            encoding="utf-8")
+        write_config(name, dataset, v, "Scored against the FEVER labels.")
+        if fresh:
+            tname = f"{name}_truth"
+            write_jsonl(ROOT / "results" / "preds" / f"{tname}.jsonl",
+                        [dict(r, uid=truth_uid[fever_uid[r["uid"]]]) for r in preds[v]])
+            write_config(tname, f"{dataset}_truth", v, "Scored against the REAL-WORLD truth.")
     summary = {"set": args.set, "lang": args.lang, "n": len(rows), "degraded": degraded,
                "v1_vs_card_mismatches": mismatches,
                "multi_claim": [r["uid"] for r in rows if r["n_results"] != 1],
                "median_seconds": sorted(r["seconds"] for r in rows)[len(rows) // 2]}
     (OUT / f"{stem(args)}.summary.json").write_text(json.dumps(summary, indent=1), encoding="utf-8")
-    print(f"wrote {len(VARIANTS)} prediction files and configs; degraded={len(degraded)} "
+    print(f"wrote {len(variants)} variants; degraded={len(degraded)} "
           f"v1-vs-card mismatches={len(mismatches)} multi-claim={len(summary['multi_claim'])}")
     return 0
 
@@ -274,6 +295,47 @@ def cmd_select(_args) -> int:
     for v, k, acc, n in table:
         print(f"{v}: false-Supported={k}  accuracy-on-answered={acc:.3f}  answered={n}")
     print("CHOSEN:", chosen)
+    return 0
+
+
+def metrics_of(experiment: str) -> dict:
+    return find_result(experiment)["metrics"]["overall"]
+
+
+def cmd_decide(_args) -> int:
+    """Protocol 2's four gates, read from the harness's own results (never computed here)."""
+    from eval.metrics import wilson_interval
+
+    t = metrics_of("p8_fever_fresh_en_v2_truth")
+    f = metrics_of("p8_fever_fresh_en_v2")
+    c = t["confusion"]
+    fl = t["false_label_rate"]
+    answered = sum(c[g][p] for g in c for p in ("Supported", "Refuted"))
+    correct = c["Supported"]["Supported"] + c["Refuted"]["Refuted"]
+    lo, _hi = wilson_interval(correct, answered)
+    fc = f["confusion"]
+    sr_correct = fc["Supported"]["Supported"] + fc["Refuted"]["Refuted"]
+    ok1 = fl["wilson_hi"] <= 0.05
+    print(f"gate 1  false-Supported (truth F/U): {int(fl['k'])}/{int(fl['n'])}  upper {fl['wilson_hi']:.4f}"
+          f"  -> {'PASS' if ok1 else 'FAIL'}")
+    prec = correct / answered if answered else 0.0
+    ok2 = prec >= 0.90 and lo >= 0.85
+    print(f"gate 2  precision {correct}/{answered} = {prec:.3f}  lower {lo:.3f}  -> {'PASS' if ok2 else 'FAIL'}")
+    ok3 = sr_correct >= 50
+    print(f"gate 3  correct on the 250 gold Supported/Refuted claims: {sr_correct}  (>= 50)  "
+          f"-> {'PASS' if ok3 else 'FAIL'}")
+    ok4 = True
+    for lang in ("hi", "pa"):
+        try:
+            sub = metrics_of(f"p8_fever_fresh_sub_{lang}_v2_truth")["false_label_rate"]
+        except SystemExit:
+            print(f"gate 4  {lang}: not run yet")
+            ok4 = False
+            continue
+        good = sub["k"] <= 2
+        ok4 &= good
+        print(f"gate 4  {lang} false-Supported {int(sub['k'])}/{int(sub['n'])}  (<= 2)  -> {'PASS' if good else 'FAIL'}")
+    print("ALL FOUR GATES PASS" if (ok1 and ok2 and ok3 and ok4) else "NOT ALL GATES PASS")
     return 0
 
 
@@ -303,9 +365,10 @@ def main(argv: list[str] | None = None) -> int:
             p.add_argument("--limit", type=int, default=None)
             p.add_argument("--rerun-degraded", action="store_true")
     sub.add_parser("select")
+    sub.add_parser("decide")
     args = ap.parse_args(argv)
     return {"collect": cmd_collect, "score": cmd_score, "variants": cmd_variants,
-            "select": cmd_select}[args.cmd](args)
+            "select": cmd_select, "decide": cmd_decide}[args.cmd](args)
 
 
 if __name__ == "__main__":

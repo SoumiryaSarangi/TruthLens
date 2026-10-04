@@ -52,6 +52,14 @@
       "n_lines": 60,
       "sha256": "b8c6766b11a06c14c67e912d41e7c13474a2f1cb98938deb700ac4d54262a6b5"
     },
+    "fever_fresh_sub_truth/dev.jsonl": {
+      "n_lines": 60,
+      "sha256": "d7ea9cdc157a9408bcaf39428e475c00c729494174c179ea3c5a5660c8825021"
+    },
+    "fever_fresh_truth/dev.jsonl": {
+      "n_lines": 350,
+      "sha256": "0d960bb03d2f1912c9e19fab70548c0ddcce7f9fd856fa3071b2710472a9216c"
+    },
     "fever_select/dev.jsonl": {
       "n_lines": 150,
       "sha256": "c7fd385260f1979ab53f40a37bcc5b7cb4689018b6b78f4c88aff4e44dafd24c"
