@@ -1,0 +1,14 @@
+# Live verdict on FEVER (docs/live-fever-protocol.md, pre-registered). Variant v3.
+experiment: p8_fever_confirm_en_v3
+task: classification
+split: data/splits/fever_confirm/dev.jsonl
+predictions: results/preds/p8_fever_confirm_en_v3.jsonl
+label_set: verdict_5class
+baseline: stratified_random
+false_label: Supported
+breakdown: [lang]
+sanity_ceiling: 1.0
+calibration:
+  tau: 0.3835
+notes: >
+  Scored predictions are what the user would be shown (abstained -> NEI). Variant v3 of the FEVER live-verdict measurement; see the protocol.

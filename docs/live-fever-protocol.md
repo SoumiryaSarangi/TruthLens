@@ -141,3 +141,35 @@ harness check (V1 recomputed from stored probabilities equals the live card) mat
 
 **Chosen: V2** (fewest false-Supported). It is now run once on `fever_confirm` (300).
 
+**Decision run on `fever_confirm` (300 claims, English), V2 as chosen, 2026-10-04.** All 300
+claims collected; 11 had a source failure and were re-run once as allowed (0 remain); V1
+recomputed from stored probabilities equals the live card on all 300; 3 claims produced more
+than one extracted claim and fall back to the card for every variant. Scored through
+`make eval` (never from the harness):
+
+| Variant | false-Supported (of 200) | Wilson upper | answered | accuracy on answered | correct on the 200 Supported/Refuted claims | run |
+| --- | --- | --- | --- | --- | --- | --- |
+| V0 offline served | 0 | 1.9% | 292 | 0.336 | 98 | f7bbd41c0314 |
+| always-NEI | 0 | 1.9% | 0 | n/a | 0 | 1222822e4bbb |
+| V1 DeBERTa alone | 5 | 5.7% | 116 | 0.793 | 92 | dd0046decf08 |
+| **V2 DeBERTa + BART (chosen)** | **3** | **4.3%** | 104 | **0.788** | 82 | 4baa98b87ce4 |
+| V3 DeBERTa + mDeBERTa | 4 | 5.0% | 103 | 0.883 | 91 | 41d5bebd6787 |
+
+The decision rule applies to V2 only (the variant chosen on `select`):
+
+1. False-Supported upper bound <= 5%: **PASS** (3/200, upper 4.32%).
+2. Accuracy on answered >= 80% and above V0's: **FAIL** (82 of 104 = 78.8%; V0's 33.6% is beaten,
+   but the 80% bar is missed by 1.2 points, i.e. 2 claims: 84 right of 104 would have passed).
+3. Hindi and Punjabi subsets: not decisive once rule 2 fails; run for the record.
+4. At least 20% of the 200 checkable claims answered correctly: **PASS** (82/200 = 41%).
+
+**Outcome: V2 is NOT adopted.** Per the protocol no other variant is tried on `fever_confirm`.
+For the record, and not as a decision: V3 would have passed rule 2 (88.3%) and failed rule 1 by
+one claim (4/200, upper 5.03%); V1 fails rule 1 (5.7%). Live search stays evidence-only.
+
+Reading the numbers honestly: V0's "98 correct on the 200" is the claim prior at work (it calls
+nearly everything Refuted, so it is right on the Refuted half and wrong on the rest, 33.6%
+accuracy), while the live variants answer about a third of the claims and are right about four
+times in five. The live verdict is a real gain in precision, with low coverage, and a
+false-Supported rate near the 5% line that the protocol set.
+
