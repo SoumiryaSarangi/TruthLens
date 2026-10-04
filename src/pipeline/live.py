@@ -15,6 +15,7 @@ trace, and the claim keeps its offline answer (NFR-7).
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
@@ -37,6 +38,14 @@ class LivePassage:
     source: str              # "wikipedia" | "factcheck_live"
     cosine: float
     lang: str = "en"
+    # What the stance model reads, when that is not the whole passage: the two
+    # sentences closest to the claim. A lead plus a snippet is a blob; probe run 1
+    # had NLI call whole pages 'Supports' because they were about the same topic.
+    premise: str = ""
+    # For a fact-check review: the stance its PUBLISHER'S rating gives. A fact-check
+    # is a human verdict on a claim, so it is read from the rating, never from NLI
+    # over a headline that restates the rumour.
+    rating_stance: str | None = None
 
 
 @dataclass
@@ -45,6 +54,22 @@ class LiveResult:
     match: FactCheckMatch | None = None
     notes: list[str] = field(default_factory=list)
     sources_used: list[str] = field(default_factory=list)
+
+
+_SENTENCE = re.compile(r"(?<=[.!?\u0964])\s+|\s\u2026\s")
+RATING_STANCE = {"Refuted": "Refutes", "Supported": "Supports"}
+RATED_PROB = 0.9        # how sure a publisher's rating makes the stance (not model output)
+RATED = {s: {"Supports": 0.0, "Refutes": 0.0, "Neutral": 0.0} | {s: RATED_PROB, "Neutral": 1 - RATED_PROB}
+         for s in ("Supports", "Refutes")} | {"Neutral": {"Supports": 0.0, "Refutes": 0.0, "Neutral": 1.0}}
+
+
+def split_sentences(text: str) -> list[str]:
+    return [s.strip() for s in _SENTENCE.split(text) if len(s.strip()) >= 20]
+
+
+def rating_stance(rating: str) -> str:
+    """Supports / Refutes / Neutral from a publisher's rating; unmappable is Neutral."""
+    return RATING_STANCE.get(rating_to_verdict([rating]) or "", "Neutral") if rating else "Neutral"
 
 
 def default_encode(texts: list[str]) -> Sequence[Sequence[float]]:
@@ -96,6 +121,18 @@ class LiveEvidence:
             result.notes.append(f"degraded: google fact check unavailable ({exc})")
         return list(hits.values())
 
+    def _premise(self, forms: list[str], text: str, n: int = 2) -> str:
+        """The `n` sentences of `text` closest to the claim, in their original order."""
+        sentences = split_sentences(text)
+        if len(sentences) <= n:
+            return text
+        try:
+            cos = _cosines(self.encode, forms, sentences)
+        except Exception:
+            return text
+        keep = sorted(sorted(range(len(sentences)), key=lambda i: -cos[i])[:n])
+        return " ".join(sentences[i] for i in keep)
+
     def gather(self, forms: list[str], lang: str) -> LiveResult:
         result = LiveResult()
         with ThreadPoolExecutor(max_workers=2) as pool:
@@ -132,10 +169,13 @@ class LiveEvidence:
             # fact-checker's verdict, shown as theirs, never converted by a model.
             headline = hit.title or hit.claim_text
             text = f"{headline} — {hit.publisher or 'fact-checker'} rating: {hit.rating}" if hit.rating else headline
-            result.passages.append(LivePassage(text, hit.publisher or hit.title,
-                                               hit.url, "factcheck_live", cos, hit.lang or "en"))
+            result.passages.append(LivePassage(text, hit.publisher or hit.title, hit.url,
+                                               "factcheck_live", cos, hit.lang or "en",
+                                               rating_stance=rating_stance(hit.rating)))
         for cand, cos in sorted(zip(wiki, wiki_cos, strict=True), key=lambda t: -t[1])[:self.n_wikipedia]:
-            result.passages.append(LivePassage(cand.text, cand.title, cand.url, "wikipedia", cos, cand.lang))
+            result.passages.append(LivePassage(
+                cand.text, cand.title, cand.url, "wikipedia", cos, cand.lang,
+                premise=self._premise(forms, cand.text)))
         # "Used" means QUERIED successfully, not "returned hits": a search that found
         # nothing is a real answer ("nothing relevant"), a source that was down is not.
         notes = " ".join(result.notes)
@@ -162,6 +202,7 @@ class LiveEvidence:
 LIVE_RELEVANCE_FLOOR = 0.5      # a page below this BGE-M3 cosine is not about the claim
 CONFLICT_MIN = 0.25             # both sides need this much weighted mass ...
 CONFLICT_RATIO = 0.6            # ... and the weaker must be this close to the stronger
+REFUTER = 0.5                   # a passage this sure it refutes blocks "Supported"
 
 
 def live_verdict(probs: Sequence[dict[str, float]],
@@ -187,5 +228,13 @@ def live_verdict(probs: Sequence[dict[str, float]],
         dist["Conflicting"] = min(1.0, support + refute)
         return "Conflicting", dist["Conflicting"], dist
     if strong > neutral:
-        return ("Supported", support, dist) if support >= refute else ("Refuted", refute, dist)
+        if support >= refute:
+            # A false 'Supported' is the worst error a misinformation tool can make
+            # (probe run 1: three of them). So Supported cannot stand over a relevant
+            # passage that refutes: it is Conflicting, which the user reads as 'look'.
+            if any(p.get("Refutes", 0.0) >= REFUTER for p in probs):
+                dist["Conflicting"] = min(1.0, support + refute)
+                return "Conflicting", dist["Conflicting"], dist
+            return "Supported", support, dist
+        return "Refuted", refute, dist
     return "NEI", neutral, dist

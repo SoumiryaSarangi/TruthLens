@@ -1,6 +1,9 @@
 """Run the live-search probe set, offline and live, and apply the adoption rule.
 
-    python scripts/live_probe.py                  # writes reports/live_probe_results.{json,md}
+    python scripts/live_probe.py                  # set 1 + regression, verdict path, tag "set1"
+    python scripts/live_probe.py --probe data/probe/live_probe_2.json --tag set2 --no-regression
+    # writes reports/live_probe_<tag>.{json,md}. Set 2 is the validation set for the verdict-path fix; re-running
+    # set 1 after the fix is a DIAGNOSTIC of the three known failures, never validation.
 
 For every claim in `data/probe/live_probe.json` plus the eight regression
 forwards of `app/static/samples.json`: the served pipeline WITHOUT live search,
@@ -62,12 +65,18 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python scripts/live_probe.py")
     ap.add_argument("--pause", type=float, default=4.0, help="seconds between claims (rate limits)")
     ap.add_argument("--limit", type=int, default=None)
+    ap.add_argument("--probe", default="data/probe/live_probe.json")
+    ap.add_argument("--tag", default="set1")
+    ap.add_argument("--no-regression", action="store_true", help="omit the 8 regression forwards")
+    ap.add_argument("--evidence-only", action="store_true",
+                    help="serve the live path as evidence only (no verdict); default is the verdict path")
     args = ap.parse_args(argv)
 
     from pipeline.orchestrator import Orchestrator, PipelineConfig
 
-    probe = json.loads((ROOT / "data/probe/live_probe.json").read_text(encoding="utf-8"))["claims"]
-    regression = json.loads((ROOT / "app/static/samples.json").read_text(encoding="utf-8"))["regression"]
+    probe = json.loads((ROOT / args.probe).read_text(encoding="utf-8"))["claims"]
+    regression = ([] if args.no_regression else
+                  json.loads((ROOT / "app/static/samples.json").read_text(encoding="utf-8"))["regression"])
     items = [{"id": f"reg-{i}", "style": "regression", "label": r["truth"], "text": r["text"]}
              for i, r in enumerate(regression, 1)] + probe
     if args.limit:
@@ -75,6 +84,8 @@ def main(argv: list[str] | None = None) -> int:
 
     cfg = PipelineConfig.load(ROOT / "configs/pipeline/dev.yaml")
     cfg.stages["generation"] = "template"            # the live path always uses the template
+    cfg.live_search = True
+    cfg.live_verdict = not args.evidence_only        # the probe judges the VERDICT path by default
     orch = Orchestrator(cfg)
     orch.verify("warm-up")
 
@@ -103,7 +114,7 @@ def main(argv: list[str] | None = None) -> int:
     decision = adopt(rows)
     out = ROOT / "reports"
     out.mkdir(exist_ok=True)
-    (out / "live_probe_results.json").write_text(
+    (out / f"live_probe_{args.tag}.json").write_text(
         json.dumps({"decision": decision, "rows": rows}, ensure_ascii=False, indent=1), encoding="utf-8")
     lines = ["| id | label | offline | live | live sources | live s |", "| --- | --- | --- | --- | --- | --- |"]
     for r in rows:
@@ -111,7 +122,7 @@ def main(argv: list[str] | None = None) -> int:
         lines.append(f"| {r['id']} | {r['label']} | {o['verdict']}{' (abst.)' if o['abstained'] else ''} "
                      f"{o['confidence']:.2f} [{o['outcome']}] | {v['verdict']}{' (abst.)' if v['abstained'] else ''} "
                      f"{v['confidence']:.2f} [{v['outcome']}] | {', '.join(v['sources']) or '-'} | {v['seconds']} |")
-    (out / "live_probe_results.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (out / f"live_probe_{args.tag}.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(json.dumps(decision, indent=1))
     return 0
 

@@ -209,7 +209,7 @@ class Orchestrator:
                              f"degraded: live search failed ({type(exc).__name__}); offline answer kept")
 
     def _live_pass(self, trace: Trace, result: ClaimResult) -> ClaimResult:
-        from pipeline.live import LIVE_RELEVANCE_FLOOR, live_verdict
+        from pipeline.live import LIVE_RELEVANCE_FLOOR, RATED, RATED_PROB, live_verdict
 
         claim = result.claim
         forms = self._claim_forms(trace, claim, None)
@@ -255,17 +255,27 @@ class Orchestrator:
                 cited=[p.passage_id for p in shown], live_sources=found.sources_used,
             )
 
+        # A fact-check's stance is its publisher's rating; only Wikipedia is read by NLI,
+        # and on the two sentences closest to the claim, not the whole page.
+        nli = [i for i, p in enumerate(relevant) if not p.rating_stance]
         try:
-            labels = self._timed(trace, "stance", self.stance.impl,
-                                 lambda: self.stance.label(claim.text, [p.text for p in shown]))
+            labels = (self._timed(trace, "stance", self.stance.impl,
+                                  lambda: self.stance.label(
+                                      claim.text, [relevant[i].premise or relevant[i].text for i in nli]))
+                      if nli else [])
         except Exception as exc:
             trace.record("stance", self.stance.impl, 0.0,
                          f"degraded: stance failed on live evidence ({type(exc).__name__})")
             return result
-        for passage, label in zip(shown, labels, strict=True):
-            passage.stance, passage.stance_prob = label.stance, label.prob
-        verdict, confidence, dist = live_verdict([x.probs for x in labels],
-                                                 [p.cosine for p in relevant])
+        probs: list[dict[str, float]] = [{} for _ in shown]
+        for i, label in zip(nli, labels, strict=True):
+            probs[i] = label.probs
+            shown[i].stance, shown[i].stance_prob = label.stance, label.prob
+        for i, p in enumerate(relevant):
+            if p.rating_stance:
+                probs[i] = RATED[p.rating_stance]
+                shown[i].stance, shown[i].stance_prob = p.rating_stance, RATED_PROB
+        verdict, confidence, dist = live_verdict(probs, [p.cosine for p in relevant])
         trace.record("aggregate", "live_weighted", 0.0,
                      "verdict from NLI labels weighted by relevance; the confidence is "
                      "NOT calibrated (no calibration set exists for live evidence)")

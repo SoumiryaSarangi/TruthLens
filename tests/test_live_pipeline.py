@@ -30,11 +30,19 @@ def test_strong_support_is_supported():
     assert verdict == "Supported" and conf > 0.9 and dist["Refuted"] < 0.05
 
 
-def test_one_weakly_relevant_refuter_cannot_outvote_three_strong_supporters():
-    """The Taj Mahal pattern: the 'Black Taj Mahal' legend page refutes at cosine
-    0.65; three pages that support score 0.56-0.68. A max-rule says Conflicting."""
-    verdict, _, _ = live_verdict([S, R, S, S], [0.68, 0.65, 0.64, 0.56])
-    assert verdict == "Supported"
+def test_a_doubtful_refuter_cannot_outvote_strong_supporters():
+    """The weighted mean: a page that only half-refutes (P 0.3) does not move
+    three strong supporters."""
+    weak = {"Supports": 0.2, "Refutes": 0.3, "Neutral": 0.5}
+    assert live_verdict([S, weak, S, S], [0.68, 0.65, 0.64, 0.56])[0] == "Supported"
+
+
+def test_a_confident_refuter_blocks_supported_the_taj_mahal_pattern():
+    """Probe run 1 called three false claims Supported. Supported cannot stand over
+    a relevant passage that refutes: it is Conflicting. (The Taj Mahal's 'Black Taj
+    Mahal' legend page refutes at cosine 0.65 among three supporters.)"""
+    verdict, _, dist = live_verdict([S, R, S, S], [0.68, 0.65, 0.64, 0.56])
+    assert verdict == "Conflicting" and dist["Conflicting"] > 0.9
 
 
 def test_real_disagreement_is_conflicting():
@@ -46,6 +54,58 @@ def test_neutral_evidence_is_nei_and_no_evidence_is_nei():
     assert live_verdict([N, N], [0.6, 0.6])[0] == "NEI"
     assert live_verdict([], []) == ("NEI", 0.0, {"Supported": 0.0, "Refuted": 0.0,
                                                   "Conflicting": 0.0, "NEI": 1.0})
+
+
+# -- the three changes aimed at probe run 1's failures -------------------------
+
+
+def test_a_fact_checks_stance_is_its_publishers_rating():
+    from pipeline.live import rating_stance
+
+    assert [rating_stance(x) for x in ("False", "Mostly False", "True", "Unproven", "")] == [
+        "Refutes", "Refutes", "Supports", "Neutral", "Neutral"]
+
+
+def test_nli_never_reads_a_fact_check_headline_in_the_verdict_path():
+    """A headline that restates the rumour ('Can lemon water cure cancer?') was
+    labelled Supports. The verdict path takes the rating instead."""
+    rated = LivePassage("Can lemon water cure cancer? — FC rating: False", "FC", "https://fc/x",
+                        "factcheck_live", 0.8, "en", rating_stance="Refutes")
+    orch = make(FakeLive(LiveResult(passages=[rated], sources_used=["google_factcheck"])))
+    orch.stance = Exploding(S)               # would label it Supports, and must not be asked
+    res = orch.verify("Lemon water cures cancer", live=True).results[0]
+    assert res.verdict == "Refuted" and res.passages[0].stance == "Refutes"
+
+
+def test_nli_reads_the_focused_premise_not_the_whole_page():
+    seen = []
+
+    class Recorder(FakeStance):
+        def label(self, claim, passages):
+            seen.extend(passages)
+            return super().label(claim, passages)
+
+    page = LivePassage("A long lead about many things. Delhi is the capital of India. More text.",
+                       "Delhi", "https://x/Delhi", "wikipedia", 0.8, "en",
+                       premise="Delhi is the capital of India.")
+    orch = make(FakeLive(LiveResult(passages=[page], sources_used=["wikipedia"])))
+    orch.stance = Recorder(S)
+    orch.verify("Delhi is the capital of India", live=True)
+    assert seen == ["Delhi is the capital of India."]
+
+
+def test_the_premise_is_the_two_sentences_closest_to_the_claim():
+    from pipeline.live import LiveEvidence
+    from retrieval.live.factcheck import GoogleFactCheck
+    from retrieval.live.wikipedia import WikipediaLive
+
+    def enc(texts):
+        return [[1.0, 0.0] if "alpha" in t else [0.0, 1.0] for t in texts]
+
+    live = LiveEvidence(WikipediaLive(), GoogleFactCheck(key=""), encode=enc)
+    text = ("Opening sentence about nothing relevant here. The alpha sentence one is here. "
+            "Filler sentence about unrelated matters again. The alpha sentence two is here.")
+    assert live._premise(["alpha"], text) == "The alpha sentence one is here. The alpha sentence two is here."
 
 
 # -- the orchestrator ----------------------------------------------------------
