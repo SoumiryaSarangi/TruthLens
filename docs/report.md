@@ -642,7 +642,7 @@ Each cut is recorded with its reason, as SRS §7 requires.
 | Cut | Reason |
 | --- | --- |
 | Explanation in the input language (FR-17, P1) | Cut-list item 3. The explainer is trained on English AVeriTeC justifications. Hindi and Punjabi users get an English explanation and the card says so. |
-| Live search (P2) | Cut-list item 2. A static corpus means recent claims are out of reach. |
+| Live search as a default (P2) | Cut-list item 2 was RESTORED after the test run, but only as an opt-in, per-claim button (§8b): the default path is the static corpus, so recent claims stay out of reach unless the user clicks, and the live verdict covers about 3 claims in 10. |
 | Manipulation detection as a trained classifier | Cut-list item 1. Built instead as rules plus zero-shot NLI over SemEval-2023 Task 3 technique names. It is unmeasured because the SemEval data was never obtained. |
 | Prompted-LLM explanation comparison | Slack-only by plan. Phase 6 had no slack. |
 | IndicXlit transliterator | Installing it replaces the CUDA build of PyTorch with the CPU one. |
