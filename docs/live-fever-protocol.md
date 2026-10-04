@@ -124,3 +124,20 @@ are fixed and logged; after that, none.
   absent for four checkable claims in five), not from any result. The three smoke claims
   stay in `select`'s results.
 
+## Results log (appended as the protocol runs)
+
+**Selection on `fever_select` (150 claims, 2026-10-04), per the rule above.** All 150 claims
+collected with no source failure after the allowed single re-run of failed claims; the
+harness check (V1 recomputed from stored probabilities equals the live card) matched on all
+150. Scored through `make eval`:
+
+| Variant | false-Supported (of 100 non-Supported) | accuracy on answered | answered | run |
+| --- | --- | --- | --- | --- |
+| V0 offline served | n/a | 0.333 (all claims) | 150 | 48450ff742a6 |
+| always-NEI | 0 | n/a | 0 | a50ae015db7b |
+| V1 DeBERTa alone | 6 | 0.772 | 57 | a381431fe5ae |
+| V2 DeBERTa + BART agree | **3** | 0.804 | 51 | 5d9a0b582923 |
+| V3 DeBERTa + mDeBERTa agree | 5 | 0.812 | 48 | a56335e8f73d |
+
+**Chosen: V2** (fewest false-Supported). It is now run once on `fever_confirm` (300).
+
