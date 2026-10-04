@@ -180,7 +180,7 @@ Six canned forwards, one per path, wired to the sample chips (`app/static/sample
 | # | Chip | Input | Shows |
 | --- | --- | --- | --- |
 | 1 | EN, fact-checked | "Pineapple juice is 500 times more effective at stopping a cough than cough syrup" | Fast path, "Already checked by …" (cosine 0.92 ≥ τ_match 0.90) |
-| 2 | Roman Hindi | "Sarkar ne announce kiya hai ki har student ko 6000 rupaye milenge" | Transliteration note + evidence path |
+| 2 | Roman Hindi | "Kal se WhatsApp ke paise lagenge" | Transliteration note + evidence path (chosen by the rule in `scripts/pick_romanized_chip.py`; the earlier "6000 rupaye" chip was refuted from a fact-check about a US stimulus cheque, so it stays in `regression` as a known weak case) |
 | 3 | ਪੰਜਾਬੀ | "ਸਰਕਾਰ ਹਰ ਕਿਸਾਨ ਨੂੰ ਮੁਫ਼ਤ ਟਰੈਕਟਰ ਦੇ ਰਹੀ ਹੈ" | Gurmukhi input, explanation-language fallback note |
 | 4 | Long forward | A Roman-Hindi rant with one claim (lemon water cures cancer) among filler | Claim extraction: only the claim is checked; manipulation flags |
 | 5 | Greeting | "Good morning, stay blessed 🙏" | NotAClaim card |

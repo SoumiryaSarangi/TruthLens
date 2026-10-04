@@ -2924,3 +2924,21 @@ undecided. A first version that still judged fact-check ratings made two true cl
 wrongly Refuted (reviews of other Modi stories), hence the rule. Served unchanged
 (evidence only); further attempts stop here. `docs/live-search-probe.md` run 4, report
 section 8b.
+
+### Demo: Roman-Hindi chip replaced by a pre-fixed rule (2026-10-04)
+
+The owner ran the demo. Findings: the fast-path card repeated the publisher line three
+times and said "Couldn't generate an explanation" (UI bug, fixed in `app.js`, `9315ff7`);
+the Roman-Hindi chip ("...6000 rupaye") was refuted High from a fact-check about a US
+stimulus cheque (right verdict, evidence about a different claim, the report's error
+category). The owner delegated the choice ("just need the best results"), so it was
+decided by a rule written BEFORE running (`scripts/pick_romanized_chip.py`): the served
+pipeline must call a romanized-Hindi candidate correctly, not abstain, and every cited
+source plus the first listed one must have BGE-M3 cosine >= 0.5 with the claim. Of 14
+candidates (our wording) ONE qualified: "Kal se WhatsApp ke paise lagenge" (Refuted
+0.76, sources cosine 0.54-0.58; they are about WhatsApp, modestly on topic, one an
+Italian "WhatsApp Gold" hoax page). The other 13 failed mostly on source relevance
+(0.20-0.46), which says how rarely romanized free text gets apt evidence offline: worth
+a sentence in the talk. Full table: `reports/romanized_chip_pick.json` (local). The old
+forward stays in `samples.json` `regression`. `demo_check.py` prints OK.
+
