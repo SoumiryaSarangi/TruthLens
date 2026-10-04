@@ -9,6 +9,11 @@
 const $ = (id) => document.getElementById(id);
 
 let S = {};             // strings for the interface language
+let STR = {};           // all three string tables, so a card can speak its OWN language
+let UI_LANG = "en";
+let ANSWER_LANG = null; // set by the language switch; null = each card follows its message's language
+const LANGS = ["en", "hi", "pa"];
+const SPEECH = { en: "en-IN", hi: "hi-IN", pa: "pa-IN" };
 let BANDS = null;       // from /version; no bands -> no band shown, never a guess
 let LIVE = false;       // from /version: may this server search Wikipedia / Google live?
 let lastText = "";
@@ -28,11 +33,36 @@ async function loadStrings(lang) {
   return {};
 }
 
+function lookup(table, key) {
+  const v = key.split(".").reduce((o, k) => (o && o[k] !== undefined ? o[k] : undefined), table);
+  return typeof v === "string" ? v : undefined;
+}
+
+function fill(s, vars) {
+  return s.replace(/\{(\w+)\}/g, (_, k) => (vars[k] !== undefined ? vars[k] : `{${k}}`));
+}
+
 /* t("unchecked", {n: 2}) -> the string with {n} filled in, or the fallback. */
 function t(key, vars = {}, fallback = "") {
-  let s = key.split(".").reduce((o, k) => (o && o[k] !== undefined ? o[k] : undefined), S);
-  if (typeof s !== "string") s = fallback || key;
-  return s.replace(/\{(\w+)\}/g, (_, k) => (vars[k] !== undefined ? vars[k] : `{${k}}`));
+  const s = lookup(S, key);
+  return fill(s === undefined ? (fallback || key) : s, vars);
+}
+
+/* tl(lang, key): the same, in a given language (a card's own), falling back to the
+ * interface language and then English, so a missing string never shows a bare key. */
+function tl(lang, key, vars = {}) {
+  for (const table of [STR[lang], S, STR.en]) {
+    const s = table && lookup(table, key);
+    if (s !== undefined) return fill(s, vars);
+  }
+  return key;
+}
+
+/* The language a card answers in: the switch if the user used it, otherwise the
+ * language of the message itself, otherwise the interface language. */
+function cardLang(inp) {
+  if (ANSWER_LANG) return ANSWER_LANG;
+  return LANGS.includes(inp && inp.lang) ? inp.lang : UI_LANG;
 }
 
 function esc(s) {
@@ -55,17 +85,23 @@ function applyStaticStrings() {
 async function boot() {
   // ?lang=hi|pa forces the interface language for a demo; otherwise the browser's.
   const forced = new URLSearchParams(location.search).get("lang");
-  const lang = forced || (navigator.language || "en").slice(0, 2);
-  S = await loadStrings(lang);
+  const wanted = forced || (navigator.language || "en").slice(0, 2);
+  UI_LANG = LANGS.includes(wanted) ? wanted : "en";
+  for (const l of LANGS) STR[l] = await loadStrings(l);
+  S = STR[UI_LANG];
+  if (forced) ANSWER_LANG = UI_LANG;      // ?lang= forces the answers too, for a demo
   document.documentElement.lang = S._lang || "en";
   applyStaticStrings();
+  wireLanguageSwitch();
 
   fetch("/health").then((r) => r.json()).then((h) => {
     const ok = h.status === "ok";
     $("health").className = `health ${ok ? "ok" : "degraded"}`;
-    $("health-text").textContent = ok ? t("models_ready") : t("degraded");
+    $("health-text").dataset.key = ok ? "models_ready" : "degraded";
+    $("health-text").textContent = t(ok ? "models_ready" : "degraded");
   }).catch(() => {
     $("health").className = "health down";
+    $("health-text").dataset.key = "unreachable";
     $("health-text").textContent = t("unreachable");
   });
 
@@ -80,6 +116,26 @@ async function boot() {
     .catch(() => {});
 
   fetch("/static/samples.json").then((r) => r.json()).then(renderChips).catch(() => {});
+}
+
+function wireLanguageSwitch() {
+  document.querySelectorAll("[data-lang]").forEach((b) => {
+    b.setAttribute("aria-pressed", String(b.dataset.lang === UI_LANG));
+    b.addEventListener("click", () => setLanguage(b.dataset.lang));
+  });
+}
+
+/* The language switch changes the page AND every answer already on screen. */
+function setLanguage(lang) {
+  UI_LANG = ANSWER_LANG = lang;
+  S = STR[lang] || S;
+  document.documentElement.lang = lang;
+  applyStaticStrings();
+  document.querySelectorAll("[data-lang]").forEach((b) =>
+    b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+  document.querySelectorAll(".bubble.in").forEach((b) => { if (b._state) renderBubble(b); });
+  const health = $("health-text");
+  if (health && health.dataset.key) health.textContent = t(health.dataset.key);
 }
 
 function renderChips(samples) {
@@ -159,8 +215,8 @@ async function send(text, { echo = true } = {}) {
     });
     return;
   }
-  pending.innerHTML = render(body);
-  wire(pending);
+  pending._state = { body, live: {} };
+  renderBubble(pending);
   pending.scrollIntoView({ block: "start" });
 }
 
@@ -222,17 +278,145 @@ function explanationHtml(text, cardId, nPassages) {
   });
 }
 
-function verdictCard(r, inp) {
+/* ------------------------------------------------------- the plain card
+ *
+ * What an ordinary reader sees (docs/specs/UI_UX.md §5): one plain verdict in their
+ * language, one sentence of why, what to do, where it comes from, and two buttons.
+ * Everything technical stays one tap away in "Details". It is built from fields the
+ * API already returns; nothing is recomputed here, so no number can disagree with
+ * the evaluation. The wording says "probably" and "the sources I found": it reports
+ * what the sources say, never the truth.
+ */
+
+function plainCase(r) {
+  if (r.verdict === "NotAClaim") return { kind: "none" };
+  const live = (r.live_sources || []).length > 0;
+  if (r.path === "fast" && r.match && !r.abstained) return { kind: "fast", v: r.verdict, live };
+  if (r.abstained) return { kind: "abstained", v: r.verdict, live };
+  return { kind: "verdict", v: r.verdict, live };
+}
+
+function plainTitle(c, lang) {
+  if (c.kind === "fast") return tl(lang, `plain.fast_title.${c.v}`);
+  if (c.kind === "abstained") return tl(lang, "plain.title.abstained");
+  return tl(lang, `plain.title.${c.v}`);
+}
+
+function plainReason(c, r, lang) {
+  if (c.kind === "fast") return tl(lang, "plain.reason.fast", { publisher: r.match?.publisher || "" });
+  if (c.kind === "abstained") {
+    if (c.live) return tl(lang, "plain.reason.live_none");
+    return tl(lang, c.v === "Supported" || c.v === "Refuted" ? `plain.reason.abstained_${c.v}`
+      : "plain.reason.abstained_other");
+  }
+  if (c.live && (c.v === "Supported" || c.v === "Refuted")) return tl(lang, `plain.reason.live_${c.v}`);
+  return tl(lang, `plain.reason.${c.v}`);
+}
+
+function plainAction(c, lang) {
+  const v = c.kind === "abstained" ? null : c.v;
+  return tl(lang, v === "Refuted" || v === "Supported" ? `plain.action.${v}` : "plain.action.check");
+}
+
+/* Up to three sources an ordinary reader can open: the matched fact-check, the cited
+ * passages that point the same way as the verdict, or -- on a live card -- whatever was found. */
+function plainSources(c, r) {
+  const href = (p) => (p.url && /^https?:/.test(p.url) ? p.url : null);
+  const row = (url, title) => ({ url, title, domain: domainOf(url) });
+  if (c.kind === "fast") return r.match ? [row(r.match.url, r.match.title)] : [];
+  const passages = (r.passages || []).filter((p) => href(p));
+  if (c.live) return passages.slice(0, 3).map((p) => row(href(p), p.title || p.doc_id));
+  if (c.kind === "verdict" && (c.v === "Supported" || c.v === "Refuted")) {
+    const want = c.v === "Supported" ? "Supports" : "Refutes";
+    const cited = new Set(r.cited || []);
+    return passages.filter((p) => cited.has(p.passage_id) && p.stance === want)
+      .slice(0, 2).map((p) => row(href(p), p.title || p.doc_id));
+  }
+  return [];
+}
+
+function plainFlags(r, lang) {
+  const flags = r.manipulation_flags || [];
+  if (!flags.length) return "";
+  const list = flags.map((f) => tl(lang, `plain.technique.${f}`)).join(", ");
+  return `<p class="plain-flags"><span aria-hidden="true">⚠</span> ${esc(tl(lang, "plain.flags", { list }))}</p>`;
+}
+
+function replyText(c, sources, lang) {
+  const key = c.kind === "abstained" ? "check" : (c.v === "Refuted" || c.v === "Supported" ? c.v : "check");
+  let text = tl(lang, `plain.reply.${key}`);
+  if (sources.length) text += `\n${tl(lang, "plain.reply.source", { url: sources[0].url })}`;
+  return text;
+}
+
+function plainCard(r, inp, idx) {
+  const lang = cardLang(inp);
+  const icons = S.icon || {};
+  const c = plainCase(r);
+
+  if (c.kind === "none") {
+    return `<div class="card neutral-card plain" lang="${esc(lang)}">
+      <p class="neutral-title"><span aria-hidden="true">${esc(icons.NotAClaim || "💬")}</span> ${esc(tl(lang, "plain.none_title"))}</p>
+      <p class="reason">${esc(tl(lang, "plain.none_note"))}</p></div>`;
+  }
+
   const id = `c${++cardSeq}`;
+  const bandName = bandOf(r.confidence);
+  const title = plainTitle(c, lang);
+  const chipClass = c.kind === "abstained" ? "abstained" : (c.v === "Conflicting" || c.v === "NEI" || c.v === "Refuted"
+    || c.v === "Supported" ? c.v : "NEI");
+  const icon = c.kind === "abstained" ? icons.abstained : icons[c.v];
+  const reason = plainReason(c, r, lang);
+  const action = plainAction(c, lang);
+  const sources = plainSources(c, r);
+  // Only an offline, calibrated verdict says how sure it is; a live one is uncalibrated and says nothing.
+  const sure = c.kind === "verdict" && !c.live && bandName ? tl(lang, `plain.sure.${bandName}`) : "";
+  const speak = [title, reason, sure, action].filter(Boolean).join(" ");
+
+  let html = `<div class="card plain${c.kind === "abstained" ? " abstained" : ""}" id="${id}" lang="${esc(lang)}">
+    <p class="plain-head"><span class="chip big ${esc(chipClass)}" role="img"
+      aria-label="${esc(t("verdict_aria", { label: title }))}"><span aria-hidden="true">${esc(icon || "")}</span>${esc(title)}</span></p>
+    <p class="reason">${esc(reason)}${sure ? ` <span class="sure">${esc(sure)}</span>` : ""}</p>
+    <p class="action">${esc(action)}</p>`;
+  if (sources.length) {
+    html += `<p class="src-label">${esc(tl(lang, c.live || c.kind === "abstained" ? "plain.found_label"
+        : (c.kind === "fast" ? "plain.sources_label" : "plain.closest_label")))}</p>
+      <ul class="plain-sources">${sources.map((x) => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a>${
+        x.domain ? ` <span class="domain">· ${esc(x.domain)}</span>` : ""}</li>`).join("")}</ul>`;
+  }
+  html += plainFlags(r, lang);
+  if (r.claim && r.claim.text) {
+    html += `<p class="claim-line">${esc(tl(lang, "plain.claim_label"))} “${esc(r.claim.text)}”</p>`;
+  }
+  html += `<div class="actions">
+      <button type="button" class="act act-listen" data-speak="${esc(speak)}" data-card-lang="${esc(lang)}"
+        aria-label="${esc(tl(lang, "plain.listen"))}"><span aria-hidden="true">🔊</span> ${esc(tl(lang, "plain.listen"))}</button>
+      <button type="button" class="act act-copy" data-reply="${esc(replyText(c, sources, lang))}" data-card-lang="${esc(lang)}"
+        aria-label="${esc(tl(lang, "plain.copy"))}"><span aria-hidden="true">📋</span> ${esc(tl(lang, "plain.copy"))}</button>
+    </div><p class="note act-note" hidden></p>`;
+
+  // Looking it up online: explicit, per claim, and it says exactly what it sends.
+  const liveUsed = c.live;
+  if (!liveUsed && LIVE && r.path !== "fast" && r.claim?.text && (r.abstained || bandName !== "High")) {
+    html += `<button type="button" class="live-btn" data-card="${id}" data-claim="${esc(r.claim.text)}" data-idx="${idx}">
+      <span aria-hidden="true">🌐</span> ${esc(tl(lang, "live_button"))}</button>
+      <p class="note live-privacy">${esc(tl(lang, "live_privacy"))}</p>`;
+  }
+  html += `<p class="disclaimer">${esc(tl(lang, "disclaimer"))}</p>`;
+  html += `<details class="more"><summary>${esc(tl(lang, "plain.details"))}</summary>${technicalCard(r, inp, id)}</details></div>`;
+  return html;
+}
+
+function verdictCard(r, inp, idx = 0) {
+  return plainCard(r, inp, idx);
+}
+
+/* The full technical card (verdict class, confidence band, explanation, evidence trail,
+ * live notes, input note), inside "Details". It is the card the project measured. */
+function technicalCard(r, inp, cardId) {
+  const id = cardId;
   const label = t(`verdict.${r.verdict}`, {}, r.verdict);
   const icons = S.icon || {};
-
-  if (r.verdict === "NotAClaim") {
-    // UI_UX.md §4-§5: a neutral card, not a verdict card -- no chip, no band.
-    return `<div class="card neutral-card">
-      <p class="neutral-title"><span aria-hidden="true">${esc(icons.NotAClaim || "💬")}</span> ${esc(label)}</p>
-      <p class="note">${esc(t("notaclaim_note"))}</p></div>`;
-  }
 
   const liveUsed = (r.live_sources || []).length > 0;
   const bandName = bandOf(r.confidence);
@@ -255,8 +439,7 @@ function verdictCard(r, inp) {
     }
   }
 
-  let html = `<div class="card${r.abstained ? " abstained" : ""}" id="${id}">
-    <div class="card-head">${head}</div>`;
+  let html = `<div class="technical"><div class="card-head">${head}</div>`;
   if (r.abstained) {
     html += `<p class="leaning">${esc(t("leaning", { label }))}</p>`;
   }
@@ -292,12 +475,6 @@ function verdictCard(r, inp) {
       <p class="note">${esc(t("live_validated"))}</p>
       <p class="note">${esc(t("live_uncalibrated"))}</p>`;
     if (r.live_sources.includes("wikipedia")) html += `<p class="note">${esc(t("live_attribution"))}</p>`;
-  } else if (LIVE && r.path !== "fast" && r.claim?.text
-             && (r.abstained || bandName !== "High")) {
-    // Explicit, per claim: the button sends ONLY this claim, and says so.
-    html += `<button type="button" class="live-btn" data-card="${id}" data-claim="${esc(r.claim.text)}">
-      <span aria-hidden="true">🌐</span> ${esc(t("live_button"))}</button>
-      <p class="note live-privacy">${esc(t("live_privacy"))}</p>`;
   }
 
   if (fast && r.match) {
@@ -335,12 +512,14 @@ function verdictCard(r, inp) {
   return html;
 }
 
-function render(b) {
+/* `live` maps a result's index to the card it was upgraded to by "Look this up online". */
+function render(b, live = {}) {
   const inp = b.input || {};
   if (inp.lang === "other" || !b.results || !b.results.length) {
     return `<p>${esc(t("unsupported"))}</p>`;
   }
-  let html = b.results.map((r) => verdictCard(r, inp)).join("");
+  let html = b.results.map((r, i) => (live[i]
+    ? verdictCard(live[i].result, live[i].input || inp, i) : verdictCard(r, inp, i))).join("");
   const more = (b.unchecked_claims || []).length;
   if (more) {
     html += `<p class="footnote">${esc(more === 1 ? t("unchecked_one") : t("unchecked", { n: more }))}</p>`;
@@ -356,11 +535,20 @@ function render(b) {
   return html;
 }
 
+/* A reply is drawn from its state, so the language switch and the live upgrade just redraw it. */
+function renderBubble(bubble) {
+  bubble.className = "bubble in";
+  bubble.innerHTML = render(bubble._state.body, bubble._state.live);
+  wire(bubble);
+}
+
 /* Expander and citation markers, after the HTML is in the page. */
 async function searchLive(btn) {
-  const card = document.getElementById(btn.dataset.card);
+  const bubble = btn.closest(".bubble");
+  const idx = Number(btn.dataset.idx || 0);
+  const lang = btn.closest(".card") ? btn.closest(".card").getAttribute("lang") : UI_LANG;
   btn.disabled = true;
-  btn.textContent = t("live_checking");
+  btn.textContent = tl(lang, "live_checking");
   let body = null;
   try {
     const res = await fetch("/verify", {
@@ -374,21 +562,82 @@ async function searchLive(btn) {
   if (!result || !(result.live_sources || []).length) {
     // A source was down, or the server refused: the earlier answer stays, visibly.
     btn.disabled = false;
-    btn.textContent = `🌐 ${t("live_button")}`;
-    const note = card.querySelector(".live-privacy");
-    if (note) note.textContent = t("live_unavailable");
+    btn.textContent = `🌐 ${tl(lang, "live_button")}`;
+    const note = btn.parentElement.querySelector(".live-privacy");
+    if (note) note.textContent = tl(lang, "live_unavailable");
     return;
   }
-  const tmp = document.createElement("div");
-  tmp.innerHTML = verdictCard(result, body.input || {});
-  wire(tmp);
-  card.replaceWith(...tmp.children);
+  if (bubble && bubble._state) {
+    bubble._state.live[idx] = { result, input: body.input || {} };
+    renderBubble(bubble);
+  }
+}
+
+/* "Listen": the browser's own speech, in the card's language. If this device has no voice for
+ * it, say so instead of reading Hindi in an English voice. */
+function speakCard(btn) {
+  const lang = btn.dataset.cardLang;
+  const note = btn.parentElement.nextElementSibling;
+  const synth = globalThis.speechSynthesis;
+  const showNote = (msg) => { if (note) { note.textContent = msg; note.hidden = !msg; } };
+  if (!synth || typeof SpeechSynthesisUtterance === "undefined") {
+    showNote(tl(lang, "plain.listen_none", { lang: tl(lang, `lang_name.${lang}`) }));
+    return;
+  }
+  if (synth.speaking) { synth.cancel(); btn.classList.remove("on"); return; }
+  const voices = synth.getVoices ? synth.getVoices() : [];
+  const base = SPEECH[lang].slice(0, 2);
+  if (voices.length && !voices.some((v) => (v.lang || "").toLowerCase().startsWith(base))) {
+    showNote(tl(lang, "plain.listen_none", { lang: tl(lang, `lang_name.${lang}`) }));
+    return;
+  }
+  showNote("");
+  const u = new SpeechSynthesisUtterance(btn.dataset.speak);
+  u.lang = SPEECH[lang];
+  u.onend = u.onerror = () => btn.classList.remove("on");
+  btn.classList.add("on");
+  synth.speak(u);
+}
+
+/* "Copy a reply": a ready message to send back to the family group. Nothing is sent to us. */
+async function copyReply(btn) {
+  const lang = btn.dataset.cardLang;
+  const text = btn.dataset.reply;
+  const note = btn.parentElement.nextElementSibling;
+  let ok = false;
+  try {
+    await navigator.clipboard.writeText(text);
+    ok = true;
+  } catch (e) {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      ok = document.execCommand("copy");
+      ta.remove();
+    } catch (e2) { ok = false; }
+  }
+  if (ok) {
+    const label = btn.innerHTML;
+    btn.innerHTML = `<span aria-hidden="true">✓</span> ${esc(tl(lang, "plain.copied"))}`;
+    setTimeout(() => { btn.innerHTML = label; }, 2000);
+    if (note) note.hidden = true;
+  } else if (note) {
+    note.textContent = tl(lang, "plain.copy_failed");
+    note.hidden = false;
+  }
 }
 
 function wire(root) {
   root.querySelectorAll(".live-btn").forEach((btn) => {
     btn.addEventListener("click", () => searchLive(btn));
   });
+  root.querySelectorAll(".act-listen").forEach((btn) => btn.addEventListener("click", () => speakCard(btn)));
+  root.querySelectorAll(".act-copy").forEach((btn) => btn.addEventListener("click", () => copyReply(btn)));
   root.querySelectorAll(".trail-toggle").forEach((btn) => {
     btn.addEventListener("click", () => toggleTrail(btn));
   });

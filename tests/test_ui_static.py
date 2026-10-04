@@ -106,8 +106,74 @@ def test_unreviewed_locales_still_say_so(locale):
 
 def test_every_string_the_script_asks_for_exists():
     keys = set(re.findall(r'\bt\("([\w.]+)"', JS))
+    keys |= set(re.findall(r'\btl\([^,()]+,\s*"([\w.]+)"', JS))      # tl(lang, "plain.listen")
     missing = sorted(keys - _leaves(_locale("en")))
     assert not missing, f"app.js asks for strings en.json does not have: {missing}"
+
+
+# -- the plain card (docs/specs/UI_UX.md section 5) ---------------------------------------
+
+VERDICTS = ["Refuted", "Supported", "Conflicting", "NEI"]
+
+
+def _plain_keys() -> set[str]:
+    """Every plain.* string the card can ask for: its families are built from the verdict
+    (and a few fixed cases), so a typo would otherwise show a bare key to a reader."""
+    keys = {f"plain.title.{v}" for v in VERDICTS} | {"plain.title.abstained"}
+    keys |= {f"plain.fast_title.{v}" for v in VERDICTS}
+    keys |= {"plain.reason.fast", "plain.reason.abstained_Supported", "plain.reason.abstained_Refuted",
+             "plain.reason.abstained_other", "plain.reason.live_none", "plain.reason.live_Supported",
+             "plain.reason.live_Refuted"} | {f"plain.reason.{v}" for v in VERDICTS}
+    keys |= {"plain.action.Refuted", "plain.action.Supported", "plain.action.check"}
+    keys |= {f"plain.sure.{b}" for b in ("High", "Medium", "Low")}
+    keys |= {f"plain.reply.{k}" for k in ("Refuted", "Supported", "check", "source")}
+    keys |= {f"plain.{k}" for k in ("none_title", "none_note", "claim_label", "sources_label", "closest_label",
+                                    "found_label", "listen", "listen_stop", "listen_none", "copy", "copied",
+                                    "copy_failed", "details", "flags")}
+    return keys
+
+
+@pytest.mark.parametrize("locale", ["en", "hi", "pa"])
+def test_every_plain_card_string_exists_in_every_language(locale):
+    missing = sorted(_plain_keys() - _leaves(_locale(locale)))
+    assert not missing, f"{locale}.json lacks plain-card strings: {missing}"
+
+
+@pytest.mark.parametrize("locale", ["en", "hi", "pa"])
+def test_every_persuasion_technique_has_a_plain_phrase(locale):
+    assert set(_locale("en")["technique"]) == set(_locale(locale)["plain"]["technique"])
+
+
+@pytest.mark.parametrize("locale", ["hi", "pa"])
+def test_plain_strings_keep_their_placeholders(locale):
+    def flat(d, prefix=""):
+        for k, v in d.items():
+            if not k.startswith("_"):
+                yield from flat(v, f"{prefix}{k}.") if isinstance(v, dict) else [(prefix + k, v)]
+
+    en, other = dict(flat(_locale("en"))), dict(flat(_locale(locale)))
+    for key, text in en.items():
+        assert sorted(re.findall(r"\{\w+\}", text)) == sorted(re.findall(r"\{\w+\}", other[key])), key
+
+
+def test_the_main_card_has_no_technical_words_in_its_fixed_english_strings():
+    """What a grandparent reads first. The technical words belong in Details."""
+    plain = json.dumps(_locale("en")["plain"]).lower()
+    for word in ("contradict", "calibrat", "stance", "confidence", "model", "nli", "band", "explanation"):
+        assert not re.search(rf"{word}", plain), f"jargon {word!r} in the plain card strings"   # : "online" is fine
+
+
+def test_the_language_switch_and_examples_fold_exist():
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    assert all(f'data-lang="{lang}"' in html for lang in ("en", "hi", "pa"))
+    assert '<details class="examples">' in html
+
+
+def test_tap_targets_are_large_enough_for_older_hands():
+    """At least 2.6 rem (about 42 px at a 16 px root) for the buttons an ordinary reader presses."""
+    for selector in (".act", ".live-btn"):
+        block = re.search(re.escape(selector) + r"\s*\{[^}]*min-height:\s*([\d.]+)rem", CSS)
+        assert block and float(block.group(1)) >= 2.6, selector
 
 
 def test_no_confidence_cut_point_is_hard_coded():

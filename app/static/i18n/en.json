@@ -1,7 +1,7 @@
 {
   "_lang": "en",
   "title": "TruthLens",
-  "intro": "Paste a forwarded message. TruthLens checks it and shows you the sources.",
+  "intro": "Paste a message someone forwarded to you, then press the arrow. You will see whether it looks true or false, and why.",
   "placeholder": "Paste a forwarded message…",
   "send": "Send",
   "samples_label": "Try an example",
@@ -34,7 +34,7 @@
   "manipulation_title": "Persuasion techniques spotted in the message. They never change the verdict.",
   "unchecked": "{n} more claims in this message were not checked",
   "unchecked_one": "1 more claim in this message was not checked",
-  "stage_trace": "Stage trace",
+  "stage_trace": "Technical trace (for engineers)",
   "disclaimer": "TruthLens can be wrong. Check the sources.",
   "band": {
     "High": "High",
@@ -80,8 +80,8 @@
     "NotAClaim": "💬",
     "abstained": "◌"
   },
-  "live_button": "Search Wikipedia & fact-checkers",
-  "live_privacy": "This sends the claim to Wikipedia and Google Fact Check.",
+  "live_button": "Look this up online",
+  "live_privacy": "This sends only this claim to Wikipedia and Google.",
   "live_checking": "Searching online…",
   "live_used": "Checked online against: {sources}",
   "live_unavailable": "Online search isn't available right now, so the earlier answer stays.",
@@ -94,5 +94,72 @@
     "wikipedia": "Wikipedia",
     "factcheck_live": "Fact-check (live)",
     "google_factcheck": "Google Fact Check"
+  },
+  "plain": {
+    "title": {
+      "Refuted": "Probably FALSE",
+      "Supported": "Probably TRUE",
+      "Conflicting": "The sources disagree",
+      "NEI": "Not enough to decide",
+      "abstained": "Hard to say"
+    },
+    "fast_title": {
+      "Refuted": "Fact-checkers say: FALSE",
+      "Supported": "Fact-checkers say: TRUE",
+      "Conflicting": "Fact-checkers say: partly true or misleading",
+      "NEI": "Fact-checkers could not settle it"
+    },
+    "reason": {
+      "fast": "{publisher} has already checked this message.",
+      "Refuted": "The sources I found say this is not right.",
+      "Supported": "The sources I found agree with this.",
+      "Conflicting": "The sources I found do not agree with each other.",
+      "NEI": "I could not find enough to decide.",
+      "abstained_Supported": "It looks true, but I am not sure.",
+      "abstained_Refuted": "It looks false, but I am not sure.",
+      "abstained_other": "I could not find enough to be sure.",
+      "live_none": "I looked online too, and it is still hard to say. Here is what I found.",
+      "live_Supported": "I looked it up online and the sources agree with this.",
+      "live_Refuted": "I looked it up online and the sources say this is not right."
+    },
+    "action": {
+      "Refuted": "Please don't forward it.",
+      "Supported": "It looks true, but check the source before you forward it.",
+      "check": "Please check before you forward it."
+    },
+    "sure": {
+      "High": "I am quite sure.",
+      "Medium": "I am fairly sure.",
+      "Low": "I am not very sure."
+    },
+    "none_title": "Nothing to check here",
+    "none_note": "This looks like a greeting or an opinion, not something that can be checked.",
+    "claim_label": "I checked this claim:",
+    "sources_label": "Where this comes from:",
+    "found_label": "What I found:",
+    "listen": "Listen",
+    "listen_stop": "Stop",
+    "listen_none": "This device has no {lang} voice.",
+    "copy": "Copy a reply",
+    "copied": "Copied",
+    "copy_failed": "Could not copy. Please select the text yourself.",
+    "details": "Details",
+    "flags": "This message tries to {list}.",
+    "reply": {
+      "Refuted": "I checked this message with TruthLens: it looks FALSE. Please don't forward it.",
+      "Supported": "I checked this message with TruthLens: it looks true. Please check the source before you forward it.",
+      "check": "I checked this message with TruthLens: I could not confirm it. Please check before you forward it.",
+      "source": "More: {url}"
+    },
+    "technique": {
+      "Appeal_to_Time": "make you hurry",
+      "Appeal_to_Authority": "say an important person or group agrees",
+      "Appeal_to_Popularity": "say everyone believes it",
+      "Loaded_Language": "stir up strong feelings",
+      "Repetition": "repeat itself to push you",
+      "Appeal_to_Fear-Prejudice": "scare you",
+      "Exaggeration-Minimisation": "exaggerate or play things down"
+    },
+    "closest_label": "Closest sources I found:"
   }
 }

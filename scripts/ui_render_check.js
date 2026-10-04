@@ -14,12 +14,12 @@ vm.runInContext(fs.readFileSync(appPath, "utf8") + "\n;globalThis.__api = { rend
 const api = ctx.__api;
 api.setS(en); api.setBands(data.version.confidence_bands);
 const expect = {
-  fast_path: ["📰", "Already checked by", "chip Refuted"],
-  romanized_hindi: ["typed in Roman script", "chip Refuted", "Explanation in English"],
+  fast_path: ["📰", "Already checked by", "chip Refuted", "Fact-checkers say: FALSE"],
+  romanized_hindi: ["typed in Roman script", "chip Refuted", "Explanation in English", "Probably FALSE"],
   gurmukhi: ["Punjabi, Gurmukhi script", "Explanation in English"],
   claim_extraction: ["Claim: “Nimbu paani", "class=\"flags\"", "See evidence"],
-  not_a_claim: ["neutral-card", "Nothing here to fact-check"],
-  abstained: ["card abstained", "Leaning: Supported by evidence", "Not confident enough to judge"],
+  not_a_claim: ["neutral-card", "Nothing to check here"],
+  abstained: ["card plain abstained", "Hard to say", "Leaning: Supported by evidence", "Not confident enough to judge"],
 };
 let bad = 0;
 for (const r of data.responses) {

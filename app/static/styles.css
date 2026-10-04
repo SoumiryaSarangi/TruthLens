@@ -65,14 +65,14 @@ body {
      Devanagari and Gurmukhi on Windows (UI_UX.md §2). */
   font-family: system-ui, "Segoe UI", "Nirmala UI", "Noto Sans Devanagari",
                "Noto Sans Gurmukhi", sans-serif;
-  font-size: 15px;
-  line-height: 1.45;
+  font-size: 17px;
+  line-height: 1.5;
 }
 
 /* A phone-width column on a projector, full width on a phone (UI_UX.md §3). */
 .phone {
   display: flex; flex-direction: column;
-  max-width: 440px; height: 100%; margin: 0 auto;
+  max-width: 480px; height: 100%; margin: 0 auto;
   background: var(--app-bg);
   border-left: 1px solid var(--line); border-right: 1px solid var(--line);
 }
@@ -96,7 +96,7 @@ body {
          background: var(--bubble-in); border-radius: .6rem; padding: .5rem .8rem;
          font-size: .9rem; margin: 0; }
 
-.bubble { max-width: 88%; padding: .5rem .7rem; border-radius: .6rem;
+.bubble { max-width: 94%; padding: .5rem .7rem; border-radius: .6rem;
           background: var(--bubble-in); color: var(--text);
           box-shadow: 0 1px 1px rgba(0, 0, 0, .12); overflow-wrap: anywhere; }
 .bubble.out { align-self: flex-end; background: var(--bubble-out); border-top-right-radius: 0; }
@@ -195,3 +195,41 @@ mark { background: var(--mark-bg); color: var(--text); padding: 0 .1rem; }
   * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   .spinner { display: none; }
 }
+
+/* ---- The plain card (UI_UX.md §5): for people who are not engineers ------------------
+ * Big verdict word with an icon, one sentence of why, what to do, where it comes from,
+ * two buttons. Every colour is an existing token, so the contrast tests still cover it. */
+.langs { display: inline-flex; gap: .25rem; }
+.langs button { font: inherit; font-weight: 700; min-width: 2.6rem; min-height: 2.6rem;
+                border-radius: 1.3rem; border: 1px solid var(--bar-fg); background: transparent;
+                color: var(--bar-fg); cursor: pointer; }
+.langs button[aria-pressed="true"] { background: var(--bar-fg); color: var(--bar-bg); }
+
+.plain-head { margin: 0 0 .4rem; }
+.chip.big { text-transform: none; letter-spacing: 0; font-size: 1.3rem; padding: .3rem .75rem;
+            border-radius: .5rem; gap: .5rem; }
+.reason { margin: .3rem 0; font-size: 1.05rem; }
+.sure { color: var(--muted); font-size: .92rem; }
+.action { margin: .45rem 0; font-weight: 700; font-size: 1.05rem; padding-left: .6rem;
+          border-left: 4px solid var(--line); }
+.src-label { margin: .55rem 0 .1rem; font-size: .88rem; color: var(--muted); }
+.plain-sources { margin: 0 0 .3rem; padding-left: 1.2rem; }
+.plain-sources a { color: var(--link); }
+.plain-flags { margin: .45rem 0; font-size: .95rem; color: var(--conflicting-fg); }
+.claim-line { margin: .5rem 0 .2rem; font-size: .88rem; color: var(--muted); }
+
+.actions { display: flex; flex-wrap: wrap; gap: .5rem; margin: .6rem 0 .2rem; }
+.act { font: inherit; font-size: 1rem; min-height: 2.75rem; padding: .35rem 1rem; border-radius: 1.4rem;
+       border: 1px solid var(--line); background: var(--chip-bg); color: var(--chip-fg); cursor: pointer; }
+.act.on { outline: 2px solid var(--focus); }
+.act-note { margin: .2rem 0; }
+.live-btn { min-height: 2.75rem; font-size: 1rem; padding: .35rem 1rem; }
+
+details.more { margin-top: .5rem; border-top: 1px dashed var(--line); padding-top: .35rem; }
+details.more > summary { cursor: pointer; font-size: .92rem; color: var(--link); min-height: 2.2rem;
+                         display: flex; align-items: center; }
+details.more .technical { margin-top: .3rem; }
+.card.plain .disclaimer { margin-top: .5rem; }
+
+details.examples > summary { cursor: pointer; font-size: .9rem; color: var(--chip-fg); padding: .2rem 0 .4rem;
+                             min-height: 2.2rem; display: flex; align-items: center; }

@@ -1,8 +1,8 @@
 {
-  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. The live_* strings and source_name.* (live search, added 2026-10-04) were reviewed by the owner the same day; 3 corrected, 7 kept. The three live-verdict strings (live_verdict_basis, live_validated, live_no_verdict; added 2026-10-05) were reviewed by the owner the same day: all 3 corrected.",
+  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. The live_* strings and source_name.* (live search, added 2026-10-04) were reviewed by the owner the same day; 3 corrected, 7 kept. The three live-verdict strings (live_verdict_basis, live_validated, live_no_verdict; added 2026-10-05) were reviewed by the owner the same day: all 3 corrected. PLAIN-LANGUAGE CARD: the 'plain' block and the reworded intro, live_button, live_privacy and stage_trace (added 2026-10-05, machine-drafted) are NOT YET REVIEWED; listed in docs/i18n-review.md under 'plain card'.",
   "_lang": "hi",
   "title": "TruthLens",
-  "intro": "फ़ॉरवर्ड किया हुआ संदेश यहाँ पेस्ट करें। TruthLens इसकी जाँच करके स्रोत दिखाएगा।",
+  "intro": "जो संदेश आपको किसी ने भेजा है, उसे यहाँ पेस्ट करें और तीर दबाएँ। आपको दिखेगा कि वह सच लगता है या झूठ, और क्यों।",
   "placeholder": "फ़ॉरवर्ड किया हुआ संदेश…",
   "send": "भेजें",
   "samples_label": "कोई उदाहरण आज़माएँ",
@@ -35,7 +35,7 @@
   "manipulation_title": "संदेश में मनाने के कुछ तरीके दिखे। इनसे फ़ैसला नहीं बदलता।",
   "unchecked": "इस संदेश के {n} और दावे नहीं जाँचे गए",
   "unchecked_one": "इस संदेश का 1 और दावा नहीं जाँचा गया",
-  "stage_trace": "चरणों का विवरण",
+  "stage_trace": "तकनीकी ब्योरा (इंजीनियरों के लिए)",
   "disclaimer": "TruthLens ग़लत हो सकता है। स्रोत ज़रूर देखें।",
   "band": {
     "High": "उच्च",
@@ -81,8 +81,8 @@
     "NotAClaim": "💬",
     "abstained": "◌"
   },
-  "live_button": "विकिपीडिया और फ़ैक्ट-चेकर्स में खोजें",
-  "live_privacy": "यह दावा विकिपीडिया और Google Fact Check को भेजा जाएगा।",
+  "live_button": "इसे ऑनलाइन देखें",
+  "live_privacy": "इससे सिर्फ़ यही दावा विकिपीडिया और Google को भेजा जाएगा।",
   "live_checking": "ऑनलाइन खोज जारी है…",
   "live_used": "ऑनलाइन स्रोतों से जाँचा गया: {sources}",
   "live_unavailable": "ऑनलाइन खोज अभी उपलब्ध नहीं है, इसलिए पहले वाला नतीजा ही दिख रहा है।",
@@ -95,5 +95,72 @@
     "wikipedia": "विकिपीडिया",
     "factcheck_live": "फ़ैक्ट-चेक (ऑनलाइन)",
     "google_factcheck": "Google Fact Check"
+  },
+  "plain": {
+    "title": {
+      "Refuted": "संभवतः झूठ",
+      "Supported": "संभवतः सच",
+      "Conflicting": "स्रोत आपस में सहमत नहीं",
+      "NEI": "फ़ैसला करने लायक सबूत नहीं",
+      "abstained": "पक्का कहना मुश्किल है"
+    },
+    "fast_title": {
+      "Refuted": "फ़ैक्ट-चेकर कहते हैं: झूठ",
+      "Supported": "फ़ैक्ट-चेकर कहते हैं: सच",
+      "Conflicting": "फ़ैक्ट-चेकर कहते हैं: आंशिक सच या भ्रामक",
+      "NEI": "फ़ैक्ट-चेकर भी तय नहीं कर पाए"
+    },
+    "reason": {
+      "fast": "{publisher} इस संदेश की जाँच पहले ही कर चुका है।",
+      "Refuted": "मुझे जो स्रोत मिले, वे कहते हैं कि यह बात सही नहीं है।",
+      "Supported": "मुझे जो स्रोत मिले, वे इस बात से सहमत हैं।",
+      "Conflicting": "मुझे जो स्रोत मिले, वे आपस में सहमत नहीं हैं।",
+      "NEI": "फ़ैसला करने के लिए मुझे पर्याप्त जानकारी नहीं मिली।",
+      "abstained_Supported": "यह सच लगता है, लेकिन मैं पक्का नहीं हूँ।",
+      "abstained_Refuted": "यह झूठ लगता है, लेकिन मैं पक्का नहीं हूँ।",
+      "abstained_other": "पक्का कहने के लिए मुझे पर्याप्त जानकारी नहीं मिली।",
+      "live_none": "मैंने ऑनलाइन भी देखा, फिर भी पक्का कहना मुश्किल है। जो मिला, वह नीचे है।",
+      "live_Supported": "मैंने ऑनलाइन देखा और स्रोत इस बात से सहमत हैं।",
+      "live_Refuted": "मैंने ऑनलाइन देखा और स्रोत कहते हैं कि यह बात सही नहीं है।"
+    },
+    "action": {
+      "Refuted": "कृपया इसे आगे न भेजें।",
+      "Supported": "यह सच लगता है, पर आगे भेजने से पहले स्रोत देख लें।",
+      "check": "आगे भेजने से पहले कृपया जाँच लें।"
+    },
+    "sure": {
+      "High": "मुझे काफ़ी भरोसा है।",
+      "Medium": "मुझे ठीक-ठाक भरोसा है।",
+      "Low": "मुझे ज़्यादा भरोसा नहीं है।"
+    },
+    "none_title": "यहाँ जाँचने लायक कुछ नहीं है",
+    "none_note": "यह नमस्ते जैसा संदेश या कोई राय लगती है, ऐसी बात नहीं जिसकी जाँच हो सके।",
+    "claim_label": "मैंने यह दावा जाँचा:",
+    "sources_label": "यह जानकारी यहाँ से आई है:",
+    "found_label": "जो मुझे मिला:",
+    "listen": "सुनें",
+    "listen_stop": "रोकें",
+    "listen_none": "इस डिवाइस में {lang} आवाज़ नहीं है।",
+    "copy": "जवाब कॉपी करें",
+    "copied": "कॉपी हो गया",
+    "copy_failed": "कॉपी नहीं हो सका। कृपया लिखा हुआ ख़ुद चुनकर कॉपी करें।",
+    "details": "ब्योरा",
+    "flags": "यह संदेश {list} की कोशिश करता है।",
+    "reply": {
+      "Refuted": "मैंने यह संदेश TruthLens से जाँचा: यह झूठ लगता है। कृपया इसे आगे न भेजें।",
+      "Supported": "मैंने यह संदेश TruthLens से जाँचा: यह सच लगता है। आगे भेजने से पहले स्रोत देख लें।",
+      "check": "मैंने यह संदेश TruthLens से जाँचा: मैं इसकी पुष्टि नहीं कर सका। आगे भेजने से पहले कृपया जाँच लें।",
+      "source": "और जानकारी: {url}"
+    },
+    "technique": {
+      "Appeal_to_Time": "जल्दबाज़ी करवाने",
+      "Appeal_to_Authority": "किसी बड़े व्यक्ति या संस्था का नाम लेकर मनवाने",
+      "Appeal_to_Popularity": "'सब यही मानते हैं' कहकर मनवाने",
+      "Loaded_Language": "भावनाएँ भड़काने",
+      "Repetition": "बार-बार दोहराकर दबाव डालने",
+      "Appeal_to_Fear-Prejudice": "डराने",
+      "Exaggeration-Minimisation": "बढ़ा-चढ़ाकर बताने"
+    },
+    "closest_label": "सबसे क़रीबी स्रोत जो मुझे मिले:"
   }
 }
