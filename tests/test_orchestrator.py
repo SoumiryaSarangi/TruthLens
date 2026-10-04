@@ -460,3 +460,61 @@ def test_forcing_a_check_changes_nothing_when_the_gate_already_accepts(kb):
     forced = orch.verify("Were 4400 nursing posts restored?", claim_idx=7, force_claim=True)
     assert [r.verdict for r in plain.results] == [r.verdict for r in forced.results]
     assert not any("checked anyway" in (e.note or "") for e in forced.events)
+
+
+# -----------------------------------------------------------------------------
+# The similar fact-check suggestion (docs/similar-factcheck-protocol.md)
+# -----------------------------------------------------------------------------
+
+
+class _FixedMatcher:
+    """A matcher whose best fact-check always scores `score` (what the BGE-M3 gate would see)."""
+
+    impl = "fixed"
+
+    def __init__(self, score):
+        self.score = score
+
+    def top1(self, claim):
+        from pipeline.contracts import FactCheckMatch
+
+        return FactCheckMatch(factcheck_id="f1", score=self.score, verdict="Refuted", title="Is it true?",
+                              url="https://fc.example/x", publisher="BOOM", lang="en")
+
+
+def _similar(kb, score, **cfg):
+    orch = make(kb, tau_match=0.90, **cfg)
+    orch.matcher = _FixedMatcher(score)
+    return orch.verify("Were 4400 nursing posts restored?", claim_idx=7).results[0]
+
+
+def test_a_match_between_the_two_thresholds_is_offered_as_similar_not_as_a_verdict(kb):
+    result = _similar(kb, 0.80, tau_similar=0.70)
+    assert result.path == "evidence"                      # no fast-path verdict from it
+    assert result.similar_match is not None
+    assert result.similar_match.publisher == "BOOM" and result.similar_match.score == 0.80
+
+
+def test_a_match_below_tau_similar_is_not_offered(kb):
+    assert _similar(kb, 0.60, tau_similar=0.70).similar_match is None
+
+
+def test_a_match_above_tau_match_is_the_fast_path_and_carries_no_suggestion(kb):
+    result = _similar(kb, 0.95, tau_similar=0.70)
+    assert result.path == "fast" and result.similar_match is None
+
+
+def test_the_suggestion_is_off_unless_tau_similar_is_set(kb):
+    assert _similar(kb, 0.80).similar_match is None
+
+
+def test_offering_a_similar_fact_check_changes_no_decision(kb):
+    """The verdict, confidence, abstention and path are exactly what they were without it."""
+    with_it, without = _similar(kb, 0.80, tau_similar=0.70), _similar(kb, 0.80)
+    assert (with_it.path, with_it.verdict, with_it.confidence, with_it.abstained) == (
+        without.path, without.verdict, without.confidence, without.abstained)
+
+
+def test_tau_similar_does_not_move_an_existing_config_hash():
+    assert "tau_similar" not in PipelineConfig().describe()
+    assert PipelineConfig(tau_similar=0.86).describe()["tau_similar"] == 0.86

@@ -65,6 +65,9 @@ class PipelineConfig:
     # Hindi (probe run 1, docs/live-search-probe.md). True: the verdict path built
     # for the probe, adopted only if a fix passes the same rule on a fresh set.
     live_verdict: bool = False
+    # Offer the best fact-check below tau_match as "a fact-checker looked at something similar" (a
+    # suggestion, never a verdict). None = off. Chosen on dev by docs/similar-factcheck-protocol.md.
+    tau_similar: float | None = None
     # Route A of the live verdict (post-test Phase 7): translate a hi/pa claim to
     # English, search English Wikipedia too, and run the NLI in English. Only
     # meaningful with live_verdict. Left out of describe() unless on, so no
@@ -105,6 +108,8 @@ class PipelineConfig:
                "stages": dict(self.stages or {})}
         if self.live_translate:
             out["live_translate"] = True
+        if self.tau_similar is not None:
+            out["tau_similar"] = self.tau_similar
         return out
 
 
@@ -295,7 +300,10 @@ class Orchestrator:
             if result.verdict == "NotAClaim" or result.path == "fast":
                 continue                       # nothing to look up / already a fact-check
             try:
-                trace.results[i] = self._live_pass(trace, result)
+                upgraded = self._live_pass(trace, result)
+                if upgraded.similar_match is None:        # the similar fact-check survives a live look-up
+                    upgraded.similar_match = result.similar_match
+                trace.results[i] = upgraded
             except Exception as exc:           # NFR-7: the card keeps its offline answer
                 trace.record("live", "-", 0.0,
                              f"degraded: live search failed ({type(exc).__name__}); offline answer kept")
@@ -501,7 +509,16 @@ class Orchestrator:
                             getattr(self.matcher, "note", None))
         if match is not None and match.score >= self.cfg.tau_match:
             return self._from_factcheck(trace, claim, match)
+        result = self._evidence_path(trace, claim, claim_idx)
+        # A fact-check that is probably about something similar, offered to read and never believed:
+        # below tau_match there is no verdict from it, but the reader is pointed at it
+        # (docs/similar-factcheck-protocol.md). It changes nothing the evidence path decided.
+        if (self.cfg.tau_similar is not None and match is not None
+                and self.cfg.tau_similar <= match.score < self.cfg.tau_match):
+            result.similar_match = match
+        return result
 
+    def _evidence_path(self, trace: Trace, claim, claim_idx: int | None) -> ClaimResult:
         # -- evidence path ----------------------------------------------------
         # An AVeriTeC claim is ranked within its own pool; free text goes to the
         # global demo corpus when the config names one.

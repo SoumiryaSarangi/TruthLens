@@ -36,3 +36,33 @@ threshold is below 0.60, the card is NOT shipped (the dev choice did not hold ou
 The dev and test rows (threshold, coverage, precision); the 30 hoaxes of the probe answered with the card; the
 wording of the card; and the limit that precision here is measured on real MultiClaim posts, not on short clean
 statements, and that "similar" is not "the same".
+
+## Result of applying the rule (2026-10-05)
+
+Dev curve, run `da5132cee8a0` (3,153 posts): precision 0.742 at threshold 0.8517 (coverage 4.8%, 151 posts),
+0.688 at 0.8169 (9.5%), 0.661 at 0.7909, 0.651 at 0.7705 and at 0.7514 (23.8%), 0.636 at 0.7064 (38.1%), 0.599
+at 0.6678 (52.4%). **The rule picks 0.8517, rounded up to `tau_similar` = 0.86.**
+
+Test check (stored predictions, run `891eecc6a90e`, read once at the chosen threshold, not used to choose it):
+at 0.8545 coverage 4.8%, precision 0.768 (>= the 0.60 floor, so the card ships).
+
+**What this means, said plainly.** The promise made when this was proposed ("70-72% right at scores 0.75 to
+0.81, answering 10 to 24% of posts") was read from the TEST curve; the DEV curve, which governs, is lower: 65 to
+69% in that range. Under the rule as fixed, the card appears for about 4.8% of real posts (against 1.7% for the
+verdict path), and for NONE of the 30 typical hoaxes probed (their best matches score 0.55 to 0.77; short
+statements score lower against fact-check titles than long posts do). The feature is built and works; at the
+threshold the rule chose it will rarely show.
+
+**The owner's decision, not the rule's.** Lowering `tau_similar` is a one-line config change (`configs/pipeline/dev.yaml`)
+trading how often the card appears against how often it points at the wrong fact-check (dev precision is a LOWER
+bound; MultiClaim's gold set is incomplete):
+
+| tau_similar | dev coverage of real posts | dev precision | of the 30 hoaxes, cards shown |
+| --- | --- | --- | --- |
+| 0.86 (the rule) | 4.8% | 0.742 | 1 (the pineapple, already a fast-path verdict) |
+| 0.75 | 23.8% | 0.651 | 2 |
+| 0.70 | 38.1% | 0.636 | 6 |
+| 0.65 | 57.2% | 0.587 | 13 |
+
+A threshold chosen from this table is a product choice made AFTER seeing dev and test numbers, and is recorded as
+such if made.

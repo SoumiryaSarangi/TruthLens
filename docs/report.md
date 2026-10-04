@@ -312,7 +312,11 @@ pre-registered test of section 8b it said Refuted for 122 of the 125 true claims
 says "Hard to say: I couldn't find a source that checks this exact claim" and offers the online look-up; the
 system's own lean stays in Details, marked unreliable. A verdict is shown only where one was earned: a matched
 published fact-check, or the live check that passed its pre-registered test. A message the claim gate refuses
-can be sent anyway with "Check it anyway". A usability test with
+can be sent anyway with "Check it anyway". A published fact-check that scored below the fast-path bar but above a
+second, lower threshold is offered as "a fact-checker looked at something similar ... this may not be the same
+message", with the publisher's own rating; that threshold was chosen on dev by a rule fixed beforehand
+(`docs/similar-factcheck-protocol.md`) and sits at 0.86, so the card is rare (about 5% of real posts, dev precision
+0.742); lowering it trades how often it appears against how often it points at the wrong fact-check. A usability test with
 relatives, with questions and pass bars fixed beforehand, is specified in `docs/usability-test.md`;
 its results are in `docs/usability-results.md` once run. The rest of this section describes the page.
 

@@ -126,7 +126,9 @@ def _plain_keys() -> set[str]:
              "plain.reason.live_Refuted"} | {f"plain.reason.{v}" for v in VERDICTS}
     keys |= {"plain.action.Refuted", "plain.action.Supported", "plain.action.check"}
     keys |= {f"plain.sure.{b}" for b in ("High", "Medium", "Low")}
-    keys |= {f"plain.reply.{k}" for k in ("Refuted", "Supported", "check", "source")}
+    keys |= {f"plain.reply.{k}" for k in ("Refuted", "Supported", "check", "source", "similar")}
+    keys |= {"plain.title.similar", "plain.similar.reason", "plain.similar.action", "plain.similar.label"}
+    keys |= {f"plain.similar.rating.{v}" for v in VERDICTS} | {"icon.similar"}
     keys |= {f"plain.{k}" for k in ("none_title", "none_note", "claim_label", "sources_label", "closest_label",
                                     "found_label", "listen", "listen_stop", "listen_none", "copy", "copied",
                                     "copy_failed", "details", "flags", "check_anyway", "no_exact",

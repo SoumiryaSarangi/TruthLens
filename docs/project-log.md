@@ -3059,3 +3059,19 @@ number, name or full verb ("JEE paper leaked"), and accepts "JEE 2025 paper leak
 Side effect on the demo: the Roman-Hindi and long-forward chips are now honest "Hard to say" cards; the fact-checked
 chip and live results still show verdicts.
 
+### A "similar fact-check" card (2026-10-05, approved by the owner)
+
+Why: 30 typical hoaxes sent to the owner's server: 29 came back Refuted by the evidence path (a guess, now
+hidden), only 1 reached the fast path, yet the matcher alone found a relevant published fact-check for most of them at
+scores 0.55 to 0.77 (WhatsApp charging -> BOOM 0.735; Hindi version 0.668; salt-water gargling -> CheckYourFact 0.767;
+lemon water -> THIP 0.715; Hindi microchip -> AajTak 0.701). Built: `ClaimResult.similar_match` (additive; set when
+tau_similar <= best score < tau_match; changes no decision), `PipelineConfig.tau_similar` (off by default, kept out of
+the config hash), the card ("A similar claim was fact-checked ... {publisher} rated it False ... may not be the same
+message", link, reply with the link; strings en/hi/pa, hi/pa not yet reviewed), 6 orchestrator tests, a UI render check.
+**The threshold rule was fixed before the dev curve was read** (`docs/similar-factcheck-protocol.md`): lowest dev
+threshold with precision >= 0.70 = 0.8517, rounded up to **0.86**. **It disappoints, and the log says so:** my proposal
+quoted TEST numbers (70-72% right at 0.75-0.81, 10-24% of posts); the DEV curve that governs is lower (65-69%), so the rule
+gives coverage 4.8% of real posts (precision 0.742) and the card shows for none of the 30 hoaxes. A table of
+thresholds (0.86 / 0.75 / 0.70 / 0.65: coverage, precision, hoaxes served) is in the protocol; choosing a lower one is the
+owner's product decision (a one-line config change), recorded as post-hoc if made. Test check at the chosen threshold
+(stored predictions): 0.768 precision, above the 0.60 floor.

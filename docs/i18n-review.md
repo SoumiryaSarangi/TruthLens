@@ -253,3 +253,24 @@ the "NOT YET REVIEWED (added 2026-10-05...)" sentence from their `_comment`.
 | `plain.related_label` | The closest things I found (they may not be about this claim): | जो सबसे क़रीबी चीज़ें मिलीं (हो सकता है वे इस दावे के बारे में न हों): | ਜੋ ਸਭ ਤੋਂ ਨੇੜਲੀਆਂ ਚੀਜ਼ਾਂ ਮਿਲੀਆਂ (ਹੋ ਸਕਦਾ ਹੈ ਉਹ ਇਸ ਦਾਅਵੇ ਬਾਰੇ ਨਾ ਹੋਣ): | |
 | `plain.try_online` | To get a real answer, look it up online. | सही जवाब पाने के लिए इसे ऑनलाइन खोजें। | ਸਹੀ ਜਵਾਬ ਲੈਣ ਲਈ ਇਸਨੂੰ ਆਨਲਾਈਨ ਖੋਜੋ। | |
 
+---
+
+## Similar-fact-check strings: NOT YET REVIEWED (added 2026-10-05)
+
+For the card that says "a fact-checker looked at something similar" (docs/similar-factcheck-protocol.md). Machine-drafted;
+same rules as above (plain words, gender-neutral helper, placeholders `{publisher}`, `{rating}` kept). The
+`plain.similar.rating.*` words are inserted into `plain.similar.reason` and `plain.reply.similar`, so they must fit
+the sentence ("... ने उसे झूठ बताया"). After you correct them, apply to `hi.json` and `pa.json` and remove the "NOT YET
+REVIEWED (added 2026-10-05...): the 'similar fact-check' strings" sentence from their `_comment`.
+
+| key | English | Hindi | Punjabi | correction |
+| --- | --- | --- | --- | --- |
+| `plain.title.similar` | A similar claim was fact-checked | मिलते-जुलते दावे की जाँच हो चुकी है | ਮਿਲਦੇ-ਜੁਲਦੇ ਦਾਅਵੇ ਦੀ ਜਾਂਚ ਹੋ ਚੁੱਕੀ ਹੈ | |
+| `plain.similar.reason` | {publisher} looked at something similar and rated it {rating}. This may not be the same message. | {publisher} ने इससे मिलती-जुलती बात की जाँच की और उसे {rating} बताया। हो सकता है यह वही संदेश न हो। | {publisher} ਨੇ ਇਸ ਨਾਲ ਮਿਲਦੀ-ਜੁਲਦੀ ਗੱਲ ਦੀ ਜਾਂਚ ਕੀਤੀ ਅਤੇ ਉਸਨੂੰ {rating} ਦੱਸਿਆ। ਹੋ ਸਕਦਾ ਹੈ ਇਹ ਉਹੀ ਸੁਨੇਹਾ ਨਾ ਹੋਵੇ। | |
+| `plain.similar.action` | Please read it before you forward this. | इसे आगे भेजने से पहले कृपया पढ़ लें। | ਇਸਨੂੰ ਅੱਗੇ ਭੇਜਣ ਤੋਂ ਪਹਿਲਾਂ ਕਿਰਪਾ ਕਰਕੇ ਪੜ੍ਹ ਲਵੋ। | |
+| `plain.similar.label` | The fact-check: | वह फ़ैक्ट-चेक: | ਉਹ ਫ਼ੈਕਟ-ਚੈਕ: | |
+| `plain.similar.rating.Refuted` | False | झूठ | ਝੂਠ | |
+| `plain.similar.rating.Supported` | True | सच | ਸੱਚ | |
+| `plain.similar.rating.Conflicting` | partly true or misleading | आंशिक सच या भ्रामक | ਅੱਧਾ ਸੱਚ ਜਾਂ ਭਰਮਾਉਣ ਵਾਲਾ | |
+| `plain.similar.rating.NEI` | not settled | अनिर्णीत | ਤੈਅ ਨਹੀਂ | |
+| `plain.reply.similar` | I checked this message with TruthLens: a fact-checker looked at something similar and rated it {rating}. Please read it before you forward this. | मैंने इस संदेश की TruthLens से जाँच की: एक फ़ैक्ट-चेकर ने इससे मिलती-जुलती बात की जाँच की और उसे {rating} बताया। आगे भेजने से पहले कृपया इसे पढ़ लें। | ਮੈਂ ਇਸ ਸੁਨੇਹੇ ਦੀ TruthLens ਨਾਲ ਜਾਂਚ ਕੀਤੀ: ਇੱਕ ਫ਼ੈਕਟ-ਚੈਕਰ ਨੇ ਇਸ ਨਾਲ ਮਿਲਦੀ-ਜੁਲਦੀ ਗੱਲ ਦੀ ਜਾਂਚ ਕੀਤੀ ਅਤੇ ਉਸਨੂੰ {rating} ਦੱਸਿਆ। ਅੱਗੇ ਭੇਜਣ ਤੋਂ ਪਹਿਲਾਂ ਕਿਰਪਾ ਕਰਕੇ ਇਸਨੂੰ ਪੜ੍ਹ ਲਵੋ। | |

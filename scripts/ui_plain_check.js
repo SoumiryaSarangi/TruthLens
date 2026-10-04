@@ -35,6 +35,14 @@ data.responses.push(
   { shows: "live_none", body: { input: { lang: "en", script: "latn" }, unchecked_claims: [],
     results: [{ ...liveBase, verdict: "NEI", confidence: 0.0, abstained: true }] } });
 
+// A guess that came with a published fact-check scoring between tau_similar and tau_match.
+data.responses.push({ shows: "similar", body: { input: { lang: "en", script: "latn" }, unchecked_claims: [],
+  results: [{ claim: { claim_id: "c1", text: "WhatsApp will start charging users from next month" }, path: "evidence", match: null,
+    verdict: "Refuted", confidence: 0.7, abstained: false, explanation: "x", explanation_source: "template", explanation_lang: "en",
+    cited: [], passages: [], live_sources: [], manipulation_flags: [],
+    similar_match: { factcheck_id: "f1", score: 0.88, verdict: "Refuted", title: "Viral Messages Claiming WhatsApp Will Become Chargeable Are Fake",
+      url: "https://www.boomlive.in/fact-check/whatsapp-chargeable", publisher: "boomlive.in", lang: "en" } }] } });
+
 // Words an ordinary reader should never meet outside Details.
 const JARGON = [/contradict/i, /\bevidence\b/i, /calibrat/i, /\bstance\b/i, /stage trace/i, /\bNEI\b/, /\bRefutes\b/, /\bSupports\b/,
   /\bNeutral\b/, /confidence/i, /\bmodels?\b/i, /\bband\b/i, /\bHigh\b/, /\bMedium\b/, /\bLow\b/, /explanation/i,
@@ -90,6 +98,16 @@ for (const lang of ["en", "hi", "pa"]) {
       if (lang === "en" && !main.includes("live-btn")) problems.push("no 'look this up online' button on a guess");
     }
     if (r.shows === "not_a_claim" && !main.includes("act-force")) problems.push("no 'Check it anyway' button on the not-a-claim card");
+    if (r.shows === "similar") {
+      if (!main.includes("boomlive.in/fact-check/whatsapp-chargeable")) problems.push("similar: the fact-check link is missing");
+      if (!main.includes("card plain abstained")) problems.push("similar: not shown as a hedged card");
+      if (/Probably (TRUE|FALSE)|I am .* sure/i.test(body)) problems.push("similar: worded like a verdict");
+      if (!/similar/i.test(body) && lang === "en") problems.push("similar: does not say it is only similar");
+      const rating = {en: "False", hi: "झूठ", pa: "ਝੂਠ"}[lang];
+      if (!body.includes(rating)) problems.push("similar: the publisher's rating is not shown in words");
+      const reply = (main.match(/data-reply="([^"]*)"/) || [])[1] || "";
+      if (!reply.includes("boomlive.in")) problems.push("similar: the reply has no link");
+    }
     if (r.shows === "live_verdict") {
       if (!main.includes("plain-sources") || /class="sure"/.test(main)) problems.push("live verdict: sources missing, or an uncalibrated 'how sure' shown");
       if (!main.includes("Hyderabad</a>")) problems.push("live verdict: no source link");
@@ -106,7 +124,7 @@ for (const lang of ["en", "hi", "pa"]) {
 // Gurmukhi is answered in Hindi or Punjabi.
 api.setAns(null); api.setS(STR.en);
 const expectedLang = { fast_path: "en", romanized_hindi: "en", gurmukhi: "pa", claim_extraction: "en",
-  not_a_claim: "en", abstained: "pa", live_verdict: "en", live_none: "en" };
+  not_a_claim: "en", abstained: "pa", live_verdict: "en", live_none: "en", similar: "en" };
 for (const r of data.responses) {
   const html = api.render(r.body);
   const got = (html.match(/<div class="card[^"]*" (?:id="[^"]*" )?lang="(\w+)"/) || [])[1];

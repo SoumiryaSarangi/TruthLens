@@ -283,13 +283,25 @@ function plainCase(r) {
   return { kind: "verdict", v: r.verdict, live };
 }
 
-function plainTitle(c, lang) {
+/* A published fact-check that scored below the fast-path bar but above tau_similar: offered to READ, never
+ * believed. Shown on a guess or an abstained card, never over a live verdict. */
+function similarOf(c, r) {
+  return (c.kind === "lean" || c.kind === "abstained") && r.similar_match && r.similar_match.url ? r.similar_match : null;
+}
+
+function similarRating(sim, lang) {
+  return tl(lang, `plain.similar.rating.${sim.verdict}`);
+}
+
+function plainTitle(c, lang, sim) {
+  if (sim && !c.live) return tl(lang, "plain.title.similar");
   if (c.kind === "fast") return tl(lang, `plain.fast_title.${c.v}`);
   if (c.kind === "abstained" || c.kind === "lean") return tl(lang, "plain.title.abstained");
   return tl(lang, `plain.title.${c.v}`);
 }
 
-function plainReason(c, r, lang) {
+function plainReason(c, r, lang, sim) {
+  if (sim && !c.live) return tl(lang, "plain.similar.reason", { publisher: sim.publisher || "", rating: similarRating(sim, lang) });
   if (c.kind === "fast") return tl(lang, "plain.reason.fast", { publisher: r.match?.publisher || "" });
   if (c.kind === "lean") return tl(lang, "plain.no_exact");
   if (c.kind === "abstained") {
@@ -301,7 +313,8 @@ function plainReason(c, r, lang) {
   return tl(lang, `plain.reason.${c.v}`);
 }
 
-function plainAction(c, lang) {
+function plainAction(c, lang, sim) {
+  if (sim && !c.live) return tl(lang, "plain.similar.action");
   const v = c.kind === "abstained" || c.kind === "lean" ? null : c.v;
   return tl(lang, v === "Refuted" || v === "Supported" ? `plain.action.${v}` : "plain.action.check");
 }
@@ -330,7 +343,12 @@ function plainFlags(r, lang) {
   return `<p class="plain-flags"><span aria-hidden="true">⚠</span> ${esc(tl(lang, "plain.flags", { list }))}</p>`;
 }
 
-function replyText(c, sources, lang) {
+function replyText(c, sources, lang, sim) {
+  if (sim && !c.live) {
+    let text = tl(lang, "plain.reply.similar", { rating: similarRating(sim, lang) });
+    text += `\n${tl(lang, "plain.reply.source", { url: sim.url })}`;
+    return text;
+  }
   const key = c.kind === "abstained" || c.kind === "lean" ? "check" : (c.v === "Refuted" || c.v === "Supported" ? c.v : "check");
   let text = tl(lang, `plain.reply.${key}`);
   if (sources.length) text += `\n${tl(lang, "plain.reply.source", { url: sources[0].url })}`;
@@ -355,13 +373,18 @@ function plainCard(r, inp, idx) {
 
   const id = `c${++cardSeq}`;
   const bandName = bandOf(r.confidence);
-  const title = plainTitle(c, lang);
+  const sim = similarOf(c, r);
+  const title = plainTitle(c, lang, sim);
   const chipClass = c.kind === "abstained" || c.kind === "lean" ? "abstained" : (c.v === "Conflicting" || c.v === "NEI" || c.v === "Refuted"
     || c.v === "Supported" ? c.v : "NEI");
-  const icon = c.kind === "abstained" || c.kind === "lean" ? icons.abstained : icons[c.v];
-  const reason = plainReason(c, r, lang);
-  const action = plainAction(c, lang);
-  const sources = plainSources(c, r);
+  const icon = sim && !c.live ? (icons.similar || "\u2248")
+    : (c.kind === "abstained" || c.kind === "lean" ? icons.abstained : icons[c.v]);
+  const reason = plainReason(c, r, lang, sim);
+  const action = plainAction(c, lang, sim);
+  const sources = sim && !c.live && c.kind === "lean" ? [] : plainSources(c, r);   // the fact-check IS the source
+  const simHtml = sim ? `<p class="src-label">${esc(tl(lang, "plain.similar.label"))}</p>
+      <ul class="plain-sources"><li><a href="${esc(sim.url)}" target="_blank" rel="noopener">${esc(sim.title)}</a>${
+    domainOf(sim.url) ? ` <span class="domain">· ${esc(domainOf(sim.url))}</span>` : ""}</li></ul>` : "";
   // Only an offline, calibrated verdict says how sure it is; a live one is uncalibrated and says nothing.
   const sure = c.kind === "verdict" && !c.live && bandName ? tl(lang, `plain.sure.${bandName}`) : "";
   const speak = [title, reason, sure, action].filter(Boolean).join(" ");
@@ -371,6 +394,7 @@ function plainCard(r, inp, idx) {
       aria-label="${esc(t("verdict_aria", { label: title }))}"><span aria-hidden="true">${esc(icon || "")}</span>${esc(title)}</span></p>
     <p class="reason">${esc(reason)}${sure ? ` <span class="sure">${esc(sure)}</span>` : ""}</p>
     <p class="action">${esc(action)}</p>`;
+  html += simHtml;
   if (sources.length) {
     html += `<p class="src-label">${esc(tl(lang, c.kind === "lean" ? "plain.related_label"
         : (c.live || c.kind === "abstained" ? "plain.found_label"
@@ -385,7 +409,7 @@ function plainCard(r, inp, idx) {
   html += `<div class="actions">
       <button type="button" class="act act-listen" data-speak="${esc(speak)}" data-card-lang="${esc(lang)}"
         aria-label="${esc(tl(lang, "plain.listen"))}"><span aria-hidden="true">🔊</span> ${esc(tl(lang, "plain.listen"))}</button>
-      <button type="button" class="act act-copy" data-reply="${esc(replyText(c, sources, lang))}" data-card-lang="${esc(lang)}"
+      <button type="button" class="act act-copy" data-reply="${esc(replyText(c, sources, lang, sim))}" data-card-lang="${esc(lang)}"
         aria-label="${esc(tl(lang, "plain.copy"))}"><span aria-hidden="true">📋</span> ${esc(tl(lang, "plain.copy"))}</button>
     </div><p class="note act-note" hidden></p>`;
 

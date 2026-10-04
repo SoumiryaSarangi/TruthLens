@@ -110,6 +110,12 @@ inside Details ("which is NOT reliable for free text"). Reason: on free text the
 never Supported, and it refuted "Paris is the capital of France". A verdict is shown only where one was earned:
 a matched published fact-check (the fast path), or the live check that passed its pre-registered test.
 
+**A similar fact-check (2026-10-05).** When no fact-check clears the fast-path bar but the best one scores at or
+above `tau_similar` (rule and numbers: `docs/similar-factcheck-protocol.md`), a guess or abstained card says "A
+similar claim was fact-checked": "{publisher} looked at something similar and rated it False. This may not be the same
+message.", with the fact-check as a link, "Please read it before you forward this." and a ready reply that includes the
+link. The rating is the publisher's, in words, never ours; no verdict word is used. It never replaces a live verdict.
+
 A message the claim gate does not accept gets: "I didn't find a claim to check", an example of a full sentence,
 and a **"Check it anyway"** button that sends the whole text as one claim (the optional `force_claim` request
 flag, off by default and never used in an evaluation). The gate refuses short fragments such as "JEE paper

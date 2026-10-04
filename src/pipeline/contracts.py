@@ -107,6 +107,9 @@ class ClaimResult(BaseModel):
     manipulation_flags: list[str] = Field(default_factory=list)
     # Live sources consulted for this result, when the user asked for them.
     live_sources: list[str] = Field(default_factory=list)
+    # The best published fact-check when it scored below tau_match (so no fast-path verdict) but at
+    # or above tau_similar: a SUGGESTION to read, never a verdict. docs/similar-factcheck-protocol.md
+    similar_match: FactCheckMatch | None = None
 
     @field_validator("explanation_source")
     @classmethod
