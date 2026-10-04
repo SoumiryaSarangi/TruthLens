@@ -92,4 +92,17 @@ for (const lang of ["en", "hi", "pa"]) {
     if (flag === "--show" && lang !== "pa") console.log("      " + body + "\n");
   }
 }
+// Which language a card answers in when the user has NOT used the language switch: the script of the
+// message decides. Hindi or Punjabi typed in Latin letters is answered in English; Devanagari or
+// Gurmukhi is answered in Hindi or Punjabi.
+api.setAns(null); api.setS(STR.en);
+const expectedLang = { fast_path: "en", romanized_hindi: "en", gurmukhi: "pa", claim_extraction: "en",
+  not_a_claim: "en", abstained: "pa", live_verdict: "en", live_none: "en" };
+for (const r of data.responses) {
+  const html = api.render(r.body);
+  const got = (html.match(/<div class="card[^"]*" (?:id="[^"]*" )?lang="(\w+)"/) || [])[1];
+  const ok = got === expectedLang[r.shows];
+  console.log(`${ok ? "ok  " : "FAIL"} answers in ${got} (expected ${expectedLang[r.shows]}) for ${r.shows}: ${r.body.input.lang}/${r.body.input.script}`);
+  if (!ok) bad++;
+}
 process.exit(bad ? 1 : 0);

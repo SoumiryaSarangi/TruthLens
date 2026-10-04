@@ -17,7 +17,7 @@ and the report says so.
   tell me what you think it says."
 - Use the owner's laptop or phone with the app open, with the **language switch set to the
   person's own language** (EN / हिं / ਪੰ at the top).
-- Use only the app's own example messages (no personal messages, no names). Record only the
+- Use only the app's own example messages, or the Hindi sentence given for task B (no personal messages, no names). Record only the
   answers below, the language, an age band and the device; no names.
 - Ask for consent in one sentence: "I'm testing an app, not you; you can stop any time."
 
@@ -28,7 +28,7 @@ Open the "Try an example" fold and press each example, then press send. Do the t
 | Task | Example | What the card says | Expected understanding |
 | --- | --- | --- | --- |
 | A | EN, fact-checked (pineapple juice) | Fact-checkers say: FALSE | It is false; do not forward it |
-| B | Roman Hindi ("Kal se WhatsApp ke paise lagenge") or the Long forward (lemon water and cancer) | Probably FALSE, with a scare-tactic warning on the long forward | It is probably false; do not forward it |
+| B | For a Hindi reader paste "नींबू पानी पीने से कैंसर ठीक हो जाता है"; for others Roman Hindi ("Kal se WhatsApp ke paise lagenge", answered in English because it is typed in Latin letters) or the Long forward | Probably FALSE, with a scare-tactic warning on the long forward | It is probably false; do not forward it |
 | C | Thin evidence (Lahore, in Punjabi) | Hard to say, it looks true | Not sure; check before forwarding |
 | D | Greeting ("Good morning, stay blessed") | Nothing to check here | It is not a claim |
 

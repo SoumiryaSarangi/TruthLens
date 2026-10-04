@@ -104,6 +104,11 @@ recomputed, so no number can disagree with the evaluation. In order:
 
 A greeting or an opinion gets a single line: "Nothing to check here".
 
+**Which language the card speaks.** The language switch wins if the reader used it. Otherwise the
+card follows the SCRIPT of the message: Hindi or Punjabi written in Devanagari or Gurmukhi is answered in
+Hindi or Punjabi, but Hindi or Punjabi typed in Latin letters ("Kal se WhatsApp ke paise lagenge") is
+answered in English, because the sender chose Latin letters. English is answered in English.
+
 The page itself is for older readers: 17 px type, a column wide enough for it, buttons at least
 about 42 px tall, the language switch always visible, and the demo examples folded under "Try an
 example" so the first screen is a paste box and a short instruction. The test for whether it works

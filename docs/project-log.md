@@ -3003,3 +3003,11 @@ owner's review (`docs/i18n-review.md`, last section). The relatives' test is spe
 `docs/usability-test.md` (questions and pass bars fixed before testing); results go in
 `docs/usability-results.md`. Not yet checked in a real browser by me (no browser tool): the owner looks.
 
+**Plain card, same day, after the owner's review.** The owner reviewed the 55 hi/pa strings: 54 applied as given.
+Two issues recorded for them in `docs/i18n-review.md`: `plain.flags` kept as drafted because the reviewed sentence
+("... {list} करने के लिए उकसाने ...") does not fit the reviewed infinitive technique phrases, and the Punjabi
+`plain.sure.High` and `plain.sure.Medium` came out identical. New rule from the owner: a forward typed in Latin
+letters ("Kal se WhatsApp ke paise lagenge") is answered in English, and Hindi or Punjabi answers only when the
+message itself is in Devanagari or Gurmukhi (`cardLang` in `app.js`; the language switch still overrides;
+checked in `scripts/ui_plain_check.js`).
+

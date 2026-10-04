@@ -58,11 +58,16 @@ function tl(lang, key, vars = {}) {
   return key;
 }
 
-/* The language a card answers in: the switch if the user used it, otherwise the
- * language of the message itself, otherwise the interface language. */
+/* The language a card answers in. The language switch wins if the user used it. Otherwise the
+ * answer follows the SCRIPT of the message: Hindi or Punjabi written in Devanagari or Gurmukhi
+ * is answered in Hindi or Punjabi, but Hindi or Punjabi typed in Latin letters ("Kal se WhatsApp
+ * ke paise lagenge") is answered in English: the sender chose Latin letters, and English is what
+ * they can read in that script. English is answered in English. */
 function cardLang(inp) {
   if (ANSWER_LANG) return ANSWER_LANG;
-  return LANGS.includes(inp && inp.lang) ? inp.lang : UI_LANG;
+  const lang = inp && inp.lang;
+  if (lang === "hi" || lang === "pa") return inp.script === "latn" ? "en" : lang;
+  return lang === "en" ? "en" : UI_LANG;
 }
 
 function esc(s) {
