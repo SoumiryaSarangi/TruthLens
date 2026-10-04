@@ -163,17 +163,18 @@ def test_the_main_card_has_no_technical_words_in_its_fixed_english_strings():
         assert not re.search(rf"{word}", plain), f"jargon {word!r} in the plain card strings"   # : "online" is fine
 
 
-def test_the_language_switch_and_examples_fold_exist():
+def test_the_examples_fold_exists_and_there_are_no_language_buttons():
+    """The owner did not want a language switch on the page: the page follows the browser's language
+    (or ?lang=), and each answer follows its message's own script."""
     html = (STATIC / "index.html").read_text(encoding="utf-8")
-    assert all(f'data-lang="{lang}"' in html for lang in ("en", "hi", "pa"))
     assert '<details class="examples">' in html
+    assert "data-lang" not in html and "langs" not in html
 
 
-def test_tap_targets_are_large_enough_for_older_hands():
-    """At least 2.6 rem (about 42 px at a 16 px root) for the buttons an ordinary reader presses."""
-    for selector in (".act", ".live-btn"):
-        block = re.search(re.escape(selector) + r"\s*\{[^}]*min-height:\s*([\d.]+)rem", CSS)
-        assert block and float(block.group(1)) >= 2.6, selector
+def test_the_action_buttons_are_not_tiny():
+    """Listen and Copy a reply stay comfortably pressable (at least 2 rem, about 32 px)."""
+    block = re.search(r"\.act\s*\{[^}]*min-height:\s*([\d.]+)rem", CSS)
+    assert block and float(block.group(1)) >= 2.0
 
 
 def test_no_confidence_cut_point_is_hard_coded():

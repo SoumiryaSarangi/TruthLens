@@ -10,7 +10,7 @@ const $ = (id) => document.getElementById(id);
 
 let S = {};             // strings for the interface language
 let STR = {};           // all three string tables, so a card can speak its OWN language
-let UI_LANG = "en";
+let UI_LANG = "en";   // the page language: the browser's, or ?lang=hi|pa for a demo
 let ANSWER_LANG = null; // never set by the page: it is a hook for tests. The answer follows the message.
 const LANGS = ["en", "hi", "pa"];
 const SPEECH = { en: "en-IN", hi: "hi-IN", pa: "pa-IN" };
@@ -95,7 +95,6 @@ async function boot() {
   S = STR[UI_LANG];
   document.documentElement.lang = S._lang || "en";
   applyStaticStrings();
-  wireLanguageSwitch();
 
   fetch("/health").then((r) => r.json()).then((h) => {
     const ok = h.status === "ok";
@@ -119,28 +118,6 @@ async function boot() {
     .catch(() => {});
 
   fetch("/static/samples.json").then((r) => r.json()).then(renderChips).catch(() => {});
-}
-
-function wireLanguageSwitch() {
-  document.querySelectorAll("[data-lang]").forEach((b) => {
-    b.setAttribute("aria-pressed", String(b.dataset.lang === UI_LANG));
-    b.addEventListener("click", () => setLanguage(b.dataset.lang));
-  });
-}
-
-/* The language switch changes the PAGE (instruction, buttons, hints, the Details fold). It does
- * not change the answer: that follows the language and script of the message itself, so a Punjabi
- * forward can never come back in English because a button was pressed earlier. */
-function setLanguage(lang) {
-  UI_LANG = lang;
-  S = STR[lang] || S;
-  document.documentElement.lang = lang;
-  applyStaticStrings();
-  document.querySelectorAll("[data-lang]").forEach((b) =>
-    b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
-  document.querySelectorAll(".bubble.in").forEach((b) => { if (b._state) renderBubble(b); });
-  const health = $("health-text");
-  if (health && health.dataset.key) health.textContent = t(health.dataset.key);
 }
 
 function renderChips(samples) {

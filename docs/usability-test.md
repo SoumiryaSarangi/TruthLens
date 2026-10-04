@@ -15,9 +15,9 @@ and the report says so.
   than English, and (if possible) one older than 60.
 - The owner sits beside them and does **not** explain the screen. Say only: "Please read this and
   tell me what you think it says."
-- Use the owner's laptop or phone with the app open, with the **page language set to the
-  person's own language** (EN / हिं / ਪੰ at the top; it changes the page only, the answers follow
-  each message's own language and script).
+- Use the owner's laptop or phone with the app open, with the page open (its language follows
+  the browser, or add `?lang=hi` or `?lang=pa` to the address for a Hindi or Punjabi page; the answers
+  follow each message's own language and script).
 - Use only the app's own example messages, or the Hindi sentence given for task B (no personal messages, no names). Record only the
   answers below, the language, an age band and the device; no names.
 - Ask for consent in one sentence: "I'm testing an app, not you; you can stop any time."

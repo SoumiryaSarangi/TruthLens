@@ -110,8 +110,8 @@ Hindi or Punjabi, but Hindi or Punjabi typed in Latin letters ("Kal se WhatsApp 
 answered in English, because the sender chose Latin letters. English is answered in English.
 
 The page itself is for older readers: 17 px type, a column wide enough for it, buttons at least
-about 42 px tall, the language switch (EN / हिं / ਪੰ, with the full language name as its label) always
-visible and changing only the PAGE (instruction, buttons, hints, the Details fold), and the demo examples folded under "Try an
+comfortable to press, and no language buttons (the owner did not want them: the page follows the
+browser's language, or `?lang=hi|pa` for a demo, and each answer follows its message's own script), and the demo examples folded under "Try an
 example" so the first screen is a paste box and a short instruction. The test for whether it works
 is `docs/usability-test.md` (relatives, with pass bars fixed before testing).
 

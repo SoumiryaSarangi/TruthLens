@@ -3030,3 +3030,11 @@ the evaluation runs, which never come through the API, and every reported number
 server: both forms now give Refuted at 0.43. The evaluation pipeline itself still does not normalize (frozen); it is
 a limitation worth a sentence if a reviewer asks why a retyped claim can change an answer.
 
+**Language buttons removed and the earlier look restored (2026-10-05, owner's request).** The owner never wanted
+the three language buttons (they were in my plan as "comfort for older readers", approved only in general) and
+preferred the earlier sizes. Removed: the buttons and their code, and the larger type (15 px), the wider column
+(440 px) and wider bubbles (88%) are back, with the plain card's elements scaled to match. Kept as built: the plain
+card, the "Try an example" fold, Details, Listen, Copy a reply. The page language follows the browser or `?lang=`;
+the answer follows the message's script. The tap-target test was relaxed (buttons at least 2 rem) and a test now
+guards that no language buttons come back.
+
