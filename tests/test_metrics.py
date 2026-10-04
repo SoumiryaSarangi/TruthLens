@@ -441,3 +441,30 @@ def test_paired_bootstrap_of_a_clearly_better_system_excludes_zero():
     y = ["A", "B"] * 50
     out = paired_bootstrap_delta(y, y, ["A"] * 100, ["A", "B"], n_resamples=200)
     assert out["delta"] > 0 and out["ci95_low"] > 0 and out["p_a_better"] == 1.0
+
+
+import eval.metrics as M  # noqa: E402
+
+# -- false-label rate (live verdict on FEVER) ----------------------------------
+
+
+def test_wilson_interval_matches_a_hand_computed_value():
+    lo, hi = M.wilson_interval(4, 200)          # 2%: Wilson (0.0078, 0.0503)
+    assert lo == pytest.approx(0.0078, abs=5e-4) and hi == pytest.approx(0.0503, abs=5e-4)
+    assert M.wilson_interval(3, 200)[1] < 0.05 < M.wilson_interval(4, 200)[1]   # the protocol's cut
+    assert M.wilson_interval(0, 0) == (0.0, 0.0)
+    assert M.wilson_interval(0, 50)[0] == pytest.approx(0.0) and M.wilson_interval(50, 50)[1] == pytest.approx(1.0)
+
+
+def test_false_label_rate_counts_only_rows_whose_gold_is_something_else():
+    y_true = ["Supported", "Supported", "Refuted", "Refuted", "NEI", "NEI"]
+    y_pred = ["Supported", "Refuted", "Supported", "Refuted", "Supported", "NEI"]
+    out = M.false_label_rate(y_true, y_pred, "Supported")
+    assert out["k"] == 2 and out["n"] == 4 and out["rate"] == 0.5     # the true claim doesn't count
+    assert out["wilson_lo"] < 0.5 < out["wilson_hi"]
+
+
+def test_classification_metrics_reports_it_only_when_asked():
+    base = M.classification_metrics(["A", "B"], ["A", "B"], ["A", "B"])
+    asked = M.classification_metrics(["A", "B"], ["A", "A"], ["A", "B"], false_label="A")
+    assert "false_label_rate" not in base and asked["false_label_rate"]["k"] == 1.0

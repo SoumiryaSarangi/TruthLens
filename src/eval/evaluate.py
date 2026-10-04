@@ -371,6 +371,7 @@ def score_classification(
     def compute(indices) -> dict[str, Any]:
         out = M.classification_metrics(
             [y_true[i] for i in indices], [y_pred[i] for i in indices], labels,
+            false_label=cfg.get("false_label"),
         )
         if confidences is not None:
             cal = M.calibration_metrics(

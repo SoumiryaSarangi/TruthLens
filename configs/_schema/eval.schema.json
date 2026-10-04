@@ -192,6 +192,10 @@
       "type": "integer",
       "minimum": 100,
       "description": "Resamples for a paired-bootstrap 95% CI on the macro-F1 delta against a prior-run (config_hash) baseline. Classification only; refuses if the baseline's predictions changed. Not in DEFAULTS."
+    },
+    "false_label": {
+      "type": "string",
+      "description": "Classification only: also report the share of rows whose gold is NOT this label that were predicted as it, with a 95% Wilson interval (for `Supported`: the false-Supported rate)."
     }
   },
   "allOf": [

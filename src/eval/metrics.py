@@ -127,16 +127,42 @@ def accuracy(y_true: Sequence[str], y_pred: Sequence[str]) -> float:
     return sum(1 for g, p in zip(y_true, y_pred) if g == p) / len(y_true)
 
 
+def wilson_interval(k: int, n: int, z: float = 1.959964) -> tuple[float, float]:
+    """95% Wilson score interval for k successes in n trials ((0, 0) when n is 0)."""
+    if n <= 0:
+        return 0.0, 0.0
+    p = k / n
+    denom = 1 + z * z / n
+    centre = (p + z * z / (2 * n)) / denom
+    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / denom
+    return max(0.0, centre - half), min(1.0, centre + half)
+
+
+def false_label_rate(y_true: Sequence[str], y_pred: Sequence[str], label: str) -> dict[str, float]:
+    """Of the rows whose gold is NOT `label`, the share predicted `label`, with its
+    95% Wilson interval. For `Supported` this is the false-Supported rate: a false
+    or unverifiable claim called true, the worst error a misinformation tool makes."""
+    others = [(t, p) for t, p in zip(y_true, y_pred, strict=True) if t != label]
+    k = sum(1 for _, p in others if p == label)
+    lo, hi = wilson_interval(k, len(others))
+    return {"k": float(k), "n": float(len(others)),
+            "rate": k / len(others) if others else 0.0, "wilson_lo": lo, "wilson_hi": hi}
+
+
 def classification_metrics(
     y_true: Sequence[str], y_pred: Sequence[str], labels: Sequence[str],
+    false_label: str | None = None,
 ) -> dict[str, Any]:
-    return {
+    out = {
         "n": float(len(y_true)),
         "accuracy": accuracy(y_true, y_pred),
         "macro_f1": macro_f1(y_true, y_pred, labels),
         "per_class": per_class_scores(y_true, y_pred, labels),
         "confusion": confusion_matrix(y_true, y_pred, labels),
     }
+    if false_label is not None:
+        out["false_label_rate"] = false_label_rate(y_true, y_pred, false_label)
+    return out
 
 
 # -----------------------------------------------------------------------------

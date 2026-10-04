@@ -67,7 +67,8 @@ goes to V1 (the simplest). The chosen variant is run on `fever_confirm` exactly 
 A variant is ADOPTED only if all three hold:
 
 1. **False-Supported rate.** Among the 200 claims whose gold is Refuted or NEI, the
-   share answered Supported has a 95% Wilson upper bound <= 5% (at most 4 of 200).
+   share answered Supported has a 95% Wilson upper bound <= 5%. That is at most 3 of 200 (4 of 200 has an
+   upper bound of 5.03% and fails).
 2. **Accuracy on answered claims** (a claim is answered if the verdict is Supported or
    Refuted) >= 80%, and higher than V0's accuracy on the same claims' answered subset.
 3. **Hindi and Punjabi.** In each 60-claim round-trip subset, at most 2 false-Supported
@@ -95,3 +96,11 @@ A claim whose evidence was not fetched because a source returned HTTP 429 or a n
 error is re-run once after a pause and counted once (as in the probe runs; both runs are
 kept). Nothing else is re-run. Bugs in the harness found before `fever_confirm` is run
 are fixed and logged; after that, none.
+
+## Corrections after commit (logged, none after any run)
+
+- 2026-10-04, before any code or data: the first version said "at most 4 of 200" for the
+  false-Supported bound. 4/200 has a Wilson upper bound of 5.03%, which is above 5%, so
+  the rule as stated (upper bound <= 5%) allows at most 3. The parenthetical was an
+  arithmetic slip, not a change of rule; the rule's wording is unchanged.
+
