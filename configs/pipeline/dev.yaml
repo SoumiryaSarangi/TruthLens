@@ -29,10 +29,11 @@ k: 10
 # Phase 4 entry in docs/project-log.md.
 tau_match: 0.90
 # tau_similar: a fact-check scoring between this and tau_match is offered as "a fact-checker looked at something
-# similar" (a suggestion to read, never a verdict). The rule was fixed BEFORE the dev curve was read
-# (docs/similar-factcheck-protocol.md): the lowest dev threshold whose precision is still >= 0.70. The dev
-# curve (run da5132cee8a0) gives 0.8517 (precision 0.742, coverage 4.8% of posts), rounded up to 0.86.
-tau_similar: 0.86
+# similar" (a suggestion to read, never a verdict). The rule fixed BEFORE the dev curve was read
+# (docs/similar-factcheck-protocol.md) gives 0.86 (dev precision 0.742, 4.8% of posts). THE OWNER CHOSE 0.70
+# (dev precision 0.636, 38.1% of posts) on 2026-10-05, after seeing the dev and test numbers: a product decision
+# made post hoc and recorded as such, not a rule result. 0.86 restores the rule's choice.
+tau_similar: 0.70
 
 # tau_abstain (FR-14): chosen on DEV by the criterion fixed in the Phase 6 plan
 # before any number was seen -- the lowest tau whose coverage is <= 60% -- on the

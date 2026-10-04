@@ -72,6 +72,22 @@ class FactCheckMatch(BaseModel):
     lang: Lang
 
 
+class SimilarMatch(BaseModel):
+    """The best published fact-check offered as "a fact-checker looked at something similar".
+
+    Like FactCheckMatch but the rating may be absent: a fact-check whose rating cannot be mapped to
+    a verdict is still worth reading, and the suggestion makes no verdict from it.
+    """
+
+    factcheck_id: str
+    score: float
+    verdict: Verdict | None = None
+    title: str
+    url: str
+    publisher: str
+    lang: Lang
+
+
 class Passage(BaseModel):
     passage_id: str
     doc_id: str
@@ -109,7 +125,7 @@ class ClaimResult(BaseModel):
     live_sources: list[str] = Field(default_factory=list)
     # The best published fact-check when it scored below tau_match (so no fast-path verdict) but at
     # or above tau_similar: a SUGGESTION to read, never a verdict. docs/similar-factcheck-protocol.md
-    similar_match: FactCheckMatch | None = None
+    similar_match: SimilarMatch | None = None
 
     @field_validator("explanation_source")
     @classmethod

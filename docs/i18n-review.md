@@ -274,3 +274,20 @@ REVIEWED (added 2026-10-05...): the 'similar fact-check' strings" sentence from 
 | `plain.similar.rating.Conflicting` | partly true or misleading | आंशिक सच या भ्रामक | ਅੱਧਾ ਸੱਚ ਜਾਂ ਭਰਮਾਉਣ ਵਾਲਾ | |
 | `plain.similar.rating.NEI` | not settled | अनिर्णीत | ਤੈਅ ਨਹੀਂ | |
 | `plain.reply.similar` | I checked this message with TruthLens: a fact-checker looked at something similar and rated it {rating}. Please read it before you forward this. | मैंने इस संदेश की TruthLens से जाँच की: एक फ़ैक्ट-चेकर ने इससे मिलती-जुलती बात की जाँच की और उसे {rating} बताया। आगे भेजने से पहले कृपया इसे पढ़ लें। | ਮੈਂ ਇਸ ਸੁਨੇਹੇ ਦੀ TruthLens ਨਾਲ ਜਾਂਚ ਕੀਤੀ: ਇੱਕ ਫ਼ੈਕਟ-ਚੈਕਰ ਨੇ ਇਸ ਨਾਲ ਮਿਲਦੀ-ਜੁਲਦੀ ਗੱਲ ਦੀ ਜਾਂਚ ਕੀਤੀ ਅਤੇ ਉਸਨੂੰ {rating} ਦੱਸਿਆ। ਅੱਗੇ ਭੇਜਣ ਤੋਂ ਪਹਿਲਾਂ ਕਿਰਪਾ ਕਰਕੇ ਇਸਨੂੰ ਪੜ੍ਹ ਲਵੋ। | |
+
+---
+
+## "Be careful" and unrated-suggestion strings: NOT YET REVIEWED (added 2026-10-05)
+
+`plain.title.careful` and `plain.reason.careful` replace "Hard to say" for the case where the offline guess leaned false: they
+say the system could not confirm the claim and that most messages like this turn out to be false. `plain.similar.reason_unrated`
+and `plain.reply.similar_unrated` are for a similar fact-check whose rating cannot be mapped. Machine-drafted; same rules as
+above. Apply your corrections to `hi.json` and `pa.json` and remove the matching "NOT YET REVIEWED (added 2026-10-05..." sentences
+from their `_comment`.
+
+| key | English | Hindi | Punjabi | correction |
+| --- | --- | --- | --- | --- |
+| `plain.title.careful` | Be careful with this one | इस संदेश से सावधान रहें | ਇਸ ਸੁਨੇਹੇ ਤੋਂ ਸਾਵਧਾਨ ਰਹੋ | |
+| `plain.reason.careful` | I couldn't find a source that checks this exact claim. Most messages like this turn out to be false. | मुझे ऐसा कोई स्रोत नहीं मिला जो ठीक इसी दावे की जाँच करता हो। इस तरह के ज़्यादातर संदेश झूठे निकलते हैं। | ਮੈਨੂੰ ਅਜਿਹਾ ਕੋਈ ਸਰੋਤ ਨਹੀਂ ਮਿਲਿਆ ਜੋ ਠੀਕ ਇਸੇ ਦਾਅਵੇ ਦੀ ਜਾਂਚ ਕਰਦਾ ਹੋਵੇ। ਇਸ ਤਰ੍ਹਾਂ ਦੇ ਜ਼ਿਆਦਾਤਰ ਸੁਨੇਹੇ ਝੂਠੇ ਨਿਕਲਦੇ ਹਨ। | |
+| `plain.similar.reason_unrated` | {publisher} looked at something similar. This may not be the same message. | {publisher} ने इससे मिलती-जुलती बात की जाँच की है। हो सकता है यह वही संदेश न हो। | {publisher} ਨੇ ਇਸ ਨਾਲ ਮਿਲਦੀ-ਜੁਲਦੀ ਗੱਲ ਦੀ ਜਾਂਚ ਕੀਤੀ ਹੈ। ਹੋ ਸਕਦਾ ਹੈ ਇਹ ਉਹੀ ਸੁਨੇਹਾ ਨਾ ਹੋਵੇ। | |
+| `plain.reply.similar_unrated` | I checked this message with TruthLens: a fact-checker looked at something similar. Please read it before you forward this. | मैंने इस संदेश की TruthLens से जाँच की: एक फ़ैक्ट-चेकर ने इससे मिलती-जुलती बात की जाँच की है। आगे भेजने से पहले कृपया इसे पढ़ लें। | ਮੈਂ ਇਸ ਸੁਨੇਹੇ ਦੀ TruthLens ਨਾਲ ਜਾਂਚ ਕੀਤੀ: ਇੱਕ ਫ਼ੈਕਟ-ਚੈਕਰ ਨੇ ਇਸ ਨਾਲ ਮਿਲਦੀ-ਜੁਲਦੀ ਗੱਲ ਦੀ ਜਾਂਚ ਕੀਤੀ ਹੈ। ਅੱਗੇ ਭੇਜਣ ਤੋਂ ਪਹਿਲਾਂ ਕਿਰਪਾ ਕਰਕੇ ਇਸਨੂੰ ਪੜ੍ਹ ਲਵੋ। | |

@@ -12,7 +12,7 @@ never silently implies a fast path was tried and missed.
 
 from __future__ import annotations
 
-from pipeline.contracts import Claim, FactCheckMatch
+from pipeline.contracts import Claim, FactCheckMatch, SimilarMatch
 
 
 class NoMatcher:
@@ -31,4 +31,7 @@ class NoMatcher:
         """
 
     def top1(self, claim: Claim) -> FactCheckMatch | None:
+        return None
+
+    def similar(self, claim: Claim) -> SimilarMatch | None:
         return None

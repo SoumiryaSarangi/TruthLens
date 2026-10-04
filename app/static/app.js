@@ -290,19 +290,32 @@ function similarOf(c, r) {
 }
 
 function similarRating(sim, lang) {
-  return tl(lang, `plain.similar.rating.${sim.verdict}`);
+  return sim.verdict ? tl(lang, `plain.similar.rating.${sim.verdict}`) : "";
+}
+
+/* The offline guess leaned "false" (it does for almost everything: most forwards ARE false). That is
+ * not a finding about THIS message, so it is shown as a warning, not as a verdict. */
+function isCareful(c) {
+  return c.kind === "lean" && c.v === "Refuted";
 }
 
 function plainTitle(c, lang, sim) {
   if (sim && !c.live) return tl(lang, "plain.title.similar");
+  if (isCareful(c)) return tl(lang, "plain.title.careful");
   if (c.kind === "fast") return tl(lang, `plain.fast_title.${c.v}`);
   if (c.kind === "abstained" || c.kind === "lean") return tl(lang, "plain.title.abstained");
   return tl(lang, `plain.title.${c.v}`);
 }
 
 function plainReason(c, r, lang, sim) {
-  if (sim && !c.live) return tl(lang, "plain.similar.reason", { publisher: sim.publisher || "", rating: similarRating(sim, lang) });
+  if (sim && !c.live) {
+    // A fact-check whose rating cannot be mapped is still offered, without "rated it ...".
+    return sim.verdict
+      ? tl(lang, "plain.similar.reason", { publisher: sim.publisher || "", rating: similarRating(sim, lang) })
+      : tl(lang, "plain.similar.reason_unrated", { publisher: sim.publisher || "" });
+  }
   if (c.kind === "fast") return tl(lang, "plain.reason.fast", { publisher: r.match?.publisher || "" });
+  if (isCareful(c)) return tl(lang, "plain.reason.careful");
   if (c.kind === "lean") return tl(lang, "plain.no_exact");
   if (c.kind === "abstained") {
     if (c.live) return tl(lang, "plain.reason.live_none");
@@ -345,7 +358,8 @@ function plainFlags(r, lang) {
 
 function replyText(c, sources, lang, sim) {
   if (sim && !c.live) {
-    let text = tl(lang, "plain.reply.similar", { rating: similarRating(sim, lang) });
+    let text = sim.verdict ? tl(lang, "plain.reply.similar", { rating: similarRating(sim, lang) })
+      : tl(lang, "plain.reply.similar_unrated");
     text += `\n${tl(lang, "plain.reply.source", { url: sim.url })}`;
     return text;
   }
@@ -375,10 +389,11 @@ function plainCard(r, inp, idx) {
   const bandName = bandOf(r.confidence);
   const sim = similarOf(c, r);
   const title = plainTitle(c, lang, sim);
-  const chipClass = c.kind === "abstained" || c.kind === "lean" ? "abstained" : (c.v === "Conflicting" || c.v === "NEI" || c.v === "Refuted"
+  const chipClass = isCareful(c) ? "Conflicting" : c.kind === "abstained" || c.kind === "lean" ? "abstained" : (c.v === "Conflicting" || c.v === "NEI" || c.v === "Refuted"
     || c.v === "Supported" ? c.v : "NEI");
   const icon = sim && !c.live ? (icons.similar || "\u2248")
-    : (c.kind === "abstained" || c.kind === "lean" ? icons.abstained : icons[c.v]);
+    : (isCareful(c) ? (icons.careful || "\u26a0")
+      : (c.kind === "abstained" || c.kind === "lean" ? icons.abstained : icons[c.v]));
   const reason = plainReason(c, r, lang, sim);
   const action = plainAction(c, lang, sim);
   const sources = sim && !c.live && c.kind === "lean" ? [] : plainSources(c, r);   // the fact-check IS the source

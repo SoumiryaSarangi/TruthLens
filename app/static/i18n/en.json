@@ -79,7 +79,8 @@
     "NEI": "?",
     "NotAClaim": "💬",
     "abstained": "◌",
-    "similar": "≈"
+    "similar": "≈",
+    "careful": "⚠"
   },
   "live_button": "Look this up online",
   "live_privacy": "This sends only this claim to Wikipedia and Google.",
@@ -103,7 +104,8 @@
       "Conflicting": "The sources disagree",
       "NEI": "Not enough to decide",
       "abstained": "Hard to say",
-      "similar": "A similar claim was fact-checked"
+      "similar": "A similar claim was fact-checked",
+      "careful": "Be careful with this one"
     },
     "fast_title": {
       "Refuted": "Fact-checkers say: FALSE",
@@ -122,7 +124,8 @@
       "abstained_other": "I could not find enough to be sure.",
       "live_none": "I looked online too, and it is still hard to say. Here is what I found.",
       "live_Supported": "I looked it up online and the sources agree with this.",
-      "live_Refuted": "I looked it up online and the sources say this is not right."
+      "live_Refuted": "I looked it up online and the sources say this is not right.",
+      "careful": "I couldn't find a source that checks this exact claim. Most messages like this turn out to be false."
     },
     "action": {
       "Refuted": "Please don't forward it.",
@@ -152,7 +155,8 @@
       "Supported": "I checked this message with TruthLens: it looks true. Please check the source before you forward it.",
       "check": "I checked this message with TruthLens: I could not confirm it. Please check before you forward it.",
       "source": "More: {url}",
-      "similar": "I checked this message with TruthLens: a fact-checker looked at something similar and rated it {rating}. Please read it before you forward this."
+      "similar": "I checked this message with TruthLens: a fact-checker looked at something similar and rated it {rating}. Please read it before you forward this.",
+      "similar_unrated": "I checked this message with TruthLens: a fact-checker looked at something similar. Please read it before you forward this."
     },
     "technique": {
       "Appeal_to_Time": "make you hurry",
@@ -177,7 +181,8 @@
         "Supported": "True",
         "Conflicting": "partly true or misleading",
         "NEI": "not settled"
-      }
+      },
+      "reason_unrated": "{publisher} looked at something similar. This may not be the same message."
     }
   },
   "lean_note": "The system's own lean, which is NOT reliable for free text: {label}."

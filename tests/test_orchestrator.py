@@ -475,11 +475,19 @@ class _FixedMatcher:
     def __init__(self, score):
         self.score = score
 
+    verdict = "Refuted"
+
     def top1(self, claim):
         from pipeline.contracts import FactCheckMatch
 
         return FactCheckMatch(factcheck_id="f1", score=self.score, verdict="Refuted", title="Is it true?",
                               url="https://fc.example/x", publisher="BOOM", lang="en")
+
+    def similar(self, claim):
+        from pipeline.contracts import SimilarMatch
+
+        return SimilarMatch(factcheck_id="f1", score=self.score, verdict=self.verdict, title="Is it true?",
+                            url="https://fc.example/x", publisher="BOOM", lang="en")
 
 
 def _similar(kb, score, **cfg):
@@ -518,3 +526,25 @@ def test_offering_a_similar_fact_check_changes_no_decision(kb):
 def test_tau_similar_does_not_move_an_existing_config_hash():
     assert "tau_similar" not in PipelineConfig().describe()
     assert PipelineConfig(tau_similar=0.86).describe()["tau_similar"] == 0.86
+
+
+def test_a_fact_check_whose_rating_cannot_be_mapped_is_still_offered_without_a_rating(kb):
+    """'Garlic COVID cure claim crushed by experts' (0.756) has no mappable rating, and is the right fact-check."""
+    orch = make(kb, tau_match=0.90, tau_similar=0.70)
+    matcher = _FixedMatcher(0.76)
+    matcher.verdict = None
+    orch.matcher = matcher
+    result = orch.verify("Were 4400 nursing posts restored?", claim_idx=7).results[0]
+    assert result.similar_match is not None and result.similar_match.verdict is None
+    assert result.path == "evidence"                       # still no verdict taken from it
+
+
+def test_a_matcher_that_fails_when_asked_for_a_suggestion_offers_none(kb):
+    class Broken(_FixedMatcher):
+        def similar(self, claim):
+            raise RuntimeError("index unavailable")
+
+    orch = make(kb, tau_match=0.90, tau_similar=0.70)
+    orch.matcher = Broken(0.80)
+    assert orch.verify("Were 4400 nursing posts restored?", claim_idx=7).results[0].similar_match is None
+

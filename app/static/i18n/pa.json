@@ -1,5 +1,5 @@
 {
-  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. The live_* strings and source_name.* (live search, added 2026-10-04) were reviewed by the owner the same day; 3 corrected, 7 kept. The three live-verdict strings (live_verdict_basis, live_validated, live_no_verdict; added 2026-10-05) were reviewed by the owner the same day: all 3 corrected. The plain-card strings (the 'plain' block and the reworded intro, live_button, live_privacy and stage_trace; added 2026-10-05) were reviewed by the owner the same day: all corrected as given; plain.flags kept by the owner's decision; masculine first-person forms replaced by gender-neutral ones the same day. NOT YET REVIEWED (added 2026-10-05, machine-drafted): lean_note, and plain.none_title, none_note (reworded), check_anyway, no_exact, related_label, try_online. NOT YET REVIEWED (added 2026-10-05, machine-drafted): the 'similar fact-check' strings (plain.title.similar, plain.similar.*, plain.reply.similar).",
+  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. The live_* strings and source_name.* (live search, added 2026-10-04) were reviewed by the owner the same day; 3 corrected, 7 kept. The three live-verdict strings (live_verdict_basis, live_validated, live_no_verdict; added 2026-10-05) were reviewed by the owner the same day: all 3 corrected. The plain-card strings (the 'plain' block and the reworded intro, live_button, live_privacy and stage_trace; added 2026-10-05) were reviewed by the owner the same day: all corrected as given; plain.flags kept by the owner's decision; masculine first-person forms replaced by gender-neutral ones the same day. NOT YET REVIEWED (added 2026-10-05, machine-drafted): lean_note, and plain.none_title, none_note (reworded), check_anyway, no_exact, related_label, try_online. NOT YET REVIEWED (added 2026-10-05, machine-drafted): the 'similar fact-check' strings (plain.title.similar, plain.similar.*, plain.reply.similar). NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.title.careful, plain.reason.careful. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.similar.reason_unrated, plain.reply.similar_unrated.",
   "_lang": "pa",
   "title": "TruthLens",
   "intro": "ਜੋ ਸੁਨੇਹਾ ਤੁਹਾਨੂੰ ਕਿਸੇ ਨੇ ਭੇਜਿਆ ਹੈ, ਉਹ ਇੱਥੇ ਪੇਸਟ ਕਰੋ ਅਤੇ ਤੀਰ ਦਬਾਓ। ਤੁਹਾਨੂੰ ਦਿਖੇਗਾ ਕਿ ਉਹ ਸੱਚ ਜਾਂ ਝੂਠ ਲੱਗਦਾ ਹੈ ਅਤੇ ਕਿਉਂ।",
@@ -80,7 +80,8 @@
     "NEI": "?",
     "NotAClaim": "💬",
     "abstained": "◌",
-    "similar": "≈"
+    "similar": "≈",
+    "careful": "⚠"
   },
   "live_button": "ਇਸ ਨੂੰ ਆਨਲਾਈਨ ਖੋਜੋ",
   "live_privacy": "ਇਸ ਨਾਲ ਸਿਰਫ਼ ਇਹੀ ਦਾਅਵਾ ਵਿਕੀਪੀਡੀਆ ਅਤੇ Google ਨੂੰ ਭੇਜਿਆ ਜਾਵੇਗਾ।",
@@ -104,7 +105,8 @@
       "Conflicting": "ਸਰੋਤ ਆਪਸ ਵਿੱਚ ਸਹਿਮਤ ਨਹੀਂ ਹਨ",
       "NEI": "ਫ਼ੈਸਲਾ ਕਰਨ ਲਈ ਕਾਫ਼ੀ ਸਬੂਤ ਨਹੀਂ ਹਨ",
       "abstained": "ਪੱਕਾ ਕਹਿਣਾ ਔਖਾ ਹੈ",
-      "similar": "ਮਿਲਦੇ-ਜੁਲਦੇ ਦਾਅਵੇ ਦੀ ਜਾਂਚ ਹੋ ਚੁੱਕੀ ਹੈ"
+      "similar": "ਮਿਲਦੇ-ਜੁਲਦੇ ਦਾਅਵੇ ਦੀ ਜਾਂਚ ਹੋ ਚੁੱਕੀ ਹੈ",
+      "careful": "ਇਸ ਸੁਨੇਹੇ ਤੋਂ ਸਾਵਧਾਨ ਰਹੋ"
     },
     "fast_title": {
       "Refuted": "ਫ਼ੈਕਟ-ਚੈਕਰ ਕਹਿੰਦੇ ਹਨ: ਝੂਠ",
@@ -123,7 +125,8 @@
       "abstained_other": "ਪੱਕਾ ਕਹਿਣ ਲਈ ਮੈਨੂੰ ਕਾਫ਼ੀ ਜਾਣਕਾਰੀ ਨਹੀਂ ਮਿਲੀ।",
       "live_none": "ਮੈਂ ਆਨਲਾਈਨ ਵੀ ਵੇਖਿਆ, ਫਿਰ ਵੀ ਪੱਕਾ ਕਹਿਣਾ ਔਖਾ ਹੈ। ਮੈਨੂੰ ਜੋ ਮਿਲਿਆ, ਉਹ ਹੇਠਾਂ ਹੈ।",
       "live_Supported": "ਮੈਂ ਆਨਲਾਈਨ ਵੇਖਿਆ ਅਤੇ ਸਰੋਤ ਵੀ ਇਸ ਗੱਲ ਦਾ ਸਮਰਥਨ ਕਰਦੇ ਹਨ।",
-      "live_Refuted": "ਮੈਂ ਆਨਲਾਈਨ ਵੇਖਿਆ ਅਤੇ ਸਰੋਤ ਕਹਿੰਦੇ ਹਨ ਕਿ ਇਹ ਗੱਲ ਠੀਕ ਨਹੀਂ ਹੈ।"
+      "live_Refuted": "ਮੈਂ ਆਨਲਾਈਨ ਵੇਖਿਆ ਅਤੇ ਸਰੋਤ ਕਹਿੰਦੇ ਹਨ ਕਿ ਇਹ ਗੱਲ ਠੀਕ ਨਹੀਂ ਹੈ।",
+      "careful": "ਮੈਨੂੰ ਅਜਿਹਾ ਕੋਈ ਸਰੋਤ ਨਹੀਂ ਮਿਲਿਆ ਜੋ ਠੀਕ ਇਸੇ ਦਾਅਵੇ ਦੀ ਜਾਂਚ ਕਰਦਾ ਹੋਵੇ। ਇਸ ਤਰ੍ਹਾਂ ਦੇ ਜ਼ਿਆਦਾਤਰ ਸੁਨੇਹੇ ਝੂਠੇ ਨਿਕਲਦੇ ਹਨ।"
     },
     "action": {
       "Refuted": "ਕਿਰਪਾ ਕਰਕੇ ਇਸਨੂੰ ਅੱਗੇ ਨਾ ਭੇਜੋ।",
@@ -153,7 +156,8 @@
       "Supported": "ਮੈਂ ਇਸ ਸੁਨੇਹੇ ਦੀ TruthLens ਨਾਲ ਜਾਂਚ ਕੀਤੀ: ਇਹ ਸੱਚ ਲੱਗਦਾ ਹੈ। ਅੱਗੇ ਭੇਜਣ ਤੋਂ ਪਹਿਲਾਂ ਸਰੋਤ ਵੇਖ ਲਵੋ।",
       "check": "ਮੈਂ ਇਸ ਸੁਨੇਹੇ ਦੀ TruthLens ਨਾਲ ਜਾਂਚ ਕੀਤੀ: ਇਸ ਦੀ ਪੁਸ਼ਟੀ ਨਹੀਂ ਹੋ ਸਕੀ। ਅੱਗੇ ਭੇਜਣ ਤੋਂ ਪਹਿਲਾਂ ਕਿਰਪਾ ਕਰਕੇ ਜਾਂਚ ਲਵੋ।",
       "source": "ਹੋਰ ਜਾਣਕਾਰੀ: {url}",
-      "similar": "ਮੈਂ ਇਸ ਸੁਨੇਹੇ ਦੀ TruthLens ਨਾਲ ਜਾਂਚ ਕੀਤੀ: ਇੱਕ ਫ਼ੈਕਟ-ਚੈਕਰ ਨੇ ਇਸ ਨਾਲ ਮਿਲਦੀ-ਜੁਲਦੀ ਗੱਲ ਦੀ ਜਾਂਚ ਕੀਤੀ ਅਤੇ ਉਸਨੂੰ {rating} ਦੱਸਿਆ। ਅੱਗੇ ਭੇਜਣ ਤੋਂ ਪਹਿਲਾਂ ਕਿਰਪਾ ਕਰਕੇ ਇਸਨੂੰ ਪੜ੍ਹ ਲਵੋ।"
+      "similar": "ਮੈਂ ਇਸ ਸੁਨੇਹੇ ਦੀ TruthLens ਨਾਲ ਜਾਂਚ ਕੀਤੀ: ਇੱਕ ਫ਼ੈਕਟ-ਚੈਕਰ ਨੇ ਇਸ ਨਾਲ ਮਿਲਦੀ-ਜੁਲਦੀ ਗੱਲ ਦੀ ਜਾਂਚ ਕੀਤੀ ਅਤੇ ਉਸਨੂੰ {rating} ਦੱਸਿਆ। ਅੱਗੇ ਭੇਜਣ ਤੋਂ ਪਹਿਲਾਂ ਕਿਰਪਾ ਕਰਕੇ ਇਸਨੂੰ ਪੜ੍ਹ ਲਵੋ।",
+      "similar_unrated": "ਮੈਂ ਇਸ ਸੁਨੇਹੇ ਦੀ TruthLens ਨਾਲ ਜਾਂਚ ਕੀਤੀ: ਇੱਕ ਫ਼ੈਕਟ-ਚੈਕਰ ਨੇ ਇਸ ਨਾਲ ਮਿਲਦੀ-ਜੁਲਦੀ ਗੱਲ ਦੀ ਜਾਂਚ ਕੀਤੀ ਹੈ। ਅੱਗੇ ਭੇਜਣ ਤੋਂ ਪਹਿਲਾਂ ਕਿਰਪਾ ਕਰਕੇ ਇਸਨੂੰ ਪੜ੍ਹ ਲਵੋ।"
     },
     "technique": {
       "Appeal_to_Time": "ਕਾਹਲੀ ਕਰਵਾਉਣ",
@@ -178,7 +182,8 @@
         "Supported": "ਸੱਚ",
         "Conflicting": "ਅੱਧਾ ਸੱਚ ਜਾਂ ਭਰਮਾਉਣ ਵਾਲਾ",
         "NEI": "ਤੈਅ ਨਹੀਂ"
-      }
+      },
+      "reason_unrated": "{publisher} ਨੇ ਇਸ ਨਾਲ ਮਿਲਦੀ-ਜੁਲਦੀ ਗੱਲ ਦੀ ਜਾਂਚ ਕੀਤੀ ਹੈ। ਹੋ ਸਕਦਾ ਹੈ ਇਹ ਉਹੀ ਸੁਨੇਹਾ ਨਾ ਹੋਵੇ।"
     }
   },
   "lean_note": "ਸਿਸਟਮ ਦਾ ਆਪਣਾ ਝੁਕਾਅ, ਜੋ ਖੁੱਲ੍ਹੇ ਪਾਠ ਲਈ ਭਰੋਸੇਯੋਗ ਨਹੀਂ ਹੈ: {label}।"

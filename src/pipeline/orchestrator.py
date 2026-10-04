@@ -513,10 +513,21 @@ class Orchestrator:
         # A fact-check that is probably about something similar, offered to read and never believed:
         # below tau_match there is no verdict from it, but the reader is pointed at it
         # (docs/similar-factcheck-protocol.md). It changes nothing the evidence path decided.
-        if (self.cfg.tau_similar is not None and match is not None
-                and self.cfg.tau_similar <= match.score < self.cfg.tau_match):
-            result.similar_match = match
+        if self.cfg.tau_similar is not None:
+            sim = self._similar_candidate(claim)
+            if sim is not None and self.cfg.tau_similar <= sim.score < self.cfg.tau_match:
+                result.similar_match = sim
         return result
+
+    def _similar_candidate(self, claim):
+        """The matcher's best fact-check as a suggestion; a matcher without one, or one that fails, offers none."""
+        offer = getattr(self.matcher, "similar", None)
+        if offer is None:
+            return None
+        try:
+            return offer(claim)
+        except Exception:
+            return None
 
     def _evidence_path(self, trace: Trace, claim, claim_idx: int | None) -> ClaimResult:
         # -- evidence path ----------------------------------------------------

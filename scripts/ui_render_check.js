@@ -15,7 +15,7 @@ const api = ctx.__api;
 api.setS(en); api.setBands(data.version.confidence_bands);
 const expect = {
   fast_path: ["📰", "Already checked by", "chip Refuted", "Fact-checkers say: FALSE"],
-  romanized_hindi: ["typed in Roman script", "chip Refuted", "Explanation in English", "Hard to say"],
+  romanized_hindi: ["typed in Roman script", "chip Refuted", "Explanation in English", "Be careful with this one"],
   gurmukhi: ["Punjabi, Gurmukhi script", "Explanation in English"],
   claim_extraction: ["Claim: “Nimbu paani", "class=\"flags\"", "See evidence"],
   not_a_claim: ["neutral-card", "find a claim to check", "Check it anyway"],

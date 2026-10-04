@@ -102,10 +102,12 @@ recomputed, so no number can disagree with the evaluation. In order:
     Nothing was removed; it moved.
 
 **An offline evidence-path result is NEVER shown as a verdict (decided 2026-10-05).** When there is no
-matched published fact-check and no live result, the card says "Hard to say: I couldn't find a source that
-checks this exact claim", lists the closest things found ("they may not be about this claim"), offers "Look this
-up online" with the reason ("To get a real answer, look it up online"), and keeps the system's own lean only
-inside Details ("which is NOT reliable for free text"). Reason: on free text the evidence path mostly reflects
+matched published fact-check and no live result, the card does not say "Probably false". If the system's lean was
+"false" (it is, for almost everything, because most forwards ARE false) the card says **"Be careful with this
+one": "I couldn't find a source that checks this exact claim. Most messages like this turn out to be false."**
+in an amber chip; any other lean is "Hard to say". Either way it lists the closest things found ("they may not be
+about this claim"), offers "Look this up online" with the reason ("To get a real answer, look it up online"), and
+keeps the system's own lean only inside Details ("which is NOT reliable for free text"). Reason: on free text the evidence path mostly reflects
 "forwarded claims are usually false"; in the pre-registered test it said Refuted for 122 of 125 TRUE claims and
 never Supported, and it refuted "Paris is the capital of France". A verdict is shown only where one was earned:
 a matched published fact-check (the fast path), or the live check that passed its pre-registered test.
@@ -115,6 +117,8 @@ above `tau_similar` (rule and numbers: `docs/similar-factcheck-protocol.md`), a 
 similar claim was fact-checked": "{publisher} looked at something similar and rated it False. This may not be the same
 message.", with the fact-check as a link, "Please read it before you forward this." and a ready reply that includes the
 link. The rating is the publisher's, in words, never ours; no verdict word is used. It never replaces a live verdict.
+When the fact-check's own rating cannot be mapped to True/False, it is still offered, without "rated it ...":
+"{publisher} looked at something similar. This may not be the same message."
 
 A message the claim gate does not accept gets: "I didn't find a claim to check", an example of a full sentence,
 and a **"Check it anyway"** button that sends the whole text as one claim (the optional `force_claim` request

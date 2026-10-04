@@ -3075,3 +3075,18 @@ gives coverage 4.8% of real posts (precision 0.742) and the card shows for none 
 thresholds (0.86 / 0.75 / 0.70 / 0.65: coverage, precision, hoaxes served) is in the protocol; choosing a lower one is the
 owner's product decision (a one-line config change), recorded as post-hoc if made. Test check at the chosen threshold
 (stored predictions): 0.768 precision, above the 0.60 floor.
+
+### "Be careful" wording, tau_similar 0.70, unrated suggestions (2026-10-05, the owner's call)
+
+The owner objected that "Hard to say" everywhere makes a poor demo and a poor product, and asked for the old answers back.
+Declined to bring back "Probably false" (the old path says false to everything: 122 of 125 true claims in the test, Paris, methylphenidate),
+and explained that its demo "successes" were hoaxes, which are false. Offered and approved: (1) tau_similar **0.70** (the
+owner's product decision after seeing the table; the rule gave 0.86; recorded as post hoc in `docs/similar-factcheck-protocol.md`);
+(2) the guess that leans false is shown as **"Be careful with this one: I couldn't find a source that checks this exact claim.
+Most messages like this turn out to be false."** (amber), which is all the guess ever knew; other leans stay "Hard to say".
+Found while testing: `top1` drops a best match whose rating cannot be mapped (the garlic fact-check, 0.756), so the suggestion
+now uses `FactCheckMatcher.similar` (new; `top1` and all evaluation untouched) and can be shown without a rating
+(`SimilarMatch`, 2 more tests). The owner's offline question "could a claim ever be true without checking online?": only
+via a matched fact-check rated true or the Lahore-style lean; Supported was never said in 350 claims. Result on the 30 hoaxes
+through the real preprocess, claim gate, extraction and matcher (CPU): 1 fast-path verdict + 6 similar cards = 7 of 30
+get a real source, 22 get the careful warning, 1 is refused by the gate. New hi/pa strings await review.

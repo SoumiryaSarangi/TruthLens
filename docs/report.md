@@ -304,7 +304,8 @@ group). The technical card the project measured (verdict class, confidence band,
 evidence trail) sits in a closed "Details" fold, so nothing was removed. The wording says "probably"
 and "the sources I found": it reports what sources say, never the truth.
 
-**The evidence-path guess is not shown as an answer.** The owner's own questions ("Has NEET paper ever been
+**The evidence-path guess is not shown as an answer.** (It is shown as "Be careful with this one: I couldn't find a source
+that checks this exact claim; most messages like this turn out to be false", which is the only thing the guess ever knew.) The owner's own questions ("Has NEET paper ever been
 leaked?", "Methyl Phenidate is good medicine for ADHD", and a trivially true "Paris is the capital of France")
 were all answered "Refuted" with unrelated or off-claim sources. That is the section 1 finding seen from the
 user's side: on free text the offline verdict mostly reflects "forwarded claims are usually false" (in the

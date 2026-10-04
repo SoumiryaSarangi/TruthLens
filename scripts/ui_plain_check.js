@@ -43,6 +43,14 @@ data.responses.push({ shows: "similar", body: { input: { lang: "en", script: "la
     similar_match: { factcheck_id: "f1", score: 0.88, verdict: "Refuted", title: "Viral Messages Claiming WhatsApp Will Become Chargeable Are Fake",
       url: "https://www.boomlive.in/fact-check/whatsapp-chargeable", publisher: "boomlive.in", lang: "en" } }] } });
 
+// The same, when the fact-check's own rating cannot be mapped to a verdict: no "rated it ...", still a link.
+data.responses.push({ shows: "similar_unrated", body: { input: { lang: "en", script: "latn" }, unchecked_claims: [],
+  results: [{ claim: { claim_id: "c1", text: "Eating garlic cures COVID-19" }, path: "evidence", match: null,
+    verdict: "Refuted", confidence: 0.7, abstained: false, explanation: "x", explanation_source: "template", explanation_lang: "en",
+    cited: [], passages: [], live_sources: [], manipulation_flags: [],
+    similar_match: { factcheck_id: "f2", score: 0.756, verdict: null, title: "Garlic COVID cure claim crushed by experts",
+      url: "https://www.aap.com.au/factcheck/garlic", publisher: "aap.com.au", lang: "en" } }] } });
+
 // Words an ordinary reader should never meet outside Details.
 const JARGON = [/contradict/i, /\bevidence\b/i, /calibrat/i, /\bstance\b/i, /stage trace/i, /\bNEI\b/, /\bRefutes\b/, /\bSupports\b/,
   /\bNeutral\b/, /confidence/i, /\bmodels?\b/i, /\bband\b/i, /\bHigh\b/, /\bMedium\b/, /\bLow\b/, /explanation/i,
@@ -93,7 +101,8 @@ for (const lang of ["en", "hi", "pa"]) {
     // the live button offered, the system's lean only inside Details.
     if (r.shows === "romanized_hindi" || r.shows === "claim_extraction") {
       if (!main.includes("card plain abstained")) problems.push("an offline guess is not shown as an abstained, hedged card");
-      if (/Probably|quite sure|fairly sure|not very sure|I am .* sure|TRUE|FALSE/i.test(body.replace(/“[^”]*”/g, ""))) problems.push("an offline guess is worded like a verdict");
+      if (/Probably|quite sure|fairly sure|not very sure|I am .* sure/i.test(body.replace(/“[^”]*”/g, ""))) problems.push("an offline guess is worded like a verdict");
+      if (lang === "en" && !/Be careful with this one/.test(body)) problems.push("a guess that leans false is not shown as a warning");
       if (!details.includes('class="note lean"')) problems.push("the system's lean is missing from Details");
       if (lang === "en" && !main.includes("live-btn")) problems.push("no 'look this up online' button on a guess");
     }
@@ -107,6 +116,11 @@ for (const lang of ["en", "hi", "pa"]) {
       if (!body.includes(rating)) problems.push("similar: the publisher's rating is not shown in words");
       const reply = (main.match(/data-reply="([^"]*)"/) || [])[1] || "";
       if (!reply.includes("boomlive.in")) problems.push("similar: the reply has no link");
+    }
+    if (r.shows === "similar_unrated") {
+      if (!main.includes("aap.com.au/factcheck/garlic")) problems.push("unrated similar: the fact-check link is missing");
+      if (/rated it|\{rating\}|undefined/i.test(body)) problems.push("unrated similar: claims a rating it does not have");
+      if (!/similar|मिलत|ਮਿਲਦ/.test(body)) problems.push("unrated similar: does not say it is only similar");
     }
     if (r.shows === "live_verdict") {
       if (!main.includes("plain-sources") || /class="sure"/.test(main)) problems.push("live verdict: sources missing, or an uncalibrated 'how sure' shown");
@@ -124,7 +138,7 @@ for (const lang of ["en", "hi", "pa"]) {
 // Gurmukhi is answered in Hindi or Punjabi.
 api.setAns(null); api.setS(STR.en);
 const expectedLang = { fast_path: "en", romanized_hindi: "en", gurmukhi: "pa", claim_extraction: "en",
-  not_a_claim: "en", abstained: "pa", live_verdict: "en", live_none: "en", similar: "en" };
+  not_a_claim: "en", abstained: "pa", live_verdict: "en", live_none: "en", similar: "en", similar_unrated: "en" };
 for (const r of data.responses) {
   const html = api.render(r.body);
   const got = (html.match(/<div class="card[^"]*" (?:id="[^"]*" )?lang="(\w+)"/) || [])[1];

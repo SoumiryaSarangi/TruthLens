@@ -66,3 +66,24 @@ bound; MultiClaim's gold set is incomplete):
 
 A threshold chosen from this table is a product choice made AFTER seeing dev and test numbers, and is recorded as
 such if made.
+
+## The owner's decision (2026-10-05): tau_similar = 0.70, and unrated fact-checks are offered too
+
+Shown the table above, the owner chose **0.70** (dev precision 0.636, 38.1% of real posts). This is a PRODUCT decision
+made after seeing the dev and test numbers, recorded as post hoc, not a result of the rule (which gave 0.86); setting
+`tau_similar: 0.86` in `configs/pipeline/dev.yaml` restores the rule's choice.
+
+**A second change, found by looking at the 30 hoaxes:** `FactCheckMatcher.top1` drops a candidate whose rating cannot be
+mapped to a verdict, but several of the best matches are exactly those ("Garlic COVID cure claim crushed by experts", 0.756,
+"Bill Gates Did NOT Invent Computer Viruses ...", 0.719). A suggestion makes no verdict, so `FactCheckMatcher.similar` (new,
+used only for the suggestion; `top1` and every evaluation path are untouched) offers the best candidate with or without a
+rating; with none the card says "{publisher} looked at something similar. This may not be the same message." and does not
+claim a rating. The dev curve's precision was measured on the candidates `top1` returned; including unrated ones is a
+small, unmeasured extension.
+
+**The 30 typical hoaxes through the real stages (preprocess, claim gate, claim extraction, matcher), 2026-10-05:**
+1 fast-path verdict (the pineapple juice), **6 similar fact-check cards** (gargling salt water -> CheckYourFact, rated False;
+WhatsApp will start charging -> BOOM, rated False; lemon water cures cancer -> THIP Media, rated False; the Hindi microchip
+claim -> AajTak, rated False; garlic cures COVID-19 -> AAP, unrated; "Bill Gates created the coronavirus" -> Lead Stories, unrated,
+and that one is about a different Gates claim, which is why the card says "may not be the same message"), 22 "Be careful with
+this one" and 1 refused by the claim gate ("Vaccines cause autism"). So 7 of 30 (23%) now get a real source.

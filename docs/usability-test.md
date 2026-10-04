@@ -29,7 +29,7 @@ Open the "Try an example" fold and press each example, then press send. Do the t
 | Task | Example | What the card says | Expected understanding |
 | --- | --- | --- | --- |
 | A | EN, fact-checked (pineapple juice) | Fact-checkers say: FALSE | It is false; do not forward it |
-| B | For a Hindi reader paste "नींबू पानी पीने से कैंसर ठीक हो जाता है"; for others Roman Hindi ("Kal se WhatsApp ke paise lagenge", answered in English because it is typed in Latin letters) or the Long forward | Hard to say: "I couldn't find a source that checks this exact claim", a warning in words if the message tries to scare, and a "Look this up online" button | The app cannot tell; check before forwarding |
+| B | For a Hindi reader paste "नींबू पानी पीने से कैंसर ठीक हो जाता है"; for others Roman Hindi ("Kal se WhatsApp ke paise lagenge", answered in English because it is typed in Latin letters) or the Long forward | "Be careful with this one: I couldn't find a source that checks this exact claim. Most messages like this turn out to be false.", a warning in words if the message tries to scare, and a "Look this up online" button | The app could not confirm it; be careful and check before forwarding |
 | C | Thin evidence (Lahore, in Punjabi) | Hard to say, it looks true | Not sure; check before forwarding |
 | D | Greeting ("Good morning, stay blessed") | "I didn't find a claim to check", with a "Check it anyway" button | It is not a claim |
 | E | Type "Hyderabad is the capital of Telangana", press send, then "Look this up online" (needs the network and the key in `.env`; press it once beforehand so the answer is cached) | Probably TRUE, with a line saying how it was found and how it was tested | It looks true; still check the source |

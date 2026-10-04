@@ -37,7 +37,7 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
-from pipeline.contracts import Claim, FactCheckMatch
+from pipeline.contracts import Claim, FactCheckMatch, SimilarMatch
 
 INDEX_DIR = Path("data/interim/index")
 META = "factcheck_meta.jsonl"
@@ -161,10 +161,33 @@ class FactCheckMatcher:
         """
         meta = self._load_meta()
         ranked = self.rank_batch(texts)
+        # Kept for `similar`, so the same request does not search the index twice.
+        self._last_ranked = dict(zip(texts, ranked, strict=True))
         out: list[FactCheckMatch | None] = []
         for candidates in ranked:
             out.append(self._to_match(candidates, meta))
         return out
+
+    def similar(self, claim: Claim) -> SimilarMatch | None:
+        """The best candidate as a SUGGESTION, whether or not its rating maps to a verdict.
+
+        `top1` drops a candidate whose rating does not map (it must not answer with an unrated
+        match, and it must not walk down the ranking). A suggestion makes no verdict, so an unrated
+        fact-check ("Garlic COVID cure claim crushed by experts", 0.756) is still worth showing.
+        """
+        ranked = getattr(self, "_last_ranked", {}).get(claim.text)
+        if ranked is None:
+            ranked = self.rank_batch([claim.text])[0]
+        if not ranked:
+            return None
+        doc_id, score = ranked[0]
+        info = self._load_meta().get(doc_id)
+        if info is None or not info.url:
+            return None
+        return SimilarMatch(
+            factcheck_id=doc_id, score=score, verdict=info.verdict, title=info.title, url=info.url,
+            publisher=info.publisher or "a fact-checker",
+            lang=info.lang if info.lang in SUPPORTED_LANGS else "other")
 
     def rank_batch(self, texts: list[str]) -> list[list[tuple[str, float]]]:
         """(doc_id, score) per query, best first, after any reranking."""
