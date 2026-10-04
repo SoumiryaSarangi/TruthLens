@@ -118,14 +118,16 @@ would change that technical meaning to "tested".
 
 ---
 
-## Live verdict strings: NOT YET REVIEWED (added 2026-10-05, when the live verdict shipped)
+## Live verdict strings: REVIEWED and applied (added and reviewed 2026-10-05)
 
-Machine-drafted, same tone as above (plain words, neutral constructions). They appear on a
-card the user got by pressing the live-search button. The numbers in `live_validated` (350
-claims, 94%, 3 in 10) come from the pre-registered test in `docs/live-fever-protocol-2.md`
-and must change together with it. Please review before any demo that clicks the button on a
-claim that gets a verdict, then apply corrections to `app/static/i18n/hi.json` and `pa.json`
-and remove the "NOT YET REVIEWED" sentence from their `_comment`.
+Machine-drafted, then reviewed by the owner on 2026-10-05: **all 3 corrected**, none kept. The
+table shows the drafts; the corrected text is in `app/static/i18n/hi.json` and `pa.json`. The
+numbers in `live_validated` (350 claims, 94%, 3 in 10) come from the pre-registered test in
+`docs/live-fever-protocol-2.md` and must change together with it. Reasons given: "से निकला /
+ਤੋਂ ਆਇਆ" read as literal and "जिनका सहमत होना / ਜਿਨ੍ਹਾਂ ਦਾ ਸਹਿਮਤ ਹੋਣਾ" as unnatural (now "पर आधारित /
+'ਤੇ ਆਧਾਰਿਤ" and "दोनों का सहमत होना / ਦੋਵਾਂ ਦੀ ਸਹਿਮਤੀ"); "जब यह नतीजा देता था / ਜਦੋਂ ਇਹ ਨਤੀਜਾ ਦਿੰਦਾ
+ਸੀ" read as machine-like (the conditional is now explicit, figures unchanged); "उन्हें / ਉਨ੍ਹਾਂ ਨੂੰ"
+added so "were not sure enough" is explicit.
 
 | key | English | Hindi | Punjabi | correction |
 | --- | --- | --- | --- | --- |

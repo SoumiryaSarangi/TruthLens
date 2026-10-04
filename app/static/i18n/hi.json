@@ -1,5 +1,5 @@
 {
-  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. The live_* strings and source_name.* (live search, added 2026-10-04) were reviewed by the owner the same day; 3 corrected, 7 kept. NOT YET REVIEWED: live_verdict_basis, live_validated and live_no_verdict (added 2026-10-05 when the live verdict shipped); machine-drafted, listed in docs/i18n-review.md under 'live verdict'.",
+  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. The live_* strings and source_name.* (live search, added 2026-10-04) were reviewed by the owner the same day; 3 corrected, 7 kept. The three live-verdict strings (live_verdict_basis, live_validated, live_no_verdict; added 2026-10-05) were reviewed by the owner the same day: all 3 corrected.",
   "_lang": "hi",
   "title": "TruthLens",
   "intro": "फ़ॉरवर्ड किया हुआ संदेश यहाँ पेस्ट करें। TruthLens इसकी जाँच करके स्रोत दिखाएगा।",
@@ -88,9 +88,9 @@
   "live_unavailable": "ऑनलाइन खोज अभी उपलब्ध नहीं है, इसलिए पहले वाला नतीजा ही दिख रहा है।",
   "live_attribution": "विकिपीडिया का पाठ CC BY-SA 4.0 लाइसेंस के तहत उपलब्ध है।",
   "live_uncalibrated": "ऑनलाइन नतीजों के लिए भरोसे का स्तर कैलिब्रेट नहीं किया गया है।",
-  "live_verdict_basis": "यह नतीजा विकिपीडिया के पाठ से निकला है, जिसे दो मॉडलों ने पढ़ा और जिनका सहमत होना ज़रूरी था।",
-  "live_validated": "350 दावों के परीक्षण में, जब यह नतीजा देता था तो लगभग 94% बार सही था, और यह करीब 10 में से 3 दावों पर ही नतीजा देता था।",
-  "live_no_verdict": "दोनों मॉडल सहमत नहीं हुए या पर्याप्त भरोसा नहीं था, इसलिए कोई नतीजा नहीं दिया गया। स्रोत पढ़ें।",
+  "live_verdict_basis": "यह नतीजा विकिपीडिया के पाठ पर आधारित है, जिसे दो मॉडलों ने पढ़ा और दोनों का सहमत होना ज़रूरी था।",
+  "live_validated": "350 दावों के परीक्षण में, जब नतीजा दिया गया, तो वह लगभग 94% बार सही था और 10 में से केवल करीब 3 दावों पर ही नतीजा दिया गया।",
+  "live_no_verdict": "दोनों मॉडल सहमत नहीं हुए, या उन्हें पर्याप्त भरोसा नहीं था, इसलिए कोई नतीजा नहीं दिया गया। स्रोत पढ़ें।",
   "source_name": {
     "wikipedia": "विकिपीडिया",
     "factcheck_live": "फ़ैक्ट-चेक (ऑनलाइन)",

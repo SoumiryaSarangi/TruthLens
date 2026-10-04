@@ -43,7 +43,8 @@ const cases = [
 ];
 let bad = 0;
 for (const [name, out, want, notWant] of cases) {
-  const missing = want.filter((s) => !out.includes(s)), present = notWant.filter((s) => out.includes(s));
+  const escaped = (x) => x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  const missing = want.filter((s) => !out.includes(s) && !out.includes(escaped(s))), present = notWant.filter((s) => out.includes(s));
   const text = out.replace(/<[^>]+>/g, " ");
   const junk = text.match(/undefined|NaN|\{[a-z_]+\}/g);
   const problems = [...missing.map((m) => `missing ${m}`), ...present.map((p) => `unexpected ${p}`), ...(junk ? [`junk ${junk}`] : [])];

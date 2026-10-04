@@ -120,8 +120,7 @@ Wikipedia/Google Fact Check search). **Live search now gives a VERDICT, under a 
 pre-registered and passed** (entry "Live verdict shipped" at the bottom; report §8b;
 `docs/live-fever-protocol-2.md`). **Do not change the served model or any reported number:
 the test split is spent**, and the live verdict never runs in an evaluation. What remains:
-(1) the owner reviews the three NEW hi/pa live-verdict strings (`docs/i18n-review.md`, last
-section); (2) the demo (`UI_UX.md` §11): run `python scripts/demo_check.py` first (must print
+the demo (`UI_UX.md` §11): run `python scripts/demo_check.py` first (must print
 OK), then `make serve` (or `.venv\Scripts\python.exe scripts\serve.py`), click each chip once
 to load every model; the live models load in the background about 40 s after the server is ready.
 
@@ -2812,9 +2811,7 @@ complete.** The remaining FR-6 limitation is a data problem with a named owner:
 Everything planned is done (Phases 1-7, the one test run, the report, the acceptance
 matrix). What remains, in order:
 
-1. **Owner:** review the three NEW hi/pa live-verdict strings (`docs/i18n-review.md`, last
-   section; keys `live_verdict_basis`, `live_validated`, `live_no_verdict`) and apply the
-   corrections to `app/static/i18n/{hi,pa}.json`, removing the NOT YET REVIEWED sentence.
+1. ~~Owner: review the three new hi/pa live-verdict strings~~ Done 2026-10-05 (all 3 corrected).
 2. **The demo** (`UI_UX.md` §11): `python scripts/demo_check.py` must print OK; then
    `make serve`; click each chip once so every model is loaded (first requests take
    30+ s). Order: greeting, fact-checked, Roman Hindi, thin evidence. The live-search

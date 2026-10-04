@@ -1,5 +1,5 @@
 {
-  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. The live_* strings and source_name.* (live search, added 2026-10-04) were reviewed by the owner the same day; 3 corrected, 7 kept. NOT YET REVIEWED: live_verdict_basis, live_validated and live_no_verdict (added 2026-10-05 when the live verdict shipped); machine-drafted, listed in docs/i18n-review.md under 'live verdict'.",
+  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. The live_* strings and source_name.* (live search, added 2026-10-04) were reviewed by the owner the same day; 3 corrected, 7 kept. The three live-verdict strings (live_verdict_basis, live_validated, live_no_verdict; added 2026-10-05) were reviewed by the owner the same day: all 3 corrected.",
   "_lang": "pa",
   "title": "TruthLens",
   "intro": "ਫਾਰਵਰਡ ਕੀਤਾ ਸੁਨੇਹਾ ਇੱਥੇ ਪੇਸਟ ਕਰੋ। TruthLens ਇਸ ਦੀ ਜਾਂਚ ਕਰਕੇ ਸਰੋਤ ਦਿਖਾਏਗਾ।",
@@ -88,9 +88,9 @@
   "live_unavailable": "ਆਨਲਾਈਨ ਖੋਜ ਹੁਣ ਉਪਲਬਧ ਨਹੀਂ, ਇਸ ਲਈ ਪਹਿਲਾਂ ਵਾਲਾ ਨਤੀਜਾ ਹੀ ਦਿਖ ਰਿਹਾ ਹੈ।",
   "live_attribution": "ਵਿਕੀਪੀਡੀਆ ਦਾ ਪਾਠ CC BY-SA 4.0 ਲਾਇਸੈਂਸ ਅਧੀਨ ਉਪਲਬਧ ਹੈ।",
   "live_uncalibrated": "ਆਨਲਾਈਨ ਨਤੀਜਿਆਂ ਲਈ ਭਰੋਸੇ ਦਾ ਪੱਧਰ ਕੈਲੀਬ੍ਰੇਟ ਨਹੀਂ ਕੀਤਾ ਗਿਆ।",
-  "live_verdict_basis": "ਇਹ ਨਤੀਜਾ ਵਿਕੀਪੀਡੀਆ ਦੇ ਪਾਠ ਤੋਂ ਆਇਆ ਹੈ, ਜਿਸਨੂੰ ਦੋ ਮਾਡਲਾਂ ਨੇ ਪੜ੍ਹਿਆ ਅਤੇ ਜਿਨ੍ਹਾਂ ਦਾ ਸਹਿਮਤ ਹੋਣਾ ਲਾਜ਼ਮੀ ਸੀ।",
-  "live_validated": "350 ਦਾਅਵਿਆਂ ਦੇ ਟੈਸਟ ਵਿੱਚ, ਜਦੋਂ ਇਹ ਨਤੀਜਾ ਦਿੰਦਾ ਸੀ ਤਾਂ ਲਗਭਗ 94% ਵਾਰ ਸਹੀ ਸੀ, ਅਤੇ ਇਹ ਲਗਭਗ 10 ਵਿੱਚੋਂ 3 ਦਾਅਵਿਆਂ ਉੱਤੇ ਹੀ ਨਤੀਜਾ ਦਿੰਦਾ ਸੀ।",
-  "live_no_verdict": "ਦੋਵੇਂ ਮਾਡਲ ਸਹਿਮਤ ਨਹੀਂ ਹੋਏ ਜਾਂ ਕਾਫ਼ੀ ਭਰੋਸਾ ਨਹੀਂ ਸੀ, ਇਸ ਲਈ ਕੋਈ ਨਤੀਜਾ ਨਹੀਂ ਦਿੱਤਾ ਗਿਆ। ਸਰੋਤ ਵੇਖੋ।",
+  "live_verdict_basis": "ਇਹ ਨਤੀਜਾ ਵਿਕੀਪੀਡੀਆ ਦੇ ਪਾਠ 'ਤੇ ਆਧਾਰਿਤ ਹੈ, ਜਿਸਨੂੰ ਦੋ ਮਾਡਲਾਂ ਨੇ ਪੜ੍ਹਿਆ ਅਤੇ ਦੋਵਾਂ ਦੀ ਸਹਿਮਤੀ ਲਾਜ਼ਮੀ ਸੀ।",
+  "live_validated": "350 ਦਾਅਵਿਆਂ ਦੇ ਟੈਸਟ ਵਿੱਚ, ਜਦੋਂ ਨਤੀਜਾ ਦਿੱਤਾ ਗਿਆ, ਤਾਂ ਉਹ ਲਗਭਗ 94% ਵਾਰ ਸਹੀ ਸੀ ਅਤੇ 10 ਵਿੱਚੋਂ ਸਿਰਫ਼ ਕਰੀਬ 3 ਦਾਅਵਿਆਂ ਲਈ ਹੀ ਨਤੀਜਾ ਦਿੱਤਾ ਗਿਆ।",
+  "live_no_verdict": "ਦੋਵੇਂ ਮਾਡਲ ਸਹਿਮਤ ਨਹੀਂ ਹੋਏ ਜਾਂ ਉਨ੍ਹਾਂ ਨੂੰ ਕਾਫ਼ੀ ਭਰੋਸਾ ਨਹੀਂ ਸੀ, ਇਸ ਲਈ ਕੋਈ ਨਤੀਜਾ ਨਹੀਂ ਦਿੱਤਾ ਗਿਆ। ਸਰੋਤ ਵੇਖੋ।",
   "source_name": {
     "wikipedia": "ਵਿਕੀਪੀਡੀਆ",
     "factcheck_live": "ਫ਼ੈਕਟ-ਚੈਕ (ਆਨਲਾਈਨ)",

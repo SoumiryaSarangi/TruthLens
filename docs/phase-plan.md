@@ -29,8 +29,7 @@ strings are reviewed and applied.
   (the claim translated to English, a page judged only if about the claim's subject, two NLI
   models must agree). Report §8b, `docs/live-fever-protocol.md`, `docs/live-fever-protocol-2.md`.
 
-**What remains:** the owner reviews the three new Hindi/Punjabi live-verdict strings
-(`docs/i18n-review.md`, last section); then the demo (`UI_UX.md` §11) after
+**What remains:** the demo (`UI_UX.md` §11) after
 `python scripts/demo_check.py`. Optional future work: a better judge for the qualifiers
 that still fool it ("first Indian" against "first Indian-born woman"), and more than 30% coverage.
 
