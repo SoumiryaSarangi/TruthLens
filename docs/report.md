@@ -1,6 +1,6 @@
 # TruthLens: multilingual claim verification for WhatsApp forwards in English, Hindi and Punjabi
 
-CSE472 project report · Soumirya Sarangi · draft of 2026-10-02
+CSE472 project report · Soumirya Sarangi · final draft of 2026-10-05
 
 > **How to read the numbers.** Every number carries the results file it came
 > from: `(run <hash>)` refers to `results/<hash>.json`, and
@@ -64,6 +64,15 @@ Headline findings, on the locked test split unless marked:
 5. **The confident mistakes are the claim prior's.** On real forwards, the
    system refuted three true claims. The claim-only control refutes them too
    (§9).
+6. **After the test run (none of it touches a number above).** Two things were
+   added, both opt-in and absent from every evaluation. A lexicon-first
+   transliteration and a native-script query improved romanized free text (§8a).
+   A per-claim "search online" button queries Wikipedia and Google Fact Check
+   and, under a rule that was pre-registered and then passed on 350 fresh
+   claims, gives a verdict when two NLI models agree: right on 100 of 106
+   answers, 3 false "Supported" among 225 false or unverifiable claims, and an
+   answer for only about 3 claims in 10. An earlier pre-registered attempt
+   missed its accuracy bar by two claims, and both results are reported (§8b).
 
 ## 2. Problem and users
 
@@ -122,6 +131,15 @@ baseline, and is chosen by configuration. The served API and the evaluation
 batch runner call the same orchestrator. The served pipeline runs in 4.60 GiB
 of a 6 GB laptop GPU, answers in 2.51 s at the 95th percentile, and starts in
 61 s (`docs/environment.md`).
+
+**The optional live step (post-test, §8b).** When the user presses the
+per-claim button, the claim is also sent to Wikipedia and Google Fact Check. It
+is translated to English, a page is judged only if it is about the claim's
+subject, and two NLI models (DeBERTa-v3-large, BART-large-MNLI) must give the
+same Supported or Refuted verdict, otherwise there is no verdict. The three live
+models wait in CPU RAM and visit the GPU one at a time, so the peak stays at
+3.81 GiB (6.20 GiB when resident), and a live click takes a median of 2.2 s once
+its sources are cached. It never runs in an evaluation.
 
 ## 5. Experiments, by syllabus unit
 
@@ -283,7 +301,12 @@ rather than a percentage, an abstained card that shows the would-be verdict
 greyed as "Leaning: …", and an evidence trail with stance tags and highlighted
 spans; each `[n]` in the explanation jumps to its source. Six sample chips cover
 the six paths of UI_UX §11. `scripts/demo_check.py` fails if any chip stops
-showing its path. Contrast meets WCAG AA in light and dark mode
+showing its path. The Roman-Hindi chip was chosen by a rule written before
+running 14 candidates, and only one qualified, which says how rarely romanized
+free text finds apt evidence offline. A "search Wikipedia & fact-checkers"
+button on a card sends only that claim and shows the live card (§8b): a verdict
+only when two models agree, the test numbers in plain words, and a note that its
+confidence is uncalibrated. Contrast meets WCAG AA in light and dark mode
 (`tests/test_ui_static.py`).
 
 ## 7. The research contribution: the romanization penalty
@@ -654,6 +677,14 @@ Each cut is recorded with its reason, as SRS §7 requires.
 - Check-worthiness has no unbiased test number. The only real set chose the arm.
 - 22.8% of AVeriTeC dev claims have no retrievable gold evidence.
 - Every derived stance label is noisy by construction.
+- The live verdict was validated on FEVER-style claims (Wikipedia sentences), not on
+  WhatsApp forwards, with a model that has seen FEVER-style training data; real
+  forwards will do worse than 94%. It answers about 3 claims in 10 and its Hindi and
+  Punjabi results are a machine-translation round trip, not natural text. Six wrong
+  answers in 106 are listed in §8b and `docs/live-fever-protocol-2.md`, with their causes
+  not investigated.
+- Offline, romanized free text often retrieves loosely related evidence (§9); the
+  fix of §8a helps but does not remove it.
 - The served pipeline uses 4.60 of the roughly 4.9 GiB that Windows leaves usable on the GPU.
 
 ## 12. Reproducibility
@@ -666,4 +697,13 @@ Each cut is recorded with its reason, as SRS §7 requires.
 - The project log (`docs/project-log.md`) records every decision and every
   number that was later corrected.
 - The acceptance matrix (`docs/acceptance.md`) maps each requirement to the test,
-  run or demo step that verifies it.
+  run or demo step that verifies it; a clean clone at the final commit passes
+  lint, leakage and 807 tests.
+- The live-verdict measurement is reproducible from `docs/live-fever-protocol.md`
+  and `docs/live-fever-protocol-2.md` (written before the data was drawn),
+  `scripts/live_fever.py` (collect, score, variants, decide), the frozen FEVER splits
+  under `data/splits/fever_*`, and `scripts/live_ship_check.py`, which shows the served
+  cards equal the measured predictions. The Wikipedia and Google responses are cached
+  under `data/interim/live_cache/`.
+- To run the demo: `.venv\Scripts\python.exe scripts\serve.py` (or `make serve`), then
+  `python scripts/demo_check.py` before presenting.
