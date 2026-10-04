@@ -530,6 +530,21 @@ entity-grounding gate would, and needs a fourth fresh set. Served unchanged:
 evidence only. A first run of that set was disturbed by Wikipedia rate limits and
 re-run once, identically, with a longer pause (both runs kept).
 
+**A fourth attempt, an entity-grounding gate, failed the same rule by one claim.** A
+Wikipedia page is judged only if its title is about the claim's subject, and a
+fact-check of a different claim is listed, not judged. On a fourth fresh set of 38
+claims the live answer was correct on 18 against 8 offline and wrong on 1 against 16;
+all five private claims were left undecided and ten true claims that offline missed
+became correct across all five scripts. The one error: "Kalpana Chawla was the first
+Indian to travel to space" was refuted offline (by the claim prior) and called Supported
+live, because the page says she was the first Indian-born woman in space and the NLI reads
+that as supporting "first Indian". That is a qualifier the NLI cannot separate, not a
+retrieval error, so it is the end of what a gate can do. The price of the gate is
+coverage: 14 of 17 false claims are undecided rather than Refuted. Across the four
+sets the live path went from 5 wrong answers to 1 and was never adopted; the project
+stops here and the served live button lists sources without a verdict
+(`docs/live-search-probe.md`, run 4).
+
 ## 9. Error analysis
 
 The method, categories and tie-break were fixed before any case was read;

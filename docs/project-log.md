@@ -2820,9 +2820,9 @@ matrix). What remains, in order:
    `docs/report.md`; re-run `scripts/check_report_numbers.py docs/report.md` after
    any edit.
 
-Optional future work, all outside the frozen result: an entity-grounding gate for the
-live path (a page must be about the claim's subject; the English route's two remaining
-errors were relevance errors, see "English route" below), validated on a FOURTH fresh set; an accurate transliterator (IndicXlit in its own
+Optional future work, all outside the frozen result: an NLI that separates qualifiers in
+"first ..." claims (the gated English route's one remaining error, see "Entity-grounding
+gate" below), validated on a FIFTH fresh set; an accurate transliterator (IndicXlit in its own
 venv); a correction for the verdict model's "forwarded claims are false" prior.
 
 **The floor to beat, per component** is superseded by the test table in
@@ -2908,3 +2908,19 @@ false claim (Ganges into the Arabian Sea) Supported from Daman Ganga/Varahi page
 Both are RELEVANCE errors, so route B (fine-tune NLI) would not fix them. Served
 unchanged: evidence only. Details: `docs/live-search-probe.md` Run 3, report §8b.
 New cached model: NLLB (2.4 GB) and DeBERTa-v3-large under `D:\hf-cache`.
+
+### Entity-grounding gate (2026-10-04): 1 wrong in 38, still not adopted
+
+Built `title_grounded` (consonant-skeleton match of every content word of a Wikipedia
+title against the claim) on the English route; fact-check reviews below tau_match are
+listed, not judged; a failed translation keeps the offline answer. Frozen and pushed
+(`86e3098`, 788 tests) before set 4 was run. Set 4: 38 fresh claims, owner approved (the
+review message miscounted 15/18; the file is 16/17/5). Run 4a hit 429s again and was
+re-run once identically (both kept). Run 4b: live 18 correct / 19 undecided / 1 wrong
+vs offline 8 / 14 / 16; rules 2 and 3 hold; rule 1 fails on "Kalpana Chawla was the
+first Indian to travel to space" (offline Refuted by the prior, live Supported: the page
+says first Indian-born WOMAN in space). Cost of the gate: 14 of 17 false claims
+undecided. A first version that still judged fact-check ratings made two true claims
+wrongly Refuted (reviews of other Modi stories), hence the rule. Served unchanged
+(evidence only); further attempts stop here. `docs/live-search-probe.md` run 4, report
+section 8b.

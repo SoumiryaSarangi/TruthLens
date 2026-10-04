@@ -284,3 +284,61 @@ That is a change under test and needs a fourth fresh set.
 
 **Decision: unchanged, live search is served as evidence only.** `live_translate` stays
 in the code, off.
+
+
+## Run 4: the entity-grounding gate (2026-10-04): closer again, still not adopted
+
+**What was built** (frozen and committed before set 4 was run, `86e3098`): on the English
+route a Wikipedia page is JUDGED only if its title is about the claim's subject (every
+content word of the title matches a claim word by consonant skeleton, so Bangalore and
+Bengaluru agree and "Daman Ganga River" does not match "Ganga falls into the Arabian
+Sea"); a fact-check review below the fast-path threshold is a verdict on some other
+claim, so it is listed and not judged. With no judged page the answer is NEI. A failed
+translation keeps the offline answer. Both rules follow from set 3's two errors and
+from the project's own tau_match; neither was tuned on set 4.
+
+**Diagnostics on sets 2 and 3 (used, so they validate nothing):** 0 wrong on both
+(set 2: 21 correct, set 3: 24 correct, down from 28 because some true claims lose the
+page that decided them and become undecided). A first version of the gate, which still
+judged fact-check ratings, made two true set-2 claims wrongly Refuted from reviews of
+OTHER Modi stories; that is why reviews are not judged below tau_match.
+
+**Validation:** `data/probe/live_probe_4.json`, 38 fresh claims (16 true, 17 false, 5
+unverifiable; the owner's review message said 15 / 18, the file and labels are what they
+approved), drafted with near-named rivers, a "first Indian to..." trap, spelling-variant
+subjects and private claims that use ordinary nouns. Run 4a was again disturbed by
+Wikipedia 429s (4 rows kept their offline answer) and was re-run once, identically, with
+a 12 s pause; both are kept (`reports/live_probe_set4_gate_run1.*`).
+
+Run 4b (no source failed):
+
+| | offline (38) | live, gated English route (38) |
+| --- | --- | --- |
+| correct | 8 | **18** |
+| undecided | 14 | 19 |
+| wrong | 16 | **1** |
+
+Rule (2) holds (10 true claims became correct, in all five scripts) and rule (3) holds
+(all five private claims are NEI). **Rule (1) fails on one claim:**
+
+| Claim | Truth | Offline | Live |
+| --- | --- | --- | --- |
+| "Kalpana Chawla was the first Indian to travel to space" | false | Refuted (correct, by the claim prior) | **Supported**, from the Kalpana Chawla page |
+
+The page says she was the first Indian-born woman in space; the NLI reads that as
+supporting "first Indian". That is a genuine reading error on a qualifier (woman, born
+in), not a retrieval one, and no gate on titles can see it.
+
+**The price of the gate:** 14 of the 17 false claims are now undecided, not Refuted.
+Offline, "Refuted" was often right only because the claim prior says forwards are false
+(it also called 16 claims wrong, mostly true ones). The gated route says "no page about
+this subject, not sure" instead of guessing; that is safe and low-coverage.
+
+**Across the attempts on fresh sets** the live-wrong count went 5 (set 1,
+language-matched), 5 (set 2), 2 (set 3, English route), 1 (set 4, gated), while the
+correct count rose. It never reached the pre-fixed bar of zero regressions, and the
+remaining error type (a qualifier in a "first ..." claim) needs a better NLI, not a
+better gate.
+
+**Decision: unchanged, live search is served as evidence only.** `live_translate` and the
+gate stay in the code, off. Further attempts would each need a fresh set; they stop here.
