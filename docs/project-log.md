@@ -111,21 +111,41 @@ historical rationale, lowest precedence.
     gate now also rejects, under any verdict but Supported, a sentence that
     entails the claim.
 
-**Where things stand (2026-10-02):** **Phase 7 is complete.** The test run is
-scored and written up (`docs/report.md`), the acceptance matrix is closed
-(`docs/acceptance.md`), and the Hindi and Punjabi UI strings are reviewed by a
-native speaker. What remains is the live demo (`UI_UX.md` §11): run
-`python scripts/demo_check.py` before it. No code and no new numbers.
+**Where things stand (2026-10-04): the project is COMPLETE except the demo itself
+and one human review.** Phases 1-7 are done. The one test run is scored and written
+up (`docs/report.md`, `docs/acceptance.md`, `docs/error-analysis.md`,
+`docs/test-protocol.md`); after it came two post-test improvements (lexicon
+transliteration + native-script query for romanized free text; live
+Wikipedia/Google Fact Check search, served as EVIDENCE ONLY -- entries "After the
+test run" and "Live search" below). **Do not change the served model or any
+reported number: the test split is spent.** What remains: (1) the owner reviews
+the NEW hi/pa strings for the live-search button (`docs/i18n-review.md`, last
+section) before any demo that clicks it; (2) the demo (`UI_UX.md` §11): run
+`python scripts/demo_check.py` first (must print OK), then `make serve`, click each
+chip once to load every model.
 
-**Phase 6/7 working files, all gitignored and on this machine** (rebuild
-commands in each script's docstring): cached top-20 passages per AVeriTeC claim
-`results/preds/p6_passages_{train,dev}.jsonl` (test not yet built -- `--stage
-passages` on `data/splits/averitec/test.jsonl` is step one of the test run);
-scored passages per stance arm `results/preds/p6_scored_*`; fold models
-`data/interim/models/stance_*_fold{0-4}`; aggregators
-`data/interim/models/aggregator_*` (served: `aggregator_xlmr_nli_prior`);
-explainer `data/interim/models/explainer_indicbart`; passage vectors for every
-train/dev/test claim in `data/interim/dense_cache/`.
+**Rules a new session must not re-learn:**
+- The test split is locked to the agent: `TRUTHLENS_ALLOW_TEST=1` is refused by the
+  permission system. The OWNER runs `bash scripts/run_test_protocol.sh [step]`.
+- The Google Fact Check key lives in a git-ignored `.env`
+  (`GOOGLE_FACTCHECK_API_KEY`; template `.env.example`). Never print, paste, log or
+  commit it; `retrieval/live/http.redact` strips it from cache, logs and traces.
+- Decisions here are taken by a rule written BEFORE the run, and a fix is
+  validated on FRESH data, never the set that motivated it (live probe sets 1 and 2).
+- `rm -rf` is deny-listed. Long shell commands with nested quotes fail: write a
+  script file instead. Git-commit messages must not mention the test-split flag.
+
+**Working files, all gitignored and on this machine:** AVeriTeC cached passages
+`results/preds/p6_passages_{train,dev}.jsonl`; scored passages
+`results/preds/p6_scored_*`; every test prediction `results/preds/p7_test_*.jsonl`
+and test log `reports/test_run.log`; fold models `data/interim/models/stance_*_fold{0-4}`;
+aggregators `data/interim/models/aggregator_*` (served: `aggregator_xlmr_nli_prior`);
+explainer `data/interim/models/explainer_indicbart`; passage vectors
+`data/interim/dense_cache/`; gold files `data/gold/` (incl. the new
+`*_test_*` ones); the live-search response cache `data/interim/live_cache/`;
+probe outputs `reports/live_probe_*.{json,md,log}` and error case sheets
+`reports/cases/` (they quote dataset text, which never enters git). Committed:
+the probe sets `data/probe/live_probe{,_2}.json` (our own wording).
 
 **To get running:** `make setup` then `make test`. The environment is already
 built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
@@ -136,18 +156,18 @@ built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
 
 | | |
 | --- | --- |
-| **Current phase** | **Phase 6 COMPLETE (2026-10-02); Phase 7 next** -- the one test-split run, error analysis, demo, report. The learned aggregator beats the rule (+0.0435, CI excludes 0), but **no stance model that reads evidence beats the claim-only control** (0.2949). Served stance DECIDED: `xlmr_nli` -- XLM-R decides the verdict (0.2802; +0.067 over NLI), NLI labels the passages the user sees. |
-| **Clock** | Target **2026-10-12**, no fixed external deadline (confirmed 2026-09-30). Phases 1-4 done; Phase 5 started 2026-09-30. Phases 6 and 7 remain. |
+| **Current phase** | **ALL PHASES COMPLETE (2026-10-04).** Phase 7 done: test run scored, report, acceptance, error analysis; native-speaker review of the hi/pa UI applied. Post-test: lexicon transliteration + native-script free-text query, live evidence-only search. Remaining: review the new live-search hi/pa strings, then the demo. The test split is spent. Headline test result: served verdict macro-F1 **0.2622** vs claim-only control **0.3085** (paired -0.0463, CI [-0.094, +0.001]) and majority 0.1447. |
+| **Clock** | Target **2026-10-12**, no fixed external deadline. Phases 1-7 done 2026-10-02; post-test work 2026-10-04. Days 13-14 are writing and demo polish only. |
 | **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |
 | **Python** | 3.11.16 via uv, in `.venv`. System Python is 3.13 and is not used. |
-| **Served config** | `configs/pipeline/dev.yaml` -- preprocess `hybrid`, claims `heuristic`, matching `factcheck` (tau_match 0.90), retrieval `hybrid` (RRF@200), free text `corpus`, stance `xlmr_nli`, aggregate `learned` (aggregator_xlmr_nli_prior), tau_abstain 0.3835, floor off, generation `indicbart` (beam) behind faithfulness `nli`. `make serve` warms up first. |
-| **Tests** | 599 passing, 2 skipped, 2 gpu-deselected |
+| **Served config** | `configs/pipeline/dev.yaml` -- preprocess `hybrid` with the **lexicon** transliterator, claims **`heuristic_span`**, matching `factcheck` (tau_match 0.90), retrieval `hybrid` (RRF@200), free text `corpus` searched with the claim AND its native-script form, stance `xlmr_nli`, aggregate `learned` (aggregator_xlmr_nli_prior), tau_abstain 0.3835, floor off, generation `indicbart` (beam) behind faithfulness `nli`, **manipulation `rules_nli`**, **live_search true / live_verdict false** (evidence only). `make serve` warms up first. |
+| **Tests** | 762 passing, 2 skipped, 2 gpu-deselected (CI has no torch; many ML tests skip there). |
 | **Datasets in hand** | AVeriTeC, X-CLAIM, MultiClaim, handtyped (FR-26), Dakshina, **CheckThat! 2025 T2** |
 | **Datasets waiting** | None. Every dataset is downloaded, split, locked and leakage-checked. |
 | **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
-| **Models trained** | Romanized LID, in-domain Word2Vec, **24 XLM-R+LoRA adapters** (5 span arms, check-worthiness, the Phase 4 cross-encoder, stance and its claim-only twin, and 5 folds of each for cross-fitting), 6 BiLSTM stance models (full + 5 folds), two TF-IDF stance models, 4 learned aggregators, and the IndicBART+LoRA explainer. |
-| **Numbers so far** | Span token-F1 **0.7463** (baseline 0.6851) - claim matching MRR **0.5244** (BM25 0.3826, random 0.0002) - fast-path gate AUCC **0.5842** (gate-removed 0.4284) - LID ~0.86 on the hand-typed set - transliteration CER 0.4281 - AVeriTeC retrieval Success@10 **0.214** (BM25 0.158) - AVeriTeC verdict macro-F1 **0.2949** (learned aggregator, claim-only control; majority 0.1516; served arm 0.2802) - served ECE **0.0690** (0.0988 before temperature) - explanation faithfulness 0.524 (beam, retrieved). **FR-6**: zero-shot NLI 0.5938 vs 0.4595 majority, 7/15 real negatives, but it rejects 21% of real claims so the SERVED config runs the rules. **FR-8**: no safe operating point. |
+| **Models trained** | Unchanged since Phase 6; nothing was trained after it. The Dakshina lexicon (not a model) now drives romanization and transliteration. |
+| **Numbers so far** | **Test split (the reported numbers, run once):** served verdict macro-F1 **0.2622** (claim-only control **0.3085**, majority 0.1447; paired -0.0463, CI [-0.094, +0.001]) - ECE **0.039** (0.066 at T=1) - at tau 0.3835: 63% answered, accuracy 0.500 (majority 0.567) - retrieval Success@10 0.153 (BM25 0.111) - spans 0.7254 joint / 0.7220 served (whole post 0.6267) - romanized spans 0.7126 vs native 0.7759 on the same posts - matching MRR 0.5355 (BM25 0.3928) - fast path at 0.90: 1.7% answered, precision 0.81 - LID 0.9924 - explanations faithful 0.472 (extractive 0.606) - normalization chrF 0.2666 (baseline 0.2786). Dev numbers: see the Phase 5-6 entries. **Post-test (dev/probe only):** transliteration CER 0.3359; live probe sets 1 and 2 (`docs/live-search-probe.md`). |
 | **CI** | Checked with `gh run list` after every push (last green checked: `e43a614`). A sha here goes stale the moment the next commit lands -- check, do not trust. Runs take ~2 min. `gh` is at `C:\Program Files\GitHub CLI\gh.exe`, NOT on this shell's PATH. |
 
 ---
@@ -2788,36 +2808,26 @@ complete.** The remaining FR-6 limitation is a data problem with a named owner:
 
 ## Next
 
-**Phase 7 -- demo, ablations, report (Days 12-14). Code freezes at the end of
-Day 12; Days 13-14 are writing and demo polish only.** In order:
+Everything planned is done (Phases 1-7, the one test run, the report, the acceptance
+matrix). What remains, in order:
 
-1. ~~The served-stance decision~~ **DONE 2026-10-02: `xlmr_nli`** (entry above).
-1. **The final test-split number, once.** `TRUTHLENS_ALLOW_TEST=1`, the served
-   pipeline over the 307 locked AVeriTeC test claims (their passage vectors are
-   cached), reported beside majority_class and the claim-only control. It is
-   also the out-of-sample ECE that dev cannot give.
-3. **Error analysis**: ten real failure cases per language (build plan), the
-   seven demo forwards among them.
-4. **Ablation tables** via `make table`; the k ablation if wanted (cached
-   passages make it cheap).
-5. **The demo script** in `UI_UX.md` §11, and native-speaker review of the hi/pa
-   UI strings before anyone sees it.
-6. **The report**, including the ethics section and every cut recorded with its
-   reason (SRS §7 acceptance).
+1. **Owner:** review the live-search hi/pa strings (`docs/i18n-review.md`, last
+   section) and apply the corrections to `app/static/i18n/{hi,pa}.json`.
+2. **The demo** (`UI_UX.md` §11): `python scripts/demo_check.py` must print OK; then
+   `make serve`; click each chip once so every model is loaded (first requests take
+   30+ s). Order: greeting, fact-checked, Roman Hindi, thin evidence. The live-search
+   button on the Modi claim shows the sources and says it gives no verdict.
+3. **Writing/polish only** (Days 13-14): no code, no new numbers. The report is
+   `docs/report.md`; re-run `scripts/check_report_numbers.py docs/report.md` after
+   any edit.
 
-**The floor to beat, per component** (dev unless noted):
+Optional future work, all outside the frozen result: an NLI model that resolves
+single-entity contradictions in Hindi and Punjabi (the only thing that would let a
+live verdict pass its adoption rule); an accurate transliterator (IndicXlit in its own
+venv); a correction for the verdict model's "forwarded claims are false" prior.
 
-| component | metric | current | baseline |
-| --- | --- | --- | --- |
-| Claim span, joint | token F1 | **0.7463** | 0.6851 whole-post |
-| Claim matching | MRR / R@10 | **0.5244 / 0.6688** | 0.3826 BM25, 0.0002 random |
-| Fast-path gate | AUCC | **0.5842** | 0.4284 gate-removed |
-| Check-worthiness, hand-typed | macro-F1 | **0.5938** zero-shot NLI | 0.4595 majority |
-| AVeriTeC retrieval | Success@10 | **0.214** hybrid | 0.158 BM25 |
-| AVeriTeC verdict | macro-F1 | **0.2949** claim-only control, learned | 0.1516 majority |
-| AVeriTeC verdict, served (xlmr_nli) | macro-F1 | 0.2802 | 0.1516 majority |
-| Calibration, served | ECE | **0.0690** | 0.0988 at T=1 |
-| Explanations, beam, retrieved | NLI-faithful | 0.524 | 0.628 extractive |
+**The floor to beat, per component** is superseded by the test table in
+`docs/report.md` §8.
 
 ### Open items
 

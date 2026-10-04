@@ -482,3 +482,19 @@ Neither hostname is reliably better; the connection is simply bad. So:
 returns which libraries it actually reached, and that record goes into the
 results JSON as `seeded_libraries`. It imports torch and transformers lazily,
 so it works in Phase 0 where neither is installed.
+
+### Live search: the key, the cache and the limits (post-test Phase 7)
+
+- **Key:** `GOOGLE_FACTCHECK_API_KEY` in a git-ignored `.env` at the repo root
+  (template `.env.example`), or the environment. Create it in Google Cloud Console
+  with the Fact Check Tools API enabled. Without it, Google is skipped and the trace
+  says so; Wikipedia needs no key.
+- **Cache:** every successful response is stored in `data/interim/live_cache/` under a
+  hash of the key-redacted URL, so a repeated demo is instant and identical. Delete
+  the folder to force fresh answers.
+- **Wikipedia rate-limits** (HTTP 429) at roughly 50 requests a minute from one IP;
+  the fetcher waits at least 1 s between requests to a host, backs off on 429/5xx
+  honouring Retry-After, and gives up after its timeout -- the card then keeps its
+  offline answer. A live click costs about 3 s (median 3.2 s in the probe).
+- **Network:** the only code that touches it is `retrieval/live/`, and only when a
+  request sets `live_search`. Everything else is offline, as SRS C-5 requires.

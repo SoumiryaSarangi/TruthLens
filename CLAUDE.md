@@ -63,6 +63,11 @@ FAISS, rank_bm25, IndicXlit (AI4Bharat), fastText LID, FastAPI.
   249 Gurmukhi, 54 Devanagari, 36 Latin. Script is detected per row by
   src/data/script_id.py; never infer it from a filename or a lang field.
 
+- Secrets: the Google Fact Check key is in a git-ignored `.env`. Never print, paste,
+  log or commit it. The test split is spent (run once, `docs/test-protocol.md`): the
+  agent cannot set `TRUTHLENS_ALLOW_TEST`, and nothing after it may change a reported
+  number. Live search is opt-in per claim, free text only, evidence only.
+
 - The test split is locked. Evaluating one needs `TRUTHLENS_ALLOW_TEST=1`,
   and that is for the final reported number only, not for model selection.
 - Python is 3.11 via uv, NOT the system 3.13. Run through `make`, which sets
@@ -86,6 +91,10 @@ If a spec contradicts the code, the spec is wrong — fix the spec, not the code
                               hand-typed romanized forwards (FR-26)
 - docs/environment.md       — interpreter, locks, Windows gotchas
 - docs/results.md           — generated results tables (`make table`)
+- docs/report.md            — the CSE472 report (every number carries its results hash;
+                              `scripts/check_report_numbers.py` verifies them)
+- docs/test-protocol.md     — the pre-registered test run; docs/acceptance.md — SRS §7 matrix;
+                              docs/error-analysis.md; docs/live-search-probe.md; docs/i18n-review.md
 - data/CLAUDE.md            — dataset provenance, split schema, leakage checks
 - src/retrieval/CLAUDE.md   — retrieval conventions
 - src/eval/evaluate.py      — the only place metrics are computed

@@ -11,13 +11,26 @@ seconds without reading the whole plan.
 
 ## Current phase
 
-**Phase 7 — COMPLETE (2026-10-02).** The one
-test run is scored: served verdict 0.2622 vs claim-only control 0.3085 and
-majority 0.1447; ECE 0.039; spans 0.7220 served; matching MRR 0.5355; fast path
-81% precision at 1.7% coverage. Report `docs/report.md`, acceptance
-`docs/acceptance.md`, error analysis `docs/error-analysis.md`. The hi/pa UI
-strings are reviewed by a native speaker and applied. What remains is the demo
-itself (`UI_UX.md` §11): run `python scripts/demo_check.py` first.
+**ALL PHASES COMPLETE (2026-10-04).** The one test run is scored: served verdict
+0.2622 vs claim-only control 0.3085 and majority 0.1447; ECE 0.039; spans 0.7220
+served; matching MRR 0.5355; fast path 81% precision at 1.7% coverage. Report
+`docs/report.md`, acceptance `docs/acceptance.md`, error analysis
+`docs/error-analysis.md`, test protocol `docs/test-protocol.md`. The hi/pa UI
+strings are reviewed and applied.
+
+**Post-test work (does not touch any reported number; the test split is spent):**
+- **Romanized free text:** lexicon-first transliteration + a native-script query
+  (CER 0.4281 -> 0.3359 on hand-typed Punjabi). Report §8a.
+- **Live search (FR-28, cut-list item 2 restored):** Wikipedia + Google Fact Check,
+  opt-in per claim, served as EVIDENCE ONLY -- two probe sets under a pre-fixed rule
+  both rejected a live verdict (false claims called Supported). Report §8b,
+  `docs/live-search-probe.md`.
+
+**What remains:** the owner reviews the live-search hi/pa strings
+(`docs/i18n-review.md`, last section); then the demo (`UI_UX.md` §11) after
+`python scripts/demo_check.py`. Optional future work: an NLI model that resolves
+single-entity contradictions in Hindi and Punjabi (the one thing that would let a
+live verdict be adopted).
 
 Target date **2026-10-12**, no fixed external deadline (confirmed 2026-09-30).
 
@@ -373,6 +386,7 @@ Decided in advance so it is not decided in panic on Day 11.
 
 1. Manipulation detection as a trained classifier -> zero-shot prompt + rules
 2. Live search API -> static corpus, recency limitation reported honestly
+   (*restored post-test as opt-in, evidence-only live search; see FR-28*)
 3. Punjabi *generation* -> Punjabi retrieval and verdict, explanation in HI/EN
 4. Seq2seq + attention summariser -> attention visualisation on the stance model
 
