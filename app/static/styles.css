@@ -233,3 +233,10 @@ details.more .technical { margin-top: .3rem; }
 
 details.examples > summary { cursor: pointer; font-size: .9rem; color: var(--chip-fg); padding: .2rem 0 .4rem;
                              min-height: 2.2rem; display: flex; align-items: center; }
+
+/* A fold must look like something you can open. */
+details.more > summary, details.examples > summary { list-style: none; }
+details.more > summary::-webkit-details-marker, details.examples > summary::-webkit-details-marker { display: none; }
+details.more > summary::before, details.examples > summary::before { content: "▸"; margin-right: .45rem; }
+details.more[open] > summary::before, details.examples[open] > summary::before { content: "▾"; }
+
