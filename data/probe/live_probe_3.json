@@ -1,5 +1,5 @@
 {
-  "_comment": "Live-search PROBE SET 3 (post-test Phase 7, route A): FRESH claims for validating the English route (claim translated to English, judged against English Wikipedia). Drafted and committed BEFORE the route's code was frozen or run on any claim of this set; sets 1 and 2 are used up (set 2 is a diagnostic only for route A). Entities are disjoint from sets 1 and 2 except where a swap needs a known partner (Tagore, Chandigarh, Guru Nanak). Heavy on single-entity swaps (wrong capital, wrong first, wrong state, wrong river mouth), the failure that rejected the verdict path twice. Same scoring and adoption rule as sets 1 and 2 (scripts/live_probe.py). Our own wording; a demo set, not a benchmark. label: true | false | unverifiable. Labels are DRAFTED by the assistant, PENDING the project owner's approval.",
+  "_comment": "Live-search PROBE SET 3 (post-test Phase 7, route A): FRESH claims for validating the English route (claim translated to English, judged against English Wikipedia). Drafted and committed BEFORE the route's code was frozen or run on any claim of this set; sets 1 and 2 are used up (set 2 is a diagnostic only for route A). Entities are disjoint from sets 1 and 2 except where a swap needs a known partner (Tagore, Chandigarh, Guru Nanak). Heavy on single-entity swaps (wrong capital, wrong first, wrong state, wrong river mouth), the failure that rejected the verdict path twice. Same scoring and adoption rule as sets 1 and 2 (scripts/live_probe.py). Our own wording; a demo set, not a benchmark. label: true | false | unverifiable. Labels APPROVED by the project owner on 2026-10-04: all 39 checked, none changed; two claim texts made precise (hd-t1, hl-t1: 'New Delhi', the technically exact capital), before any run.",
   "claims": [
     {
       "id": "en-t1",
@@ -96,7 +96,7 @@
       "id": "hd-t1",
       "style": "hi-deva",
       "label": "true",
-      "text": "दिल्ली भारत की राजधानी है",
+      "text": "नई दिल्ली भारत की राजधानी है",
       "why": "Wikipedia: Delhi / New Delhi, capital of India"
     },
     {
@@ -145,7 +145,7 @@
       "id": "hl-t1",
       "style": "hi-latn",
       "label": "true",
-      "text": "Delhi India ki rajdhani hai",
+      "text": "New Delhi India ki rajdhani hai",
       "why": "Wikipedia: Delhi / New Delhi, capital of India"
     },
     {
