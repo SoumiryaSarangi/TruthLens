@@ -1,5 +1,5 @@
 {
-  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. NOT YET REVIEWED: the live_* strings and source_name.* were added after that review (live search, 2026-10-04); they are machine-drafted, listed in docs/i18n-review.md under 'live search'.",
+  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. The live_* strings and source_name.* (live search, added 2026-10-04) were reviewed by the owner the same day; 3 corrected, 7 kept.",
   "_lang": "pa",
   "title": "TruthLens",
   "intro": "ਫਾਰਵਰਡ ਕੀਤਾ ਸੁਨੇਹਾ ਇੱਥੇ ਪੇਸਟ ਕਰੋ। TruthLens ਇਸ ਦੀ ਜਾਂਚ ਕਰਕੇ ਸਰੋਤ ਦਿਖਾਏਗਾ।",
@@ -83,11 +83,11 @@
   },
   "live_button": "ਵਿਕੀਪੀਡੀਆ ਅਤੇ ਫ਼ੈਕਟ-ਚੈਕਰਾਂ ਵਿੱਚ ਖੋਜੋ",
   "live_privacy": "ਇਹ ਦਾਅਵਾ ਵਿਕੀਪੀਡੀਆ ਅਤੇ Google Fact Check ਨੂੰ ਭੇਜਿਆ ਜਾਵੇਗਾ।",
-  "live_checking": "ਆਨਲਾਈਨ ਖੋਜ ਹੋ ਰਹੀ ਹੈ…",
-  "live_used": "ਆਨਲਾਈਨ ਸਰੋਤਾਂ ਤੋਂ ਜਾਂਚਿਆ ਗਿਆ: {sources}",
+  "live_checking": "ਆਨਲਾਈਨ ਖੋਜ ਜਾਰੀ ਹੈ…",
+  "live_used": "ਆਨਲਾਈਨ ਸਰੋਤਾਂ ਨਾਲ ਜਾਂਚਿਆ ਗਿਆ: {sources}",
   "live_unavailable": "ਆਨਲਾਈਨ ਖੋਜ ਹੁਣ ਉਪਲਬਧ ਨਹੀਂ, ਇਸ ਲਈ ਪਹਿਲਾਂ ਵਾਲਾ ਨਤੀਜਾ ਹੀ ਦਿਖ ਰਿਹਾ ਹੈ।",
   "live_attribution": "ਵਿਕੀਪੀਡੀਆ ਦਾ ਪਾਠ CC BY-SA 4.0 ਲਾਇਸੈਂਸ ਅਧੀਨ ਉਪਲਬਧ ਹੈ।",
-  "live_uncalibrated": "ਆਨਲਾਈਨ ਨਤੀਜਿਆਂ ਲਈ ਭਰੋਸੇ ਦਾ ਪੱਧਰ ਪਰਖਿਆ ਨਹੀਂ ਗਿਆ।",
+  "live_uncalibrated": "ਆਨਲਾਈਨ ਨਤੀਜਿਆਂ ਲਈ ਭਰੋਸੇ ਦਾ ਪੱਧਰ ਕੈਲੀਬ੍ਰੇਟ ਨਹੀਂ ਕੀਤਾ ਗਿਆ।",
   "source_name": {
     "wikipedia": "ਵਿਕੀਪੀਡੀਆ",
     "factcheck_live": "ਫ਼ੈਕਟ-ਚੈਕ (ਆਨਲਾਈਨ)",

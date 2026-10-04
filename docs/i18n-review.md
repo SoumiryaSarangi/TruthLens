@@ -94,13 +94,14 @@ Most strings are already understandable and usable. The clearest fixes are:
 
 ---
 
-## Live search strings: NOT YET REVIEWED (added 2026-10-04)
+## Live search strings: REVIEWED and applied (added and reviewed 2026-10-04)
 
-These were machine-drafted after the review above, in the same tone (plain words,
-neutral constructions). `{sources}` is filled in by the app. Please review before
-any demo that clicks the live-search button, then apply corrections to
-`app/static/i18n/hi.json` and `pa.json` and remove the "NOT YET REVIEWED" note
-from their `_comment`.
+Machine-drafted, then reviewed by the owner on 2026-10-04: 3 strings corrected
+(`live_checking`, `live_used` Punjabi, `live_uncalibrated`), the other 7 kept as
+written. The table shows the drafts; the corrected text is in
+`app/static/i18n/hi.json` and `pa.json`. `{sources}` is filled in by the app.
+Reason for the third: the English says "calibrated", and "जाँचा-परखा / ਪਰਖਿਆ"
+would change that technical meaning to "tested".
 
 | key | English | Hindi | Punjabi | correction |
 | --- | --- | --- | --- | --- |

@@ -156,7 +156,7 @@ built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
 
 | | |
 | --- | --- |
-| **Current phase** | **ALL PHASES COMPLETE (2026-10-04).** Phase 7 done: test run scored, report, acceptance, error analysis; native-speaker review of the hi/pa UI applied. Post-test: lexicon transliteration + native-script free-text query, live evidence-only search. Remaining: review the new live-search hi/pa strings, then the demo. The test split is spent. Headline test result: served verdict macro-F1 **0.2622** vs claim-only control **0.3085** (paired -0.0463, CI [-0.094, +0.001]) and majority 0.1447. |
+| **Current phase** | **ALL PHASES COMPLETE (2026-10-04).** Phase 7 done: test run scored, report, acceptance, error analysis; native-speaker review of the hi/pa UI applied. Post-test: lexicon transliteration + native-script free-text query, live evidence-only search. Live-search hi/pa strings reviewed and applied 2026-10-04. Remaining: the demo. The test split is spent. Headline test result: served verdict macro-F1 **0.2622** vs claim-only control **0.3085** (paired -0.0463, CI [-0.094, +0.001]) and majority 0.1447. |
 | **Clock** | Target **2026-10-12**, no fixed external deadline. Phases 1-7 done 2026-10-02; post-test work 2026-10-04. Days 13-14 are writing and demo polish only. |
 | **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |

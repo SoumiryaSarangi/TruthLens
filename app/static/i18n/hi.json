@@ -1,5 +1,5 @@
 {
-  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. NOT YET REVIEWED: the live_* strings and source_name.* were added after that review (live search, 2026-10-04); they are machine-drafted, listed in docs/i18n-review.md under 'live search'.",
+  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. The live_* strings and source_name.* (live search, added 2026-10-04) were reviewed by the owner the same day; 3 corrected, 7 kept.",
   "_lang": "hi",
   "title": "TruthLens",
   "intro": "फ़ॉरवर्ड किया हुआ संदेश यहाँ पेस्ट करें। TruthLens इसकी जाँच करके स्रोत दिखाएगा।",
@@ -83,11 +83,11 @@
   },
   "live_button": "विकिपीडिया और फ़ैक्ट-चेकर्स में खोजें",
   "live_privacy": "यह दावा विकिपीडिया और Google Fact Check को भेजा जाएगा।",
-  "live_checking": "ऑनलाइन खोजा जा रहा है…",
+  "live_checking": "ऑनलाइन खोज जारी है…",
   "live_used": "ऑनलाइन स्रोतों से जाँचा गया: {sources}",
   "live_unavailable": "ऑनलाइन खोज अभी उपलब्ध नहीं है, इसलिए पहले वाला नतीजा ही दिख रहा है।",
   "live_attribution": "विकिपीडिया का पाठ CC BY-SA 4.0 लाइसेंस के तहत उपलब्ध है।",
-  "live_uncalibrated": "ऑनलाइन नतीजों के लिए भरोसे का स्तर जाँचा-परखा नहीं गया है।",
+  "live_uncalibrated": "ऑनलाइन नतीजों के लिए भरोसे का स्तर कैलिब्रेट नहीं किया गया है।",
   "source_name": {
     "wikipedia": "विकिपीडिया",
     "factcheck_live": "फ़ैक्ट-चेक (ऑनलाइन)",
