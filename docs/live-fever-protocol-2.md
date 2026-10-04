@@ -134,14 +134,17 @@ the live path: median about 5 s per claim in the harness.
 
 **Every wrong answer (6 of 106), none hidden:**
 
-| Claim | Real-world truth | V2 said | Why |
+| Claim | Real-world truth | V2 said | Page it judged |
 | --- | --- | --- | --- |
-| Tottenham Hotspur F.C. is Chinese. | false | Supported | the page is about the club; the NLI read "Chinese" loosely (the club's ownership, not its nationality) |
-| Don Bradman had years in which things happened. | unverifiable (vacuous) | Supported | a claim too vague to refute; the page trivially "supports" it |
-| Literacy arts has been significantly impacted by Appropriation (art). | unverifiable | Supported | vague claim, topical page |
-| Papua comprised all of a country. | true | Refuted | the NLI read "all of" as contradicted by the page |
-| Chile is not a stable nation. | true | Refuted | a negated claim read against a page that never says it |
-| Lalla Ward was declared Sarah Ward. | true | Refuted | the page states her birth name differently from the claim's phrasing |
+| Tottenham Hotspur F.C. is Chinese. | false | Supported | Tottenham Hotspur F.C. |
+| Don Bradman had years in which things happened. | unverifiable (vacuous) | Supported | Don Bradman |
+| Literacy arts has been significantly impacted by Appropriation (art). | unverifiable | Supported | Appropriation (art) |
+| Papua comprised all of a country. | true | Refuted | Papua |
+| Chile is not a stable nation. | true | Refuted | Chile |
+| Lalla Ward was declared Sarah Ward. | true | Refuted | Lalla Ward |
+
+(The causes of these six have not been investigated; no explanation is claimed. Two are
+vacuous claims that a topical page cannot refute, which is why a verdict on them is unfounded.)
 
 **Coverage is low and stated plainly:** V2 gives a verdict on 106 of 350 claims (30%) and says
 nothing on the rest. Caveats that must travel with the numbers: the claims are FEVER's
