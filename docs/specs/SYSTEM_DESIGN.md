@@ -457,3 +457,20 @@ line answers free text with an honest NEI, as before.
 
 The corpus has no gold, so it has no metric. It is verified by tests on a tiny
 index and by real forwards through the served pipeline (project log, Phase 5).
+
+## 15. Live evidence (post-test Phase 7)
+
+`pipeline/live.py` + `retrieval/live/`. On request (`POST /verify` with
+`live_search: true`), for ONE free-text claim: Wikipedia (one search and one
+batched lead fetch per language, OR query, passage = lead + query-matched
+snippet) and the Google Fact Check Tools API (key from `.env`, never logged or
+cached) are queried through a throttled, retrying, disk-cached fetcher; BGE-M3
+cosine ranks what comes back; below 0.5 is not evidence. A published fact-check
+of this very claim (cosine >= tau_match, rating mapped by `rating_to_verdict`)
+answers on the fast path. Otherwise the relevant sources are LISTED, with no
+verdict (`live_verdict: false`, the served default). The verdict path
+(NLI on focused sentences, ratings as stances, no Supported over a refuter) is
+built and off: it failed its adoption rule on two probe sets
+(`docs/live-search-probe.md`). Failures degrade: a source that is down keeps the
+offline answer and says so in the trace (NFR-7). Free text only; no evaluation
+config can reach it; the AVeriTeC dev run is byte-identical with it in place.

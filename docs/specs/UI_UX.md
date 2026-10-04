@@ -107,6 +107,20 @@ Each passage is a row: stance tag (Supports / Refutes / Neutral), source title a
 
 On the fast path, the trail shows the matched fact-check instead: publisher, headline, link, and the words "Already checked by [publisher]".
 
+### Live search (post-test)
+
+Cards below the High band that did not come from a published fact-check show a
+button, "Search Wikipedia & fact-checkers", with its privacy note beside it ("This
+sends the claim to Wikipedia and Google Fact Check"). One click sends only that
+claim. The card is then replaced by a live card:
+- a 🌐 line naming the sources queried, and Wikipedia's CC BY-SA attribution;
+- **no verdict and no confidence band** -- "TruthLens found these online sources
+  ... does not give a verdict on live evidence" -- because the live evidence is
+  listed, not judged;
+- the sources, open by default, relevance-ordered, each tagged Wikipedia or
+  Fact-check; a fact-check shows its publisher's own rating.
+If a source is down the earlier answer stays and the note under the button says so.
+
 ## 6. Visual language for verdicts
 
 **Colour is never the only signal.** Every verdict has an icon *and* a word.

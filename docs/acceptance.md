@@ -42,6 +42,7 @@ with the reason.
 | FR-25 | P0 | review | `docs/results.md`: every row carries its baseline | V |
 | FR-26 | P0 | review, eval | hand-typed 100 (`data/splits/handtyped/`); MultiClaim natural romanized; `x_claim_romanized` dev 02c59ee296a0 / f05dd5f44b16, test 67e8435985a6 vs 418bf3876e80 (same posts) | V |
 | FR-27 | P1 | review | `docs/figures/tsne_parallel_claims.png` | V |
+| FR-28 | P2 | test, demo | `tests/test_live_sources.py`, `tests/test_live_pipeline.py`, `scripts/ui_live_check.js`, `scripts/ui_evidence_check.js`; AVeriTeC dev byte-identical to 164d2289c90b with it in place; `docs/live-search-probe.md` | V\* — served as evidence only: the verdict path failed its adoption rule on two probe sets |
 
 ## Non-functional requirements
 

@@ -2743,6 +2743,31 @@ Open: the owner chooses between showing evidence without a verdict, a fix scored
 on a fresh probe set (a fact-check's own rating as its stance; stricter
 agreement before "Supported"), or leaving it off.
 
+## 2026-10-04 — Live search: evidence only, after two probes
+
+Continues the entry above. The owner chose "both, in order".
+1. **Evidence only, served.** The button lists the relevant Wikipedia pages and
+   fact-check reviews (with each publisher's own rating) and gives no verdict;
+   no NLI label reaches the user, so a false "Supported" is impossible.
+2. **A verdict-path fix, validated on a fresh set.** Three changes aimed at run 1's
+   failures: a fact-check's stance is its publisher's rating; NLI reads the two
+   sentences closest to the claim; Supported cannot stand over a refuting
+   passage. Probe set 2 (35 claims, committed before the fix existed, labels
+   approved by the owner) was run under the same pre-fixed rule.
+   **It failed: three correct answers turned wrong**, and five false claims
+   were called Supported ("Mumbai is the capital of India", "Shimla is Punjab's
+   capital", ...). The claims differ from the truth by one entity and the pages
+   are about the right place; the NLI model's resolution in Hindi and Punjabi
+   cannot tell which capital. Diagnostic on set 1's known failures had looked
+   right -- exactly why the validation set had to be fresh.
+
+**Decision:** the verdict path stays off (`live_verdict: false`); live search is
+served as evidence only (FR-28, `docs/live-search-probe.md`, report §8b). The
+new hi/pa strings are machine-drafted, listed in `docs/i18n-review.md` for review.
+The Google key lives in a git-ignored `.env`; a test proves it never reaches the
+cache, a log or a trace. My earlier commit message for set 2 miscounted it
+(35 = 15 true + 17 false + 3 unverifiable).
+
 ## Phase 3 gaps — CLOSED 2026-09-24
 
 All four are built. They were, in the order the previous section ranked them:

@@ -91,3 +91,26 @@ Most strings are already understandable and usable. The clearest fixes are:
 - Avoid wording that changes the meaning of a technique, especially “Loaded language” → “डराने वाली भाषा”.
 - In Punjabi, use more natural forms such as “ਵੇਖੋ”, “ਫਾਰਵਰਡ ਕੀਤਾ”, “ਕਾਫ਼ੀ ਸਬੂਤ ਨਹੀਂ”, and “ਪੜਾਵਾਂ ਦਾ ਵੇਰਵਾ”.
 - Keep the evidence-focused framing: the interface should describe what the evidence shows rather than imply an absolute true/false judgment.
+
+---
+
+## Live search strings: NOT YET REVIEWED (added 2026-10-04)
+
+These were machine-drafted after the review above, in the same tone (plain words,
+neutral constructions). `{sources}` is filled in by the app. Please review before
+any demo that clicks the live-search button, then apply corrections to
+`app/static/i18n/hi.json` and `pa.json` and remove the "NOT YET REVIEWED" note
+from their `_comment`.
+
+| key | English | Hindi | Punjabi | correction |
+| --- | --- | --- | --- | --- |
+| `live_button` | Search Wikipedia & fact-checkers | विकिपीडिया और फ़ैक्ट-चेकर्स में खोजें | ਵਿਕੀਪੀਡੀਆ ਅਤੇ ਫ਼ੈਕਟ-ਚੈਕਰਾਂ ਵਿੱਚ ਖੋਜੋ | |
+| `live_privacy` | This sends the claim to Wikipedia and Google Fact Check. | यह दावा विकिपीडिया और Google Fact Check को भेजा जाएगा। | ਇਹ ਦਾਅਵਾ ਵਿਕੀਪੀਡੀਆ ਅਤੇ Google Fact Check ਨੂੰ ਭੇਜਿਆ ਜਾਵੇਗਾ। | |
+| `live_checking` | Searching online… | ऑनलाइन खोजा जा रहा है… | ਆਨਲਾਈਨ ਖੋਜ ਹੋ ਰਹੀ ਹੈ… | |
+| `live_used` | Checked online against: {sources} | ऑनलाइन स्रोतों से जाँचा गया: {sources} | ਆਨਲਾਈਨ ਸਰੋਤਾਂ ਤੋਂ ਜਾਂਚਿਆ ਗਿਆ: {sources} | |
+| `live_unavailable` | Online search isn't available right now, so the earlier answer stays. | ऑनलाइन खोज अभी उपलब्ध नहीं है, इसलिए पहले वाला नतीजा ही दिख रहा है। | ਆਨਲਾਈਨ ਖੋਜ ਹੁਣ ਉਪਲਬਧ ਨਹੀਂ, ਇਸ ਲਈ ਪਹਿਲਾਂ ਵਾਲਾ ਨਤੀਜਾ ਹੀ ਦਿਖ ਰਿਹਾ ਹੈ। | |
+| `live_attribution` | Wikipedia text is available under CC BY-SA 4.0. | विकिपीडिया का पाठ CC BY-SA 4.0 लाइसेंस के तहत उपलब्ध है। | ਵਿਕੀਪੀਡੀਆ ਦਾ ਪਾਠ CC BY-SA 4.0 ਲਾਇਸੈਂਸ ਅਧੀਨ ਉਪਲਬਧ ਹੈ। | |
+| `live_uncalibrated` | Confidence for online results has not been calibrated. | ऑनलाइन नतीजों के लिए भरोसे का स्तर जाँचा-परखा नहीं गया है। | ਆਨਲਾਈਨ ਨਤੀਜਿਆਂ ਲਈ ਭਰੋਸੇ ਦਾ ਪੱਧਰ ਪਰਖਿਆ ਨਹੀਂ ਗਿਆ। | |
+| `source_name.wikipedia` | Wikipedia | विकिपीडिया | ਵਿਕੀਪੀਡੀਆ | |
+| `source_name.factcheck_live` | Fact-check (live) | फ़ैक्ट-चेक (ऑनलाइन) | ਫ਼ੈਕਟ-ਚੈਕ (ਆਨਲਾਈਨ) | |
+| `source_name.google_factcheck` | Google Fact Check | Google Fact Check | Google Fact Check | |

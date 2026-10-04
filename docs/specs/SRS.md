@@ -51,7 +51,7 @@ A standalone local system: a Python pipeline in `src/`, served by FastAPI in `ap
 | C-2 | Python 3.11 via uv. System Python 3.13 is not used |
 | C-3 | 14-day build. Code freezes at the end of Day 12 |
 | C-4 | AVeriTeC is CC BY-NC 4.0; MultiClaim is access-restricted and may not be redistributed. The repo commits ID manifests, never dataset text |
-| C-5 | Must work fully offline once models and corpora are downloaded. Live search, if built at all, is optional |
+| C-5 | Must work fully offline once models and corpora are downloaded. Live search (FR-28) is optional, opt-in per claim, and off in every evaluation |
 | C-6 | Solo developer, implemented largely through Claude Code |
 
 ### 2.3 Assumptions
@@ -122,6 +122,7 @@ A standalone local system: a Python pipeline in `src/`, served by FastAPI in `ap
 | FR-25 | P0 | Every stage has a registered dumb baseline evaluated in the same table | review |
 | FR-26 | P0 | Romanized evaluation sets exist for Hindi and Punjabi: transliterated X-CLAIM test, plus ~100 hand-typed forwards, reported separately | review, eval |
 | FR-27 | P1 | Cross-lingual t-SNE figure from LaBSE embeddings of parallel claims | review |
+| FR-28 | P2 | **Live evidence.** On explicit per-claim request, search Wikipedia and Google Fact Check for the claim and list the relevant sources with their publishers' ratings. Only that claim is sent; never automatic; never applied to evaluation. No model verdict is given on live evidence (`docs/live-search-probe.md`) | test, demo |
 
 ## 4. Non-functional requirements
 

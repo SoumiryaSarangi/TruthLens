@@ -476,6 +476,45 @@ Removing that prior means retraining the verdict model with a correction for
 the claim-only signal. That needs a new dev selection, and the test split is
 spent, so it is future work.
 
+## 8b. After the test run: live search, tried twice and served as evidence only
+
+Live search was cut-list item 2 (a static corpus, with the recency limitation
+reported). After the demo showed true claims such as "Modi was Gujarat's chief
+minister" left undecided, it was built, opt-in per claim, from Wikipedia and the
+Google Fact Check Tools API. It cannot affect any reported number: it is off in
+every evaluation, never applies to AVeriTeC, and the AVeriTeC dev run reproduces
+the served predictions byte for byte with it in place.
+
+**Two probe sets, scored under a rule fixed in advance:** adopt a live *verdict*
+only if no answer that was correct turns wrong, at least one true claim becomes
+correct, and no unverifiable claim is decided. Both sets are small demo sets,
+reported claim by claim, never as a metric.
+
+| | claims | offline: correct / wrong | live: correct / wrong | rule |
+| --- | --- | --- | --- | --- |
+| Set 1 (and the 8 demo forwards) | 40 | 12 / 18 | 24 / 3 (35 with both sources up) | fails: 2 correct became wrong |
+| Set 2 (fresh, after a fix) | 35 | 10 / 12 | 15 / 5 | fails: 3 correct became wrong |
+
+Live evidence repeatedly turns undecided or wrongly refuted *true* claims into
+correct ones (Modi, Delhi, Lahore, Harmandir Sahib, the Taj Mahal) and turns three
+unverifiable claims from a confident "Refuted" into "not enough evidence". It also
+calls false claims Supported, and that is the error this project must not make.
+
+**Why, in two forms.** Run 1: the NLI model labelled topically related pages, and
+fact-check headlines that restate a rumour, as Supports. A fix aimed at exactly
+that (publishers' own ratings as stances, NLI on focused sentences, no Supported
+over a refuter) worked on the failures it was built from, and failed on fresh ones:
+"Mumbai is the capital of India" was Supported from the Mumbai page. The claims
+differ from the truth by one entity, and the NLI model's resolution in Hindi and
+Punjabi cannot see which capital.
+
+**What is served: evidence, not a verdict.** The button lists the relevant
+Wikipedia pages and fact-check reviews with each publisher's own rating, and says
+it gives no verdict. A false "Supported" is impossible by construction, and the
+user still reads the page that settles the claim. The verdict path stays in the
+code, off. It would need an NLI model that resolves single-entity contradictions
+in Hindi and Punjabi, scored on a third fresh set under the same rule.
+
 ## 9. Error analysis
 
 The method, categories and tie-break were fixed before any case was read;

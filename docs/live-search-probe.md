@@ -2,9 +2,8 @@
 
 **Written for:** the report's section on live search, and the project owner's decision.
 
-**Status:** run 1 of the probe set, scored under a rule fixed before it ran.
-**Result: NOT adopted.** The live path is built, tested and switched off
-(`live_search: false` in `configs/pipeline/dev.yaml`).
+**Status:** two runs, both scored under a rule fixed before they ran. **Neither
+adopts a live verdict.** Live search is served as EVIDENCE ONLY (run 2 below).
 
 ## What was run
 
@@ -69,7 +68,7 @@ a misinformation tool: telling someone a falsehood is supported. A single rule
 fixed in advance said that outweighs the gain, and it is respected here.
 
 Options, none yet taken:
-1. **Evidence only.** The button shows the relevant Wikipedia and fact-check
+1. **Evidence only (chosen).** The button shows the relevant Wikipedia and fact-check
    sources and abstains from a verdict. No false "Supported" is possible; the user
    reads the evidence. The ladder's worst case, kept as the safe default.
 2. **Fix, then test on fresh claims.** Use the publisher's own rating to set a
@@ -123,3 +122,96 @@ Options, none yet taken:
 | un-1 | unverifiable | Refuted 0.74 [wrong] | NEI 0.85 [correct] | wikipedia, google_factcheck | 2.46 |
 | un-2 | unverifiable | Refuted 0.71 [wrong] | NEI (abst.) 0.00 [correct] | wikipedia, google_factcheck | 2.66 |
 | un-3 | unverifiable | Refuted 0.75 [wrong] | NEI (abst.) 0.00 [correct] | wikipedia, google_factcheck | 4.89 |
+
+## Run 2: the fix, on a fresh set (2026-10-04): not adopted
+
+**What changed after run 1** (decided from run 1's failures, before set 2 was run):
+a fact-check review's stance comes from its publisher's rating rather than NLI
+over a headline; NLI reads the two sentences closest to the claim rather than a
+whole page; and "Supported" cannot stand over a relevant passage that refutes.
+On the three known failures this looked right (diagnostic only: lemon water
+Refuted from the fact-checkers' ratings; the Sun/Earth and Chandigarh claims
+Conflicting; the Taj Mahal Supported).
+
+**Validation:** `data/probe/live_probe_2.json`, 35 FRESH claims (15 true, 17 false,
+3 unverifiable), written and committed before the fix existed, labels approved by
+the owner, same scoring, same adoption rule.
+
+| | offline (35) | live verdict path (35) |
+| --- | --- | --- |
+| correct | 10 | **15** |
+| undecided | 13 | 15 |
+| wrong | 12 | **5** |
+
+Rule (2) holds (8 true claims became correct), rule (3) holds (no unverifiable
+claim was decided). **Rule (1) fails: three correct answers turned wrong**, and
+all five live errors are false claims called Supported:
+
+| Claim (false) | Live | What it read |
+| --- | --- | --- |
+| "Mumbai is the capital of India" | Supported 0.62 | the Mumbai page and a list of state capitals |
+| the same, in Punjabi | Supported 0.93 | the Mumbai, Delhi and Nagpur pages |
+| "Shimla is the capital of Punjab" (Punjabi) | Supported 0.91 | the Shimla and Chandigarh pages |
+| "Gandhi was India's first Prime Minister" (romanized Hindi) | Supported 0.42 | a page about another Gandhi |
+| the Hindi "Mumbai" claim | Supported | the Mumbai page |
+
+**Cause:** these claims differ from the truth by ONE entity ("capital of India",
+not "of Maharashtra"), and the passages are about the right place. The NLI model
+reads the Mumbai page as supporting "Mumbai is a capital" and cannot tell which
+capital. The fix removed the failures that came from headlines and from blobs
+of text; it cannot remove this one, which is the NLI model's resolution in
+Hindi and Punjabi, not a pipeline bug. Rule (1) was written to stop exactly this.
+
+## Decision
+
+**The verdict path is not adopted. Live search is served as evidence only.**
+The button lists the relevant Wikipedia pages and fact-check reviews (with each
+publisher's own rating) and gives no verdict. That keeps the gain run 1 showed
+-- the user sees the Wikipedia page that settles "Modi was Gujarat's chief
+minister" -- and makes a false "Supported" impossible. `live_verdict: true`
+remains in the code and is OFF.
+
+**What would change this:** an NLI model that resolves single-entity
+contradictions in Hindi and Punjabi (a fine-tune, or English NLI over English
+Wikipedia pages reached through language links), scored on a third fresh set under
+the same rule. Neither fits the time left.
+
+## Per-claim results, run 2
+
+| id | truth | offline | live | live sources |
+| --- | --- | --- | --- | --- |
+| en-t1 | true | Refuted 0.70 [wrong] | Supported 0.96 [correct] | wikipedia, google_factcheck |
+| en-t2 | true | Refuted 0.56 [wrong] | Conflicting 0.96 [undecided] | wikipedia, google_factcheck |
+| en-t3 | true | Refuted 0.67 [wrong] | NEI 0.58 [undecided] | wikipedia, google_factcheck |
+| en-t4 | true | Refuted 0.73 [wrong] | Conflicting 0.86 [undecided] | wikipedia, google_factcheck |
+| en-t5 | true | Refuted 0.77 [wrong] | Conflicting 0.95 [undecided] | wikipedia, google_factcheck |
+| en-t6 | true | Refuted 0.59 [wrong] | Supported 0.94 [correct] | wikipedia, google_factcheck |
+| en-f1 | false | Refuted 0.65 [correct] | Refuted 0.40 [correct] | wikipedia, google_factcheck |
+| en-f2 | false | Refuted 0.71 [correct] | Supported 0.62 [wrong] | wikipedia, google_factcheck |
+| en-f3 | false | Refuted 0.75 [correct] | Refuted 0.41 [correct] | wikipedia, google_factcheck |
+| en-f4 | false | Refuted 0.53 [correct] | NEI 0.76 [undecided] | wikipedia, google_factcheck |
+| en-f5 | false | Refuted 0.68 [correct] | NEI 0.50 [undecided] | wikipedia, google_factcheck |
+| en-f6 | false | Refuted 0.72 [correct] | Refuted 0.92 [correct] | wikipedia, google_factcheck |
+| hd-t1 | true | NEI 0.39 [undecided] | NEI 0.58 [undecided] | wikipedia, google_factcheck |
+| hd-t2 | true | Refuted (abst.) 0.35 [undecided] | Supported 0.62 [correct] | wikipedia, google_factcheck |
+| hd-t3 | true | Supported (abst.) 0.37 [undecided] | Supported 0.85 [correct] | wikipedia, google_factcheck |
+| hd-f1 | false | Refuted 0.40 [correct] | Conflicting 0.55 [undecided] | wikipedia, google_factcheck |
+| hd-f2 | false | NEI (abst.) 0.34 [undecided] | Supported 0.87 [wrong] | wikipedia, google_factcheck |
+| hd-f3 | false | Refuted 0.48 [correct] | Conflicting 0.82 [undecided] | wikipedia, google_factcheck |
+| hd-f4 | false | NotAClaim 1.00 [undecided] | NotAClaim 1.00 [undecided] | - |
+| hl-t1 | true | Refuted 0.58 [wrong] | Conflicting 0.88 [undecided] | wikipedia, google_factcheck |
+| hl-t2 | true | Refuted 0.61 [wrong] | NEI 0.70 [undecided] | wikipedia, google_factcheck |
+| hl-t3 | true | Refuted (abst.) 0.31 [undecided] | Supported 0.91 [correct] | wikipedia, google_factcheck |
+| hl-f1 | false | NEI (abst.) 0.33 [undecided] | NEI (abst.) 0.33 [undecided] (a source was rate-limited) | - |
+| hl-f2 | false | none (abst.) 0.00 [undecided] | none (abst.) 0.00 [undecided] | - |
+| hl-f3 | false | Refuted 0.65 [correct] | Supported 0.42 [wrong] | wikipedia, google_factcheck |
+| pg-t1 | true | Supported (abst.) 0.36 [undecided] | Supported 0.92 [correct] | wikipedia, google_factcheck |
+| pg-t2 | true | NEI (abst.) 0.29 [undecided] | Supported 0.83 [correct] | wikipedia, google_factcheck |
+| pg-f1 | false | Refuted (abst.) 0.35 [undecided] | Refuted 0.65 [correct] | wikipedia, google_factcheck |
+| pg-f2 | false | Refuted 0.39 [correct] | Supported 0.93 [wrong] | wikipedia, google_factcheck |
+| pg-f3 | false | Refuted (abst.) 0.38 [undecided] | Supported 0.91 [wrong] | wikipedia, google_factcheck |
+| pl-t1 | true | Refuted 0.51 [wrong] | Supported 0.98 [correct] | wikipedia, google_factcheck |
+| pl-f1 | false | none (abst.) 0.00 [undecided] | none (abst.) 0.00 [undecided] | - |
+| un-1 | unverifiable | Refuted 0.75 [wrong] | NEI 0.99 [correct] | wikipedia, google_factcheck |
+| un-2 | unverifiable | Refuted 0.81 [wrong] | NEI (abst.) 0.00 [correct] | wikipedia, google_factcheck |
+| un-3 | unverifiable | Refuted 0.57 [wrong] | NEI (abst.) 0.00 [correct] | wikipedia, google_factcheck |
