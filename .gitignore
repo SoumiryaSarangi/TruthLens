@@ -59,3 +59,8 @@ hf_cache/
 # silently drop the one directory the whole project's validity rests on.
 !data/splits/
 !data/splits/**
+
+# Secrets: the Google Fact Check API key lives here, never in git.
+.env
+.env.*
+!.env.example
