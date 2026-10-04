@@ -1,0 +1,74 @@
+# Usability test: can an ordinary reader understand the answer?
+
+TruthLens is for people who receive WhatsApp forwards, not for engineers. This is a small test
+with the owner's relatives (parents, grandparents, other family) of whether they understand the
+plain card (`docs/specs/UI_UX.md` section 5). **The questions and the pass bars below are fixed
+before anyone is tested.** The results go in `docs/usability-results.md` and report section 6,
+whatever they are, including a failed bar.
+
+With 3 to 5 people this is an indication, not a statistic. It is meant to find confusing wording,
+and the report says so.
+
+## Who and how
+
+- 3 to 5 people who regularly get forwards. At least one who reads Hindi or Punjabi more easily
+  than English, and (if possible) one older than 60.
+- The owner sits beside them and does **not** explain the screen. Say only: "Please read this and
+  tell me what you think it says."
+- Use the owner's laptop or phone with the app open, with the **language switch set to the
+  person's own language** (EN / हिं / ਪੰ at the top).
+- Use only the app's own example messages (no personal messages, no names). Record only the
+  answers below, the language, an age band and the device; no names.
+- Ask for consent in one sentence: "I'm testing an app, not you; you can stop any time."
+
+## The tasks
+
+Open the "Try an example" fold and press each example, then press send. Do the tasks in this order.
+
+| Task | Example | What the card says | Expected understanding |
+| --- | --- | --- | --- |
+| A | EN, fact-checked (pineapple juice) | Fact-checkers say: FALSE | It is false; do not forward it |
+| B | Roman Hindi ("Kal se WhatsApp ke paise lagenge") or the Long forward (lemon water and cancer) | Probably FALSE, with a scare-tactic warning on the long forward | It is probably false; do not forward it |
+| C | Thin evidence (Lahore, in Punjabi) | Hard to say, it looks true | Not sure; check before forwarding |
+| D | Greeting ("Good morning, stay blessed") | Nothing to check here | It is not a claim |
+
+After each card, ask these four questions and write down the answer in the person's own words:
+
+1. **"In your own words, what is this telling you?"**  Scored *correct* if they say the message is
+   probably false / probably true / the app is not sure, as the card says for that task.
+2. **"Would you forward this message to the family group? Why?"**  Scored *correct* if it matches
+   the "what to do" line (do not forward A and B; check first for C; D has no action).
+3. **"How sure do you think the app is?"**  Scored *correct* for C if they say it is not sure.
+4. **"Was anything in the answer confusing?"**  Free text; this is the most useful question.
+
+Then two extra tasks and one rating:
+
+5. **"Please make the app read the answer out loud."**  Pass if they find and press **Listen**
+   without help. (If the device has no voice for their language, the card says so; record that.)
+6. **"Please make a reply you could send to the family group."**  Pass if they press **Copy a reply**
+   and can paste it somewhere (Notes or WhatsApp).
+7. **"On a scale of 1 to 5, how easy was it to understand? (1 = very hard, 5 = very easy)"**
+
+## Pass bars (fixed before testing)
+
+All four must hold across the people tested:
+
+1. At least **80%** of Question 1 answers (person x task, tasks A to C) are correct.
+2. At least **80%** of Question 2 answers (tasks A to C) match the expected action.
+3. **Nobody** fails to say what to do for a false message (tasks A and B).
+4. The mean ease rating is at least **4 out of 5**, and at least **3 of 5** (or all, if fewer than
+   5 are tested) find Listen or Copy a reply without help.
+
+## If a bar fails
+
+Fix the wording the confusing answers point at (the notes from Question 4 are the guide), say what
+was changed, and test **two new people**. Report both rounds in `docs/usability-results.md`; the
+first round is never dropped.
+
+## Results sheet (copy into `docs/usability-results.md`)
+
+| Person | Language | Age band | Device | A Q1/Q2/Q3 | B Q1/Q2/Q3 | C Q1/Q2/Q3 | D Q1 | Listen | Copy | Ease 1-5 | Confusing (Q4) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | | | | | | | | | | | |
+| 2 | | | | | | | | | | | |
+| 3 | | | | | | | | | | | |

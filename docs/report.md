@@ -295,6 +295,17 @@ Supported; otherwise the template is served.
 
 ## 6. Demo
 
+**For ordinary readers first.** TruthLens is for people who receive forwards, not for engineers, so
+the first thing on every answer is a plain card in the reader's own language: one large verdict word
+("Probably FALSE", "Hard to say"), one sentence of why, what to do ("Please don't forward it"), the
+closest sources, a warning in words when the message tries to scare or rush the reader, and two
+buttons: **Listen** (the browser's own speech) and **Copy a reply** (a ready message for the family
+group). The technical card the project measured (verdict class, confidence band, explanation,
+evidence trail) sits in a closed "Details" fold, so nothing was removed. The wording says "probably"
+and "the sources I found": it reports what sources say, never the truth. A usability test with
+relatives, with questions and pass bars fixed beforehand, is specified in `docs/usability-test.md`;
+its results are in `docs/usability-results.md` once run. The rest of this section describes the page.
+
 The page (`app/`) is styled after the chat app the forward came from. It has a
 verdict card with an icon and a word (never colour alone), a confidence band
 rather than a percentage, an abstained card that shows the would-be verdict

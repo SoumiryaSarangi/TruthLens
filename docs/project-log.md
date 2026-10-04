@@ -2983,3 +2983,23 @@ fast-path card no longer repeats the publisher line (UI); the Roman-Hindi demo c
 written before running 14 candidates (`scripts/pick_romanized_chip.py`; only one qualified, which says how rarely
 romanized free text gets apt evidence offline).
 
+### A card for ordinary people (2026-10-05)
+
+The owner: the app is for general people (parents, grandparents), and the answers had too many things.
+Plan approved with all recommendations (answer in the message's language with a language switch;
+Listen and Copy a reply in; technical card kept behind Details; relatives will test).
+Built, front end only (`app/static/{app.js,styles.css,index.html,i18n/*}`; no pipeline, API or number changed):
+the plain card (verdict word, one reason, what to do, closest sources, persuasion warning in words, the
+claim checked, Listen, Copy a reply, the live button in plain words), the technical card moved verbatim
+into a closed Details fold, a language switch that re-renders every answer, the examples folded away,
+17 px type and larger tap targets. Honest wording: "probably", "the sources I found"; offline sources
+are labelled "closest sources I found" because they are sometimes only loosely related (the Roman-Hindi
+chip's US stimulus fact-check); a live verdict says nothing about how sure it is (uncalibrated).
+Checks: `tests/test_ui_static.py` (64: every string in every language, no jargon in the plain strings,
+tap targets), `scripts/ui_plain_check.js` (24 renders over the demo cards plus two live cards in en/hi/pa:
+headline, reason, action, no technical words outside Details, word budget, Listen and Copy, reply in the
+card's language), the older render checks updated. New hi/pa strings (55, machine-drafted) await the
+owner's review (`docs/i18n-review.md`, last section). The relatives' test is specified in
+`docs/usability-test.md` (questions and pass bars fixed before testing); results go in
+`docs/usability-results.md`. Not yet checked in a real browser by me (no browser tool): the owner looks.
+

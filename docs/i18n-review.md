@@ -134,3 +134,84 @@ added so "were not sure enough" is explicit.
 | `live_verdict_basis` | This verdict comes from Wikipedia text, read by two models that had to agree. | यह नतीजा विकिपीडिया के पाठ से निकला है, जिसे दो मॉडलों ने पढ़ा और जिनका सहमत होना ज़रूरी था। | ਇਹ ਨਤੀਜਾ ਵਿਕੀਪੀਡੀਆ ਦੇ ਪਾਠ ਤੋਂ ਆਇਆ ਹੈ, ਜਿਸਨੂੰ ਦੋ ਮਾਡਲਾਂ ਨੇ ਪੜ੍ਹਿਆ ਅਤੇ ਜਿਨ੍ਹਾਂ ਦਾ ਸਹਿਮਤ ਹੋਣਾ ਲਾਜ਼ਮੀ ਸੀ। | |
 | `live_validated` | In a test on 350 claims it was right 94% of the time when it gave a verdict, and it gave one for only about 3 claims in 10. | 350 दावों के परीक्षण में, जब यह नतीजा देता था तो लगभग 94% बार सही था, और यह करीब 10 में से 3 दावों पर ही नतीजा देता था। | 350 ਦਾਅਵਿਆਂ ਦੇ ਟੈਸਟ ਵਿੱਚ, ਜਦੋਂ ਇਹ ਨਤੀਜਾ ਦਿੰਦਾ ਸੀ ਤਾਂ ਲਗਭਗ 94% ਵਾਰ ਸਹੀ ਸੀ, ਅਤੇ ਇਹ ਲਗਭਗ 10 ਵਿੱਚੋਂ 3 ਦਾਅਵਿਆਂ ਉੱਤੇ ਹੀ ਨਤੀਜਾ ਦਿੰਦਾ ਸੀ। | |
 | `live_no_verdict` | The two models did not agree, or were not sure enough, so there is no verdict. Read the sources. | दोनों मॉडल सहमत नहीं हुए या पर्याप्त भरोसा नहीं था, इसलिए कोई नतीजा नहीं दिया गया। स्रोत पढ़ें। | ਦੋਵੇਂ ਮਾਡਲ ਸਹਿਮਤ ਨਹੀਂ ਹੋਏ ਜਾਂ ਕਾਫ਼ੀ ਭਰੋਸਾ ਨਹੀਂ ਸੀ, ਇਸ ਲਈ ਕੋਈ ਨਤੀਜਾ ਨਹੀਂ ਦਿੱਤਾ ਗਿਆ। ਸਰੋਤ ਵੇਖੋ। | |
+
+---
+
+## Plain-language card strings: NOT YET REVIEWED (added 2026-10-05)
+
+The card ordinary readers see (docs/specs/UI_UX.md section 5) is written in plain words and in the
+reader's own language, so these strings matter more than any other in the app: they are what a
+parent or grandparent reads. Machine-drafted by the assistant; please correct anything that is not
+how a native speaker would say it.
+
+**How to read the sheet.** The card speaks as "I" (a helper), says "probably" and "the sources I
+found" (it reports what sources say, never the truth), and always ends with what to do. Keep that:
+`{publisher}`, `{url}`, `{lang}` and `{list}` are filled in by the app. `plain.flags` is
+completed by `plain.technique.*`: "This message tries to *scare you, make you hurry*": the technique
+phrases are infinitives that fit after "tries to" (Hindi "की कोशिश करता है", Punjabi "ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰਦਾ ਹੈ"),
+so keep that grammar. First-person verbs should stay gender-neutral. Prefer everyday words
+(सबूत, स्रोत, जाँच; ਸਬੂਤ, ਸਰੋਤ, ਜਾਂਚ) over formal ones.
+
+Four existing strings were also reworded to be simpler (`intro`, `live_button`, `live_privacy`,
+`stage_trace`). The older reviewed wording of those is in the sections above.
+
+After you correct, apply the corrections to `app/static/i18n/hi.json` and `pa.json` and remove the
+"PLAIN-LANGUAGE CARD ... NOT YET REVIEWED" sentence from their `_comment`.
+
+| key | English | Hindi | Punjabi | correction |
+| --- | --- | --- | --- | --- |
+| `intro` | Paste a message someone forwarded to you, then press the arrow. You will see whether it looks true or false, and why. | जो संदेश आपको किसी ने भेजा है, उसे यहाँ पेस्ट करें और तीर दबाएँ। आपको दिखेगा कि वह सच लगता है या झूठ, और क्यों। | ਜੋ ਸੁਨੇਹਾ ਤੁਹਾਨੂੰ ਕਿਸੇ ਨੇ ਭੇਜਿਆ ਹੈ, ਉਹ ਇੱਥੇ ਪੇਸਟ ਕਰੋ ਅਤੇ ਤੀਰ ਦਬਾਓ। ਤੁਹਾਨੂੰ ਦਿਖੇਗਾ ਕਿ ਉਹ ਸੱਚ ਲੱਗਦਾ ਹੈ ਜਾਂ ਝੂਠ, ਅਤੇ ਕਿਉਂ। | |
+| `live_button` | Look this up online | इसे ऑनलाइन देखें | ਇਸਨੂੰ ਆਨਲਾਈਨ ਵੇਖੋ | |
+| `live_privacy` | This sends only this claim to Wikipedia and Google. | इससे सिर्फ़ यही दावा विकिपीडिया और Google को भेजा जाएगा। | ਇਸ ਨਾਲ ਸਿਰਫ਼ ਇਹੀ ਦਾਅਵਾ ਵਿਕੀਪੀਡੀਆ ਅਤੇ Google ਨੂੰ ਭੇਜਿਆ ਜਾਵੇਗਾ। | |
+| `stage_trace` | Technical trace (for engineers) | तकनीकी ब्योरा (इंजीनियरों के लिए) | ਤਕਨੀਕੀ ਵੇਰਵਾ (ਇੰਜੀਨੀਅਰਾਂ ਲਈ) | |
+| `plain.title.Refuted` | Probably FALSE | संभवतः झूठ | ਸ਼ਾਇਦ ਝੂਠ | |
+| `plain.title.Supported` | Probably TRUE | संभवतः सच | ਸ਼ਾਇਦ ਸੱਚ | |
+| `plain.title.Conflicting` | The sources disagree | स्रोत आपस में सहमत नहीं | ਸਰੋਤ ਆਪਸ ਵਿੱਚ ਸਹਿਮਤ ਨਹੀਂ | |
+| `plain.title.NEI` | Not enough to decide | फ़ैसला करने लायक सबूत नहीं | ਫ਼ੈਸਲਾ ਕਰਨ ਜੋਗੇ ਸਬੂਤ ਨਹੀਂ | |
+| `plain.title.abstained` | Hard to say | पक्का कहना मुश्किल है | ਪੱਕਾ ਕਹਿਣਾ ਔਖਾ ਹੈ | |
+| `plain.fast_title.Refuted` | Fact-checkers say: FALSE | फ़ैक्ट-चेकर कहते हैं: झूठ | ਫ਼ੈਕਟ-ਚੈਕਰ ਕਹਿੰਦੇ ਹਨ: ਝੂਠ | |
+| `plain.fast_title.Supported` | Fact-checkers say: TRUE | फ़ैक्ट-चेकर कहते हैं: सच | ਫ਼ੈਕਟ-ਚੈਕਰ ਕਹਿੰਦੇ ਹਨ: ਸੱਚ | |
+| `plain.fast_title.Conflicting` | Fact-checkers say: partly true or misleading | फ़ैक्ट-चेकर कहते हैं: आंशिक सच या भ्रामक | ਫ਼ੈਕਟ-ਚੈਕਰ ਕਹਿੰਦੇ ਹਨ: ਅੱਧਾ ਸੱਚ ਜਾਂ ਭਰਮਾਉਣ ਵਾਲਾ | |
+| `plain.fast_title.NEI` | Fact-checkers could not settle it | फ़ैक्ट-चेकर भी तय नहीं कर पाए | ਫ਼ੈਕਟ-ਚੈਕਰ ਵੀ ਤੈਅ ਨਹੀਂ ਕਰ ਸਕੇ | |
+| `plain.reason.fast` | {publisher} has already checked this message. | {publisher} इस संदेश की जाँच पहले ही कर चुका है। | {publisher} ਨੇ ਇਹ ਸੁਨੇਹਾ ਪਹਿਲਾਂ ਹੀ ਜਾਂਚ ਲਿਆ ਹੈ। | |
+| `plain.reason.Refuted` | The sources I found say this is not right. | मुझे जो स्रोत मिले, वे कहते हैं कि यह बात सही नहीं है। | ਮੈਨੂੰ ਜੋ ਸਰੋਤ ਮਿਲੇ, ਉਹ ਕਹਿੰਦੇ ਹਨ ਕਿ ਇਹ ਗੱਲ ਠੀਕ ਨਹੀਂ ਹੈ। | |
+| `plain.reason.Supported` | The sources I found agree with this. | मुझे जो स्रोत मिले, वे इस बात से सहमत हैं। | ਮੈਨੂੰ ਜੋ ਸਰੋਤ ਮਿਲੇ, ਉਹ ਇਸ ਗੱਲ ਨਾਲ ਸਹਿਮਤ ਹਨ। | |
+| `plain.reason.Conflicting` | The sources I found do not agree with each other. | मुझे जो स्रोत मिले, वे आपस में सहमत नहीं हैं। | ਮੈਨੂੰ ਜੋ ਸਰੋਤ ਮਿਲੇ, ਉਹ ਆਪਸ ਵਿੱਚ ਸਹਿਮਤ ਨਹੀਂ ਹਨ। | |
+| `plain.reason.NEI` | I could not find enough to decide. | फ़ैसला करने के लिए मुझे पर्याप्त जानकारी नहीं मिली। | ਫ਼ੈਸਲਾ ਕਰਨ ਲਈ ਮੈਨੂੰ ਕਾਫ਼ੀ ਜਾਣਕਾਰੀ ਨਹੀਂ ਮਿਲੀ। | |
+| `plain.reason.abstained_Supported` | It looks true, but I am not sure. | यह सच लगता है, लेकिन मैं पक्का नहीं हूँ। | ਇਹ ਸੱਚ ਲੱਗਦਾ ਹੈ, ਪਰ ਮੈਨੂੰ ਪੱਕਾ ਨਹੀਂ ਪਤਾ। | |
+| `plain.reason.abstained_Refuted` | It looks false, but I am not sure. | यह झूठ लगता है, लेकिन मैं पक्का नहीं हूँ। | ਇਹ ਝੂਠ ਲੱਗਦਾ ਹੈ, ਪਰ ਮੈਨੂੰ ਪੱਕਾ ਨਹੀਂ ਪਤਾ। | |
+| `plain.reason.abstained_other` | I could not find enough to be sure. | पक्का कहने के लिए मुझे पर्याप्त जानकारी नहीं मिली। | ਪੱਕਾ ਕਹਿਣ ਲਈ ਮੈਨੂੰ ਕਾਫ਼ੀ ਜਾਣਕਾਰੀ ਨਹੀਂ ਮਿਲੀ। | |
+| `plain.reason.live_none` | I looked online too, and it is still hard to say. Here is what I found. | मैंने ऑनलाइन भी देखा, फिर भी पक्का कहना मुश्किल है। जो मिला, वह नीचे है। | ਮੈਂ ਆਨਲਾਈਨ ਵੀ ਵੇਖਿਆ, ਫਿਰ ਵੀ ਪੱਕਾ ਕਹਿਣਾ ਔਖਾ ਹੈ। ਜੋ ਮਿਲਿਆ, ਉਹ ਹੇਠਾਂ ਹੈ। | |
+| `plain.reason.live_Supported` | I looked it up online and the sources agree with this. | मैंने ऑनलाइन देखा और स्रोत इस बात से सहमत हैं। | ਮੈਂ ਆਨਲਾਈਨ ਵੇਖਿਆ ਅਤੇ ਸਰੋਤ ਇਸ ਗੱਲ ਨਾਲ ਸਹਿਮਤ ਹਨ। | |
+| `plain.reason.live_Refuted` | I looked it up online and the sources say this is not right. | मैंने ऑनलाइन देखा और स्रोत कहते हैं कि यह बात सही नहीं है। | ਮੈਂ ਆਨਲਾਈਨ ਵੇਖਿਆ ਅਤੇ ਸਰੋਤ ਕਹਿੰਦੇ ਹਨ ਕਿ ਇਹ ਗੱਲ ਠੀਕ ਨਹੀਂ ਹੈ। | |
+| `plain.action.Refuted` | Please don't forward it. | कृपया इसे आगे न भेजें। | ਕਿਰਪਾ ਕਰਕੇ ਇਸਨੂੰ ਅੱਗੇ ਨਾ ਭੇਜੋ। | |
+| `plain.action.Supported` | It looks true, but check the source before you forward it. | यह सच लगता है, पर आगे भेजने से पहले स्रोत देख लें। | ਇਹ ਸੱਚ ਲੱਗਦਾ ਹੈ, ਪਰ ਅੱਗੇ ਭੇਜਣ ਤੋਂ ਪਹਿਲਾਂ ਸਰੋਤ ਵੇਖ ਲਵੋ। | |
+| `plain.action.check` | Please check before you forward it. | आगे भेजने से पहले कृपया जाँच लें। | ਅੱਗੇ ਭੇਜਣ ਤੋਂ ਪਹਿਲਾਂ ਕਿਰਪਾ ਕਰਕੇ ਜਾਂਚ ਲਵੋ। | |
+| `plain.sure.High` | I am quite sure. | मुझे काफ़ी भरोसा है। | ਮੈਨੂੰ ਕਾਫ਼ੀ ਭਰੋਸਾ ਹੈ। | |
+| `plain.sure.Medium` | I am fairly sure. | मुझे ठीक-ठाक भरोसा है। | ਮੈਨੂੰ ਠੀਕ-ਠਾਕ ਭਰੋਸਾ ਹੈ। | |
+| `plain.sure.Low` | I am not very sure. | मुझे ज़्यादा भरोसा नहीं है। | ਮੈਨੂੰ ਬਹੁਤਾ ਭਰੋਸਾ ਨਹੀਂ ਹੈ। | |
+| `plain.none_title` | Nothing to check here | यहाँ जाँचने लायक कुछ नहीं है | ਇੱਥੇ ਜਾਂਚਣ ਵਾਲਾ ਕੁਝ ਨਹੀਂ | |
+| `plain.none_note` | This looks like a greeting or an opinion, not something that can be checked. | यह नमस्ते जैसा संदेश या कोई राय लगती है, ऐसी बात नहीं जिसकी जाँच हो सके। | ਇਹ ਨਮਸਕਾਰ ਵਰਗਾ ਸੁਨੇਹਾ ਜਾਂ ਕੋਈ ਰਾਇ ਲੱਗਦੀ ਹੈ, ਅਜਿਹੀ ਗੱਲ ਨਹੀਂ ਜਿਸਦੀ ਜਾਂਚ ਹੋ ਸਕੇ। | |
+| `plain.claim_label` | I checked this claim: | मैंने यह दावा जाँचा: | ਮੈਂ ਇਹ ਦਾਅਵਾ ਜਾਂਚਿਆ: | |
+| `plain.sources_label` | Where this comes from: | यह जानकारी यहाँ से आई है: | ਇਹ ਜਾਣਕਾਰੀ ਇੱਥੋਂ ਆਈ ਹੈ: | |
+| `plain.found_label` | What I found: | जो मुझे मिला: | ਜੋ ਮੈਨੂੰ ਮਿਲਿਆ: | |
+| `plain.listen` | Listen | सुनें | ਸੁਣੋ | |
+| `plain.listen_stop` | Stop | रोकें | ਰੋਕੋ | |
+| `plain.listen_none` | This device has no {lang} voice. | इस डिवाइस में {lang} आवाज़ नहीं है। | ਇਸ ਡਿਵਾਈਸ ਵਿੱਚ {lang} ਆਵਾਜ਼ ਨਹੀਂ ਹੈ। | |
+| `plain.copy` | Copy a reply | जवाब कॉपी करें | ਜਵਾਬ ਕਾਪੀ ਕਰੋ | |
+| `plain.copied` | Copied | कॉपी हो गया | ਕਾਪੀ ਹੋ ਗਿਆ | |
+| `plain.copy_failed` | Could not copy. Please select the text yourself. | कॉपी नहीं हो सका। कृपया लिखा हुआ ख़ुद चुनकर कॉपी करें। | ਕਾਪੀ ਨਹੀਂ ਹੋ ਸਕਿਆ। ਕਿਰਪਾ ਕਰਕੇ ਲਿਖਿਆ ਹੋਇਆ ਆਪ ਚੁਣ ਕੇ ਕਾਪੀ ਕਰੋ। | |
+| `plain.details` | Details | ब्योरा | ਵੇਰਵਾ | |
+| `plain.flags` | This message tries to {list}. | यह संदेश {list} की कोशिश करता है। | ਇਹ ਸੁਨੇਹਾ {list} ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰਦਾ ਹੈ। | |
+| `plain.reply.Refuted` | I checked this message with TruthLens: it looks FALSE. Please don't forward it. | मैंने यह संदेश TruthLens से जाँचा: यह झूठ लगता है। कृपया इसे आगे न भेजें। | ਮੈਂ ਇਹ ਸੁਨੇਹਾ TruthLens ਨਾਲ ਜਾਂਚਿਆ: ਇਹ ਝੂਠ ਲੱਗਦਾ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਇਸਨੂੰ ਅੱਗੇ ਨਾ ਭੇਜੋ। | |
+| `plain.reply.Supported` | I checked this message with TruthLens: it looks true. Please check the source before you forward it. | मैंने यह संदेश TruthLens से जाँचा: यह सच लगता है। आगे भेजने से पहले स्रोत देख लें। | ਮੈਂ ਇਹ ਸੁਨੇਹਾ TruthLens ਨਾਲ ਜਾਂਚਿਆ: ਇਹ ਸੱਚ ਲੱਗਦਾ ਹੈ। ਅੱਗੇ ਭੇਜਣ ਤੋਂ ਪਹਿਲਾਂ ਸਰੋਤ ਵੇਖ ਲਵੋ। | |
+| `plain.reply.check` | I checked this message with TruthLens: I could not confirm it. Please check before you forward it. | मैंने यह संदेश TruthLens से जाँचा: मैं इसकी पुष्टि नहीं कर सका। आगे भेजने से पहले कृपया जाँच लें। | ਮੈਂ ਇਹ ਸੁਨੇਹਾ TruthLens ਨਾਲ ਜਾਂਚਿਆ: ਮੈਂ ਇਸਦੀ ਪੁਸ਼ਟੀ ਨਹੀਂ ਕਰ ਸਕਿਆ। ਅੱਗੇ ਭੇਜਣ ਤੋਂ ਪਹਿਲਾਂ ਕਿਰਪਾ ਕਰਕੇ ਜਾਂਚ ਲਵੋ। | |
+| `plain.reply.source` | More: {url} | और जानकारी: {url} | ਹੋਰ ਜਾਣਕਾਰੀ: {url} | |
+| `plain.technique.Appeal_to_Time` | make you hurry | जल्दबाज़ी करवाने | ਕਾਹਲੀ ਕਰਵਾਉਣ | |
+| `plain.technique.Appeal_to_Authority` | say an important person or group agrees | किसी बड़े व्यक्ति या संस्था का नाम लेकर मनवाने | ਵੱਡੇ ਨਾਮ ਦੇ ਸਹਾਰੇ ਮਨਵਾਉਣ | |
+| `plain.technique.Appeal_to_Popularity` | say everyone believes it | 'सब यही मानते हैं' कहकर मनवाने | 'ਸਭ ਇਹੀ ਮੰਨਦੇ ਹਨ' ਕਹਿ ਕੇ ਮਨਵਾਉਣ | |
+| `plain.technique.Loaded_Language` | stir up strong feelings | भावनाएँ भड़काने | ਜਜ਼ਬਾਤ ਭੜਕਾਉਣ | |
+| `plain.technique.Repetition` | repeat itself to push you | बार-बार दोहराकर दबाव डालने | ਵਾਰ-ਵਾਰ ਦੁਹਰਾ ਕੇ ਦਬਾਅ ਪਾਉਣ | |
+| `plain.technique.Appeal_to_Fear-Prejudice` | scare you | डराने | ਡਰਾਉਣ | |
+| `plain.technique.Exaggeration-Minimisation` | exaggerate or play things down | बढ़ा-चढ़ाकर बताने | ਵਧਾ-ਚੜ੍ਹਾ ਕੇ ਦੱਸਣ | |
+| `plain.closest_label` | Closest sources I found: | सबसे क़रीबी स्रोत जो मुझे मिले: | ਸਭ ਤੋਂ ਨੇੜਲੇ ਸਰੋਤ ਜੋ ਮੈਨੂੰ ਮਿਲੇ: | |

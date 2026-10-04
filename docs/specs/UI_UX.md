@@ -67,6 +67,51 @@ idle → typing → sending → result
 
 ## 5. The verdict card
 
+### The plain card (2026-10-05): what an ordinary reader sees
+
+TruthLens is for people who receive forwards, not for engineers. The first thing on every answer is
+the **plain card**, written for a parent or grandparent, in the reader's own language (the language
+of the message, or the one chosen with the EN / हिं / ਪੰ switch, which also switches the page and every
+answer already on screen). It is built in the browser from fields the API already returns; nothing is
+recomputed, so no number can disagree with the evaluation. In order:
+
+1. **A plain verdict word with an icon, large:** "Probably FALSE", "Probably TRUE", "The sources
+   disagree", "Not enough to decide", "Hard to say" (abstained), and for a matched published
+   fact-check "Fact-checkers say: FALSE / TRUE / partly true or misleading". Never "Contradicted by
+   evidence", never an absolute TRUE or FALSE for the evidence path, always "probably".
+2. **One sentence of why**, e.g. "The sources I found say this is not right." (or "{publisher} has
+   already checked this message."), plus, for an offline verdict only, how sure it is in words ("I am
+   quite sure / fairly sure / not very sure") instead of a High or Medium band. A live verdict is
+   uncalibrated and says nothing about how sure it is.
+3. **What to do:** "Please don't forward it." / "Please check before you forward it."
+4. **Where it comes from:** the matched fact-check ("Where this comes from"), or the closest sources
+   found ("Closest sources I found": only cited passages that point the same way as the verdict, at
+   most two, because offline evidence is sometimes only loosely related), or what a live look-up
+   found. On an abstained offline card, no sources here.
+5. **A warning when a persuasion technique is present**, in words: "This message tries to scare you,
+   make you hurry."
+6. **The claim that was checked**, quoted, so a long forward shows which part was judged.
+7. **Two buttons:** **Listen** (the browser's own speech, in the card's language; if the device has
+   no voice for it, the card says so instead of reading Hindi in an English voice) and **Copy a
+   reply** (a ready message for the family group in the reader's language, with the best source link;
+   nothing is sent to us).
+8. **"Look this up online"** when it would help (section "Live search" below), saying exactly what it
+   sends. One line: "This sends only this claim to Wikipedia and Google."
+9. **"TruthLens can be wrong. Check the sources."**
+10. **Details**, closed by default: the full technical card below (verdict class, confidence band,
+    explanation with `[n]` citations, evidence trail, live notes, input note) and the stage trace.
+    Nothing was removed; it moved.
+
+A greeting or an opinion gets a single line: "Nothing to check here".
+
+The page itself is for older readers: 17 px type, a column wide enough for it, buttons at least
+about 42 px tall, the language switch always visible, and the demo examples folded under "Try an
+example" so the first screen is a paste box and a short instruction. The test for whether it works
+is `docs/usability-test.md` (relatives, with pass bars fixed before testing).
+
+### The technical card (inside Details)
+
+
 ```
 ┌──────────────────────────────────────┐
 │ ✕  REFUTED                     High  │  verdict chip · confidence band
