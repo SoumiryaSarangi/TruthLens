@@ -512,8 +512,23 @@ Punjabi cannot see which capital.
 Wikipedia pages and fact-check reviews with each publisher's own rating, and says
 it gives no verdict. A false "Supported" is impossible by construction, and the
 user still reads the page that settles the claim. The verdict path stays in the
-code, off. It would need an NLI model that resolves single-entity contradictions
-in Hindi and Punjabi, scored on a third fresh set under the same rule.
+code, off.
+
+**A third attempt, the English route, came closest and still failed its rule.**
+The claim is translated to English (NLLB-200), English Wikipedia is read (Hindi and
+Punjabi pages through their language links), and an English NLI (DeBERTa-v3-large)
+judges it. Translation alone did not help: the multilingual NLI called the English
+Mumbai page entailment at 0.99 for "Mumbai is the capital of India"; the large
+English model calls it a contradiction at 0.95. On a third fresh set of 39 claims
+(`docs/live-search-probe.md`, run 3b) the live answer was correct on 28 against 12
+offline, wrong on 2 against 11, and all 15 true claims that offline missed became
+correct, in every language. The pre-fixed rule still rejects it: one unverifiable
+claim was refuted from a loosely related page, and one false claim (the Ganges and
+the Arabian Sea) was called Supported from pages about two other rivers. Both are
+relevance errors, not NLI errors, so fine-tuning the NLI would not fix them; an
+entity-grounding gate would, and needs a fourth fresh set. Served unchanged:
+evidence only. A first run of that set was disturbed by Wikipedia rate limits and
+re-run once, identically, with a longer pause (both runs kept).
 
 ## 9. Error analysis
 

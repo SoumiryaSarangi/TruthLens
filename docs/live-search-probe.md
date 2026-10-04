@@ -216,7 +216,7 @@ the same rule. Neither fits the time left.
 | un-2 | unverifiable | Refuted 0.81 [wrong] | NEI (abst.) 0.00 [correct] | wikipedia, google_factcheck |
 | un-3 | unverifiable | Refuted 0.57 [wrong] | NEI (abst.) 0.00 [correct] | wikipedia, google_factcheck |
 
-## Run 3: the English route (2026-10-04): built, frozen, awaiting a fresh-set run
+## Run 3: the English route (2026-10-04): the best result yet, still not adopted
 
 **What was built** (route A of the plan approved by the owner): a Hindi/Punjabi claim is
 translated to English (NLLB-200 distilled 600M; romanized claims from their
@@ -240,3 +240,47 @@ Rule unchanged from sets 1 and 2: adopt only if no correct answer turns wrong, a
 least one true claim becomes correct, and no unverifiable claim is decided
 confidently. If it fails, live stays evidence-only and route B (fine-tuning on
 single-entity contradictions) is the next step.
+
+**Result on set 3** (fresh, 39 claims: 17 true, 19 false, 3 unverifiable; labels approved
+by the owner with two "New Delhi" wording fixes, before any run).
+
+*Run 3a* hit Wikipedia's rate limit (HTTP 429) on 12 of 39 claims. In those rows the
+card keeps its offline answer by design, so five of its "wrong" outcomes were the
+OFFLINE answer, not a live judgement (live 21 correct / 13 undecided / 5 wrong). A 429
+is an infrastructure failure, not a metric bug, so the identical set was re-run once
+with an 8 s pause between claims. No code, rule or label changed; the first run is
+kept in `reports/live_probe_set3_routeA_run1.*`.
+
+*Run 3b* (no source failed on any claim):
+
+| | offline (39) | live, English route (39) |
+| --- | --- | --- |
+| correct | 12 | **28** |
+| undecided | 16 | 9 |
+| wrong | 11 | **2** |
+
+Rule (1) holds (no correct answer turned wrong). Rule (2) holds: all 15 true claims
+that were not correct offline are correct live, in English, Hindi, romanized Hindi
+and Punjabi. **Rule (3) fails**, and that alone rejects the path:
+
+| Claim | Truth | Live | What it read |
+| --- | --- | --- | --- |
+| "The tea stall near our office closes at 9 pm on Sundays" | unverifiable | Refuted | the Brick Lane Market page ("Refutes") |
+| "The Ganges flows into the Arabian Sea", in Hindi | false | **Supported** | the Daman Ganga and Varahi river pages |
+
+Every other false claim was Refuted or left undecided: the single-entity swaps that
+rejected the path twice (Chennai/Kerala, Bengaluru/Tamil Nadu, Ambedkar as first
+President, Shimla/Punjab) are now Refuted or undecided. Median latency of a live click:
+6.2 s (translation and an extra fetch; was about 3 s).
+
+**Why it still fails, and what that says about route B.** Both errors are RELEVANCE
+errors, not NLI errors: the NLI model read the wrong page correctly. "Daman Ganga" and
+"Varahi" are rivers that do reach the Arabian Sea, and a market page loosely matched a
+tea stall. Route B (fine-tuning the NLI on single-entity contradictions) would not fix
+either, because the contradictions it teaches are not what failed. What would: an
+entity-grounding gate (a passage must be about the claim's subject, not merely a
+related page) and a stricter bar before an unverifiable-looking claim can be refuted.
+That is a change under test and needs a fourth fresh set.
+
+**Decision: unchanged, live search is served as evidence only.** `live_translate` stays
+in the code, off.

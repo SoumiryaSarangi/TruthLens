@@ -2811,8 +2811,7 @@ complete.** The remaining FR-6 limitation is a data problem with a named owner:
 Everything planned is done (Phases 1-7, the one test run, the report, the acceptance
 matrix). What remains, in order:
 
-1. **Owner:** review the live-search hi/pa strings (`docs/i18n-review.md`, last
-   section) and apply the corrections to `app/static/i18n/{hi,pa}.json`.
+1. ~~Owner: review the live-search hi/pa strings~~ Done 2026-10-04 (3 corrected, 7 kept).
 2. **The demo** (`UI_UX.md` §11): `python scripts/demo_check.py` must print OK; then
    `make serve`; click each chip once so every model is loaded (first requests take
    30+ s). Order: greeting, fact-checked, Roman Hindi, thin evidence. The live-search
@@ -2821,9 +2820,9 @@ matrix). What remains, in order:
    `docs/report.md`; re-run `scripts/check_report_numbers.py docs/report.md` after
    any edit.
 
-Optional future work, all outside the frozen result: an NLI model that resolves
-single-entity contradictions in Hindi and Punjabi (the only thing that would let a
-live verdict pass its adoption rule); an accurate transliterator (IndicXlit in its own
+Optional future work, all outside the frozen result: an entity-grounding gate for the
+live path (a page must be about the claim's subject; the English route's two remaining
+errors were relevance errors, see "English route" below), validated on a FOURTH fresh set; an accurate transliterator (IndicXlit in its own
 venv); a correction for the verdict model's "forwarded claims are false" prior.
 
 **The floor to beat, per component** is superseded by the test table in
@@ -2889,3 +2888,23 @@ venv); a correction for the verdict model's "forwarded claims are false" prior.
 - Before every experiment: what is the current number, what is the dumb
   baseline, and what would make this experiment invalid?
 
+### English route for the live verdict (2026-10-04): best result yet, not adopted
+
+Built route A (owner-approved): NLLB-200 distilled 600M translates hi/pa claims
+(romanized from native-script form), English Wikipedia is read (hi/pa pages via
+language links), DeBERTa-v3-large NLI judges. Config `live_translate`, off in the
+served config; `describe()` omits it unless on, so no hash moved. New: `preprocess/translate.py`,
+`WikipediaLive.search(to_english=)`, `Orchestrator._live_stance/_english_claim`,
+`scripts/live_probe.py --translate`; 773 tests, lint clean.
+Findings: translation alone did NOT fix single-entity swaps (mDeBERTa still said the
+Mumbai page entails "Mumbai is the capital of India", 0.99); the English large NLI does
+(contradiction 0.95). It was chosen on probe set 2 pairs, so set 2 is spent for it.
+Set 3 (39 fresh claims, committed before the code froze, owner-approved): run 3a was
+disturbed by Wikipedia 429s (offline answers kept in 12 rows) and was re-run once,
+identically, pause 8 s (both kept in `reports/`). Run 3b: live 28 correct / 9 undecided
+/ 2 wrong vs offline 12 / 16 / 11; all 15 true claims gained; no regression. Rule (3)
+FAILS: an unverifiable tea-stall claim refuted from a Brick Lane Market page, and a
+false claim (Ganges into the Arabian Sea) Supported from Daman Ganga/Varahi pages.
+Both are RELEVANCE errors, so route B (fine-tune NLI) would not fix them. Served
+unchanged: evidence only. Details: `docs/live-search-probe.md` Run 3, report §8b.
+New cached model: NLLB (2.4 GB) and DeBERTa-v3-large under `D:\hf-cache`.
