@@ -62,3 +62,11 @@ def test_copy_avoids_true_and_false(gen):
         lowered = text.lower()
         assert " true" not in lowered and " false" not in lowered
         assert "!" not in text          # no alarm language, even for Refuted
+
+
+def test_an_abstained_card_leaning_to_nei_says_it_in_words_not_in_a_label_code():
+    from generation.template import TemplateExplainer
+
+    text, _ = TemplateExplainer().explain("NEI", [], abstained=True)
+    assert "Leaning: not enough evidence" in text and "nei" not in text.lower().replace("neither", "")
+

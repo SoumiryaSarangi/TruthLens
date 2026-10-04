@@ -27,6 +27,10 @@ STANCE_PHRASE = {
 }
 
 
+# How an abstained card names its leaning. "nei" is a label code, not a word a reader knows.
+LEANING = {"NEI": "not enough evidence"}
+
+
 class TemplateExplainer:
     name = "generation"
     impl = "template"
@@ -43,7 +47,7 @@ class TemplateExplainer:
             # UI_UX.md §6: an abstained card shows the leaning, greyed. The text
             # has to say the system declined, not hedge about the evidence.
             head = ("Not confident enough to judge this claim. "
-                    f"Leaning: {verdict.lower()}")
+                    f"Leaning: {LEANING.get(verdict, verdict.lower())}")
 
         if not passages:
             return head + ". No sources were retrieved.", []
