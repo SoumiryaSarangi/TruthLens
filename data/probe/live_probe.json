@@ -1,37 +1,229 @@
 {
-  "_comment": "The live-search PROBE SET (post-test Phase 7). Our own wording, never dataset text, so it is committed. A demo set, not a benchmark: ~40 claims cannot support a metric, and results are reported claim by claim. Labels were drafted by the assistant and APPROVED BY THE PROJECT OWNER before any run (docs/live-search-probe.md). label: true | false | unverifiable (nothing public settles it; the right answer is 'nothing found' / not confident, never a confident verdict). style: en | hi-deva | hi-latn | pa-guru | pa-latn.",
+  "_comment": "The live-search PROBE SET (post-test Phase 7). Our own wording, never dataset text, so it is committed. A demo set, not a benchmark: ~40 claims cannot support a metric, and results are reported claim by claim. Labels were drafted by the assistant and APPROVED BY THE PROJECT OWNER on 2026-10-04, who checked all 32 and changed none; three 'why' fields were rewritten at their request and every romanized claim now states its factual basis. label: true | false | unverifiable (nothing public settles it; the right answer is 'nothing found' / not confident, never a confident verdict). style: en | hi-deva | hi-latn | pa-guru | pa-latn.",
   "claims": [
-    {"id": "en-t1", "style": "en", "label": "true", "text": "The Eiffel Tower is in Paris", "why": "Wikipedia lead"},
-    {"id": "en-t2", "style": "en", "label": "true", "text": "Mahatma Gandhi was born in Porbandar", "why": "Wikipedia"},
-    {"id": "en-t3", "style": "en", "label": "true", "text": "Rabindranath Tagore won the Nobel Prize in Literature", "why": "Wikipedia"},
-    {"id": "en-t4", "style": "en", "label": "true", "text": "Jawaharlal Nehru was India's first Prime Minister", "why": "Wikipedia"},
-    {"id": "en-t5", "style": "en", "label": "true", "text": "A. P. J. Abdul Kalam was the 11th President of India", "why": "Wikipedia"},
-    {"id": "en-t6", "style": "en", "label": "true", "text": "Shah Jahan built the Taj Mahal", "why": "Wikipedia; English form of the Taj Mahal failure"},
-    {"id": "en-t7", "style": "en", "label": "true", "text": "Mount Everest is the highest mountain above sea level", "why": "Wikipedia"},
-    {"id": "en-f1", "style": "en", "label": "false", "text": "The Great Wall of China is visible from space with the naked eye", "why": "Wikipedia states it is a myth; widely fact-checked"},
-    {"id": "en-f2", "style": "en", "label": "false", "text": "Humans only use 10 percent of their brains", "why": "Wikipedia 'ten percent of the brain myth'"},
-    {"id": "en-f3", "style": "en", "label": "false", "text": "Vaccines cause autism", "why": "Wikipedia and many fact-checks"},
-    {"id": "en-f4", "style": "en", "label": "false", "text": "The Taj Mahal is in Delhi", "why": "Wikipedia: Agra"},
-    {"id": "en-f5", "style": "en", "label": "false", "text": "5G towers spread the coronavirus", "why": "viral claim, widely fact-checked"},
-    {"id": "en-f6", "style": "en", "label": "false", "text": "WhatsApp will start charging users from next month", "why": "recurring hoax, fact-checked in India"},
-    {"id": "hd-t1", "style": "hi-deva", "label": "true", "text": "महात्मा गांधी का जन्म पोरबंदर में हुआ था", "why": "hi.wikipedia"},
-    {"id": "hd-t2", "style": "hi-deva", "label": "true", "text": "ताजमहल आगरा में स्थित है", "why": "hi.wikipedia"},
-    {"id": "hd-t3", "style": "hi-deva", "label": "true", "text": "गंगा नदी उत्तर प्रदेश से होकर बहती है", "why": "hi.wikipedia"},
-    {"id": "hd-f1", "style": "hi-deva", "label": "false", "text": "ताजमहल दिल्ली में है", "why": "hi.wikipedia: Agra"},
-    {"id": "hd-f2", "style": "hi-deva", "label": "false", "text": "सूर्य पृथ्वी के चारों ओर घूमता है", "why": "basic astronomy"},
-    {"id": "hl-t1", "style": "hi-latn", "label": "true", "text": "Mahatma Gandhi ka janm Porbandar mein hua tha", "why": "romanized Hindi"},
-    {"id": "hl-t2", "style": "hi-latn", "label": "true", "text": "Sachin Tendulkar ne 100 international century banaye hain", "why": "Wikipedia"},
-    {"id": "hl-t3", "style": "hi-latn", "label": "true", "text": "Lal Qila Delhi mein hai", "why": "Wikipedia"},
-    {"id": "hl-f1", "style": "hi-latn", "label": "false", "text": "Subhash Chandra Bose ka janm Mumbai mein hua tha", "why": "born in Cuttack"},
-    {"id": "hl-f2", "style": "hi-latn", "label": "false", "text": "Taj Mahal Delhi mein hai", "why": "Agra"},
-    {"id": "pg-t1", "style": "pa-guru", "label": "true", "text": "ਅੰਮ੍ਰਿਤਸਰ ਪੰਜਾਬ ਵਿੱਚ ਹੈ", "why": "pa.wikipedia"},
-    {"id": "pg-t2", "style": "pa-guru", "label": "true", "text": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ ਦਾ ਜਨਮ ਨਨਕਾਣਾ ਸਾਹਿਬ ਵਿੱਚ ਹੋਇਆ ਸੀ", "why": "pa.wikipedia"},
-    {"id": "pg-t3", "style": "pa-guru", "label": "true", "text": "ਸਤਲੁਜ ਦਰਿਆ ਪੰਜਾਬ ਵਿੱਚੋਂ ਲੰਘਦਾ ਹੈ", "why": "pa.wikipedia"},
-    {"id": "pg-f1", "style": "pa-guru", "label": "false", "text": "ਚੰਡੀਗੜ੍ਹ ਹਿਮਾਚਲ ਪ੍ਰਦੇਸ਼ ਦੀ ਰਾਜਧਾਨੀ ਹੈ", "why": "Shimla is Himachal's capital"},
-    {"id": "pl-t1", "style": "pa-latn", "label": "true", "text": "Guru Nanak Dev Ji da janam Nankana Sahib vich hoya si", "why": "romanized Punjabi"},
-    {"id": "pl-f1", "style": "pa-latn", "label": "false", "text": "Amritsar Haryana vich hai", "why": "Amritsar is in Punjab"},
-    {"id": "un-1", "style": "en", "label": "unverifiable", "text": "My neighbour's cat can predict earthquakes", "why": "no public source settles it"},
-    {"id": "un-2", "style": "en", "label": "unverifiable", "text": "Ramesh from Jaipur won a lottery of five crore rupees last week", "why": "a private, unsearchable event"},
-    {"id": "un-3", "style": "hi-latn", "label": "unverifiable", "text": "Mere mohalle ka school agle Monday ko band ho jayega", "why": "a private, unsearchable event"}
+    {
+      "id": "en-t1",
+      "style": "en",
+      "label": "true",
+      "text": "The Eiffel Tower is in Paris",
+      "why": "Wikipedia lead"
+    },
+    {
+      "id": "en-t2",
+      "style": "en",
+      "label": "true",
+      "text": "Mahatma Gandhi was born in Porbandar",
+      "why": "Wikipedia"
+    },
+    {
+      "id": "en-t3",
+      "style": "en",
+      "label": "true",
+      "text": "Rabindranath Tagore won the Nobel Prize in Literature",
+      "why": "Wikipedia"
+    },
+    {
+      "id": "en-t4",
+      "style": "en",
+      "label": "true",
+      "text": "Jawaharlal Nehru was India's first Prime Minister",
+      "why": "Wikipedia"
+    },
+    {
+      "id": "en-t5",
+      "style": "en",
+      "label": "true",
+      "text": "A. P. J. Abdul Kalam was the 11th President of India",
+      "why": "Wikipedia"
+    },
+    {
+      "id": "en-t6",
+      "style": "en",
+      "label": "true",
+      "text": "Shah Jahan built the Taj Mahal",
+      "why": "UNESCO: built in Agra by order of Mughal emperor Shah Jahan"
+    },
+    {
+      "id": "en-t7",
+      "style": "en",
+      "label": "true",
+      "text": "Mount Everest is the highest mountain above sea level",
+      "why": "Wikipedia"
+    },
+    {
+      "id": "en-f1",
+      "style": "en",
+      "label": "false",
+      "text": "The Great Wall of China is visible from space with the naked eye",
+      "why": "Wikipedia states it is a myth; widely fact-checked"
+    },
+    {
+      "id": "en-f2",
+      "style": "en",
+      "label": "false",
+      "text": "Humans only use 10 percent of their brains",
+      "why": "Wikipedia 'ten percent of the brain myth'"
+    },
+    {
+      "id": "en-f3",
+      "style": "en",
+      "label": "false",
+      "text": "Vaccines cause autism",
+      "why": "Wikipedia and many fact-checks"
+    },
+    {
+      "id": "en-f4",
+      "style": "en",
+      "label": "false",
+      "text": "The Taj Mahal is in Delhi",
+      "why": "Wikipedia: Agra"
+    },
+    {
+      "id": "en-f5",
+      "style": "en",
+      "label": "false",
+      "text": "5G towers spread the coronavirus",
+      "why": "viral claim, widely fact-checked"
+    },
+    {
+      "id": "en-f6",
+      "style": "en",
+      "label": "false",
+      "text": "WhatsApp will start charging users from next month",
+      "why": "No official WhatsApp/Meta announcement supports a general mandatory messaging charge; recurring versions of this claim are hoaxes."
+    },
+    {
+      "id": "hd-t1",
+      "style": "hi-deva",
+      "label": "true",
+      "text": "महात्मा गांधी का जन्म पोरबंदर में हुआ था",
+      "why": "hi.wikipedia"
+    },
+    {
+      "id": "hd-t2",
+      "style": "hi-deva",
+      "label": "true",
+      "text": "ताजमहल आगरा में स्थित है",
+      "why": "hi.wikipedia"
+    },
+    {
+      "id": "hd-t3",
+      "style": "hi-deva",
+      "label": "true",
+      "text": "गंगा नदी उत्तर प्रदेश से होकर बहती है",
+      "why": "hi.wikipedia"
+    },
+    {
+      "id": "hd-f1",
+      "style": "hi-deva",
+      "label": "false",
+      "text": "ताजमहल दिल्ली में है",
+      "why": "hi.wikipedia: Agra"
+    },
+    {
+      "id": "hd-f2",
+      "style": "hi-deva",
+      "label": "false",
+      "text": "सूर्य पृथ्वी के चारों ओर घूमता है",
+      "why": "basic astronomy"
+    },
+    {
+      "id": "hl-t1",
+      "style": "hi-latn",
+      "label": "true",
+      "text": "Mahatma Gandhi ka janm Porbandar mein hua tha",
+      "why": "Gandhi was born in Porbandar, Gujarat (Wikipedia: Mahatma Gandhi)"
+    },
+    {
+      "id": "hl-t2",
+      "style": "hi-latn",
+      "label": "true",
+      "text": "Sachin Tendulkar ne 100 international century banaye hain",
+      "why": "Tendulkar scored 100 international centuries: 51 in Tests and 49 in ODIs (Wikipedia)"
+    },
+    {
+      "id": "hl-t3",
+      "style": "hi-latn",
+      "label": "true",
+      "text": "Lal Qila Delhi mein hai",
+      "why": "The Red Fort (Lal Qila) is in Old Delhi (Wikipedia)"
+    },
+    {
+      "id": "hl-f1",
+      "style": "hi-latn",
+      "label": "false",
+      "text": "Subhash Chandra Bose ka janm Mumbai mein hua tha",
+      "why": "Subhas Chandra Bose was born in Cuttack, Odisha, not Mumbai (Wikipedia)"
+    },
+    {
+      "id": "hl-f2",
+      "style": "hi-latn",
+      "label": "false",
+      "text": "Taj Mahal Delhi mein hai",
+      "why": "The Taj Mahal is in Agra, Uttar Pradesh, not Delhi (Wikipedia, UNESCO)"
+    },
+    {
+      "id": "pg-t1",
+      "style": "pa-guru",
+      "label": "true",
+      "text": "ਅੰਮ੍ਰਿਤਸਰ ਪੰਜਾਬ ਵਿੱਚ ਹੈ",
+      "why": "pa.wikipedia"
+    },
+    {
+      "id": "pg-t2",
+      "style": "pa-guru",
+      "label": "true",
+      "text": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ ਦਾ ਜਨਮ ਨਨਕਾਣਾ ਸਾਹਿਬ ਵਿੱਚ ਹੋਇਆ ਸੀ",
+      "why": "pa.wikipedia"
+    },
+    {
+      "id": "pg-t3",
+      "style": "pa-guru",
+      "label": "true",
+      "text": "ਸਤਲੁਜ ਦਰਿਆ ਪੰਜਾਬ ਵਿੱਚੋਂ ਲੰਘਦਾ ਹੈ",
+      "why": "pa.wikipedia"
+    },
+    {
+      "id": "pg-f1",
+      "style": "pa-guru",
+      "label": "false",
+      "text": "ਚੰਡੀਗੜ੍ਹ ਹਿਮਾਚਲ ਪ੍ਰਦੇਸ਼ ਦੀ ਰਾਜਧਾਨੀ ਹੈ",
+      "why": "Shimla is Himachal's capital"
+    },
+    {
+      "id": "pl-t1",
+      "style": "pa-latn",
+      "label": "true",
+      "text": "Guru Nanak Dev Ji da janam Nankana Sahib vich hoya si",
+      "why": "Guru Nanak was born at Rai Bhoi di Talwandi, now Nankana Sahib, Pakistan (Wikipedia)"
+    },
+    {
+      "id": "pl-f1",
+      "style": "pa-latn",
+      "label": "false",
+      "text": "Amritsar Haryana vich hai",
+      "why": "Amritsar is a city in Punjab, India, not Haryana (Wikipedia)"
+    },
+    {
+      "id": "un-1",
+      "style": "en",
+      "label": "unverifiable",
+      "text": "My neighbour's cat can predict earthquakes",
+      "why": "no public source settles it"
+    },
+    {
+      "id": "un-2",
+      "style": "en",
+      "label": "unverifiable",
+      "text": "Ramesh from Jaipur won a lottery of five crore rupees last week",
+      "why": "a private, unsearchable event"
+    },
+    {
+      "id": "un-3",
+      "style": "hi-latn",
+      "label": "unverifiable",
+      "text": "Mere mohalle ka school agle Monday ko band ho jayega",
+      "why": "A private, local event; no public source can confirm or deny it"
+    }
   ]
 }
