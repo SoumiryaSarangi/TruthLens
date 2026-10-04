@@ -11,7 +11,7 @@ const $ = (id) => document.getElementById(id);
 let S = {};             // strings for the interface language
 let STR = {};           // all three string tables, so a card can speak its OWN language
 let UI_LANG = "en";
-let ANSWER_LANG = null; // set by the language switch; null = each card follows its message's language
+let ANSWER_LANG = null; // never set by the page: it is a hook for tests. The answer follows the message.
 const LANGS = ["en", "hi", "pa"];
 const SPEECH = { en: "en-IN", hi: "hi-IN", pa: "pa-IN" };
 let BANDS = null;       // from /version; no bands -> no band shown, never a guess
@@ -58,8 +58,7 @@ function tl(lang, key, vars = {}) {
   return key;
 }
 
-/* The language a card answers in. The language switch wins if the user used it. Otherwise the
- * answer follows the SCRIPT of the message: Hindi or Punjabi written in Devanagari or Gurmukhi
+/* The language a card answers in: it follows the SCRIPT of the message: Hindi or Punjabi written in Devanagari or Gurmukhi
  * is answered in Hindi or Punjabi, but Hindi or Punjabi typed in Latin letters ("Kal se WhatsApp
  * ke paise lagenge") is answered in English: the sender chose Latin letters, and English is what
  * they can read in that script. English is answered in English. */
@@ -94,7 +93,6 @@ async function boot() {
   UI_LANG = LANGS.includes(wanted) ? wanted : "en";
   for (const l of LANGS) STR[l] = await loadStrings(l);
   S = STR[UI_LANG];
-  if (forced) ANSWER_LANG = UI_LANG;      // ?lang= forces the answers too, for a demo
   document.documentElement.lang = S._lang || "en";
   applyStaticStrings();
   wireLanguageSwitch();
@@ -130,9 +128,11 @@ function wireLanguageSwitch() {
   });
 }
 
-/* The language switch changes the page AND every answer already on screen. */
+/* The language switch changes the PAGE (instruction, buttons, hints, the Details fold). It does
+ * not change the answer: that follows the language and script of the message itself, so a Punjabi
+ * forward can never come back in English because a button was pressed earlier. */
 function setLanguage(lang) {
-  UI_LANG = ANSWER_LANG = lang;
+  UI_LANG = lang;
   S = STR[lang] || S;
   document.documentElement.lang = lang;
   applyStaticStrings();

@@ -101,3 +101,26 @@ def test_index_page_is_served(client):
     r = client.get("/")
     assert r.status_code == 200
     assert "TruthLens" in r.text
+
+
+def test_the_same_text_in_two_unicode_forms_reaches_the_pipeline_identically(monkeypatch):
+    """Precomposed and decomposed nukta letters are one text to a reader; the pipeline must see one."""
+    import app.main as main
+
+    seen = []
+
+    class FakeOrch:
+        def verify(self, text, claim_idx=None, live=False):
+            seen.append(text)
+            from pipeline.contracts import Trace
+
+            return Trace(request_id="x")
+
+    monkeypatch.setattr(main, "get_orchestrator", lambda: FakeOrch())
+    from fastapi.testclient import TestClient
+
+    client = TestClient(main.app)
+    precomposed, decomposed = "\u0a5e", "\u0a2b\u0a3c"          # Gurmukhi PHA WITH NUKTA, both ways
+    for form in (precomposed, decomposed):
+        client.post("/verify", json={"text": f"ਮੁ{form}ਤ"})
+    assert seen[0] == seen[1] and "\u0a5e" not in seen[0]

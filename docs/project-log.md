@@ -3016,3 +3016,17 @@ checked in `scripts/ui_plain_check.js`).
 (`plain.reason.abstained_*` and `plain.reply.check` reworded in hi and pa). All 55 plain-card strings are now
 reviewed. Next: the relatives' usability test (`docs/usability-test.md`).
 
+**Language buttons, fixed (2026-10-05).** The owner asked why there were three language buttons and why a Punjabi
+(Gurmukhi) forward came back in English. The buttons (EN / हिं / ਪੰ) were meant to switch the page, but pressing any
+of them also locked every answer to that language for the session (and EN looks selected by default on an English
+browser), which is the likely cause. They now change only the page (labels now carry the full language name), and
+the answer always follows the message's own language and script; `?lang=` no longer forces the answer either.
+
+**A bug found while chasing that (2026-10-05): Unicode forms.** The same Punjabi chip sentence typed with the
+precomposed letter ਫ਼ (U+0A5E) instead of ਫ + nukta (U+0A3C) gave NEI instead of Refuted: the pipeline never
+normalizes text, so two forms of one text are different inputs. Fixed at the server's door only
+(`app/main.py`: `unicodedata.normalize("NFC", ...)` before `orch.verify`, with a test in `tests/test_api.py`), so
+the evaluation runs, which never come through the API, and every reported number are untouched. Verified on the real
+server: both forms now give Refuted at 0.43. The evaluation pipeline itself still does not normalize (frozen); it is
+a limitation worth a sentence if a reviewer asks why a retyped claim can change an answer.
+

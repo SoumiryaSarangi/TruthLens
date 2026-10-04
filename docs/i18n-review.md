@@ -152,7 +152,8 @@ the machine drafts; the corrected text is in `app/static/i18n/hi.json` and `pa.j
 
 **Answer language (decided 2026-10-05).** The card answers in Hindi or Punjabi only when the message
 is written in Devanagari or Gurmukhi. Hindi or Punjabi typed in Latin letters ("Kal se WhatsApp ke paise
-lagenge") is answered in English. The EN / हिं / ਪੰ switch, if pressed, overrides this.
+lagenge") is answered in English. The EN / हिं / ਪੰ buttons change only the page (instruction, buttons, hints, Details), never the
+answer, so a Punjabi forward cannot come back in English because a button was pressed.
 
 The card ordinary readers see (docs/specs/UI_UX.md section 5) is written in plain words and in the
 reader's own language, so these strings matter more than any other in the app: they are what a

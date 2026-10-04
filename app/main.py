@@ -13,6 +13,7 @@ import os
 import subprocess
 import threading
 import time
+import unicodedata
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
@@ -102,14 +103,21 @@ def verify(req: VerifyRequest, claim_idx: int | None = Query(default=None)) -> d
         # FR-1: whitespace-only is a validation error, never a verdict.
         raise HTTPException(status_code=422, detail="Message is empty")
 
+    # Unicode NFC at the server's door. The same Punjabi or Hindi sentence typed or pasted with a
+    # precomposed letter (ਫ਼ U+0A5E, क़ U+0958) or with a base letter plus a nukta (U+0A3C, U+093C) is the
+    # same text to a reader but different characters to a model, and gave different verdicts
+    # (Refuted against NEI on one chip sentence). Only this entry point does it, so the evaluation
+    # runs, which never come through here, and every reported number are untouched.
+    text = unicodedata.normalize("NFC", req.text)
+
     orch = get_orchestrator()
-    trace = orch.verify(req.text, claim_idx=claim_idx, live=req.live_search)
+    trace = orch.verify(text, claim_idx=claim_idx, live=req.live_search)
 
     pre = trace.pre
     body: dict[str, Any] = {
         "request_id": trace.request_id,
         "input": {
-            "original": pre.original if pre else req.text,
+            "original": pre.original if pre else text,
             "normalized": pre.normalized if pre else "",
             "lang": pre.lang if pre else "other",
             "script": pre.script if pre else "latn",

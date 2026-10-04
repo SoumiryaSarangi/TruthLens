@@ -70,9 +70,8 @@ idle → typing → sending → result
 ### The plain card (2026-10-05): what an ordinary reader sees
 
 TruthLens is for people who receive forwards, not for engineers. The first thing on every answer is
-the **plain card**, written for a parent or grandparent, in the reader's own language (the language
-of the message, or the one chosen with the EN / हिं / ਪੰ switch, which also switches the page and every
-answer already on screen). It is built in the browser from fields the API already returns; nothing is
+the **plain card**, written for a parent or grandparent, in the language of the message (see
+below). It is built in the browser from fields the API already returns; nothing is
 recomputed, so no number can disagree with the evaluation. In order:
 
 1. **A plain verdict word with an icon, large:** "Probably FALSE", "Probably TRUE", "The sources
@@ -104,13 +103,15 @@ recomputed, so no number can disagree with the evaluation. In order:
 
 A greeting or an opinion gets a single line: "Nothing to check here".
 
-**Which language the card speaks.** The language switch wins if the reader used it. Otherwise the
-card follows the SCRIPT of the message: Hindi or Punjabi written in Devanagari or Gurmukhi is answered in
+**Which language the card speaks.** Always the language and SCRIPT of the message itself; no button
+changes it, so a Punjabi forward can never come back in English because something was pressed earlier.
+Hindi or Punjabi written in Devanagari or Gurmukhi is answered in
 Hindi or Punjabi, but Hindi or Punjabi typed in Latin letters ("Kal se WhatsApp ke paise lagenge") is
 answered in English, because the sender chose Latin letters. English is answered in English.
 
 The page itself is for older readers: 17 px type, a column wide enough for it, buttons at least
-about 42 px tall, the language switch always visible, and the demo examples folded under "Try an
+about 42 px tall, the language switch (EN / हिं / ਪੰ, with the full language name as its label) always
+visible and changing only the PAGE (instruction, buttons, hints, the Details fold), and the demo examples folded under "Try an
 example" so the first screen is a paste box and a short instruction. The test for whether it works
 is `docs/usability-test.md` (relatives, with pass bars fixed before testing).
 
