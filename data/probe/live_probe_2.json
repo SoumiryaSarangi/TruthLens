@@ -1,40 +1,250 @@
 {
-  "_comment": "Live-search PROBE SET 2 (post-test Phase 7): FRESH claims, drafted and committed BEFORE the verdict-path fix was implemented or run, because probe set 1 (live_probe.json) is used up -- a fix scored on the set that motivated it is tuned to it. Same styles and the same scoring and adoption rule as set 1 (scripts/live_probe.py). Deliberately includes 'tempting' false claims (wrong capitals, wrong firsts, wrong superlatives) like the three that failed in run 1. label: true | false | unverifiable. Our own wording; a demo set, not a benchmark. Labels await the project owner's approval before any run.",
+  "_comment": "Live-search PROBE SET 2 (post-test Phase 7): FRESH claims, drafted and committed BEFORE the verdict-path fix was implemented or run, because probe set 1 (live_probe.json) is used up -- a fix scored on the set that motivated it is tuned to it. Same styles and the same scoring and adoption rule as set 1 (scripts/live_probe.py). Deliberately includes 'tempting' false claims (wrong capitals, wrong firsts, wrong superlatives) like the three that failed in run 1. label: true | false | unverifiable. Our own wording; a demo set, not a benchmark. Labels APPROVED by the project owner on 2026-10-04: all 35 checked, none changed; two 'why' fields rewritten and every romanized claim now states its factual basis.",
   "claims": [
-    {"id": "en-t1", "style": "en", "label": "true", "text": "The Amazon river flows through Brazil", "why": "Wikipedia: Amazon River"},
-    {"id": "en-t2", "style": "en", "label": "true", "text": "Narendra Modi is the Prime Minister of India", "why": "Wikipedia: Prime Minister of India (in office since 2014)"},
-    {"id": "en-t3", "style": "en", "label": "true", "text": "Indira Gandhi was India's first woman Prime Minister", "why": "Wikipedia: Indira Gandhi"},
-    {"id": "en-t4", "style": "en", "label": "true", "text": "The Yamuna flows through Delhi", "why": "Wikipedia: Yamuna"},
-    {"id": "en-t5", "style": "en", "label": "true", "text": "Ratan Tata was chairman of the Tata Group", "why": "Wikipedia: Ratan Tata"},
-    {"id": "en-t6", "style": "en", "label": "true", "text": "Kolkata is the capital of West Bengal", "why": "Wikipedia: Kolkata"},
-    {"id": "en-f1", "style": "en", "label": "false", "text": "The Earth is flat", "why": "Wikipedia: Flat Earth is a disproven concept; widely fact-checked"},
-    {"id": "en-f2", "style": "en", "label": "false", "text": "Mumbai is the capital of India", "why": "Wikipedia: the capital is New Delhi"},
-    {"id": "en-f3", "style": "en", "label": "false", "text": "Penicillin was discovered by Isaac Newton", "why": "Wikipedia: Alexander Fleming, 1928"},
-    {"id": "en-f4", "style": "en", "label": "false", "text": "The Pacific Ocean is the smallest ocean", "why": "Wikipedia: the Pacific is the largest; the Arctic is the smallest"},
-    {"id": "en-f5", "style": "en", "label": "false", "text": "Mahatma Gandhi was India's first Prime Minister", "why": "Wikipedia: Jawaharlal Nehru was the first Prime Minister"},
-    {"id": "en-f6", "style": "en", "label": "false", "text": "Drinking bleach cures coronavirus", "why": "dangerous viral claim, fact-checked by many publishers; health authorities warn against it"},
-    {"id": "hd-t1", "style": "hi-deva", "label": "true", "text": "यमुना नदी दिल्ली से होकर बहती है", "why": "hi.wikipedia: यमुना"},
-    {"id": "hd-t2", "style": "hi-deva", "label": "true", "text": "हिमालय भारत के उत्तर में स्थित है", "why": "hi.wikipedia: हिमालय"},
-    {"id": "hd-t3", "style": "hi-deva", "label": "true", "text": "कोलकाता पश्चिम बंगाल की राजधानी है", "why": "hi.wikipedia: कोलकाता"},
-    {"id": "hd-f1", "style": "hi-deva", "label": "false", "text": "चंद्रमा पृथ्वी से बड़ा है", "why": "the Moon's diameter is about a quarter of the Earth's"},
-    {"id": "hd-f2", "style": "hi-deva", "label": "false", "text": "मुंबई भारत की राजधानी है", "why": "hi.wikipedia: the capital is नई दिल्ली"},
-    {"id": "hd-f3", "style": "hi-deva", "label": "false", "text": "महात्मा गांधी भारत के पहले प्रधानमंत्री थे", "why": "hi.wikipedia: जवाहरलाल नेहरू"},
-    {"id": "hd-f4", "style": "hi-deva", "label": "false", "text": "पृथ्वी चपटी है", "why": "flat-Earth claim, disproven"},
-    {"id": "hl-t1", "style": "hi-latn", "label": "true", "text": "Indira Gandhi India ki pehli mahila pradhan mantri thi", "why": "Wikipedia: Indira Gandhi, PM 1966-77 and 1980-84"},
-    {"id": "hl-t2", "style": "hi-latn", "label": "true", "text": "Yamuna Delhi se hokar behti hai", "why": "Wikipedia: Yamuna"},
-    {"id": "hl-t3", "style": "hi-latn", "label": "true", "text": "Kolkata West Bengal ki rajdhani hai", "why": "Wikipedia: Kolkata"},
-    {"id": "hl-f1", "style": "hi-latn", "label": "false", "text": "Mumbai India ki rajdhani hai", "why": "the capital is New Delhi"},
-    {"id": "hl-f2", "style": "hi-latn", "label": "false", "text": "Chand prithvi se bada hai", "why": "the Moon is smaller than the Earth"},
-    {"id": "hl-f3", "style": "hi-latn", "label": "false", "text": "Gandhi ji India ke pehle pradhan mantri the", "why": "Nehru was the first Prime Minister"},
-    {"id": "pg-t1", "style": "pa-guru", "label": "true", "text": "ਲੁਧਿਆਣਾ ਪੰਜਾਬ ਦਾ ਇੱਕ ਸ਼ਹਿਰ ਹੈ", "why": "pa.wikipedia: ਲੁਧਿਆਣਾ"},
-    {"id": "pg-t2", "style": "pa-guru", "label": "true", "text": "ਸ਼ਿਮਲਾ ਹਿਮਾਚਲ ਪ੍ਰਦੇਸ਼ ਦੀ ਰਾਜਧਾਨੀ ਹੈ", "why": "pa.wikipedia: ਸ਼ਿਮਲਾ"},
-    {"id": "pg-f1", "style": "pa-guru", "label": "false", "text": "ਲੁਧਿਆਣਾ ਹਰਿਆਣਾ ਵਿੱਚ ਹੈ", "why": "Ludhiana is in Punjab, India"},
-    {"id": "pg-f2", "style": "pa-guru", "label": "false", "text": "ਮੁੰਬਈ ਭਾਰਤ ਦੀ ਰਾਜਧਾਨੀ ਹੈ", "why": "the capital is New Delhi"},
-    {"id": "pg-f3", "style": "pa-guru", "label": "false", "text": "ਸ਼ਿਮਲਾ ਪੰਜਾਬ ਦੀ ਰਾਜਧਾਨੀ ਹੈ", "why": "Shimla is Himachal Pradesh's capital; Punjab's capital is Chandigarh"},
-    {"id": "pl-t1", "style": "pa-latn", "label": "true", "text": "Ludhiana Punjab da shehar hai", "why": "Ludhiana is a city in Punjab (Wikipedia)"},
-    {"id": "pl-f1", "style": "pa-latn", "label": "false", "text": "Shimla Punjab di rajdhani hai", "why": "Shimla is Himachal Pradesh's capital"},
-    {"id": "un-1", "style": "en", "label": "unverifiable", "text": "My colleague's dog barks only at left-handed people", "why": "a private matter; no public source"},
-    {"id": "un-2", "style": "en", "label": "unverifiable", "text": "Sunita from Pune baked two hundred cakes yesterday", "why": "a private, unsearchable event"},
-    {"id": "un-3", "style": "hi-latn", "label": "unverifiable", "text": "Hamare gaon mein kal baarish hogi aur school band rahega", "why": "a private, local, future event"}
+    {
+      "id": "en-t1",
+      "style": "en",
+      "label": "true",
+      "text": "The Amazon river flows through Brazil",
+      "why": "Wikipedia: Amazon River"
+    },
+    {
+      "id": "en-t2",
+      "style": "en",
+      "label": "true",
+      "text": "Narendra Modi is the Prime Minister of India",
+      "why": "Wikipedia: Prime Minister of India (in office since 2014)"
+    },
+    {
+      "id": "en-t3",
+      "style": "en",
+      "label": "true",
+      "text": "Indira Gandhi was India's first woman Prime Minister",
+      "why": "Wikipedia: Indira Gandhi"
+    },
+    {
+      "id": "en-t4",
+      "style": "en",
+      "label": "true",
+      "text": "The Yamuna flows through Delhi",
+      "why": "Wikipedia: Yamuna"
+    },
+    {
+      "id": "en-t5",
+      "style": "en",
+      "label": "true",
+      "text": "Ratan Tata was chairman of the Tata Group",
+      "why": "Ratan Tata served as Chairman of Tata Sons and the Tata Group, 1991-2012 and briefly as interim chairman in 2016-17 (Wikipedia: Ratan Tata)"
+    },
+    {
+      "id": "en-t6",
+      "style": "en",
+      "label": "true",
+      "text": "Kolkata is the capital of West Bengal",
+      "why": "Wikipedia: Kolkata"
+    },
+    {
+      "id": "en-f1",
+      "style": "en",
+      "label": "false",
+      "text": "The Earth is flat",
+      "why": "Wikipedia: Flat Earth is a disproven concept; widely fact-checked"
+    },
+    {
+      "id": "en-f2",
+      "style": "en",
+      "label": "false",
+      "text": "Mumbai is the capital of India",
+      "why": "Wikipedia: the capital is New Delhi"
+    },
+    {
+      "id": "en-f3",
+      "style": "en",
+      "label": "false",
+      "text": "Penicillin was discovered by Isaac Newton",
+      "why": "Wikipedia: Alexander Fleming, 1928"
+    },
+    {
+      "id": "en-f4",
+      "style": "en",
+      "label": "false",
+      "text": "The Pacific Ocean is the smallest ocean",
+      "why": "Wikipedia: the Pacific is the largest; the Arctic is the smallest"
+    },
+    {
+      "id": "en-f5",
+      "style": "en",
+      "label": "false",
+      "text": "Mahatma Gandhi was India's first Prime Minister",
+      "why": "Wikipedia: Jawaharlal Nehru was the first Prime Minister"
+    },
+    {
+      "id": "en-f6",
+      "style": "en",
+      "label": "false",
+      "text": "Drinking bleach cures coronavirus",
+      "why": "dangerous viral claim, fact-checked by many publishers; health authorities warn against it"
+    },
+    {
+      "id": "hd-t1",
+      "style": "hi-deva",
+      "label": "true",
+      "text": "यमुना नदी दिल्ली से होकर बहती है",
+      "why": "hi.wikipedia: यमुना"
+    },
+    {
+      "id": "hd-t2",
+      "style": "hi-deva",
+      "label": "true",
+      "text": "हिमालय भारत के उत्तर में स्थित है",
+      "why": "hi.wikipedia: हिमालय"
+    },
+    {
+      "id": "hd-t3",
+      "style": "hi-deva",
+      "label": "true",
+      "text": "कोलकाता पश्चिम बंगाल की राजधानी है",
+      "why": "hi.wikipedia: कोलकाता"
+    },
+    {
+      "id": "hd-f1",
+      "style": "hi-deva",
+      "label": "false",
+      "text": "चंद्रमा पृथ्वी से बड़ा है",
+      "why": "the Moon's diameter is about a quarter of the Earth's"
+    },
+    {
+      "id": "hd-f2",
+      "style": "hi-deva",
+      "label": "false",
+      "text": "मुंबई भारत की राजधानी है",
+      "why": "hi.wikipedia: the capital is नई दिल्ली"
+    },
+    {
+      "id": "hd-f3",
+      "style": "hi-deva",
+      "label": "false",
+      "text": "महात्मा गांधी भारत के पहले प्रधानमंत्री थे",
+      "why": "hi.wikipedia: जवाहरलाल नेहरू"
+    },
+    {
+      "id": "hd-f4",
+      "style": "hi-deva",
+      "label": "false",
+      "text": "पृथ्वी चपटी है",
+      "why": "flat-Earth claim, disproven"
+    },
+    {
+      "id": "hl-t1",
+      "style": "hi-latn",
+      "label": "true",
+      "text": "Indira Gandhi India ki pehli mahila pradhan mantri thi",
+      "why": "Indira Gandhi was India's first and so far only woman Prime Minister, 1966-77 and 1980-84 (Wikipedia: Indira Gandhi)"
+    },
+    {
+      "id": "hl-t2",
+      "style": "hi-latn",
+      "label": "true",
+      "text": "Yamuna Delhi se hokar behti hai",
+      "why": "The Yamuna flows through Delhi on its way to join the Ganges at Prayagraj (Wikipedia: Yamuna)"
+    },
+    {
+      "id": "hl-t3",
+      "style": "hi-latn",
+      "label": "true",
+      "text": "Kolkata West Bengal ki rajdhani hai",
+      "why": "Kolkata is the capital of the Indian state of West Bengal (Wikipedia: Kolkata)"
+    },
+    {
+      "id": "hl-f1",
+      "style": "hi-latn",
+      "label": "false",
+      "text": "Mumbai India ki rajdhani hai",
+      "why": "The capital of India is New Delhi, not Mumbai (Wikipedia: New Delhi)"
+    },
+    {
+      "id": "hl-f2",
+      "style": "hi-latn",
+      "label": "false",
+      "text": "Chand prithvi se bada hai",
+      "why": "The Moon's diameter is about 27% of the Earth's; the Earth is the larger body (Wikipedia: Moon)"
+    },
+    {
+      "id": "hl-f3",
+      "style": "hi-latn",
+      "label": "false",
+      "text": "Gandhi ji India ke pehle pradhan mantri the",
+      "why": "Jawaharlal Nehru was India's first Prime Minister, 1947-64; Gandhi held no office (Wikipedia: Jawaharlal Nehru)"
+    },
+    {
+      "id": "pg-t1",
+      "style": "pa-guru",
+      "label": "true",
+      "text": "ਲੁਧਿਆਣਾ ਪੰਜਾਬ ਦਾ ਇੱਕ ਸ਼ਹਿਰ ਹੈ",
+      "why": "pa.wikipedia: ਲੁਧਿਆਣਾ"
+    },
+    {
+      "id": "pg-t2",
+      "style": "pa-guru",
+      "label": "true",
+      "text": "ਸ਼ਿਮਲਾ ਹਿਮਾਚਲ ਪ੍ਰਦੇਸ਼ ਦੀ ਰਾਜਧਾਨੀ ਹੈ",
+      "why": "pa.wikipedia: ਸ਼ਿਮਲਾ"
+    },
+    {
+      "id": "pg-f1",
+      "style": "pa-guru",
+      "label": "false",
+      "text": "ਲੁਧਿਆਣਾ ਹਰਿਆਣਾ ਵਿੱਚ ਹੈ",
+      "why": "Ludhiana is in Punjab, India"
+    },
+    {
+      "id": "pg-f2",
+      "style": "pa-guru",
+      "label": "false",
+      "text": "ਮੁੰਬਈ ਭਾਰਤ ਦੀ ਰਾਜਧਾਨੀ ਹੈ",
+      "why": "the capital is New Delhi"
+    },
+    {
+      "id": "pg-f3",
+      "style": "pa-guru",
+      "label": "false",
+      "text": "ਸ਼ਿਮਲਾ ਪੰਜਾਬ ਦੀ ਰਾਜਧਾਨੀ ਹੈ",
+      "why": "Shimla is Himachal Pradesh's capital; Punjab's capital is Chandigarh"
+    },
+    {
+      "id": "pl-t1",
+      "style": "pa-latn",
+      "label": "true",
+      "text": "Ludhiana Punjab da shehar hai",
+      "why": "Ludhiana is the largest city of the Indian state of Punjab (Wikipedia: Ludhiana)"
+    },
+    {
+      "id": "pl-f1",
+      "style": "pa-latn",
+      "label": "false",
+      "text": "Shimla Punjab di rajdhani hai",
+      "why": "Shimla is the capital of Himachal Pradesh; Punjab's capital is Chandigarh (Wikipedia: Shimla, Chandigarh)"
+    },
+    {
+      "id": "un-1",
+      "style": "en",
+      "label": "unverifiable",
+      "text": "My colleague's dog barks only at left-handed people",
+      "why": "a private matter; no public source"
+    },
+    {
+      "id": "un-2",
+      "style": "en",
+      "label": "unverifiable",
+      "text": "Sunita from Pune baked two hundred cakes yesterday",
+      "why": "a private, unsearchable event"
+    },
+    {
+      "id": "un-3",
+      "style": "hi-latn",
+      "label": "unverifiable",
+      "text": "Hamare gaon mein kal baarish hogi aur school band rahega",
+      "why": "A private, local, future event; no public source can confirm or deny it"
+    }
   ]
 }
