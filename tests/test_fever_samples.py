@@ -50,3 +50,17 @@ def test_rows_carry_the_verdict_label_set(fake_fever):
     row = loaders.fever_select_rows()["dev"][0]
     assert row.record["label_set"] == "verdict_5class" and row.record["dataset"] == "fever_select"
     assert row.record["lang"] == "en" and row.record["label"] in {"Supported", "Refuted", "NEI"}
+
+
+def test_the_fresh_set_is_disjoint_from_select_and_confirm_and_leaves_them_unchanged(fake_fever):
+    s = loaders.fever_samples()
+    used = {c["fever_id"] for k in ("select", "confirm") for c in s[k]}
+    fresh = {c["fever_id"] for c in s["fresh"]}
+    assert not used & fresh
+    counts = {}
+    for c in s["fresh"]:
+        counts[c["label"]] = counts.get(c["label"], 0) + 1
+    assert counts == {"Supported": 100, "Refuted": 150, "NEI": 100}
+    assert {c["fever_id"] for c in s["fresh_sub"]} <= fresh and len(s["fresh_sub"]) == 60
+    # the protocol-1 sets are exactly what they were before the fresh set existed
+    assert [c["fever_id"] for c in s["confirm"][:3]] == [c["fever_id"] for c in loaders.fever_samples()["confirm"][:3]]

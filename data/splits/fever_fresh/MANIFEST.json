@@ -1,0 +1,29 @@
+{
+  "counts": {
+    "dev": {
+      "en/latn": 350,
+      "lang=en": 350,
+      "script=latn": 350,
+      "total": 350
+    }
+  },
+  "created_utc": "2026-10-04T15:09:28+00:00",
+  "dataset": "fever_fresh",
+  "deduplication": {
+    "cross_dataset_near_duplicates_reported_not_dropped": 0,
+    "dropped_from_train": {
+      "exact_match_in_eval": 0,
+      "in_another_dataset_eval_split": 0,
+      "near_duplicate_in_eval": 0,
+      "within_train_duplicate": 0
+    },
+    "left_in_place": {
+      "dev_internal_duplicates": 0,
+      "dev_test_overlap": 0
+    },
+    "policy": "train yields to eval; dev and test are never modified"
+  },
+  "notes": [],
+  "seed": 42,
+  "source": {}
+}

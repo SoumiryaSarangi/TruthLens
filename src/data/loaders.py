@@ -727,6 +727,8 @@ FEVER_LABELS = {"SUPPORTS": "Supported", "REFUTES": "Refuted", "NOT ENOUGH INFO"
 FEVER_SELECT_PER_CLASS = 50
 FEVER_CONFIRM_PER_CLASS = 100
 FEVER_SUB_PER_CLASS = 20
+FEVER_FRESH_COUNTS = {"Supported": 100, "Refuted": 150, "NEI": 100}
+FEVER_FRESH_SUB_PER_CLASS = 20
 
 
 def fever_path() -> Path:
@@ -784,7 +786,20 @@ def fever_samples() -> dict[str, list[dict[str, str]]]:
     select = deal(FEVER_SELECT_PER_CLASS, taken)
     confirm = deal(FEVER_CONFIRM_PER_CLASS, taken)
     sub = [c for i in range(FEVER_SUB_PER_CLASS) for c in confirm[3 * i:3 * i + 3]]
-    return {"select": select, "confirm": confirm, "confirm_sub": sub}
+    # Protocol 2 (docs/live-fever-protocol-2.md): fresh claims dealt AFTER select and
+    # confirm, so those two sets are byte-for-byte what they were and the fresh set is
+    # disjoint from both. Round-robin over the labels until each is used up.
+    fresh_pools = {lab: by_label[lab][taken[lab]:taken[lab] + n] for lab, n in FEVER_FRESH_COUNTS.items()}
+    fresh = [fresh_pools[lab][i] for i in range(max(FEVER_FRESH_COUNTS.values()))
+             for lab in sorted(fresh_pools) if i < len(fresh_pools[lab])]
+    fresh_sub = []
+    per_label: dict[str, int] = {}
+    for c in fresh:
+        if per_label.get(c["label"], 0) < FEVER_FRESH_SUB_PER_CLASS:
+            per_label[c["label"]] = per_label.get(c["label"], 0) + 1
+            fresh_sub.append(c)
+    return {"select": select, "confirm": confirm, "confirm_sub": sub,
+            "fresh": fresh, "fresh_sub": fresh_sub}
 
 
 def _fever_rows(which: str) -> dict[str, list[Row]]:
@@ -811,6 +826,14 @@ def fever_confirm_sub_rows() -> dict[str, list[Row]]:
     return _fever_rows("confirm_sub")
 
 
+def fever_fresh_rows() -> dict[str, list[Row]]:
+    return _fever_rows("fresh")
+
+
+def fever_fresh_sub_rows() -> dict[str, list[Row]]:
+    return _fever_rows("fresh_sub")
+
+
 LOADERS = {
     "averitec": averitec_rows,
     "x_claim": xclaim_rows,
@@ -823,6 +846,8 @@ LOADERS = {
     "fever_select": fever_select_rows,
     "fever_confirm": fever_confirm_rows,
     "fever_confirm_sub": fever_confirm_sub_rows,
+    "fever_fresh": fever_fresh_rows,
+    "fever_fresh_sub": fever_fresh_sub_rows,
 }
 
 # What each loader needs on disk. Used to skip a dataset whose source is not
@@ -855,6 +880,8 @@ LOADER_SOURCES: dict[str, tuple[Path, ...]] = {
     "fever_select": (fever_path(),),
     "fever_confirm": (fever_path(),),
     "fever_confirm_sub": (fever_path(),),
+    "fever_fresh": (fever_path(),),
+    "fever_fresh_sub": (fever_path(),),
     "checkthat25_t2": (RAW / "checkthat25_t2" / "train-eng.csv",
                        RAW / "checkthat25_t2" / "train-hi.csv",
                        RAW / "checkthat25_t2" / "train-pa.csv"),
