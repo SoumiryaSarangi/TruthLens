@@ -283,3 +283,103 @@ def test_the_api_flag_defaults_off_and_is_passed_through(monkeypatch):
     client.post("/verify", json={"text": "Delhi is the capital of India"})
     client.post("/verify", json={"text": "Delhi is the capital of India", "live_search": True})
     assert seen == [False, True]
+
+
+# -- route A: the claim judged in English --------------------------------------
+
+
+class FakeTranslator:
+    def __init__(self, english="Mumbai is the capital of India", raises=None):
+        self.english, self.raises, self.seen = english, raises, []
+
+    def to_english(self, text, lang):
+        self.seen.append((text, lang))
+        if self.raises:
+            raise self.raises
+        return self.english
+
+
+def make_translating(live, translator):
+    orch = make(live)
+    orch.cfg.live_translate = True
+    orch._translator = translator
+    orch._live_nli = orch.stance            # the English NLI stands in as the fake too
+    return orch
+
+
+def test_a_hindi_claim_is_judged_in_english_against_english_pages():
+    seen = {}
+
+    class Recorder(FakeStance):
+        def label(self, claim, passages):
+            seen["claim"], seen["passages"] = claim, passages
+            return super().label(claim, passages)
+
+    page = LivePassage("Mumbai is the capital of Maharashtra.", "Mumbai", "https://en/Mumbai",
+                       "wikipedia", 0.7, "en", premise="Mumbai is the capital of Maharashtra.")
+    live = FakeLive(LiveResult(passages=[page], sources_used=["wikipedia"]))
+    orch = make_translating(live, FakeTranslator())
+    orch.stance = orch._live_nli = Recorder(R)
+    res = orch.verify("मुंबई भारत की राजधानी है", live=True).results[0]
+    assert seen["claim"] == "Mumbai is the capital of India"
+    assert seen["passages"] == ["Mumbai is the capital of Maharashtra."]
+    assert res.verdict == "Refuted"
+
+
+def test_the_english_claim_is_added_to_the_search_forms():
+    live = FakeLive(LiveResult(passages=[passage()], sources_used=["wikipedia"]))
+    forms = []
+    live.gather = lambda f, lang: (forms.extend(f), live.result)[1]
+    orch = make_translating(live, FakeTranslator())
+    orch.verify("मुंबई भारत की राजधानी है", live=True)
+    assert forms[0] == "मुंबई भारत की राजधानी है" and forms[-1] == "Mumbai is the capital of India"
+
+
+def test_a_page_left_in_hindi_is_listed_but_not_judged_in_translate_mode():
+    hi = LivePassage("मुंबई एक शहर है।", "मुंबई", "https://hi/x", "wikipedia", 0.8, "hi")
+    en = LivePassage("Mumbai is the capital of Maharashtra.", "Mumbai", "https://en/Mumbai",
+                     "wikipedia", 0.6, "en")
+    orch = make_translating(FakeLive(LiveResult(passages=[hi, en], sources_used=["wikipedia"])),
+                            FakeTranslator())
+    orch.stance = orch._live_nli = FakeStance(R)
+    res = orch.verify("मुंबई भारत की राजधानी है", live=True).results[0]
+    assert res.verdict == "Refuted" and len(res.passages) == 2
+    assert res.passages[0].stance is None or res.passages[0].stance == ""
+
+
+def test_a_translation_failure_falls_back_to_the_claims_own_language():
+    live = FakeLive(LiveResult(passages=[passage()], sources_used=["wikipedia"]))
+    orch = make_translating(live, FakeTranslator(raises=RuntimeError("no model")))
+    trace = orch.verify("मुंबई भारत की राजधानी है", live=True)
+    assert trace.results[0].verdict == "Supported"          # the language-matched path ran
+    assert any("claim translation failed" in (e.note or "") for e in trace.events)
+
+
+def test_translate_mode_never_runs_on_an_english_claim_or_when_off():
+    tr = FakeTranslator()
+    orch = make_translating(FakeLive(LiveResult(passages=[passage()], sources_used=["wikipedia"])), tr)
+    orch.verify("Delhi is the capital of India", live=True)
+    assert tr.seen == []
+    off = make(FakeLive(LiveResult(passages=[passage()], sources_used=["wikipedia"])))
+    off._translator = tr
+    off.verify("मुंबई भारत की राजधानी है", live=True)
+    assert tr.seen == []
+
+
+def test_live_translate_does_not_move_any_existing_config_hash():
+    assert "live_translate" not in PipelineConfig().describe()
+    assert PipelineConfig(live_translate=True).describe()["live_translate"] is True
+
+
+def test_translate_mode_reads_live_evidence_with_the_english_nli_not_the_served_stance():
+    served = FakeStance(S)
+    orch = make_translating(FakeLive(LiveResult(passages=[passage()], sources_used=["wikipedia"])),
+                            FakeTranslator())
+    orch.stance, orch._live_nli = served, FakeStance(R)
+    assert orch.verify("Delhi is the capital of India", live=True).results[0].verdict == "Refuted"
+    assert make(None)._live_stance() is not None
+
+
+def test_without_translate_mode_the_served_stance_reads_live_evidence():
+    orch = make(FakeLive(LiveResult(passages=[passage()], sources_used=["wikipedia"])))
+    assert orch._live_stance() is orch.stance

@@ -246,3 +246,33 @@ def test_an_encoder_failure_degrades_instead_of_raising(tmp_path):
                    ("prop=extracts", {"query": {"pages": {}}}), ("googleapis", {"claims": []})])
     live = LiveEvidence(WikipediaLive(fetcher), GoogleFactCheck(fetcher, key=KEY), encode=broken)
     assert any("relevance scoring failed" in n for n in live.gather(["alpha"], "en").notes)
+
+
+def test_to_english_swaps_a_hindi_page_for_its_english_counterpart(tmp_path):
+    search = {"query": {"search": [{"title": "मुंबई", "snippet": "भारत का शहर"}]}}
+    links = {"query": {"pages": {"1": {"title": "मुंबई", "langlinks": [{"lang": "en", "*": "Mumbai"}]}}}}
+    extracts = {"query": {"pages": {"1": {"title": "Mumbai", "extract": "Mumbai is the capital of Maharashtra."}}}}
+    fetcher, opener, _ = make_fetcher(tmp_path, [("list=search", search), ("prop=langlinks", links),
+                                                 ("prop=extracts", extracts)])
+    out = WikipediaLive(fetcher).search([("hi", "मुंबई OR राजधानी")], to_english=True)
+    assert [(c.lang, c.title) for c in out] == [("en", "Mumbai")]
+    assert out[0].text.startswith("Mumbai is the capital of Maharashtra.")
+    assert "hi.wikipedia.org" in opener.calls[0] and "en.wikipedia.org" in opener.calls[-1]
+
+
+def test_a_page_without_an_english_counterpart_keeps_its_own_text(tmp_path):
+    search = {"query": {"search": [{"title": "ਪਿੰਡ", "snippet": "ਇੱਕ ਪਿੰਡ"}]}}
+    links = {"query": {"pages": {"1": {"title": "ਪਿੰਡ"}}}}
+    extracts = {"query": {"pages": {"1": {"title": "ਪਿੰਡ", "extract": "ਇੱਕ ਪਿੰਡ ਹੈ।"}}}}
+    fetcher, _, _ = make_fetcher(tmp_path, [("list=search", search), ("prop=langlinks", links),
+                                            ("prop=extracts", extracts)])
+    out = WikipediaLive(fetcher).search([("pa", "ਪਿੰਡ")], to_english=True)
+    assert [(c.lang, c.title) for c in out] == [("pa", "ਪਿੰਡ")]
+
+
+def test_english_is_not_translated():
+    from preprocess.translate import NllbTranslator
+
+    tr = NllbTranslator()
+    assert tr.to_english("Mumbai is a city", "en") == "Mumbai is a city"
+    assert tr._model is None                      # nothing was loaded

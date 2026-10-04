@@ -64,6 +64,11 @@ class PipelineConfig:
     # Hindi (probe run 1, docs/live-search-probe.md). True: the verdict path built
     # for the probe, adopted only if a fix passes the same rule on a fresh set.
     live_verdict: bool = False
+    # Route A of the live verdict (post-test Phase 7): translate a hi/pa claim to
+    # English, search English Wikipedia too, and run the NLI in English. Only
+    # meaningful with live_verdict. Left out of describe() unless on, so no
+    # existing config hash moves.
+    live_translate: bool = False
     stages: dict[str, str] | None = None
     stage_args: dict[str, dict[str, Any]] | None = None
 
@@ -89,14 +94,29 @@ class PipelineConfig:
         return cls(**raw)
 
     def describe(self) -> dict[str, Any]:
-        return {"name": self.name, "split": self.split, "k": self.k,
-                "tau_match": self.tau_match, "tau_abstain": self.tau_abstain,
-                "relevance_floor": self.relevance_floor,
-                "free_text_translit_query": self.free_text_translit_query,
-                "free_text_coverage": self.free_text_coverage,
-                "live_search": self.live_search,
-                "live_verdict": self.live_verdict,
-                "stages": dict(self.stages or {})}
+        out = {"name": self.name, "split": self.split, "k": self.k,
+               "tau_match": self.tau_match, "tau_abstain": self.tau_abstain,
+               "relevance_floor": self.relevance_floor,
+               "free_text_translit_query": self.free_text_translit_query,
+               "free_text_coverage": self.free_text_coverage,
+               "live_search": self.live_search,
+               "live_verdict": self.live_verdict,
+               "stages": dict(self.stages or {})}
+        if self.live_translate:
+            out["live_translate"] = True
+        return out
+
+
+LIVE_NLI_MODEL = "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli"
+
+
+def _translator_device() -> str:
+    try:
+        import torch
+
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    except Exception:
+        return "cpu"
 
 
 class Orchestrator:
@@ -146,6 +166,8 @@ class Orchestrator:
         self.manipulation = registry.build(
             "manipulation", s.get("manipulation", "none"), **args.get("manipulation", {}))
         self._gen_pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        self._live_nli = None       # English NLI for the live verdict, built on first use
+        self._translator = None     # NLLB, loaded on the first translated live request
         self._live = None           # built on the first live request, never otherwise
 
     # -- helpers --------------------------------------------------------------
@@ -182,8 +204,45 @@ class Orchestrator:
         if self._live is None:
             from pipeline.live import LiveEvidence
 
-            self._live = LiveEvidence()
+            self._live = LiveEvidence(to_english=self.cfg.live_translate)
         return self._live
+
+    def _live_stance(self):
+        """The NLI model that reads live evidence. With the English route it is
+        DeBERTa-v3-large (MNLI/FEVER/ANLI), which tells "capital of India" from
+        "capital of Maharashtra" where the multilingual base model called the same
+        page Supports (diagnostic, probe set 2); otherwise the served stance model."""
+        if self._live_nli is None:
+            if self.cfg.live_translate:
+                from stance.nli import NLIStance
+
+                self._live_nli = NLIStance(model_id=LIVE_NLI_MODEL, max_length=256)
+            else:
+                return self.stance
+        return self._live_nli
+
+    def _english_claim(self, trace: Trace, claim, forms: list[str]) -> str | None:
+        """The claim in English for the live NLI, or None when it is already English
+        or cannot be translated (the language-matched path then runs unchanged).
+        Romanized input is translated from its native-script form."""
+        lang = trace.pre.lang if trace.pre else "en"
+        if lang not in ("hi", "pa"):
+            return None
+        try:
+            if self._translator is None:
+                from preprocess.translate import NllbTranslator
+
+                self._translator = NllbTranslator(device=_translator_device())
+            native = forms[-1] if len(forms) > 1 else claim.text
+            english = self._timed(trace, "live", "translate",
+                                  lambda: self._translator.to_english(native, lang))
+        except Exception as exc:
+            trace.record("live", "translate", 0.0,
+                         f"degraded: claim translation failed ({type(exc).__name__}); "
+                         "judging in the claim's own language")
+            return None
+        trace.record("live", "translate", 0.0, f"claim in English: {english}")
+        return english
 
     def _apply_live(self, trace: Trace, claim_idx: int | None) -> None:
         """Re-check each claim with live evidence, on request (post-test Phase 7).
@@ -214,6 +273,10 @@ class Orchestrator:
         claim = result.claim
         forms = self._claim_forms(trace, claim, None)
         lang = trace.pre.lang if trace.pre else "en"
+        english = (self._english_claim(trace, claim, forms)
+                   if self.cfg.live_verdict and self.cfg.live_translate else None)
+        if english and english not in forms:
+            forms = [*forms, english]
         found = self._timed(trace, "live", "wikipedia+factcheck",
                             lambda: self._live_evidence().gather(forms, lang))
         for note in found.notes:
@@ -256,12 +319,17 @@ class Orchestrator:
             )
 
         # A fact-check's stance is its publisher's rating; only Wikipedia is read by NLI,
-        # and on the two sentences closest to the claim, not the whole page.
-        nli = [i for i, p in enumerate(relevant) if not p.rating_stance]
+        # and on the two sentences closest to the claim, not the whole page. With the
+        # claim translated, the hypothesis is the English claim and only English pages
+        # are judged (a page left in Hindi has no English text to read).
+        hypothesis = english or claim.text
+        judged = [i for i, p in enumerate(relevant)
+                  if p.rating_stance or not self.cfg.live_translate or p.lang == "en"]
+        nli = [i for i in judged if not relevant[i].rating_stance]
         try:
-            labels = (self._timed(trace, "stance", self.stance.impl,
-                                  lambda: self.stance.label(
-                                      claim.text, [relevant[i].premise or relevant[i].text for i in nli]))
+            labels = (self._timed(trace, "stance", self._live_stance().impl,
+                                  lambda: self._live_stance().label(
+                                      hypothesis, [relevant[i].premise or relevant[i].text for i in nli]))
                       if nli else [])
         except Exception as exc:
             trace.record("stance", self.stance.impl, 0.0,
@@ -271,11 +339,12 @@ class Orchestrator:
         for i, label in zip(nli, labels, strict=True):
             probs[i] = label.probs
             shown[i].stance, shown[i].stance_prob = label.stance, label.prob
-        for i, p in enumerate(relevant):
-            if p.rating_stance:
-                probs[i] = RATED[p.rating_stance]
-                shown[i].stance, shown[i].stance_prob = p.rating_stance, RATED_PROB
-        verdict, confidence, dist = live_verdict(probs, [p.cosine for p in relevant])
+        for i in judged:
+            if relevant[i].rating_stance:
+                probs[i] = RATED[relevant[i].rating_stance]
+                shown[i].stance, shown[i].stance_prob = relevant[i].rating_stance, RATED_PROB
+        verdict, confidence, dist = live_verdict([probs[i] for i in judged],
+                                                 [relevant[i].cosine for i in judged])
         trace.record("aggregate", "live_weighted", 0.0,
                      "verdict from NLI labels weighted by relevance; the confidence is "
                      "NOT calibrated (no calibration set exists for live evidence)")

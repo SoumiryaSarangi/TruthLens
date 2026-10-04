@@ -215,3 +215,28 @@ the same rule. Neither fits the time left.
 | un-1 | unverifiable | Refuted 0.75 [wrong] | NEI 0.99 [correct] | wikipedia, google_factcheck |
 | un-2 | unverifiable | Refuted 0.81 [wrong] | NEI (abst.) 0.00 [correct] | wikipedia, google_factcheck |
 | un-3 | unverifiable | Refuted 0.57 [wrong] | NEI (abst.) 0.00 [correct] | wikipedia, google_factcheck |
+
+## Run 3: the English route (2026-10-04): built, frozen, awaiting a fresh-set run
+
+**What was built** (route A of the plan approved by the owner): a Hindi/Punjabi claim is
+translated to English (NLLB-200 distilled 600M; romanized claims from their
+native-script form), English Wikipedia is searched with the English claim and
+Hindi/Punjabi pages are swapped for their English counterpart through language
+links, and the NLI that reads live evidence is DeBERTa-v3-large
+(MNLI/FEVER/ANLI/LingNLI/WANLI) in English, not the multilingual base model.
+Config `live_translate`, off in the served config; no existing config hash moves.
+
+**Diagnostics on set 2 (already used, so these CANNOT validate anything).**
+Translation alone, with the old NLI: still two false claims Supported (even the
+English "Mumbai is the capital of India": the multilingual model called the
+Mumbai page entailment at 0.99). Replacing the NLI with the English large model:
+that page is contradiction at 0.95, and every set-2 claim was either correct or
+undecided (9 true claims gained, none wrong). The English large model was chosen
+on those pairs, so set 2 is spent for it too.
+
+**Validation:** `data/probe/live_probe_3.json`, 39 fresh claims, committed before
+the route was frozen or run on any of them. Labels pending the owner's approval.
+Rule unchanged from sets 1 and 2: adopt only if no correct answer turns wrong, at
+least one true claim becomes correct, and no unverifiable claim is decided
+confidently. If it fails, live stays evidence-only and route B (fine-tuning on
+single-entity contradictions) is the next step.

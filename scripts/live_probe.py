@@ -68,6 +68,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--probe", default="data/probe/live_probe.json")
     ap.add_argument("--tag", default="set1")
     ap.add_argument("--no-regression", action="store_true", help="omit the 8 regression forwards")
+    ap.add_argument("--translate", action="store_true",
+                    help="route A: translate hi/pa claims to English and judge against English Wikipedia")
     ap.add_argument("--evidence-only", action="store_true",
                     help="serve the live path as evidence only (no verdict); default is the verdict path")
     args = ap.parse_args(argv)
@@ -85,6 +87,7 @@ def main(argv: list[str] | None = None) -> int:
     cfg = PipelineConfig.load(ROOT / "configs/pipeline/dev.yaml")
     cfg.stages["generation"] = "template"            # the live path always uses the template
     cfg.live_search = True
+    cfg.live_translate = args.translate
     cfg.live_verdict = not args.evidence_only        # the probe judges the VERDICT path by default
     orch = Orchestrator(cfg)
     orch.verify("warm-up")

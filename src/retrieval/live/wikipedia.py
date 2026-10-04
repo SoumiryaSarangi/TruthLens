@@ -90,13 +90,38 @@ class WikipediaLive:
         pages = self.fetcher.get_json(url).get("query", {}).get("pages", {})
         return {p["title"]: _clean(p.get("extract", "")) for p in pages.values() if "title" in p}
 
-    def search(self, queries: list[tuple[str, str]]) -> list[WikiCandidate]:
-        """Candidates for every (language, query), one fetch of leads per language."""
+    def _english_titles(self, lang: str, titles: list[str]) -> dict[str, str]:
+        """English page title for each `lang` title that has one (language links)."""
+        if not titles:
+            return {}
+        url = (API.format(lang=lang) + "?action=query&format=json&prop=langlinks&lllang=en"
+               "&lllimit=max&redirects=1&titles=" + urllib.parse.quote("|".join(titles)))
+        pages = self.fetcher.get_json(url).get("query", {}).get("pages", {})
+        return {p["title"]: p["langlinks"][0]["*"] for p in pages.values()
+                if p.get("langlinks") and "title" in p}
+
+    def search(self, queries: list[tuple[str, str]], to_english: bool = False) -> list[WikiCandidate]:
+        """Candidates for every (language, query), one fetch of leads per language.
+
+        `to_english` swaps a hi/pa page for its English counterpart (language links)
+        and reads the ENGLISH lead: the live verdict reads English, where the NLI
+        model can tell "capital of India" from "capital of Maharashtra". A page with
+        no English counterpart keeps its own text.
+        """
         by_lang: dict[str, dict[str, str]] = {}
         for lang, query in queries:
             for hit in self._search(lang, query):
                 by_lang.setdefault(lang, {}).setdefault(hit["title"], _clean(hit.get("snippet", "")))
         out: list[WikiCandidate] = []
+        if to_english:
+            for lang in [lg for lg in by_lang if lg != "en"]:
+                english = self._english_titles(lang, list(by_lang[lang]))
+                for title in list(by_lang[lang]):
+                    if title in english:
+                        by_lang["en"] = by_lang.get("en", {})
+                        by_lang["en"].setdefault(english[title], "")
+                        del by_lang[lang][title]
+            by_lang = {k: v for k, v in by_lang.items() if v}
         for lang, found in by_lang.items():
             leads = self._leads(lang, list(found))
             for title, snippet in found.items():
