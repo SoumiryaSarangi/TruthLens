@@ -132,9 +132,56 @@ class LiveEvidence:
                                                hit.url, "factcheck_live", cos, hit.lang or "en"))
         for cand, cos in sorted(zip(wiki, wiki_cos, strict=True), key=lambda t: -t[1])[:self.n_wikipedia]:
             result.passages.append(LivePassage(cand.text, cand.title, cand.url, "wikipedia", cos, cand.lang))
-        if wiki:
+        # "Used" means QUERIED successfully, not "returned hits": a search that found
+        # nothing is a real answer ("nothing relevant"), a source that was down is not.
+        notes = " ".join(result.notes)
+        if "wikipedia unavailable" not in notes and "wikipedia" not in result.sources_used:
             result.sources_used.append("wikipedia")
-        if hits and "google_factcheck" not in result.sources_used:
+        if (self.factcheck.available and "google fact check unavailable" not in notes
+                and "google_factcheck" not in result.sources_used):
             result.sources_used.append("google_factcheck")
         result.passages.sort(key=lambda p: -p.cosine)
         return result
+
+
+# -- from live passages to a verdict ----------------------------------------------
+#
+# Fixed BEFORE the probe set was run, not tuned on it.
+#
+# Why not the learned aggregator: the spike gave it the right Wikipedia evidence
+# for four TRUE claims (Delhi, Modi, Harmandir Sahib, Lahore) and it still said
+# Refuted, 0.61-0.89 -- its "a forwarded claim is probably false" prior outweighs
+# what the passages say, and it was never trained on live evidence. The NLI labels
+# were right on all four. So the live path reads the NLI per-passage labels
+# directly, weighted by relevance.
+
+LIVE_RELEVANCE_FLOOR = 0.5      # a page below this BGE-M3 cosine is not about the claim
+CONFLICT_MIN = 0.25             # both sides need this much weighted mass ...
+CONFLICT_RATIO = 0.6            # ... and the weaker must be this close to the stronger
+
+
+def live_verdict(probs: Sequence[dict[str, float]],
+                 weights: Sequence[float]) -> tuple[str, float, dict[str, float]]:
+    """(verdict, confidence, distribution) from per-passage NLI labels.
+
+    Relevance-weighted MEAN, not max: one weakly relevant page that refutes (the
+    "Black Taj Mahal" legend, cosine 0.65) must not outvote three strong pages
+    that support. The confidence is that mean -- NOT calibrated (no calibration
+    set exists for live evidence) and the caller says so in the trace.
+    """
+    total = sum(max(w, 0.0) for w in weights)
+    if not probs or total <= 0:
+        return "NEI", 0.0, {"Supported": 0.0, "Refuted": 0.0, "Conflicting": 0.0, "NEI": 1.0}
+
+    def mean(label: str) -> float:
+        return sum(max(w, 0.0) * p.get(label, 0.0) for p, w in zip(probs, weights, strict=True)) / total
+
+    support, refute, neutral = mean("Supports"), mean("Refutes"), mean("Neutral")
+    dist = {"Supported": support, "Refuted": refute, "Conflicting": 0.0, "NEI": neutral}
+    strong, weak = max(support, refute), min(support, refute)
+    if weak >= CONFLICT_MIN and weak / strong >= CONFLICT_RATIO:
+        dist["Conflicting"] = min(1.0, support + refute)
+        return "Conflicting", dist["Conflicting"], dist
+    if strong > neutral:
+        return ("Supported", support, dist) if support >= refute else ("Refuted", refute, dist)
+    return "NEI", neutral, dist

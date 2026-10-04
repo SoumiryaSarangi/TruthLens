@@ -54,6 +54,10 @@ class PipelineConfig:
     # (pipeline/relevance.py).
     free_text_translit_query: bool = False
     free_text_coverage: float | None = None
+    # Post-test Phase 7: live Wikipedia + Google Fact Check, only when a request
+    # asks (`verify(..., live=True)`), only for free text, only for the claim sent.
+    # Off by default: no evaluation config can reach the network.
+    live_search: bool = False
     stages: dict[str, str] | None = None
     stage_args: dict[str, dict[str, Any]] | None = None
 
@@ -84,6 +88,7 @@ class PipelineConfig:
                 "relevance_floor": self.relevance_floor,
                 "free_text_translit_query": self.free_text_translit_query,
                 "free_text_coverage": self.free_text_coverage,
+                "live_search": self.live_search,
                 "stages": dict(self.stages or {})}
 
 
@@ -134,6 +139,7 @@ class Orchestrator:
         self.manipulation = registry.build(
             "manipulation", s.get("manipulation", "none"), **args.get("manipulation", {}))
         self._gen_pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        self._live = None           # built on the first live request, never otherwise
 
     # -- helpers --------------------------------------------------------------
     @staticmethod
@@ -144,8 +150,10 @@ class Orchestrator:
         return out
 
     # -- the flow -------------------------------------------------------------
-    def verify(self, text: str, claim_idx: int | None = None) -> Trace:
+    def verify(self, text: str, claim_idx: int | None = None, live: bool = False) -> Trace:
         trace = self._decide(text, claim_idx)
+        if live:
+            self._apply_live(trace, claim_idx)
         # FR-19: flags are computed only AFTER every verdict is decided and are
         # copied onto the results, so no flag can move a verdict, a confidence
         # or an abstention. A failing flagger degrades to no flags (NFR-7).
@@ -162,6 +170,98 @@ class Orchestrator:
             for result in trace.results:
                 result.manipulation_flags = list(flags)
         return trace
+
+    def _live_evidence(self):
+        if self._live is None:
+            from pipeline.live import LiveEvidence
+
+            self._live = LiveEvidence()
+        return self._live
+
+    def _apply_live(self, trace: Trace, claim_idx: int | None) -> None:
+        """Re-check each claim with live evidence, on request (post-test Phase 7).
+
+        Free text only: an AVeriTeC claim is ranked within its own evidence pool
+        and the evaluation never calls this. Disabled in the pipeline config means
+        the request is answered offline and the trace says why -- a refusal the
+        user can see, not a silent no-op.
+        """
+        if claim_idx is not None:
+            trace.record("live", "-", 0.0, "live search applies to free text only")
+            return
+        if not self.cfg.live_search:
+            trace.record("live", "-", 0.0, "live search is disabled in this pipeline config")
+            return
+        for i, result in enumerate(trace.results):
+            if result.verdict == "NotAClaim" or result.path == "fast":
+                continue                       # nothing to look up / already a fact-check
+            try:
+                trace.results[i] = self._live_pass(trace, result)
+            except Exception as exc:           # NFR-7: the card keeps its offline answer
+                trace.record("live", "-", 0.0,
+                             f"degraded: live search failed ({type(exc).__name__}); offline answer kept")
+
+    def _live_pass(self, trace: Trace, result: ClaimResult) -> ClaimResult:
+        from pipeline.live import LIVE_RELEVANCE_FLOOR, live_verdict
+
+        claim = result.claim
+        forms = self._claim_forms(trace, claim, None)
+        lang = trace.pre.lang if trace.pre else "en"
+        found = self._timed(trace, "live", "wikipedia+factcheck",
+                            lambda: self._live_evidence().gather(forms, lang))
+        for note in found.notes:
+            trace.record("live", "sources", 0.0, note)
+
+        # A published fact-check of THIS claim answers it, as on the offline fast path.
+        if found.match is not None:
+            out = self._from_factcheck(trace, claim, found.match)
+            out.live_sources = found.sources_used
+            return out
+
+        failed = any(n.startswith("degraded") for n in found.notes)
+        if not found.passages and failed:
+            return result                      # a source was down and nothing came back
+        relevant = [p for p in found.passages if p.cosine >= LIVE_RELEVANCE_FLOOR]
+        shown = [self._live_passage(i, p) for i, p in enumerate(relevant or found.passages[:3], 1)]
+        if not relevant:
+            best = max((p.cosine for p in found.passages), default=0.0)
+            trace.record("live", "relevance", 0.0,
+                         f"no live source is about this claim (best {best:.2f} < "
+                         f"{LIVE_RELEVANCE_FLOOR:.2f})")
+            out = self._nei_abstain(
+                claim, "Wikipedia and published fact-checks were searched, and nothing "
+                       "relevant to this claim was found.", passages=shown or None)
+            out.live_sources = found.sources_used
+            return out
+
+        try:
+            labels = self._timed(trace, "stance", self.stance.impl,
+                                 lambda: self.stance.label(claim.text, [p.text for p in shown]))
+        except Exception as exc:
+            trace.record("stance", self.stance.impl, 0.0,
+                         f"degraded: stance failed on live evidence ({type(exc).__name__})")
+            return result
+        for passage, label in zip(shown, labels, strict=True):
+            passage.stance, passage.stance_prob = label.stance, label.prob
+        verdict, confidence, dist = live_verdict([x.probs for x in labels],
+                                                 [p.cosine for p in relevant])
+        trace.record("aggregate", "live_weighted", 0.0,
+                     "verdict from NLI labels weighted by relevance; the confidence is "
+                     "NOT calibrated (no calibration set exists for live evidence)")
+        abstained = confidence < self.cfg.tau_abstain
+        explanation, cited = self.template.explain(verdict, shown, abstained=abstained,
+                                                    claim=claim.text)
+        return ClaimResult(
+            claim=claim, path="evidence", match=None, passages=shown, verdict=verdict,
+            confidence=min(max(confidence, 0.0), 1.0), abstained=abstained, verdict_probs=dist,
+            explanation=explanation, explanation_source="template", explanation_lang="en",
+            cited=cited, live_sources=found.sources_used,
+        )
+
+    @staticmethod
+    def _live_passage(i: int, p) -> Passage:
+        return Passage(passage_id=f"e{i}", doc_id=p.url, text=p.text, url=p.url, title=p.title,
+                       retrieval_score=max(0.0, p.cosine), source=p.source)
 
     def _decide(self, text: str, claim_idx: int | None) -> Trace:
         trace = Trace(request_id=uuid.uuid4().hex[:12])

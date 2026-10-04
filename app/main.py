@@ -76,6 +76,9 @@ class VerifyRequest(BaseModel):
     text: str = Field(min_length=1, max_length=MAX_CHARS)
     lang_hint: str | None = None
     include_trace: bool = True
+    # Post-test Phase 7: send THIS text to Wikipedia and Google Fact Check. False
+    # unless the user clicked "search live" -- explicit, per claim (SRS NFR-8).
+    live_search: bool = False
 
 
 # -----------------------------------------------------------------------------
@@ -90,7 +93,7 @@ def verify(req: VerifyRequest, claim_idx: int | None = Query(default=None)) -> d
         raise HTTPException(status_code=422, detail="Message is empty")
 
     orch = get_orchestrator()
-    trace = orch.verify(req.text, claim_idx=claim_idx)
+    trace = orch.verify(req.text, claim_idx=claim_idx, live=req.live_search)
 
     pre = trace.pre
     body: dict[str, Any] = {

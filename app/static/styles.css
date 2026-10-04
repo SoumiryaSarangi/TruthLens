@@ -154,6 +154,14 @@ body {
 .passage { display: block; font-size: .85rem; margin-top: .15rem; }
 mark { background: var(--mark-bg); color: var(--text); padding: 0 .1rem; }
 
+.live-btn { font: inherit; font-size: .85rem; margin-top: .45rem; padding: .3rem .8rem;
+            border-radius: 1rem; border: 1px solid var(--line); background: var(--chip-bg);
+            color: var(--chip-fg); cursor: pointer; }
+.live-btn:disabled { opacity: .7; cursor: wait; }
+.live-note { font-size: .82rem; color: var(--muted); margin: .35rem 0 .1rem; }
+.src-tag { font-size: .72rem; color: var(--muted); border: 1px solid var(--line);
+           border-radius: .25rem; padding: 0 .3rem; margin-right: .3rem; }
+
 .footnote { font-size: .8rem; color: var(--muted); margin: .45rem 0 0; }
 .disclaimer { font-size: .78rem; color: var(--muted); margin: .45rem 0 0; }
 .trace { font-size: .78rem; color: var(--muted); margin-top: .4rem; }

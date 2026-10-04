@@ -82,6 +82,10 @@ class Passage(BaseModel):
     stance: Stance | None = None
     stance_prob: float | None = None
     highlight: tuple[int, int] | None = None
+    # Where a passage came from when it is not from the offline corpus:
+    # "wikipedia" or "factcheck_live" (post-test Phase 7). None = the offline
+    # corpus or an AVeriTeC pool. The UI badges live sources and attributes them.
+    source: str | None = None
 
 
 class ClaimResult(BaseModel):
@@ -101,6 +105,8 @@ class ClaimResult(BaseModel):
     # aggregator does; the rule does not). What calibration is measured on.
     verdict_probs: dict[str, float] | None = None
     manipulation_flags: list[str] = Field(default_factory=list)
+    # Live sources consulted for this result, when the user asked for them.
+    live_sources: list[str] = Field(default_factory=list)
 
     @field_validator("explanation_source")
     @classmethod

@@ -56,6 +56,10 @@ free_text_translit_query: true
 # neither (coverage 0.00 and 0.40). Word overlap cannot judge the cross-lingual
 # evidence this corpus is full of. Off.
 free_text_coverage: null
+# Post-test Phase 7: live Wikipedia + Google Fact Check, ONLY when a request
+# asks (the UI's per-claim button), free text only. Off in every evaluation
+# config; the frozen test numbers describe the system without it.
+live_search: true
 
 # relevance_floor (FR-12): OFF, chosen on dev in Phase 6 by verdict macro-F1.
 # 0.45 and 0.50 abstain on zero dev claims; 0.55 and 0.60 abstain on 3 and 9 and

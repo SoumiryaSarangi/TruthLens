@@ -79,5 +79,17 @@
     "NEI": "?",
     "NotAClaim": "💬",
     "abstained": "◌"
+  },
+  "live_button": "Search Wikipedia & fact-checkers",
+  "live_privacy": "This sends the claim to Wikipedia and Google Fact Check.",
+  "live_checking": "Searching online…",
+  "live_used": "Checked online against: {sources}",
+  "live_unavailable": "Online search isn't available right now, so the earlier answer stays.",
+  "live_attribution": "Wikipedia text is available under CC BY-SA 4.0.",
+  "live_uncalibrated": "Confidence for online results has not been calibrated.",
+  "source_name": {
+    "wikipedia": "Wikipedia",
+    "factcheck_live": "Fact-check (live)",
+    "google_factcheck": "Google Fact Check"
   }
 }

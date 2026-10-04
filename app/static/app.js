@@ -10,6 +10,7 @@ const $ = (id) => document.getElementById(id);
 
 let S = {};             // strings for the interface language
 let BANDS = null;       // from /version; no bands -> no band shown, never a guess
+let LIVE = false;       // from /version: may this server search Wikipedia / Google live?
 let lastText = "";
 let cardSeq = 0;
 
@@ -72,7 +73,10 @@ async function boot() {
    * hard-coded here. Without them the card shows no band rather than one
    * computed from stale numbers. */
   fetch("/version").then((r) => r.json())
-    .then((v) => { if (v.confidence_bands) BANDS = v.confidence_bands; })
+    .then((v) => {
+      if (v.confidence_bands) BANDS = v.confidence_bands;
+      LIVE = Boolean(v.config && v.config.live_search);
+    })
     .catch(() => {});
 
   fetch("/static/samples.json").then((r) => r.json()).then(renderChips).catch(() => {});
@@ -230,6 +234,8 @@ function verdictCard(r, inp) {
       <p class="note">${esc(t("notaclaim_note"))}</p></div>`;
   }
 
+  const liveUsed = (r.live_sources || []).length > 0;
+  const bandName = bandOf(r.confidence);
   let head;
   if (r.abstained) {
     // UI_UX.md §6: abstained is not NEI. The would-be verdict is shown small
@@ -240,7 +246,7 @@ function verdictCard(r, inp) {
   } else {
     head = `<span class="chip ${esc(r.verdict)}" role="img" aria-label="${esc(t("verdict_aria", { label }))}">
         <span aria-hidden="true">${esc(icons[r.verdict] || "")}</span>${esc(label)}</span>`;
-    const band = bandOf(r.confidence);
+    const band = liveUsed ? null : bandName;     // live confidence is uncalibrated: no band
     if (band) {
       // A band, not a percentage (UI_UX.md §7); the exact value is one hover away.
       head += `<span class="band" tabindex="0"
@@ -270,6 +276,21 @@ function verdictCard(r, inp) {
     html += `<p class="note">${esc(t("template_note"))}</p>`;
   }
 
+  if (liveUsed) {
+    // Live results say so, never present an uncalibrated confidence as a band, and
+    // carry Wikipedia's CC BY-SA attribution.
+    const names = r.live_sources.map((x) => t(`source_name.${x}`, {}, x)).join(", ");
+    html += `<p class="live-note"><span aria-hidden="true">🌐</span> ${esc(t("live_used", { sources: names }))}</p>
+      <p class="note">${esc(t("live_uncalibrated"))}</p>`;
+    if (r.live_sources.includes("wikipedia")) html += `<p class="note">${esc(t("live_attribution"))}</p>`;
+  } else if (LIVE && r.path !== "fast" && r.claim?.text
+             && (r.abstained || bandName !== "High")) {
+    // Explicit, per claim: the button sends ONLY this claim, and says so.
+    html += `<button type="button" class="live-btn" data-card="${id}" data-claim="${esc(r.claim.text)}">
+      <span aria-hidden="true">🌐</span> ${esc(t("live_button"))}</button>
+      <p class="note live-privacy">${esc(t("live_privacy"))}</p>`;
+  }
+
   if (fast && r.match) {
     html += `<p class="src">${esc(t("already_checked", { publisher: r.match.publisher }))}:
       <a href="${esc(r.match.url)}" target="_blank" rel="noopener">${esc(r.match.title)}</a></p>`;
@@ -284,6 +305,7 @@ function verdictCard(r, inp) {
       const href = p.url && /^https?:/.test(p.url) ? p.url : null;
       html += `<li id="${id}-ev-${k + 1}" tabindex="-1">
         <span class="stance ${esc(stance)}">${esc(t(`stance.${stance}`, {}, stance))}</span>
+        ${p.source ? `<span class="src-tag">${esc(t(`source_name.${p.source}`, {}, p.source))}</span>` : ""}
         <span class="src">[${k + 1}] ${href
           ? `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(title)}</a>`
           : esc(title)}</span>
@@ -325,7 +347,38 @@ function render(b) {
 }
 
 /* Expander and citation markers, after the HTML is in the page. */
+async function searchLive(btn) {
+  const card = document.getElementById(btn.dataset.card);
+  btn.disabled = true;
+  btn.textContent = t("live_checking");
+  let body = null;
+  try {
+    const res = await fetch("/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: btn.dataset.claim, include_trace: false, live_search: true }),
+    });
+    if (res.ok) body = await res.json();
+  } catch (e) { /* handled below: the card keeps its answer */ }
+  const result = body && body.results && body.results[0];
+  if (!result || !(result.live_sources || []).length) {
+    // A source was down, or the server refused: the earlier answer stays, visibly.
+    btn.disabled = false;
+    btn.textContent = `🌐 ${t("live_button")}`;
+    const note = card.querySelector(".live-privacy");
+    if (note) note.textContent = t("live_unavailable");
+    return;
+  }
+  const tmp = document.createElement("div");
+  tmp.innerHTML = verdictCard(result, body.input || {});
+  wire(tmp);
+  card.replaceWith(...tmp.children);
+}
+
 function wire(root) {
+  root.querySelectorAll(".live-btn").forEach((btn) => {
+    btn.addEventListener("click", () => searchLive(btn));
+  });
   root.querySelectorAll(".trail-toggle").forEach((btn) => {
     btn.addEventListener("click", () => toggleTrail(btn));
   });
