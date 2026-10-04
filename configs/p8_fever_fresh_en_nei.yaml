@@ -1,0 +1,14 @@
+# Live verdict on FEVER (docs/live-fever-protocol-2.md, pre-registered). Variant nei. Scored against the FEVER labels.
+experiment: p8_fever_fresh_en_nei
+task: classification
+split: data/splits/fever_fresh/dev.jsonl
+predictions: results/preds/p8_fever_fresh_en_nei.jsonl
+label_set: verdict_5class
+baseline: stratified_random
+false_label: Supported
+breakdown: [lang]
+sanity_ceiling: 1.0
+calibration:
+  tau: 0.3835
+notes: >
+  Scored predictions are what the user would be shown (abstained -> NEI). Variant nei; see the protocol.

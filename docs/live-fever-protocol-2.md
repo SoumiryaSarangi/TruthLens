@@ -99,3 +99,60 @@ A claim whose evidence was not fetched because a source returned HTTP 429 or a n
 re-run once after a pause and counted once. Harness bugs found before the first fresh claim is
 run are fixed and logged; none after. Corrections to this document are appended below with the
 date and the reason, and none after the first fresh claim is run.
+
+## Results (2026-10-04), V2 on `fever_fresh`: ALL FOUR GATES PASS
+
+Collected as pre-registered: the owner's 100 real-world labels (60 false, 25 true, 15
+unverifiable) were committed (`989231d`) before any claim ran; all 350 claims were collected
+with 0 source failures remaining after the one allowed re-run; V1 recomputed from stored
+probabilities equals the live card on all 350; 4 claims produced more than one extracted claim
+and fall back to the card. Scored through `make eval`; gates read by `scripts/live_fever.py decide`.
+
+Real-world truth of the 350 claims: 125 true, 210 false, 15 unverifiable. Of the 100 claims
+FEVER labels "not enough info", 60 are false in the real world and 25 are true.
+
+| Scored against real-world truth | answered | correct | false-Supported (of 225 false/unverifiable) | run |
+| --- | --- | --- | --- | --- |
+| V0 offline served | 345 | 208 (the claim prior) | 0 | e3044f2aa461 |
+| always-NEI | 0 | 0 | 0 | d5c6001307a0 |
+| **V2 live** | **106** | **100** | **3 (upper bound 3.85%)** | e68b4fb0e342 |
+
+Against FEVER's own labels (run 01f902e6b7ad) V2 answered the same 106 claims, 92 of them
+matching FEVER's label; the 8 differences are claims FEVER calls "not enough info" that are
+true or false in the real world (the point of this protocol).
+
+| Gate | Needed | Result | |
+| --- | --- | --- | --- |
+| 1 False-Supported among false or unverifiable claims | Wilson upper <= 5% | 3 of 225, upper 3.85% | PASS |
+| 2 Precision of the answers | >= 90% and lower bound >= 85% | 100 of 106 = 94.3%, lower 88.2% | PASS |
+| 3 Says something | >= 50 correct on the 250 gold Supported/Refuted claims | 92 | PASS |
+| 4 Hindi and Punjabi round trip, <= 2 false-Supported each | <= 2 | hi 0 of 33, pa 1 of 33 | PASS |
+
+Hindi (round trip, 60 claims): 20 answered, 20 correct (runs 6b6fa07615a9 truth, b1fa27cecdda
+FEVER). Punjabi: 18 answered, 17 correct (runs 02beb46a95df truth, 6ca277ce2a4b FEVER). Latency of
+the live path: median about 5 s per claim in the harness.
+
+**Every wrong answer (6 of 106), none hidden:**
+
+| Claim | Real-world truth | V2 said | Why |
+| --- | --- | --- | --- |
+| Tottenham Hotspur F.C. is Chinese. | false | Supported | the page is about the club; the NLI read "Chinese" loosely (the club's ownership, not its nationality) |
+| Don Bradman had years in which things happened. | unverifiable (vacuous) | Supported | a claim too vague to refute; the page trivially "supports" it |
+| Literacy arts has been significantly impacted by Appropriation (art). | unverifiable | Supported | vague claim, topical page |
+| Papua comprised all of a country. | true | Refuted | the NLI read "all of" as contradicted by the page |
+| Chile is not a stable nation. | true | Refuted | a negated claim read against a page that never says it |
+| Lalla Ward was declared Sarah Ward. | true | Refuted | the page states her birth name differently from the claim's phrasing |
+
+**Coverage is low and stated plainly:** V2 gives a verdict on 106 of 350 claims (30%) and says
+nothing on the rest. Caveats that must travel with the numbers: the claims are FEVER's
+Wikipedia-style claims, not WhatsApp forwards; DeBERTa-v3-large has seen FEVER-style training
+data, so the numbers are optimistic for real forwards; the Hindi and Punjabi runs are a
+round trip through machine translation, not natural text; and the real-world labels of the 100
+"not enough info" claims are one person's judgement.
+
+**Reporting.** Protocol 1 (V2 failed its accuracy bar by two claims, 78.8% against FEVER's
+labels, about 95% on claims with a decidable FEVER label read after the fact) and this
+protocol (pre-registered, fresh claims, all gates passed) are reported together in the report.
+Per the pre-registered decision above, the live verdict ships, labelled as validated on a
+pre-registered fresh set, with the numbers of both protocols.
+
