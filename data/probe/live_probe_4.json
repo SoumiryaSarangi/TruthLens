@@ -1,0 +1,271 @@
+{
+  "_comment": "Live-search PROBE SET 4 (post-test Phase 7): FRESH claims for validating the entity-grounding gate on the English route (a Wikipedia page is judged only if its title is about the claim's subject). Drafted from the failure types of set 3 (a related page about another entity; a generic-word private claim matched to an unrelated page) but with entities disjoint from sets 1-3. Includes near-named rivers (Godavari, Narmada), spelling-variant subjects, a 'first Indian to ...' trap, and private local claims that use ordinary nouns (bus, shop, market). Same scoring and adoption rule as sets 1-3 (scripts/live_probe.py). Our own wording; a demo set, not a benchmark. label: true | false | unverifiable. Labels APPROVED by the project owner on 2026-10-04: all 38 checked, none changed; one 'why' made more explicit (en-t5). The set is 16 true / 17 false / 5 unverifiable (the owner's review message counted 15 / 18; the claims and labels are what they approved).",
+  "claims": [
+    {
+      "id": "en-t1",
+      "style": "en",
+      "label": "true",
+      "text": "The Godavari river flows through Maharashtra",
+      "why": "Wikipedia: Godavari River (rises near Nashik)"
+    },
+    {
+      "id": "en-t2",
+      "style": "en",
+      "label": "true",
+      "text": "Hyderabad is the capital of Telangana",
+      "why": "Wikipedia: Hyderabad"
+    },
+    {
+      "id": "en-t3",
+      "style": "en",
+      "label": "true",
+      "text": "Mahatma Gandhi was assassinated by Nathuram Godse",
+      "why": "Wikipedia: Assassination of Mahatma Gandhi"
+    },
+    {
+      "id": "en-t4",
+      "style": "en",
+      "label": "true",
+      "text": "The Ajanta Caves are in Maharashtra",
+      "why": "Wikipedia: Ajanta Caves"
+    },
+    {
+      "id": "en-t5",
+      "style": "en",
+      "label": "true",
+      "text": "Kalpana Chawla was an Indian-born astronaut",
+      "why": "NASA/Wikipedia: Kalpana Chawla was born in Karnal, India, and became an astronaut"
+    },
+    {
+      "id": "en-t6",
+      "style": "en",
+      "label": "true",
+      "text": "The Hirakud Dam is built on the Mahanadi river",
+      "why": "Wikipedia: Hirakud Dam"
+    },
+    {
+      "id": "en-t7",
+      "style": "en",
+      "label": "true",
+      "text": "The Narmada river flows into the Arabian Sea",
+      "why": "Wikipedia: Narmada River (west-flowing)"
+    },
+    {
+      "id": "en-f1",
+      "style": "en",
+      "label": "false",
+      "text": "Jaipur is the capital of Gujarat",
+      "why": "Jaipur is the capital of Rajasthan; Gujarat's is Gandhinagar (Wikipedia: Jaipur, Gujarat)"
+    },
+    {
+      "id": "en-f2",
+      "style": "en",
+      "label": "false",
+      "text": "The Godavari flows into the Arabian Sea",
+      "why": "The Godavari empties into the Bay of Bengal (Wikipedia: Godavari River)"
+    },
+    {
+      "id": "en-f3",
+      "style": "en",
+      "label": "false",
+      "text": "Kalpana Chawla was the first Indian to travel to space",
+      "why": "The first Indian in space was Rakesh Sharma in 1984; Chawla was the first woman of Indian origin (Wikipedia: Rakesh Sharma, Kalpana Chawla)"
+    },
+    {
+      "id": "en-f4",
+      "style": "en",
+      "label": "false",
+      "text": "Mount Kailash is in India",
+      "why": "Mount Kailash is in Tibet, China (Wikipedia: Mount Kailash)"
+    },
+    {
+      "id": "en-f5",
+      "style": "en",
+      "label": "false",
+      "text": "Lucknow is the capital of Bihar",
+      "why": "Lucknow is the capital of Uttar Pradesh; Bihar's is Patna (Wikipedia: Lucknow)"
+    },
+    {
+      "id": "en-f6",
+      "style": "en",
+      "label": "false",
+      "text": "Goldfish have a three-second memory",
+      "why": "A myth; goldfish remember for months (Wikipedia: Goldfish)"
+    },
+    {
+      "id": "en-f7",
+      "style": "en",
+      "label": "false",
+      "text": "The Narmada river flows into the Bay of Bengal",
+      "why": "The Narmada flows west into the Arabian Sea (Wikipedia: Narmada River)"
+    },
+    {
+      "id": "hd-t1",
+      "style": "hi-deva",
+      "label": "true",
+      "text": "गोदावरी नदी महाराष्ट्र से होकर बहती है",
+      "why": "Wikipedia: Godavari River"
+    },
+    {
+      "id": "hd-t2",
+      "style": "hi-deva",
+      "label": "true",
+      "text": "हैदराबाद तेलंगाना की राजधानी है",
+      "why": "Wikipedia: Hyderabad"
+    },
+    {
+      "id": "hd-t3",
+      "style": "hi-deva",
+      "label": "true",
+      "text": "अजंता की गुफाएँ महाराष्ट्र में हैं",
+      "why": "Wikipedia: Ajanta Caves"
+    },
+    {
+      "id": "hd-f1",
+      "style": "hi-deva",
+      "label": "false",
+      "text": "जयपुर गुजरात की राजधानी है",
+      "why": "Jaipur is the capital of Rajasthan (Wikipedia: Jaipur)"
+    },
+    {
+      "id": "hd-f2",
+      "style": "hi-deva",
+      "label": "false",
+      "text": "गोदावरी नदी अरब सागर में गिरती है",
+      "why": "The Godavari empties into the Bay of Bengal (Wikipedia: Godavari River)"
+    },
+    {
+      "id": "hd-f3",
+      "style": "hi-deva",
+      "label": "false",
+      "text": "लखनऊ बिहार की राजधानी है",
+      "why": "Lucknow is the capital of Uttar Pradesh (Wikipedia: Lucknow)"
+    },
+    {
+      "id": "hl-t1",
+      "style": "hi-latn",
+      "label": "true",
+      "text": "Hyderabad Telangana ki rajdhani hai",
+      "why": "Wikipedia: Hyderabad"
+    },
+    {
+      "id": "hl-t2",
+      "style": "hi-latn",
+      "label": "true",
+      "text": "Ajanta ki gufayein Maharashtra mein hain",
+      "why": "Wikipedia: Ajanta Caves"
+    },
+    {
+      "id": "hl-f1",
+      "style": "hi-latn",
+      "label": "false",
+      "text": "Jaipur Gujarat ki rajdhani hai",
+      "why": "Jaipur is the capital of Rajasthan (Wikipedia: Jaipur)"
+    },
+    {
+      "id": "hl-f2",
+      "style": "hi-latn",
+      "label": "false",
+      "text": "Godavari nadi Arabian Sea mein girti hai",
+      "why": "The Godavari empties into the Bay of Bengal (Wikipedia: Godavari River)"
+    },
+    {
+      "id": "hl-f3",
+      "style": "hi-latn",
+      "label": "false",
+      "text": "Lucknow Bihar ki rajdhani hai",
+      "why": "Lucknow is the capital of Uttar Pradesh (Wikipedia: Lucknow)"
+    },
+    {
+      "id": "pg-t1",
+      "style": "pa-guru",
+      "label": "true",
+      "text": "ਹੈਦਰਾਬਾਦ ਤੇਲੰਗਾਨਾ ਦੀ ਰਾਜਧਾਨੀ ਹੈ",
+      "why": "Wikipedia: Hyderabad"
+    },
+    {
+      "id": "pg-t2",
+      "style": "pa-guru",
+      "label": "true",
+      "text": "ਅਜੰਤਾ ਦੀਆਂ ਗੁਫ਼ਾਵਾਂ ਮਹਾਰਾਸ਼ਟਰ ਵਿੱਚ ਹਨ",
+      "why": "Wikipedia: Ajanta Caves"
+    },
+    {
+      "id": "pg-f1",
+      "style": "pa-guru",
+      "label": "false",
+      "text": "ਜੈਪੁਰ ਗੁਜਰਾਤ ਦੀ ਰਾਜਧਾਨੀ ਹੈ",
+      "why": "Jaipur is the capital of Rajasthan (Wikipedia: Jaipur)"
+    },
+    {
+      "id": "pg-f2",
+      "style": "pa-guru",
+      "label": "false",
+      "text": "ਗੋਦਾਵਰੀ ਨਦੀ ਅਰਬ ਸਾਗਰ ਵਿੱਚ ਡਿੱਗਦੀ ਹੈ",
+      "why": "The Godavari empties into the Bay of Bengal (Wikipedia: Godavari River)"
+    },
+    {
+      "id": "pg-f3",
+      "style": "pa-guru",
+      "label": "false",
+      "text": "ਲਖਨਊ ਬਿਹਾਰ ਦੀ ਰਾਜਧਾਨੀ ਹੈ",
+      "why": "Lucknow is the capital of Uttar Pradesh (Wikipedia: Lucknow)"
+    },
+    {
+      "id": "pl-t1",
+      "style": "pa-latn",
+      "label": "true",
+      "text": "Hyderabad Telangana di rajdhani hai",
+      "why": "Wikipedia: Hyderabad"
+    },
+    {
+      "id": "pl-t2",
+      "style": "pa-latn",
+      "label": "true",
+      "text": "Ajanta diyan gufavan Maharashtra vich hain",
+      "why": "Wikipedia: Ajanta Caves"
+    },
+    {
+      "id": "pl-f1",
+      "style": "pa-latn",
+      "label": "false",
+      "text": "Jaipur Gujarat di rajdhani hai",
+      "why": "Jaipur is the capital of Rajasthan (Wikipedia: Jaipur)"
+    },
+    {
+      "id": "un-1",
+      "style": "en",
+      "label": "unverifiable",
+      "text": "The bus to our village leaves at 6:40 every morning",
+      "why": "a private, local fact; no public source"
+    },
+    {
+      "id": "un-2",
+      "style": "en",
+      "label": "unverifiable",
+      "text": "My landlord's parrot knows forty words",
+      "why": "a private matter; no public source"
+    },
+    {
+      "id": "un-3",
+      "style": "en",
+      "label": "unverifiable",
+      "text": "The sweet shop near the market closes early on Mondays",
+      "why": "a private, local fact; no public source"
+    },
+    {
+      "id": "un-4",
+      "style": "hi-latn",
+      "label": "unverifiable",
+      "text": "Hamare school ke principal kal chhutti par rahenge",
+      "why": "a private, local, future event; no public source"
+    },
+    {
+      "id": "un-5",
+      "style": "pa-latn",
+      "label": "unverifiable",
+      "text": "Sade mohalle di dukaan Sunday nu band rehndi hai",
+      "why": "a private, local fact; no public source"
+    }
+  ]
+}

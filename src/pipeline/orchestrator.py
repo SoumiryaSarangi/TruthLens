@@ -268,13 +268,24 @@ class Orchestrator:
                              f"degraded: live search failed ({type(exc).__name__}); offline answer kept")
 
     def _live_pass(self, trace: Trace, result: ClaimResult) -> ClaimResult:
-        from pipeline.live import LIVE_RELEVANCE_FLOOR, RATED, RATED_PROB, live_verdict
+        from pipeline.live import (
+            LIVE_RELEVANCE_FLOOR,
+            RATED,
+            RATED_PROB,
+            live_verdict,
+            title_grounded,
+        )
 
         claim = result.claim
         forms = self._claim_forms(trace, claim, None)
         lang = trace.pre.lang if trace.pre else "en"
         english = (self._english_claim(trace, claim, forms)
                    if self.cfg.live_verdict and self.cfg.live_translate else None)
+        if (self.cfg.live_verdict and self.cfg.live_translate and lang in ("hi", "pa")
+                and english is None):
+            # The English NLI cannot read a Hindi claim and no title could be grounded
+            # in it: keep the offline answer rather than judge blind.
+            return result
         if english and english not in forms:
             forms = [*forms, english]
         found = self._timed(trace, "live", "wikipedia+factcheck",
@@ -323,8 +334,18 @@ class Orchestrator:
         # claim translated, the hypothesis is the English claim and only English pages
         # are judged (a page left in Hindi has no English text to read).
         hypothesis = english or claim.text
+        # English route: only a Wikipedia page ABOUT the claim's subject is judged. A
+        # fact-check review below the fast-path threshold is a verdict on some OTHER
+        # claim (a False-rated Modi story must not refute "Modi is the Prime Minister"),
+        # so it is listed, not judged; one that is this claim never gets here (fast path).
         judged = [i for i, p in enumerate(relevant)
-                  if p.rating_stance or not self.cfg.live_translate or p.lang == "en"]
+                  if not self.cfg.live_translate
+                  or (p.source == "wikipedia" and p.lang == "en" and title_grounded(p.title, forms))]
+        if self.cfg.live_translate and len(judged) < len(relevant):
+            skipped = [p.title for i, p in enumerate(relevant) if i not in judged]
+            trace.record("live", "grounding", 0.0,
+                         "listed, not judged (not a page about the claim's subject, or a "
+                         "fact-check of a different claim): " + "; ".join(skipped))
         nli = [i for i in judged if not relevant[i].rating_stance]
         try:
             labels = (self._timed(trace, "stance", self._live_stance().impl,

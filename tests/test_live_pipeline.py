@@ -347,11 +347,12 @@ def test_a_page_left_in_hindi_is_listed_but_not_judged_in_translate_mode():
     assert res.passages[0].stance is None or res.passages[0].stance == ""
 
 
-def test_a_translation_failure_falls_back_to_the_claims_own_language():
+def test_a_translation_failure_keeps_the_offline_answer():
     live = FakeLive(LiveResult(passages=[passage()], sources_used=["wikipedia"]))
     orch = make_translating(live, FakeTranslator(raises=RuntimeError("no model")))
+    offline = orch.verify("मुंबई भारत की राजधानी है").results[0]
     trace = orch.verify("मुंबई भारत की राजधानी है", live=True)
-    assert trace.results[0].verdict == "Supported"          # the language-matched path ran
+    assert trace.results[0].verdict == offline.verdict      # the offline answer is kept, not a blind judgement
     assert any("claim translation failed" in (e.note or "") for e in trace.events)
 
 
@@ -383,3 +384,75 @@ def test_translate_mode_reads_live_evidence_with_the_english_nli_not_the_served_
 def test_without_translate_mode_the_served_stance_reads_live_evidence():
     orch = make(FakeLive(LiveResult(passages=[passage()], sources_used=["wikipedia"])))
     assert orch._live_stance() is orch.stance
+
+
+# -- entity grounding ------------------------------------------------------------
+
+
+@pytest.mark.parametrize("claim,title,expected", [
+    ("Ganga falls into the Arabian Sea", "Arabian Sea", True),
+    ("Ganga falls into the Arabian Sea", "Ganges", True),                  # spelling variant
+    ("Ganga falls into the Arabian Sea", "Daman Ganga River", False),     # a different river
+    ("Ganga falls into the Arabian Sea", "Varahi River", False),
+    ("Bangalore is the capital of Tamil Nadu", "Bengaluru", True),         # consonant skeleton
+    ("The tea stall near our office closes at 9 pm on Sundays", "Brick Lane Market", False),
+    ("Mumbai is the capital of India", "List of state and union territory capitals in India", False),
+    ("Indira Gandhi was India's first woman Prime Minister", "Indira Gandhi (disambiguation)", True),
+    ("Indira Gandhi was India's first woman Prime Minister", "Assassination of Indira Gandhi", False),
+    ("Delhi is the capital", "List of", False),                            # nothing but generic words
+])
+def test_title_grounding(claim, title, expected):
+    from pipeline.live import title_grounded
+
+    assert title_grounded(title, [claim]) is expected
+
+
+def test_a_native_script_form_does_not_ground_an_english_title():
+    from pipeline.live import title_grounded
+
+    assert title_grounded("Mumbai", ["मुंबई भारत की राजधानी है"]) is False
+    assert title_grounded("Mumbai", ["मुंबई भारत की राजधानी है", "Mumbai is the capital of India"]) is True
+
+
+def test_a_page_about_another_subject_is_not_judged_so_it_cannot_make_a_false_claim_supported():
+    """The Ganges/Arabian Sea error of probe set 3: pages about two OTHER rivers said
+    'flows into the Arabian Sea' and the claim was called Supported."""
+    other = LivePassage("The Daman Ganga River flows into the Arabian Sea.", "Daman Ganga River",
+                        "https://en/Daman_Ganga_River", "wikipedia", 0.7, "en",
+                        premise="The Daman Ganga River flows into the Arabian Sea.")
+    orch = make_translating(FakeLive(LiveResult(passages=[other], sources_used=["wikipedia"])),
+                            FakeTranslator("The Ganga falls into the Arabian Sea"))
+    orch.stance = orch._live_nli = FakeStance(S)           # a model that WOULD say Supports
+    trace = orch.verify("गंगा नदी अरब सागर में गिरती है", live=True)
+    assert trace.results[0].verdict == "NEI"
+    assert any(e.stage == "live" and "not a page about the claim's subject" in (e.note or "") for e in trace.events)
+
+
+def test_a_page_about_the_subject_is_still_judged():
+    ganges = LivePassage("The Ganges empties into the Bay of Bengal.", "Ganges", "https://en/Ganges",
+                         "wikipedia", 0.7, "en", premise="The Ganges empties into the Bay of Bengal.")
+    orch = make_translating(FakeLive(LiveResult(passages=[ganges], sources_used=["wikipedia"])),
+                            FakeTranslator("The Ganga falls into the Arabian Sea"))
+    orch.stance = orch._live_nli = FakeStance(R)
+    assert orch.verify("गंगा नदी अरब सागर में गिरती है", live=True).results[0].verdict == "Refuted"
+
+
+def test_grounding_is_only_applied_in_translate_mode():
+    other = LivePassage("A page.", "Some Other Page", "https://x/o", "wikipedia", 0.7, "en")
+    orch = make(FakeLive(LiveResult(passages=[other], sources_used=["wikipedia"])))
+    assert orch.verify("Delhi is the capital of India", live=True).results[0].verdict == "Supported"
+
+
+def test_a_fact_check_of_a_different_claim_is_listed_not_judged_on_the_english_route():
+    """A False-rated story about Modi must not refute 'Modi is the Prime Minister'."""
+    review = LivePassage("Viral video of Modi is fake — Alt News rating: False", "Alt News",
+                         "https://altnews/x", "factcheck_live", 0.7, "en", rating_stance="Refutes")
+    page = LivePassage("Narendra Modi is the prime minister of India.", "Narendra Modi",
+                       "https://en/Narendra_Modi", "wikipedia", 0.75, "en",
+                       premise="Narendra Modi is the prime minister of India.")
+    orch = make_translating(FakeLive(LiveResult(passages=[review, page], sources_used=["wikipedia"])),
+                            FakeTranslator())
+    orch.stance = orch._live_nli = FakeStance(S)
+    res = orch.verify("Narendra Modi is the Prime Minister of India", live=True).results[0]
+    assert res.verdict == "Supported"
+    assert len(res.passages) == 2             # the review is still shown

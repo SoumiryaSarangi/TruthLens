@@ -72,6 +72,49 @@ def rating_stance(rating: str) -> str:
     return RATING_STANCE.get(rating_to_verdict([rating]) or "", "Neutral") if rating else "Neutral"
 
 
+# -- entity grounding ---------------------------------------------------------------
+#
+# Probe set 3's two live errors were relevance errors: the NLI read the WRONG page
+# correctly ("Daman Ganga" and "Varahi" are rivers that do reach the Arabian Sea; a
+# market page loosely matched a tea stall). A page may be JUDGED only if its title
+# is about the claim's subject: every content word of the title must match a word of
+# the claim. Words are compared by consonant skeleton, so spelling variants agree
+# (Bangalore/Bengaluru, Ganga/Ganges) while "Daman Ganga River" does not match
+# "Ganga falls into the Arabian Sea" (daman has no counterpart).
+# Fixed before probe set 4 was drafted; tuned on nothing.
+
+TITLE_GENERIC = frozenset({
+    "a", "an", "the", "of", "in", "and", "on", "at", "to", "for", "by", "or",
+    "list", "river", "city", "district", "state", "town", "article", "disambiguation",
+})
+_WORD = re.compile(r"[a-z0-9]+")
+_VOWELS = re.compile(r"[aeiouy]")
+_PARENS = re.compile(r"\([^)]*\)")
+SKELETON_MIN = 3
+
+
+def skeleton(word: str) -> str:
+    """A word with its vowels removed and doubled letters collapsed ('Bengaluru' -> 'bnglr')."""
+    consonants = _VOWELS.sub("", word.lower())
+    return re.sub(r"(.)\1+", r"\1", consonants) or word.lower()
+
+
+def _same_word(a: str, b: str) -> bool:
+    if a == b:
+        return True
+    sa, sb = skeleton(a), skeleton(b)
+    short, long_ = sorted((sa, sb), key=len)
+    return len(short) >= SKELETON_MIN and long_.startswith(short)
+
+
+def title_grounded(title: str, claim_forms: Sequence[str]) -> bool:
+    """True if every content word of `title` has a counterpart in some Latin-script
+    form of the claim. A title with no content words (a bare 'List of ...') is not grounded."""
+    words = [w for w in _WORD.findall(_PARENS.sub(" ", title).lower()) if w not in TITLE_GENERIC]
+    claim = {w for form in claim_forms if form.isascii() for w in _WORD.findall(form.lower())}
+    return bool(words) and all(any(_same_word(w, c) for c in claim) for w in words)
+
+
 def default_encode(texts: list[str]) -> Sequence[Sequence[float]]:
     from retrieval.encoders import shared_encoder
 
