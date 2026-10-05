@@ -131,6 +131,7 @@ def _plain_keys() -> set[str]:
     keys |= {"plain.title.careful", "plain.reason.careful", "icon.careful"}
     keys |= {"plain.similar.reason_unrated", "plain.reply.similar_unrated", "plain.reason.careful_live",
              "plain.greeting_title", "plain.greeting_note"}
+    keys |= {"plain.why.label", "plain.why.english"}
     keys |= {f"plain.words.{k}" for k in ("button", "title", "hint", "note_english", "source", "none", "unavailable", "loading")}
     keys |= {f"plain.similar.rating.{v}" for v in VERDICTS} | {"icon.similar"}
     keys |= {f"plain.{k}" for k in ("none_title", "none_note", "claim_label", "sources_label", "closest_label",

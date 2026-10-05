@@ -196,6 +196,10 @@
       "none": "No single word stood out.",
       "unavailable": "I couldn't show this right now.",
       "loading": "One moment…"
+    },
+    "why": {
+      "label": "Why: this is what the source says",
+      "english": "The source is in English."
     }
   },
   "lean_note": "The system's own lean, which is NOT reliable for free text: {label}."

@@ -3183,3 +3183,12 @@ false AVeriTeC claims and 20 of 30 typical hoaxes warned). Run once (`scripts/ca
 adopted, the served wording is unchanged, the cue lists were not tuned.** Nothing user-visible changed. Open choices for the owner (each is a
 new protocol or a product decision): a revised cue list tested on a fresh set (the whole-word plural miss is one known cause), or dropping the lean
 from the tone entirely so every unverified claim says "Hard to say". Tests added: `tests/test_careful_rule.py`.
+
+### "Why" quote on a live true/false answer (2026-10-05, owner's request; trial, one commit)
+
+A live Supported or Refuted card now quotes the source sentence the answer rests on ("Why: this is what the source says: "...""), picked in the
+browser from the passage that agrees with the verdict (highest stance score) as the sentence sharing the most words with the claim.
+Extractive on purpose: nothing is generated. Checked on real live answers (methylphenidate for ADHD; "Everest is not the tallest mountain").
+Fast-path answers get none: the index holds only the fact-check's headline, and fetching its page would break the offline path. Frontend only
+(`sourceQuote`, `plain.why.*` strings for en/hi/pa, hi/pa in the review sheet, a render check). **The owner is trying it; to remove it, revert this commit
+(see the commit hash in `git log`: "Why quote").**

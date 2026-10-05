@@ -217,6 +217,8 @@ mark { background: var(--mark-bg); color: var(--text); padding: 0 .1rem; }
        border: 1px solid var(--line); background: var(--chip-bg); color: var(--chip-fg); cursor: pointer; }
 .act.on { outline: 2px solid var(--focus); }
 .act-note { margin: .2rem 0; }
+.why-quote { margin: .2rem 0; padding-left: .6rem; border-left: 3px solid var(--line); font-size: .9rem; }
+.why-quote cite { display: block; font-style: normal; font-size: .8rem; color: var(--muted); margin-top: .15rem; }
 .words-box { margin-top: .45rem; }
 .words-view { margin-top: .3rem; }
 .words-claim { margin: .2rem 0; line-height: 1.7; }

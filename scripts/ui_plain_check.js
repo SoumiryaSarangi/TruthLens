@@ -28,7 +28,8 @@ const liveBase = { claim: { claim_id: "c1", text: "Hyderabad is the capital of T
   explanation: "x", explanation_source: "template", explanation_lang: "en", manipulation_flags: [],
   live_sources: ["wikipedia", "google_factcheck"], cited: ["e1"],
   passages: [{ passage_id: "e1", doc_id: "u1", url: "https://en.wikipedia.org/wiki/Hyderabad", title: "Hyderabad",
-    text: "Hyderabad is the capital of Telangana.", retrieval_score: 0.8, stance: "Supports", stance_prob: 0.97, source: "wikipedia" }] };
+    text: "Hyderabad is the capital of Telangana.", premise: "Hyderabad is the capital of Telangana. It is a large city.",
+    retrieval_score: 0.8, stance: "Supports", stance_prob: 0.97, source: "wikipedia" }] };
 data.responses.push(
   { shows: "live_verdict", body: { input: { lang: "en", script: "latn" }, unchecked_claims: [],
     results: [{ ...liveBase, verdict: "Supported", confidence: 0.89, abstained: false }] } },
@@ -164,6 +165,9 @@ for (const lang of ["en", "hi", "pa"]) {
       if ((main.match(/newsmeter\.in\/fact-check\/pineapple/g) || []).length > 1 + (main.includes('data-reply') ? 1 : 0))
         problems.push("live similar: the fact-check is listed twice");
     }
+    if (r.shows === "live_verdict") {
+      if (!main.includes("why-quote") || !main.includes("Hyderabad is the capital of Telangana.")) problems.push("live verdict: no quoted source sentence");
+    } else if (r.shows !== "words_button" && /why-quote/.test(main)) problems.push("a quoted source sentence on a card that is not a live true/false answer");
     if (r.shows === "words_button") {
       if (!main.includes("words-btn") || !main.includes('data-premise="Hyderabad is the capital of Telangana. It is large."'))
         problems.push("words button: missing, or not carrying the judged premise");

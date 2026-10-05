@@ -360,6 +360,37 @@ function plainSources(c, r) {
   return [];
 }
 
+/* "Why": for a live TRUE or FALSE answer, the sentence of the source that the answer rests on, quoted as the
+ * source wrote it (extractive: nothing is generated, so nothing can be invented). The source is the passage that
+ * points the same way as the verdict with the highest stance score; its sentence is the one that shares the most
+ * words with the claim. A fast-path answer has no such text on file (only the fact-check's headline, which the
+ * card already shows), so it gets none. Frontend only; nothing is recomputed on the server. */
+const QUOTE_STOP = new Set(["the", "a", "an", "of", "in", "on", "is", "are", "was", "were", "to", "and", "or", "that", "this",
+  "it", "for", "by", "with", "as", "at", "from", "be", "has", "have", "had", "than", "but", "not", "can", "will"]);
+const QUOTE_MAX = 240;
+
+function wordsOf(text) {
+  return (String(text || "").toLowerCase().match(/[\p{L}\p{N}]+/gu) || []).filter((w) => !QUOTE_STOP.has(w));
+}
+
+function sourceQuote(c, r) {
+  if (c.kind !== "verdict" || !c.live || (c.v !== "Supported" && c.v !== "Refuted")) return null;
+  const want = c.v === "Supported" ? "Supports" : "Refutes";
+  const best = (r.passages || []).filter((p) => p.premise && p.stance === want && /^https?:/.test(p.url || ""))
+    .sort((a, b) => (b.stance_prob || 0) - (a.stance_prob || 0))[0];
+  if (!best) return null;
+  const claim = new Set(wordsOf(r.claim_en || (r.claim && r.claim.text)));
+  const sentences = best.premise.split(/(?<=[.!?।])\s+/).map((s) => s.trim()).filter(Boolean);
+  if (!sentences.length) return null;
+  let pick = sentences[0], top = -1;
+  for (const s of sentences) {
+    const shared = wordsOf(s).filter((w) => claim.has(w)).length;
+    if (shared > top) { top = shared; pick = s; }
+  }
+  if (pick.length > QUOTE_MAX) pick = pick.slice(0, QUOTE_MAX).replace(/\s+\S*$/, "") + "…";
+  return { text: pick, title: best.title || domainOf(best.url), url: best.url };
+}
+
 /* The one live verdict the word view can explain: a Supported or Refuted live result and the source passage
  * that points the same way with the highest stance, read exactly as the models read it. */
 function wordsSource(c, r) {
@@ -484,6 +515,13 @@ function plainCard(r, inp, idx) {
       aria-label="${esc(t("verdict_aria", { label: title }))}"><span aria-hidden="true">${esc(icon || "")}</span>${esc(title)}</span></p>
     <p class="reason">${esc(reason)}${sure ? ` <span class="sure">${esc(sure)}</span>` : ""}</p>
     <p class="action">${esc(action)}</p>`;
+  const quote = sourceQuote(c, r);
+  if (quote) {
+    html += `<p class="src-label">${esc(tl(lang, "plain.why.label"))}</p>
+      <blockquote class="why-quote" lang="en">“${esc(quote.text)}”
+        <cite><a href="${esc(quote.url)}" target="_blank" rel="noopener">${esc(quote.title)}</a> <span class="domain">· ${
+    esc(domainOf(quote.url))}</span></cite></blockquote>${lang !== "en" ? `<p class="note">${esc(tl(lang, "plain.why.english"))}</p>` : ""}`;
+  }
   html += simHtml;
   if (sources.length) {
     html += `<p class="src-label">${esc(tl(lang, c.kind === "lean" ? "plain.related_label"

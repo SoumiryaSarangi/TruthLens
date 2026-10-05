@@ -302,3 +302,5 @@ from their `_comment`.
 | `plain.words.none` | No single word stood out. | कोई एक शब्द अलग से ख़ास नहीं निकला। | ਕੋਈ ਇੱਕ ਸ਼ਬਦ ਵੱਖਰਾ ਖ਼ਾਸ ਨਹੀਂ ਨਿਕਲਿਆ। | |
 | `plain.words.unavailable` | I couldn't show this right now. | अभी यह नहीं दिखाया जा सका। | ਇਹ ਹੁਣੇ ਨਹੀਂ ਦਿਖਾਇਆ ਜਾ ਸਕਿਆ। | |
 | `plain.words.loading` | One moment… | थोड़ा रुकिए… | ਥੋੜ੍ਹਾ ਰੁਕੋ… | |
+| `plain.why.label` | Why: this is what the source says | क्यों: स्रोत में यह लिखा है | ਕਿਉਂ: ਸਰੋਤ ਵਿੱਚ ਇਹ ਲਿਖਿਆ ਹੈ | |
+| `plain.why.english` | The source is in English. | यह स्रोत अंग्रेज़ी में है। | ਇਹ ਸਰੋਤ ਅੰਗਰੇਜ਼ੀ ਵਿੱਚ ਹੈ। | |
