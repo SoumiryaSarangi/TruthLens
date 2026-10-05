@@ -1,0 +1,109 @@
+{
+  "config_hash": "b2a05007981d",
+  "created_utc": "2026-10-05T14:59:14+00:00",
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p9_retrieval_v2_check",
+  "git": {
+    "branch": "main",
+    "dirty": false,
+    "sha": "e3ccecd3c10d2a7aa7eaacda392a316c5bafd8ba"
+  },
+  "inputs": {
+    "config": {
+      "experiment": "p9_retrieval_v2_check",
+      "protocol": "docs/live-retrieval-v2-protocol.md",
+      "seed": 42,
+      "task": "retrieval_v2_check"
+    },
+    "protocol_sha256": "9dea6e2f6d3bcc4a032e67b3ac54279e8f607cd71987776687d757b189712113"
+  },
+  "metrics": {
+    "A1": {
+      "n": 216,
+      "ratio": 0.8301886792452831,
+      "requests_per_claim_v1_mean": 1.0,
+      "requests_per_claim_v2_max": 5,
+      "requests_per_claim_v2_mean": 1.7268518518518519,
+      "v1_share": 0.24537037037037038,
+      "v1_wilson95": [
+        0.19276442726288823,
+        0.3068749921634776
+      ],
+      "v1_with_grounded_page": 53,
+      "v2_share": 0.2037037037037037,
+      "v2_wilson95": [
+        0.1553909348763337,
+        0.2623712986379828
+      ],
+      "v2_with_grounded_page": 44
+    },
+    "B": {
+      "n": 125,
+      "ratio": 1.0571428571428572,
+      "requests_per_claim_v1_mean": 1.456,
+      "requests_per_claim_v2_max": 5,
+      "requests_per_claim_v2_mean": 2.224,
+      "v1_share": 0.28,
+      "v1_wilson95": [
+        0.2087531593453465,
+        0.36436561408710505
+      ],
+      "v1_with_grounded_page": 35,
+      "v2_share": 0.296,
+      "v2_wilson95": [
+        0.22302510821374974,
+        0.3811395726054325
+      ],
+      "v2_with_grounded_page": 37
+    },
+    "claims_with_a_fetch_error": 0,
+    "claims_with_both": 341,
+    "pooled": {
+      "n": 341,
+      "ratio": 0.9204545454545454,
+      "requests_per_claim_v1_mean": 1.1671554252199414,
+      "requests_per_claim_v2_max": 5,
+      "requests_per_claim_v2_mean": 1.9090909090909092,
+      "v1_share": 0.25806451612903225,
+      "v1_wilson95": [
+        0.2144976876174683,
+        0.30702156202473446
+      ],
+      "v1_with_grounded_page": 88,
+      "v2_share": 0.2375366568914956,
+      "v2_wilson95": [
+        0.19544813327732685,
+        0.28547274966785074
+      ],
+      "v2_with_grounded_page": 81
+    },
+    "stage1_retrieval_check_passes": false
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "retrieval_v2_check"
+}

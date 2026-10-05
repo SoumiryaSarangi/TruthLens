@@ -87,3 +87,21 @@ The development check 1 above was written over claims that were silent under v1,
 RC-E, 85 claims (50 F, 25 T, 10 U): **0 verdicts shown (coverage 0.000)**, 0 false Supported in 50 false claims; precision is undefined with nothing shown. The errors of RC-E were not read (there are none to read). So the pooled A2 + RC-E
 v1 baseline is **28 shown decidable verdicts, all correct** (A2 28, RC-E 0), and the gain bar fixed in correction 1 ("at least 30% above the v1 baseline on the same pool") is **at least 37 shown decidable verdicts on the pool**
 (28 x 1.3 = 36.4, rounded up), together with precision at least 0.85 (Wilson lower bound at least 0.80) and a false-Supported Wilson upper bound of at most 0.08.
+
+## Result of the Stage 1 development check (2026-10-05, run `b2a05007981d`, `results/b2a05007981d.json`): FAILED, Stage 1 is dropped
+341 gold-T/F claims (B 125, A1 216), live Wikipedia, BGE-M3 on CPU, the unchanged relevance floor and title gate. Share of claims with at least one page that passes both:
+
+| Set | n | v1 | v2 | ratio v2/v1 | v2 not lower than v1? |
+| --- | --- | --- | --- | --- | --- |
+| Pooled | 341 | 88 (0.258) | 81 (0.238) | 0.92 | no |
+| B | 125 | 35 (0.280) | 37 (0.296) | 1.06 | yes |
+| A1 | 216 | 53 (0.245) | 44 (0.204) | 0.83 | no |
+
+The pass rule was a pooled ratio of at least 1.25 and no set lower. The pooled ratio is 0.92 and A1 is lower, so **v2 is not adopted and nothing further is run for Stage 1** (no full run, no A2, no restart). It also costs more:
+1.91 Wikipedia requests per claim against 1.17 (maximum 5).
+- **What this says:** deeper and more targeted queries did not find more pages that are about the claim; where v1 found a grounded page, v2 sometimes found a different top-5 and lost it (a plausible but UNTESTED reason: the added pages
+  outrank the grounded one in the re-ranked top 5; not investigated, because a "v2b" tuned on these same dev claims would not be validatable). Only about a quarter of claims have a grounded Wikipedia page at all, with either
+  query set, so the limit is the source, not the query. The code stays in the repo behind `live_retrieval_v2` (off, unwired, tests pass) as a recorded negative result.
+- **Stage 2 is not run:** its condition (BOTH_NEI the largest remaining cause) is not met; NOT_JUDGED is.
+- **Stage 3 (a new source) has a validity problem to settle first:** RC-E was written FROM agency pages (RBI, Income Tax, NCCIH, WHO and so on), so testing a source that adds those same sites on RC-E would be circular (the answer is in the
+  page the claim was written from). A new source can only be validated on A2 and claims written independently of it.
