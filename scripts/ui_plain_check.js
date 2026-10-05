@@ -17,11 +17,11 @@ const ctx = { document: { getElementById: el, addEventListener() {}, querySelect
   location: { search: "" }, navigator: { language: "en" }, fetch: async () => ({ ok: false }), URL, URLSearchParams, setTimeout, console };
 vm.createContext(ctx);
 vm.runInContext(fs.readFileSync("app/static/app.js", "utf8")
-  + "\n;globalThis.__a={render,setS:(s)=>{S=s},setSTR:(x)=>{STR=x},setB:(b)=>{BANDS=b},setLive:(v)=>{LIVE=v},setAns:(l)=>{ANSWER_LANG=l}};", ctx);
+  + "\n;globalThis.__a={render,setS:(s)=>{S=s},setSTR:(x)=>{STR=x},setWords:(v)=>{WORDS=v},setB:(b)=>{BANDS=b},setLive:(v)=>{LIVE=v},setAns:(l)=>{ANSWER_LANG=l}};", ctx);
 const api = ctx.__a;
 const STR = {};
 for (const l of ["en", "hi", "pa"]) STR[l] = JSON.parse(fs.readFileSync(`app/static/i18n/${l}.json`, "utf8"));
-api.setSTR(STR); api.setB(data.version.confidence_bands); api.setLive(true);
+api.setSTR(STR); api.setB(data.version.confidence_bands); api.setLive(true); api.setWords(true);
 
 // Two live cards (the "Look this up online" result), synthetic but shaped like the API's.
 const liveBase = { claim: { claim_id: "c1", text: "Hyderabad is the capital of Telangana" }, path: "evidence", match: null,
@@ -75,6 +75,13 @@ data.responses.push({ shows: "greeting", body: { input: { lang: "en", script: "l
   unchecked_claims: [], results: [{ claim: { claim_id: "c1", text: "Good morning, stay blessed" }, path: "none", match: null,
     verdict: "NotAClaim", confidence: 1, abstained: false, explanation: "x", explanation_source: "template", explanation_lang: "en",
     cited: [], passages: [], live_sources: [], manipulation_flags: [], gate_reason: "greeting" }] } });
+
+// A live verdict with its judged premise: the "Which words mattered?" button is offered, and only here.
+data.responses.push({ shows: "words_button", body: { input: { lang: "en", script: "latn" }, unchecked_claims: [],
+  results: [{ ...liveBase, claim_en: "Hyderabad is the capital of Telangana.", verdict: "Supported", confidence: 0.89, abstained: false,
+    passages: [{ passage_id: "e1", doc_id: "u1", url: "https://en.wikipedia.org/wiki/Hyderabad", title: "Hyderabad",
+      text: "Hyderabad is the capital of Telangana.", premise: "Hyderabad is the capital of Telangana. It is large.",
+      retrieval_score: 0.8, stance: "Supports", stance_prob: 0.97, source: "wikipedia" }] }] } });
 
 // Words an ordinary reader should never meet outside Details.
 const JARGON = [/contradict/i, /\bevidence\b/i, /calibrat/i, /\bstance\b/i, /stage trace/i, /\bNEI\b/, /\bRefutes\b/, /\bSupports\b/,
@@ -157,6 +164,10 @@ for (const lang of ["en", "hi", "pa"]) {
       if ((main.match(/newsmeter\.in\/fact-check\/pineapple/g) || []).length > 1 + (main.includes('data-reply') ? 1 : 0))
         problems.push("live similar: the fact-check is listed twice");
     }
+    if (r.shows === "words_button") {
+      if (!main.includes("words-btn") || !main.includes('data-premise="Hyderabad is the capital of Telangana. It is large."'))
+        problems.push("words button: missing, or not carrying the judged premise");
+    } else if (main.includes("words-btn")) problems.push("words button offered where there is no live verdict to explain");
     if (r.shows === "greeting") {
       if (main.includes("act-force")) problems.push("greeting: offered 'Check it anyway'");
       if (!/greeting|अभिवादन|ਨਮਸਕਾਰ/.test(body)) problems.push("greeting: does not say it is a greeting");
@@ -182,7 +193,7 @@ for (const lang of ["en", "hi", "pa"]) {
 // Gurmukhi is answered in Hindi or Punjabi.
 api.setAns(null); api.setS(STR.en);
 const expectedLang = { fast_path: "en", romanized_hindi: "en", gurmukhi: "pa", claim_extraction: "en",
-  not_a_claim: "en", abstained: "pa", live_verdict: "en", live_none: "en", similar: "en", similar_unrated: "en", forced_greeting: "en", live_similar: "en", live_careful: "en", greeting: "en" };
+  not_a_claim: "en", abstained: "pa", live_verdict: "en", live_none: "en", similar: "en", similar_unrated: "en", forced_greeting: "en", live_similar: "en", live_careful: "en", greeting: "en", words_button: "en" };
 for (const r of data.responses) {
   const html = api.render(r.body);
   const got = (html.match(/<div class="card[^"]*" (?:id="[^"]*" )?lang="(\w+)"/) || [])[1];

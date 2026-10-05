@@ -15,6 +15,7 @@ let ANSWER_LANG = null; // never set by the page: it is a hook for tests. The an
 const LANGS = ["en", "hi", "pa"];
 const SPEECH = { en: "en-IN", hi: "hi-IN", pa: "pa-IN" };
 let BANDS = null;       // from /version; no bands -> no band shown, never a guess
+let WORDS = false;      // from /version: is the on-demand "which words mattered" view enabled?
 let LIVE = false;       // from /version: may this server search Wikipedia / Google live?
 let lastText = "";
 let cardSeq = 0;
@@ -114,6 +115,7 @@ async function boot() {
     .then((v) => {
       if (v.confidence_bands) BANDS = v.confidence_bands;
       LIVE = Boolean(v.config && v.config.live_search);
+      WORDS = Boolean(v.config && v.config.word_view);
     })
     .catch(() => {});
 
@@ -358,6 +360,63 @@ function plainSources(c, r) {
   return [];
 }
 
+/* The one live verdict the word view can explain: a Supported or Refuted live result and the source passage
+ * that points the same way with the highest stance, read exactly as the models read it. */
+function wordsSource(c, r) {
+  if (!WORDS || c.kind !== "verdict" || !c.live || !r.claim_en) return null;
+  if (c.v !== "Supported" && c.v !== "Refuted") return null;
+  const want = c.v === "Supported" ? "Supports" : "Refutes";
+  const best = (r.passages || []).filter((p) => p.premise && p.stance === want)
+    .sort((a, b) => (b.stance_prob || 0) - (a.stance_prob || 0))[0];
+  return best ? { claim: r.claim_en, premise: best.premise, verdict: c.v } : null;
+}
+
+/* The claim with the words that pushed the answer most marked: a mark AND a glyph, never colour alone. */
+function wordsHtml(out, lang, shownText) {
+  const top = new Set(out.top || []);
+  let html = "";
+  if (!top.size) {
+    html += `<p class="reason">${esc(tl(lang, "plain.words.none"))}</p>`;
+  } else {
+    html += `<p class="src-label">${esc(tl(lang, "plain.words.title"))}</p><p class="words-claim">${
+      (out.words || []).map((w, i) => (top.has(i)
+        ? `<mark class="word-key"><span aria-hidden="true">▲</span>${esc(w.word)}</mark>` : esc(w.word))).join(" ")}</p>
+      <p class="note">${esc(tl(lang, "plain.words.hint"))}</p>`;
+    if (shownText && out.claim && shownText.trim() !== out.claim.trim()) {
+      html += `<p class="note">${esc(tl(lang, "plain.words.note_english"))}</p>`;
+    }
+  }
+  const marked = (out.sentences || []).find((s) => s.marked);
+  if (marked) {
+    html += `<p class="src-label">${esc(tl(lang, "plain.words.source"))}</p><p class="words-source">${esc(marked.text)}</p>`;
+  }
+  return html;
+}
+
+async function showWords(btn) {
+  const lang = btn.dataset.cardLang;
+  const view = btn.parentElement.querySelector(".words-view");
+  if (!view) return;
+  if (!view.hidden) { view.hidden = true; return; }       // a second tap folds it away
+  if (view.dataset.done) { view.hidden = false; return; }
+  btn.disabled = true;
+  view.hidden = false;
+  view.textContent = tl(lang, "plain.words.loading");
+  let out = null;
+  try {
+    const res = await fetch("/explain_words", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ claim: btn.dataset.claim, premise: btn.dataset.premise, verdict: btn.dataset.verdict }),
+    });
+    if (res.ok) out = await res.json();
+  } catch (e) { /* shown below */ }
+  btn.disabled = false;
+  if (!out) { view.innerHTML = `<p class="note">${esc(tl(lang, "plain.words.unavailable"))}</p>`; return; }
+  view.innerHTML = wordsHtml(out, lang, btn.dataset.shown);
+  view.dataset.done = "1";
+}
+
 function plainFlags(r, lang) {
   const flags = r.manipulation_flags || [];
   if (!flags.length) return "";
@@ -443,6 +502,14 @@ function plainCard(r, inp, idx) {
       <button type="button" class="act act-copy" data-reply="${esc(replyText(c, sources, lang, sim))}" data-card-lang="${esc(lang)}"
         aria-label="${esc(tl(lang, "plain.copy"))}"><span aria-hidden="true">📋</span> ${esc(tl(lang, "plain.copy"))}</button>
     </div><p class="note act-note" hidden></p>`;
+
+  const ws = wordsSource(c, r);
+  if (ws) {
+    html += `<div class="words-box"><button type="button" class="act words-btn" data-card-lang="${esc(lang)}"
+      data-claim="${esc(ws.claim)}" data-premise="${esc(ws.premise)}" data-verdict="${esc(ws.verdict)}"
+      data-shown="${esc((r.claim && r.claim.text) || "")}"><span aria-hidden="true">🔍</span> ${esc(tl(lang, "plain.words.button"))}</button>
+      <div class="words-view" hidden></div></div>`;
+  }
 
   // Looking it up online: explicit, per claim, and it says exactly what it sends.
   const liveUsed = c.live;
@@ -725,6 +792,7 @@ function wire(root) {
   root.querySelectorAll(".act-force").forEach((btn) => btn.addEventListener("click", () => checkAnyway(btn)));
   root.querySelectorAll(".act-listen").forEach((btn) => btn.addEventListener("click", () => speakCard(btn)));
   root.querySelectorAll(".act-copy").forEach((btn) => btn.addEventListener("click", () => copyReply(btn)));
+  root.querySelectorAll(".words-btn").forEach((btn) => btn.addEventListener("click", () => showWords(btn)));
   root.querySelectorAll(".trail-toggle").forEach((btn) => {
     btn.addEventListener("click", () => toggleTrail(btn));
   });

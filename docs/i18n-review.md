@@ -294,3 +294,11 @@ from their `_comment`.
 | `plain.reason.careful_live` | I looked online too and still couldn't find a source that checks this exact claim. Most messages like this turn out to be false. | मैंने ऑनलाइन भी देखा, फिर भी मुझे ऐसा कोई स्रोत नहीं मिला जो ठीक इसी दावे की जाँच करता हो। इस तरह के ज़्यादातर संदेश झूठे निकलते हैं। | ਮੈਂ ਆਨਲਾਈਨ ਵੀ ਵੇਖਿਆ, ਫਿਰ ਵੀ ਮੈਨੂੰ ਅਜਿਹਾ ਕੋਈ ਸਰੋਤ ਨਹੀਂ ਮਿਲਿਆ ਜੋ ਠੀਕ ਇਸੇ ਦਾਅਵੇ ਦੀ ਜਾਂਚ ਕਰਦਾ ਹੋਵੇ। ਇਸ ਤਰ੍ਹਾਂ ਦੇ ਜ਼ਿਆਦਾਤਰ ਸੁਨੇਹੇ ਝੂਠੇ ਨਿਕਲਦੇ ਹਨ। | |
 | `plain.greeting_title` | Just a greeting | यह सिर्फ़ एक अभिवादन है | ਇਹ ਸਿਰਫ਼ ਇੱਕ ਨਮਸਕਾਰ ਹੈ | |
 | `plain.greeting_note` | This looks like a greeting or a good wish. There's nothing here to check. | यह एक अभिवादन या शुभकामना लगती है। इसमें जाँचने लायक कुछ नहीं है। | ਇਹ ਇੱਕ ਨਮਸਕਾਰ ਜਾਂ ਸ਼ੁਭਕਾਮਨਾ ਲੱਗਦੀ ਹੈ। ਇਸ ਵਿੱਚ ਜਾਂਚਣ ਲਾਇਕ ਕੋਈ ਗੱਲ ਨਹੀਂ ਹੈ। | |
+| `plain.words.button` | Which words mattered? | कौन-से शब्द मायने रखते थे? | ਕਿਹੜੇ ਸ਼ਬਦ ਅਹਿਮ ਸਨ? | |
+| `plain.words.title` | These words pushed the answer the most: | इन शब्दों ने जवाब पर सबसे ज़्यादा असर डाला: | ਇਨ੍ਹਾਂ ਸ਼ਬਦਾਂ ਨੇ ਜਵਾਬ ਉੱਤੇ ਸਭ ਤੋਂ ਵੱਧ ਅਸਰ ਪਾਇਆ: | |
+| `plain.words.hint` | The marked words are the ones that changed the answer most. | निशान वाले शब्द हटाने पर जवाब सबसे ज़्यादा बदलता है। | ਨਿਸ਼ਾਨ ਵਾਲੇ ਸ਼ਬਦ ਹਟਾਉਣ ਨਾਲ ਜਵਾਬ ਸਭ ਤੋਂ ਵੱਧ ਬਦਲਦਾ ਹੈ। | |
+| `plain.words.note_english` | These are the words of the English version of your message. | ये आपके संदेश के अंग्रेज़ी रूप के शब्द हैं। | ਇਹ ਤੁਹਾਡੇ ਸੁਨੇਹੇ ਦੇ ਅੰਗਰੇਜ਼ੀ ਰੂਪ ਦੇ ਸ਼ਬਦ ਹਨ। | |
+| `plain.words.source` | This sentence in the source mattered most: | स्रोत का यह वाक्य सबसे ज़्यादा मायने रखता था: | ਸਰੋਤ ਦਾ ਇਹ ਵਾਕ ਸਭ ਤੋਂ ਅਹਿਮ ਸੀ: | |
+| `plain.words.none` | No single word stood out. | कोई एक शब्द अलग से ख़ास नहीं निकला। | ਕੋਈ ਇੱਕ ਸ਼ਬਦ ਵੱਖਰਾ ਖ਼ਾਸ ਨਹੀਂ ਨਿਕਲਿਆ। | |
+| `plain.words.unavailable` | I couldn't show this right now. | अभी यह नहीं दिखाया जा सका। | ਇਹ ਹੁਣੇ ਨਹੀਂ ਦਿਖਾਇਆ ਜਾ ਸਕਿਆ। | |
+| `plain.words.loading` | One moment… | थोड़ा रुकिए… | ਥੋੜ੍ਹਾ ਰੁਕੋ… | |

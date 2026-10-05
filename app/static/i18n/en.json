@@ -186,7 +186,17 @@
       "reason_unrated": "{publisher} looked at something similar. This may not be the same message."
     },
     "greeting_title": "Just a greeting",
-    "greeting_note": "This looks like a greeting or a good wish. There's nothing here to check."
+    "greeting_note": "This looks like a greeting or a good wish. There's nothing here to check.",
+    "words": {
+      "button": "Which words mattered?",
+      "title": "These words pushed the answer the most:",
+      "hint": "The marked words are the ones that changed the answer most.",
+      "note_english": "These are the words of the English version of your message.",
+      "source": "This sentence in the source mattered most:",
+      "none": "No single word stood out.",
+      "unavailable": "I couldn't show this right now.",
+      "loading": "One moment…"
+    }
   },
   "lean_note": "The system's own lean, which is NOT reliable for free text: {label}."
 }
