@@ -270,7 +270,7 @@ mark.word-key { background: var(--chip-bg); color: var(--chip-fg); font-weight: 
 mark.word-key > span { font-size: .7em; margin-right: .15rem; }
 .words-source { margin: .25rem 0; padding: .4rem .7rem; border-radius: .5rem; background: var(--nei-bg); font-size: .9rem; }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .act:hover, .live-btn:hover, .retry:hover, .sample:hover { background: var(--chip-hover); }
   .trail-toggle:hover, details.more > summary:hover { text-decoration: underline; text-underline-offset: .15em; }
 }
@@ -321,10 +321,8 @@ details.more .technical { margin-top: .35rem; }
  * Only what carries meaning: a reply arriving, a verdict being revealed, an expander opening, and press feedback.
  * Critically damped: ease-out on opacity and transform, no overshoot, no bounce (apple-design §14). */
 @media (prefers-reduced-motion: no-preference) {
-  .bubble { animation: bubble-in .22s var(--ease-out) both; }
-  .bubble.out { transform-origin: right bottom; }
-  .bubble.in { transform-origin: left bottom; }
-  .card { animation: reveal .28s var(--ease-out) both; }
+  .bubble.in { animation: bubble-in .22s var(--ease-out) both; }   /* the reply arrives; the reader's own echo (.bubble.out) snaps */
+  .card { animation: fade-in .14s ease-out both; }   /* the banner's stamp and stroke are the moment; the card only fades */
   .trail:not([hidden]), .words-view:not([hidden]) { animation: rise .2s var(--ease-out) both; }
   details > summary::before, .trail-toggle .chev { transition: transform .18s var(--ease-out); }
   .act, .live-btn, .retry, .sample, .send { transition: transform .12s ease-out, background-color .15s ease-out; }
@@ -338,8 +336,7 @@ details.more .technical { margin-top: .35rem; }
     details.more[open]::details-content { block-size: auto; opacity: 1; }
   }
 }
-@keyframes bubble-in { from { opacity: 0; transform: translateY(6px) scale(.985); } to { opacity: 1; transform: none; } }
-@keyframes reveal { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes bubble-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @keyframes rise { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
 
 /* UI_UX.md §9 and apple-design §14: under reduced motion the spinner goes ("Checking…" only), every slide and
@@ -347,7 +344,7 @@ details.more .technical { margin-top: .35rem; }
 @media (prefers-reduced-motion: reduce) {
   * { scroll-behavior: auto !important; }
   .spinner { display: none; }
-  .bubble, .card, .trail:not([hidden]), .words-view:not([hidden]) { animation: fade-in .15s linear both; }
+  .bubble.in, .card, .trail:not([hidden]), .words-view:not([hidden]) { animation: fade-in .15s linear both; }
 }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 
@@ -393,14 +390,13 @@ details.more .technical { margin-top: .35rem; }
 .ps-similar { stroke: var(--link); }
 
 @media (prefers-reduced-motion: no-preference) {
-  .chip.big { animation: stamp .3s var(--ease-out) .06s both; }
-  .card:not(.abstained) .markup path { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw .5s var(--ease-out) .22s forwards; }
+  .chip.big { animation: stamp .26s var(--ease-out) both; }
+  .card:not(.abstained) .markup path { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw .4s var(--ease-out) .1s forwards; }
   @media (min-width: 1100px) {
-    .topbar, .hero, .bottombar { animation: rise-in .45s var(--ease-out) both; }
+    .topbar, .hero { animation: rise-in .45s var(--ease-out) both; }   /* the composer is never hidden: typing can start at once */
     .hero { animation-delay: .08s; }
-    .bottombar { animation-delay: .16s; }
     .ps-row { animation: rise-in .55s var(--ease-out) calc(.25s + var(--i) * .07s) both; }
-    path.ps-mark, .ps-pencil { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw .7s var(--ease-out) calc(.55s + var(--i) * .09s) forwards; }
+    path.ps-mark, .ps-pencil { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw .5s var(--ease-out) calc(.4s + var(--i) * .07s) forwards; }
   }
 }
 @keyframes stamp { from { opacity: 0; transform: scale(1.04); filter: blur(3px); } to { opacity: 1; transform: none; filter: none; } }
