@@ -1,0 +1,142 @@
+{
+  "config_hash": "366771a6687f",
+  "created_utc": "2026-10-05T21:26:46+00:00",
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p9_translation_route_dev",
+  "git": {
+    "branch": "main",
+    "dirty": false,
+    "sha": "4d1f9367b6bf290570473f06651e72e621c8d2fd"
+  },
+  "inputs": {
+    "config": {
+      "experiment": "p9_translation_route_dev",
+      "protocol": "docs/translation-route-protocol.md",
+      "seed": 42,
+      "task": "translation_route"
+    },
+    "protocol_sha256": "044e36f2250b692f66dfe784c13e83c76022cd1c7e141dff0144cfa977f6ba66"
+  },
+  "metrics": {
+    "V2_chose_V1_share": 0.9811320754716981,
+    "all": {
+      "V0": {
+        "chrf": 0.29814481301400364,
+        "cosine_to_reference": 0.7083957603292617,
+        "n": 53,
+        "negation_preserved": 0.4,
+        "references_with_negation": 20
+      },
+      "V1": {
+        "chrf": 0.2579148974894578,
+        "cosine_to_reference": 0.686429904645236,
+        "n": 53,
+        "negation_preserved": 0.0,
+        "references_with_negation": 20
+      },
+      "V2": {
+        "chrf": 0.2575576927731188,
+        "cosine_to_reference": 0.6850459148546463,
+        "n": 53,
+        "negation_preserved": 0.0,
+        "references_with_negation": 20
+      }
+    },
+    "clusters": 36,
+    "hindi": {
+      "V0": {
+        "chrf": 0.31647356432456514,
+        "cosine_to_reference": 0.733520087669975,
+        "n": 36,
+        "negation_preserved": 0.42857142857142855,
+        "references_with_negation": 14
+      },
+      "V1": {
+        "chrf": 0.26887950474241973,
+        "cosine_to_reference": 0.6961541183833446,
+        "n": 36,
+        "negation_preserved": 0.0,
+        "references_with_negation": 14
+      },
+      "V2": {
+        "chrf": 0.26887950474241973,
+        "cosine_to_reference": 0.6961541183833446,
+        "n": 36,
+        "negation_preserved": 0.0,
+        "references_with_negation": 14
+      }
+    },
+    "items": 53,
+    "punjabi": {
+      "V0": {
+        "chrf": 0.2593309867092852,
+        "cosine_to_reference": 0.6551913024312804,
+        "n": 17,
+        "negation_preserved": 0.3333333333333333,
+        "references_with_negation": 6
+      },
+      "V1": {
+        "chrf": 0.23469572918906775,
+        "cosine_to_reference": 0.6658374520233588,
+        "n": 17,
+        "negation_preserved": 0.0,
+        "references_with_negation": 6
+      },
+      "V2": {
+        "chrf": 0.2335820909557757,
+        "cosine_to_reference": 0.6615226603232851,
+        "n": 17,
+        "negation_preserved": 0.0,
+        "references_with_negation": 6
+      }
+    },
+    "selected_variant": null,
+    "selection": {
+      "V1": {
+        "bootstrap95": [
+          -0.05421375255159067,
+          -0.004397916851243613
+        ],
+        "cosine_difference_vs_V0": -0.021965855684025648,
+        "negation_preservation_ok": false,
+        "qualifies": false
+      },
+      "V2": {
+        "bootstrap95": [
+          -0.05474153831376814,
+          -0.0054166871137610135
+        ],
+        "cosine_difference_vs_V0": -0.023349845474615383,
+        "negation_preservation_ok": false,
+        "qualifies": false
+      }
+    }
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "translation_route"
+}
