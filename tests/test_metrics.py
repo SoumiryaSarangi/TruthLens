@@ -468,3 +468,25 @@ def test_classification_metrics_reports_it_only_when_asked():
     base = M.classification_metrics(["A", "B"], ["A", "B"], ["A", "B"])
     asked = M.classification_metrics(["A", "B"], ["A", "A"], ["A", "B"], false_label="A")
     assert "false_label_rate" not in base and asked["false_label_rate"]["k"] == 1.0
+
+
+def test_real_claims_metrics_counts_and_applies_the_transfer_rule():
+    from eval.metrics import real_claims_metrics
+
+    good = [{"gold": "T", "shown": "Supported", "decider": "wikipedia"}] * 60 + [{"gold": "F", "shown": "Refuted", "decider": "wikipedia"}] * 30
+    good += [{"gold": "F", "shown": None, "decider": None}] * 120 + [{"gold": "U", "shown": "Refuted", "decider": "factcheck"}] * 2
+    m = real_claims_metrics(good)
+    assert m["all"]["shown"] == 92 and m["all"]["decidable_shown"] == 90 and m["all"]["precision"] == 1.0
+    assert m["all"]["shown_on_unverifiable"] == 2 and m["all"]["false_supported"] == 0
+    assert m["transfers"] == "transfers" and m["by_decider"]["factcheck"]["shown"] == 2
+
+
+def test_real_claims_metrics_flags_false_supported_and_low_precision():
+    from eval.metrics import real_claims_metrics
+
+    bad = [{"gold": "F", "shown": "Supported", "decider": "wikipedia"}] * 20 + [{"gold": "T", "shown": "Supported", "decider": "wikipedia"}] * 20
+    bad += [{"gold": "F", "shown": None, "decider": None}] * 100
+    m = real_claims_metrics(bad)
+    assert m["all"]["false_supported"] == 20 and m["all"]["precision"] == 0.5 and m["transfers"] == "does not transfer"
+    only_fs = [{"gold": "T", "shown": "Supported", "decider": "wikipedia"}] * 80 + [{"gold": "F", "shown": "Supported", "decider": "wikipedia"}] * 2 + [{"gold": "F", "shown": None, "decider": None}] * 38
+    assert real_claims_metrics(only_fs)["transfers"] == "partly transfers"

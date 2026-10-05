@@ -80,6 +80,9 @@ hf_cache/
 # The Impeccable engine binary is per-machine (the launcher downloads it once): never committed.
 .claude/skills/impeccable/scripts/bin/
 
+# Private material the owner supplies (real forwards): never committed.
+data/private/
+
 # --- Force-include the frozen splits -----------------------------------------
 # These lines must stay LAST. A broad data/ pattern above must never be able to
 # silently drop the one directory the whole project's validity rests on.

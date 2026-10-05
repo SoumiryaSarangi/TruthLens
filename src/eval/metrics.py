@@ -720,3 +720,35 @@ def careful_rule_metrics(true_fired: Sequence[bool], false_fired: Sequence[bool]
             "hoaxes_n": len(hoax_fired), "hoaxes_cautioned": int(sum(hoax_fired)),
             "gates": gates, "passes": all(gates.values())}
 
+
+def real_claims_metrics(rows: Sequence[dict[str, Any]], *, min_precision: float = 0.85, min_precision_lower: float = 0.80,
+                        max_false_supported_upper: float = 0.08) -> dict[str, Any]:
+    """The numbers and the transfer rule of docs/real-claims-protocol.md.
+
+    Each row: {"gold": "T"|"F"|"U", "shown": None|"Supported"|"Refuted", "decider": "factcheck"|"wikipedia"|None}.
+    A verdict is correct when Supported meets T or Refuted meets F; a verdict on a U claim is counted separately.
+    """
+    def block(rs: Sequence[dict[str, Any]]) -> dict[str, Any]:
+        n = len(rs)
+        shown = [r for r in rs if r["shown"] in ("Supported", "Refuted")]
+        decidable = [r for r in shown if r["gold"] in ("T", "F")]
+        correct = sum(1 for r in decidable if (r["shown"] == "Supported") == (r["gold"] == "T"))
+        gold_f = [r for r in rs if r["gold"] == "F"]
+        fs = sum(1 for r in gold_f if r["shown"] == "Supported")
+        p_lo, p_hi = wilson_interval(correct, len(decidable)) if decidable else (0.0, 1.0)
+        f_lo, f_hi = wilson_interval(fs, len(gold_f)) if gold_f else (0.0, 1.0)
+        return {"n": n, "shown": len(shown), "coverage": len(shown) / n if n else 0.0,
+                "decidable_shown": len(decidable), "correct": correct,
+                "precision": correct / len(decidable) if decidable else None, "precision_wilson95": [p_lo, p_hi],
+                "gold_false": len(gold_f), "false_supported": fs,
+                "false_supported_rate": fs / len(gold_f) if gold_f else None, "false_supported_wilson95": [f_lo, f_hi],
+                "shown_on_unverifiable": sum(1 for r in shown if r["gold"] == "U")}
+
+    out = {"all": block(rows), "by_decider": {d: block([r for r in rows if r["decider"] == d])
+                                              for d in ("factcheck", "wikipedia")}}
+    a = out["all"]
+    ok_p = a["precision"] is not None and a["precision"] >= min_precision and a["precision_wilson95"][0] >= min_precision_lower
+    ok_f = a["false_supported_wilson95"][1] <= max_false_supported_upper
+    out["transfers"] = "transfers" if ok_p and ok_f else ("partly transfers" if ok_p or ok_f else "does not transfer")
+    return out
+
