@@ -315,3 +315,20 @@ plain.similar.reason pa; plain.greeting_title pa; plain.greeting_note pa; plain.
 All placeholders ({label}, {publisher}, {rating}) were preserved and the helper stays gender-neutral. **Still NOT YET REVIEWED:** `plain.why.label`, `plain.why.english` and
 `plain.reason.sources_disagree` (added after the sheet was sent), which keep their notes in the `_comment` of hi.json and pa.json.
 
+---
+
+## "What this is for" strings: NOT YET REVIEWED (added 2026-10-05)
+
+Machine-drafted hi/pa; same rules as above (first person gender-neutral, placeholders none). Apply corrections to `hi.json` and `pa.json` and remove the matching `_comment` sentence.
+
+| key | English | Hindi | Punjabi | correction |
+| --- | --- | --- | --- | --- |
+| `scope.title` | What this is for | यह किसके लिए है | ਇਹ ਕਿਸ ਲਈ ਹੈ | |
+| `scope.built_for_title` | Built for | इनके लिए बना है | ਇਨ੍ਹਾਂ ਲਈ ਬਣਿਆ ਹੈ | |
+| `scope.built_for` | Short claims like the ones people forward (health cures, money schemes, “WhatsApp will start charging”), in English, Hindi and Punjabi, including typed in Roman letters. It works best when a fact-checker has already looked at the claim, or when Wikipedia can settle it. | फ़ॉरवर्ड किए जाने वाले छोटे दावे (सेहत के नुस्ख़े, पैसों की योजनाएँ, “WhatsApp पर अब पैसे लगेंगे”), अंग्रेज़ी, हिंदी और पंजाबी में, रोमन अक्षरों में लिखे हुए भी। यह तब सबसे अच्छा काम करता है जब किसी फ़ैक्ट-चेकर ने उस दावे को देखा हो, या जब Wikipedia से बात तय हो सके। | ਅੱਗੇ ਭੇਜੇ ਜਾਂਦੇ ਛੋਟੇ ਦਾਅਵੇ (ਸਿਹਤ ਦੇ ਨੁਸਖ਼ੇ, ਪੈਸਿਆਂ ਦੀਆਂ ਸਕੀਮਾਂ, “WhatsApp ਹੁਣ ਪੈਸੇ ਲਵੇਗਾ”), ਅੰਗਰੇਜ਼ੀ, ਹਿੰਦੀ ਅਤੇ ਪੰਜਾਬੀ ਵਿੱਚ, ਰੋਮਨ ਅੱਖਰਾਂ ਵਿੱਚ ਲਿਖੇ ਹੋਏ ਵੀ। ਇਹ ਉਦੋਂ ਸਭ ਤੋਂ ਚੰਗਾ ਕੰਮ ਕਰਦਾ ਹੈ ਜਦੋਂ ਕਿਸੇ ਫ਼ੈਕਟ-ਚੈਕਰ ਨੇ ਉਹ ਦਾਅਵਾ ਵੇਖਿਆ ਹੋਵੇ, ਜਾਂ ਜਦੋਂ Wikipedia ਨਾਲ ਗੱਲ ਤੈਅ ਹੋ ਸਕੇ। | |
+| `scope.not_for_title` | Not built for | इनके लिए नहीं बना | ਇਨ੍ਹਾਂ ਲਈ ਨਹੀਂ ਬਣਿਆ | |
+| `scope.not_for_1` | Recent events (an exam or a news story from this month): the sources used are out of date. | हाल की घटनाएँ (इसी महीने की कोई परीक्षा या ख़बर): जाँच के स्रोत पुराने हैं। | ਹਾਲੀਆ ਘਟਨਾਵਾਂ (ਇਸੇ ਮਹੀਨੇ ਦੀ ਕੋਈ ਪ੍ਰੀਖਿਆ ਜਾਂ ਖ਼ਬਰ): ਜਾਂਚ ਦੇ ਸਰੋਤ ਪੁਰਾਣੇ ਹਨ। | |
+| `scope.not_for_2` | Private or local events: there is no public source for them. | निजी या स्थानीय घटनाएँ: इनका कोई सार्वजनिक स्रोत नहीं होता। | ਨਿੱਜੀ ਜਾਂ ਸਥਾਨਕ ਘਟਨਾਵਾਂ: ਇਨ੍ਹਾਂ ਦਾ ਕੋਈ ਜਨਤਕ ਸਰੋਤ ਨਹੀਂ ਹੁੰਦਾ। | |
+| `scope.not_for_3` | Opinions and predictions: there is nothing to check. | राय और भविष्यवाणियाँ: इनमें जाँचने लायक कुछ नहीं होता। | ਰਾਇ ਅਤੇ ਭਵਿੱਖਬਾਣੀਆਂ: ਇਨ੍ਹਾਂ ਵਿੱਚ ਜਾਂਚਣ ਵਾਲੀ ਕੋਈ ਗੱਲ ਨਹੀਂ ਹੁੰਦੀ। | |
+| `scope.not_for_4` | Very short fragments: write them as a full sentence. | बहुत छोटे टुकड़े: इन्हें पूरे वाक्य में लिखें। | ਬਹੁਤ ਛੋਟੇ ਟੁਕੜੇ: ਇਨ੍ਹਾਂ ਨੂੰ ਪੂਰੇ ਵਾਕ ਵਿੱਚ ਲਿਖੋ। | |
+| `scope.not_for_5` | Anything with no source to be found: the answer is “Hard to say”, not a guess. | जिसका कोई स्रोत न मिले: जवाब “पक्का कहना मुश्किल है” होगा, अंदाज़ा नहीं लगाया जाएगा। | ਜਿਸ ਦਾ ਕੋਈ ਸਰੋਤ ਨਾ ਮਿਲੇ: ਜਵਾਬ “ਪੱਕਾ ਕਹਿਣਾ ਔਖਾ ਹੈ” ਹੋਵੇਗਾ, ਅੰਦਾਜ਼ਾ ਨਹੀਂ ਲਗਾਇਆ ਜਾਵੇਗਾ। | |

@@ -55,6 +55,14 @@ function bannerIcon(c, sim) {
   return { Supported: "check", Refuted: "x", Conflicting: "conflict" }[c.v] || "help";
 }
 
+/* What this is built for and what it is not (owner, 2026-10-05): a closed fold, so the first screen stays a paste box. */
+function scopeHtml() {
+  const items = [t("scope.not_for_1"), t("scope.not_for_2"), t("scope.not_for_3"), t("scope.not_for_4"), t("scope.not_for_5")];
+  return `<details class="scope"><summary>${esc(t("scope.title"))}</summary><div class="scope-body">
+    <p class="scope-h">${esc(t("scope.built_for_title"))}</p><p>${esc(t("scope.built_for"))}</p>
+    <p class="scope-h">${esc(t("scope.not_for_title"))}</p><ul>${items.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div></details>`;
+}
+
 /* ---------------------------------------------------------------- strings */
 
 async function loadStrings(lang) {
@@ -116,6 +124,8 @@ function applyStaticStrings() {
     el.placeholder = t(el.dataset.i18nPlaceholder, {}, el.placeholder);
   });
   $("send").setAttribute("aria-label", t("send", {}, "Send"));
+  $("scope-hero").innerHTML = scopeHtml();
+  $("scope-intro").innerHTML = scopeHtml();
   // The desktop rail sets the product sentence large: its first sentence is the headline.
   const intro = t("intro");
   const split = intro.match(/^(.+?[.\u0964!?])\s+([\s\S]*)$/);

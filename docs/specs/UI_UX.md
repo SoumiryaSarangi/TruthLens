@@ -69,6 +69,7 @@ single 440 px chat column above is the page, and it stays WhatsApp-styled on pur
   `tests/test_ui_static.py` reads those only. The desktop values were checked for WCAG AA by script on 2026-10-05: every test pair plus the new
   pairs (verdict colours on the card and on the abstained ground, links and muted text on the quote ground, the 88% white rail text on cobalt at 8.07:1 light
   and 11.62:1 dark) pass in light and dark. A change to a desktop token must repeat that check.
+- **"What this is for" (both layouts):** a closed fold with "Built for" (short forwarded claims in en, hi, pa including Roman script, best when a fact-checker has seen the claim or Wikipedia can settle it) and "Not built for" (recent events, private or local events, opinions and predictions, very short fragments, anything with no source: it says "Hard to say" and does not guess). In the rail on a laptop, in the empty chat on a phone; strings under `scope.*` (hi/pa machine-drafted, in `docs/i18n-review.md`). Questions are NOT excluded: they are checked like claims.
 - **Unchanged rules:** an icon and a word for every verdict, abstained looks different from NEI, bands come from `/version`, no fake progress, no
   exclamation marks, Hindi and Punjabi strings untouched. Detector: `impeccable detect app/static` returns no findings. The design record is `DESIGN.md`.
 

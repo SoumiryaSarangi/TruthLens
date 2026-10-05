@@ -1,5 +1,5 @@
 {
-  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. The live_* strings and source_name.* (live search, added 2026-10-04) were reviewed by the owner the same day; 3 corrected, 7 kept. The three live-verdict strings (live_verdict_basis, live_validated, live_no_verdict; added 2026-10-05) were reviewed by the owner the same day: all 3 corrected. The plain-card strings (the 'plain' block and the reworded intro, live_button, live_privacy and stage_trace; added 2026-10-05) were reviewed by the owner the same day: all corrected as given; plain.flags kept by the owner's decision; masculine first-person forms replaced by gender-neutral ones the same day. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.why.*. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.reason.sources_disagree. The honest-card, similar-fact-check, careful, unrated-suggestion, careful-after-search, greeting and word-view strings (added 2026-10-05) were reviewed by the owner the same day: 12 corrected as given (lean_note, plain.none_title (pa), related_label, similar.label, similar.rating.NEI (hi), similar.reason (pa), greeting_title and greeting_note (pa), words.hint, words.none, words.unavailable, words.loading), the rest kept.",
+  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. The live_* strings and source_name.* (live search, added 2026-10-04) were reviewed by the owner the same day; 3 corrected, 7 kept. The three live-verdict strings (live_verdict_basis, live_validated, live_no_verdict; added 2026-10-05) were reviewed by the owner the same day: all 3 corrected. The plain-card strings (the 'plain' block and the reworded intro, live_button, live_privacy and stage_trace; added 2026-10-05) were reviewed by the owner the same day: all corrected as given; plain.flags kept by the owner's decision; masculine first-person forms replaced by gender-neutral ones the same day. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.why.*. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.reason.sources_disagree. The honest-card, similar-fact-check, careful, unrated-suggestion, careful-after-search, greeting and word-view strings (added 2026-10-05) were reviewed by the owner the same day: 12 corrected as given (lean_note, plain.none_title (pa), related_label, similar.label, similar.rating.NEI (hi), similar.reason (pa), greeting_title and greeting_note (pa), words.hint, words.none, words.unavailable, words.loading), the rest kept. NOT YET REVIEWED (added 2026-10-05, machine-drafted): the 'scope' strings (what this is built for and not built for).",
   "_lang": "hi",
   "title": "TruthLens",
   "intro": "जो संदेश आपको किसी ने भेजा है, उसे यहाँ पेस्ट करें और तीर दबाएँ। आपको दिखेगा कि वह सच या झूठ लगता है और क्यों।",
@@ -204,5 +204,16 @@
       "english": "यह स्रोत अंग्रेज़ी में है।"
     }
   },
-  "lean_note": "सिस्टम का अपना झुकाव, जो फ़्री-टेक्स्ट के लिए भरोसेमंद नहीं है: {label}।"
+  "lean_note": "सिस्टम का अपना झुकाव, जो फ़्री-टेक्स्ट के लिए भरोसेमंद नहीं है: {label}।",
+  "scope": {
+    "title": "यह किसके लिए है",
+    "built_for_title": "इनके लिए बना है",
+    "built_for": "फ़ॉरवर्ड किए जाने वाले छोटे दावे (सेहत के नुस्ख़े, पैसों की योजनाएँ, “WhatsApp पर अब पैसे लगेंगे”), अंग्रेज़ी, हिंदी और पंजाबी में, रोमन अक्षरों में लिखे हुए भी। यह तब सबसे अच्छा काम करता है जब किसी फ़ैक्ट-चेकर ने उस दावे को देखा हो, या जब Wikipedia से बात तय हो सके।",
+    "not_for_title": "इनके लिए नहीं बना",
+    "not_for_1": "हाल की घटनाएँ (इसी महीने की कोई परीक्षा या ख़बर): जाँच के स्रोत पुराने हैं।",
+    "not_for_2": "निजी या स्थानीय घटनाएँ: इनका कोई सार्वजनिक स्रोत नहीं होता।",
+    "not_for_3": "राय और भविष्यवाणियाँ: इनमें जाँचने लायक कुछ नहीं होता।",
+    "not_for_4": "बहुत छोटे टुकड़े: इन्हें पूरे वाक्य में लिखें।",
+    "not_for_5": "जिसका कोई स्रोत न मिले: जवाब “पक्का कहना मुश्किल है” होगा, अंदाज़ा नहीं लगाया जाएगा।"
+  }
 }

@@ -3238,3 +3238,7 @@ forward; all applied, one regression it found, a sticky quote overlapping the ca
 Not done: the phone world was not moved to the cobalt identity (owner pinned it), and `/review-animations` can only be run by the owner. `make lint` and `make test` (875 passed) pass.
 
 Fix (2026-10-05): the sticky forward quote added after the finish review made forwarded messages pile up on each other once several checks were on the desk (owner screenshot). Removed the sticky rule entirely; verified six sends against the live page with a mocked /verify, 0 overlapping forwards at 1920x1000.
+
+### "Built for / Not built for" fold (2026-10-05, owner approved)
+
+A closed fold, `scope.*` strings (en, hi, pa; hi/pa machine-drafted, review sheet and `_comment` note added), in the desktop rail and the phone's empty chat. The owner's draft listed questions as unsupported; they are not (the claim gate accepts them), so that bullet was replaced by very short fragments and no-source cases, and "built for" also names Wikipedia-settleable facts (the live check). While open on a laptop the examples step aside and the rail scrolls.

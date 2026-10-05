@@ -203,5 +203,16 @@
       "english": "The source is in English."
     }
   },
-  "lean_note": "The system's own lean, which is NOT reliable for free text: {label}."
+  "lean_note": "The system's own lean, which is NOT reliable for free text: {label}.",
+  "scope": {
+    "title": "What this is for",
+    "built_for_title": "Built for",
+    "built_for": "Short claims like the ones people forward (health cures, money schemes, “WhatsApp will start charging”), in English, Hindi and Punjabi, including typed in Roman letters. It works best when a fact-checker has already looked at the claim, or when Wikipedia can settle it.",
+    "not_for_title": "Not built for",
+    "not_for_1": "Recent events (an exam or a news story from this month): the sources used are out of date.",
+    "not_for_2": "Private or local events: there is no public source for them.",
+    "not_for_3": "Opinions and predictions: there is nothing to check.",
+    "not_for_4": "Very short fragments: write them as a full sentence.",
+    "not_for_5": "Anything with no source to be found: the answer is “Hard to say”, not a guess."
+  }
 }

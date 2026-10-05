@@ -571,3 +571,28 @@ details.more .technical { margin-top: .35rem; }
   .src, .passage, .trail-toggle, details.more > summary { font-size: .95rem; }
 }
 
+/* ---- What this is for: a closed fold. On a phone it sits in the empty chat; on a laptop in the rail. */
+.scope { margin-top: .75rem; text-align: left; font-size: .9rem; }
+.scope > summary { display: flex; align-items: center; gap: .5rem; cursor: pointer; list-style: none; min-height: 2.5rem; color: var(--link); }
+.scope > summary::-webkit-details-marker { display: none; }
+.scope > summary::before { content: ""; width: .5rem; height: .5rem; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); flex: none; }
+.scope[open] > summary::before { transform: rotate(45deg); }
+.scope-body { padding: .25rem 0 .5rem; color: var(--text); }
+.scope-body p { margin: .4rem 0; text-wrap: pretty; }
+.scope-h { font-weight: 650; margin-top: .8rem !important; }
+.scope-body ul { margin: .25rem 0; padding-left: 1.1rem; }
+.scope-body li { margin: .3rem 0; text-wrap: pretty; }
+.intro .scope { max-width: 22rem; }
+#scope-hero { display: none; }
+
+@media (min-width: 1100px) {
+  #scope-hero { display: block; }
+  #scope-intro { display: none; }
+  .hero .scope > summary { color: var(--bar-fg); font-size: .95rem; }
+  .hero .scope-body { color: color-mix(in srgb, var(--bar-fg) 92%, transparent); font-size: .95rem; }
+  /* Open, the rail's middle scrolls instead of clipping the headline. */
+  .hero { overflow-y: auto; justify-content: safe center; scrollbar-width: thin; }
+  /* While it is open the examples step aside so the rail has room to read it. */
+  .phone:has(#scope-hero details[open]) .bottombar details.examples { display: none; }
+  .scope { font-size: .95rem; }
+}
