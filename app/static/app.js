@@ -132,7 +132,6 @@ function applyStaticStrings() {
   });
   $("send").setAttribute("aria-label", t("send", {}, "Send"));
   $("scope-intro").innerHTML = scopeHtml();           // phone: a closed fold in the empty chat
-  $("scope-desk").innerHTML = scopeColumns();          // laptop: open under the proof sheet on the empty desk
   $("scope-pop-body").innerHTML = scopeColumns();      // laptop: the same text from the corner link, any time
   $("scope-link-text").textContent = t("scope.title");
   // The desktop rail sets the product sentence large: its first sentence is the headline.
