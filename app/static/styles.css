@@ -485,7 +485,7 @@ details.more .technical { margin-top: .35rem; }
           align-content: start; column-gap: 3rem; row-gap: 2.25rem; scroll-padding-top: 2rem; }
   .chat:has(> .intro) { align-content: center; }
   .chat > .intro { grid-column: 1 / -1; align-self: center; justify-self: center; width: 100%; max-width: none; margin: 0; padding: 0; }
-  .intro .ico, .intro p { display: none; }
+  .intro > .ico, .intro > p { display: none; }
   .proof-sheet { display: block; width: min(46rem, 100%); height: auto; filter: drop-shadow(0 22px 34px rgba(14, 21, 32, .24)); }
 
   .bubble { max-width: none; }
@@ -583,16 +583,35 @@ details.more .technical { margin-top: .35rem; }
 .scope-body ul { margin: .25rem 0; padding-left: 1.1rem; }
 .scope-body li { margin: .3rem 0; text-wrap: pretty; }
 .intro .scope { max-width: 22rem; }
-#scope-hero { display: none; }
+
+}
+
+/* ---- "What this is for" on the laptop: open under the proof sheet, and from a corner link. */
+.scope-desk, .scope-link, .scope-pop { display: none; }
 
 @media (min-width: 1100px) {
-  #scope-hero { display: block; }
-  #scope-intro { display: none; }
-  .hero .scope > summary { color: var(--bar-fg); font-size: .95rem; }
-  .hero .scope-body { color: color-mix(in srgb, var(--bar-fg) 92%, transparent); font-size: .95rem; }
-  /* Open, the rail's middle scrolls instead of clipping the headline. */
-  .hero { overflow-y: auto; justify-content: safe center; scrollbar-width: thin; }
-  /* While it is open the examples step aside so the rail has room to read it. */
-  .phone:has(#scope-hero details[open]) .bottombar details.examples { display: none; }
-  .scope { font-size: .95rem; }
+  .intro { gap: 1.25rem; }
+  .proof-sheet { width: auto; max-width: 100%; height: min(24rem, 40vh); }
+  .intro .scope { display: none; }
+  .scope-desk { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem 3.5rem; width: min(46rem, 100%); margin-top: .75rem; text-align: left; }
+  .scope-col h2 { margin: 0 0 .5rem; font-family: var(--serif); font-size: 1.2rem; line-height: 1.2; color: var(--text); }
+  .scope-col p, .scope-col li { margin: 0 0 .45rem; font-size: .95rem; line-height: 1.5; color: var(--text); text-wrap: pretty; }
+  .scope-col ul { margin: 0; padding-left: 1.1rem; }
+  :lang(hi) .scope-col h2, :lang(pa) .scope-col h2 { font-family: inherit; }
+
+  .scope-link { display: inline-flex; align-items: center; gap: .45rem; position: fixed; top: 1.4rem; right: 2.25rem; z-index: 2;
+                font: inherit; font-size: .92rem; min-height: 2.5rem; padding: .3rem 1rem .3rem .8rem; border-radius: 1.4rem;
+                border: 1px solid var(--line); background: var(--bubble-in); color: var(--link); cursor: pointer; }
+  .scope-link:hover { background: var(--chip-hover); }
+  .scope-pop { display: none; position: fixed; inset: 5rem 2.25rem auto auto; margin: 0; width: min(46rem, calc(100vw - 4rem));
+               max-height: calc(100vh - 7rem); overflow-y: auto; padding: 1.5rem 1.75rem; border: 0; border-radius: 1.1rem;
+               background: var(--bubble-in); color: var(--text); box-shadow: var(--desk-shadow); }
+  .scope-pop:popover-open { display: block; }
+  .scope-pop .scope-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem 3rem; }
+}
+@media (min-width: 1100px) and (max-width: 1359px) {
+  .scope-pop .scope-cols, .scope-desk { grid-template-columns: 1fr; }
+}
+@media (min-width: 1100px) and (prefers-reduced-motion: no-preference) {
+  .scope-desk { animation: rise-in .5s var(--ease-out) 1.1s both; }
 }

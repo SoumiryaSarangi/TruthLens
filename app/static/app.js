@@ -63,6 +63,13 @@ function scopeHtml() {
     <p class="scope-h">${esc(t("scope.not_for_title"))}</p><ul>${items.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div></details>`;
 }
 
+/* The same two lists as two open columns (laptop): under the proof sheet, and in the corner popover. */
+function scopeColumns() {
+  const items = [t("scope.not_for_1"), t("scope.not_for_2"), t("scope.not_for_3"), t("scope.not_for_4"), t("scope.not_for_5")];
+  return `<div class="scope-col"><h2>${esc(t("scope.built_for_title"))}</h2><p>${esc(t("scope.built_for"))}</p></div>
+    <div class="scope-col"><h2>${esc(t("scope.not_for_title"))}</h2><ul>${items.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>`;
+}
+
 /* ---------------------------------------------------------------- strings */
 
 async function loadStrings(lang) {
@@ -124,8 +131,10 @@ function applyStaticStrings() {
     el.placeholder = t(el.dataset.i18nPlaceholder, {}, el.placeholder);
   });
   $("send").setAttribute("aria-label", t("send", {}, "Send"));
-  $("scope-hero").innerHTML = scopeHtml();
-  $("scope-intro").innerHTML = scopeHtml();
+  $("scope-intro").innerHTML = scopeHtml();           // phone: a closed fold in the empty chat
+  $("scope-desk").innerHTML = scopeColumns();          // laptop: open under the proof sheet on the empty desk
+  $("scope-pop-body").innerHTML = scopeColumns();      // laptop: the same text from the corner link, any time
+  $("scope-link-text").textContent = t("scope.title");
   // The desktop rail sets the product sentence large: its first sentence is the headline.
   const intro = t("intro");
   const split = intro.match(/^(.+?[.\u0964!?])\s+([\s\S]*)$/);

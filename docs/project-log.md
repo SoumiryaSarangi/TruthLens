@@ -3242,3 +3242,5 @@ Fix (2026-10-05): the sticky forward quote added after the finish review made fo
 ### "Built for / Not built for" fold (2026-10-05, owner approved)
 
 A closed fold, `scope.*` strings (en, hi, pa; hi/pa machine-drafted, review sheet and `_comment` note added), in the desktop rail and the phone's empty chat. The owner's draft listed questions as unsupported; they are not (the claim gate accepts them), so that bullet was replaced by very short fragments and no-source cases, and "built for" also names Wikipedia-settleable facts (the live check). While open on a laptop the examples step aside and the rail scrolls.
+
+Placement change (2026-10-05, owner chose option 1): on a laptop the "Built for / Not built for" text moved out of the rail to the empty desk under the proof sheet (the sheet shrinks to about 24 rem or 40% of the height), plus a "What this is for" corner link that opens it as a popover; the phone keeps the closed fold in the empty chat.
