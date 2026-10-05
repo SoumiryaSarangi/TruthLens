@@ -83,10 +83,12 @@ live_translate: true
 # (Stage 4): dev A1+B 58 correct of 64 shown vs 32 at 0.90, final A2+RC-E 53 correct of 54 shown vs 28, 0 false Supported in 205
 # (runs 72772ef47d7c, 6ff18b9f8dfc). Limits: all the gain is on AVeriTeC; none on RC-E; a similarity match carries no polarity.
 tau_live_match: 0.70
-# live_match_guard: OFF. The guard (docs/polarity-guard-v2-protocol.md) FAILED its pre-registered rule (run b3a6fdfb6933): it removed 8 of 11
-# wrong negated verdicts and all 3 false Supported, but 3 of 11 remained (27%, the rule allowed 25%) and it kept 11 of 13 right paraphrases (84.6%,
-# the rule needed 85%). The code stays in the repo, tested and off.
-live_match_guard: false
+# live_match_guard: ON, as a POST HOC OWNER DECISION (2026-10-06), NOT because the guard passed. It FAILED two items of its pre-registered
+# rule by one sentence each (docs/polarity-guard-v2-protocol.md, run b3a6fdfb6933: 3 of 11 wrong negations remained, rule allowed 25%; 11 of 13
+# right paraphrases kept, rule needed 85%). The owner chose to ship it for its safety effect (all 3 false Supported removed, 8 of 11 wrong negated
+# verdicts removed, no right natural answer lost, 2 right paraphrase answers became silent). A fact-check match is blocked when DeBERTa reads the
+# matched claim (translated to English if Hindi or Punjabi) as contradicting the user's claim (P >= 0.5). To undo: set this key to false.
+live_match_guard: true
 
 # word_view: the on-demand "Which words mattered?" button on a live verdict (docs/word-highlight-protocol.md).
 # Shipped because the pre-registered faithfulness rule passed (run 4095b565e764). It explains the two NLI models'
