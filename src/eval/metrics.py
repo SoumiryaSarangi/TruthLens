@@ -753,32 +753,50 @@ def real_claims_metrics(rows: Sequence[dict[str, Any]], *, min_precision: float 
     return out
 
 
-def _is_correct(gold: str, shown: str | None) -> bool:
-    return shown is not None and gold in ("T", "F") and (shown == "Supported") == (gold == "T")
+def cluster_consistency(rows: Sequence[dict[str, Any]]) -> dict[str, int]:
+    """RC-D: each cluster is one claim in several renderings. How the shown verdicts agree across a cluster.
 
-
-def paired_flip_counts(plain: dict[str, tuple[str, str | None]], chatty: dict[str, tuple[str, str | None]]) -> dict[str, int]:
-    """The same claims shown plain and wrapped in a chatty forward: id -> (gold, shown verdict or None).
-
-    Counts how the shown verdict moves (docs/real-claims-protocol.md, RC-B against RC-C): both silent, silent to shown,
-    shown to silent, same verdict, and verdict flipped (Supported <-> Refuted), plus how many shown verdicts are correct in each.
+    Rows: {"cluster": int, "gold": "T"|"F"|"U", "shown": None|"Supported"|"Refuted"}.
     """
-    ids = sorted(set(plain) & set(chatty))
-    out = {"n": len(ids), "both_silent": 0, "silent_to_shown": 0, "shown_to_silent": 0, "same_verdict": 0, "flipped": 0,
-           "plain_correct": 0, "chatty_correct": 0}
-    for i in ids:
-        (g, a), (_, b) = plain[i], chatty[i]
-        out["plain_correct"] += _is_correct(g, a)
-        out["chatty_correct"] += _is_correct(g, b)
-        if a is None and b is None:
-            out["both_silent"] += 1
-        elif a is None:
-            out["silent_to_shown"] += 1
-        elif b is None:
-            out["shown_to_silent"] += 1
-        elif a == b:
-            out["same_verdict"] += 1
+    by: dict[int, list[str | None]] = {}
+    for r in rows:
+        by.setdefault(r["cluster"], []).append(r["shown"])
+    out = {"clusters": len(by), "all_silent": 0, "all_shown_agree": 0, "mixed_silent_and_shown": 0, "shown_but_disagree": 0}
+    for shown in by.values():
+        got = [v for v in shown if v is not None]
+        if not got:
+            out["all_silent"] += 1
+        elif len(got) < len(shown):
+            out["mixed_silent_and_shown"] += 1
+        elif len(set(got)) == 1:
+            out["all_shown_agree"] += 1
         else:
-            out["flipped"] += 1
+            out["shown_but_disagree"] += 1
     return out
 
+
+def cluster_precision_ci(rows: Sequence[dict[str, Any]], n_boot: int = 1000, seed: int = 42) -> dict[str, Any]:
+    """Precision of shown verdicts on decidable claims with a 95% interval that resamples whole CLUSTERS.
+
+    Renderings of one claim are not independent, so the plain Wilson interval would be too narrow.
+    """
+    import numpy as np
+
+    by: dict[int, list[tuple[int, int]]] = {}
+    for r in rows:
+        if r["shown"] in ("Supported", "Refuted") and r["gold"] in ("T", "F"):
+            by.setdefault(r["cluster"], []).append((1 if _is_correct(r["gold"], r["shown"]) else 0, 1))
+    clusters = list(by.values())
+    if not clusters:
+        return {"precision": None, "ci95": [None, None], "clusters_with_a_verdict": 0}
+    right = np.array([sum(c for c, _ in cl) for cl in clusters], dtype=float)
+    total = np.array([sum(n for _, n in cl) for cl in clusters], dtype=float)
+    rng = np.random.default_rng(seed)
+    idx = rng.integers(0, len(clusters), size=(n_boot, len(clusters)))
+    boots = right[idx].sum(axis=1) / total[idx].sum(axis=1)
+    return {"precision": float(right.sum() / total.sum()), "ci95": [float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5))],
+            "clusters_with_a_verdict": len(clusters)}
+
+
+def _is_correct(gold: str, shown: str | None) -> bool:
+    return shown is not None and gold in ("T", "F") and (shown == "Supported") == (gold == "T")

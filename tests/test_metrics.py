@@ -492,12 +492,14 @@ def test_real_claims_metrics_flags_false_supported_and_low_precision():
     assert real_claims_metrics(only_fs)["transfers"] == "partly transfers"
 
 
-def test_paired_flip_counts():
-    from eval.metrics import paired_flip_counts
+def test_cluster_consistency_and_the_cluster_bootstrap():
+    from eval.metrics import cluster_consistency, cluster_precision_ci
 
-    plain = {"1": ("T", "Supported"), "2": ("F", None), "3": ("F", "Refuted"), "4": ("F", "Refuted"), "5": ("U", None)}
-    chatty = {"1": ("T", "Supported"), "2": ("F", "Refuted"), "3": ("F", None), "4": ("F", "Supported"), "5": ("U", None)}
-    m = paired_flip_counts(plain, chatty)
-    assert m == {"n": 5, "both_silent": 1, "silent_to_shown": 1, "shown_to_silent": 1, "same_verdict": 1, "flipped": 1,
-                 "plain_correct": 3, "chatty_correct": 2}
-
+    rows = [{"cluster": 0, "gold": "T", "shown": "Supported"}, {"cluster": 0, "gold": "T", "shown": "Supported"},
+            {"cluster": 1, "gold": "F", "shown": None}, {"cluster": 1, "gold": "F", "shown": None},
+            {"cluster": 2, "gold": "F", "shown": "Refuted"}, {"cluster": 2, "gold": "F", "shown": None},
+            {"cluster": 3, "gold": "F", "shown": "Supported"}, {"cluster": 3, "gold": "F", "shown": "Refuted"}]
+    assert cluster_consistency(rows) == {"clusters": 4, "all_silent": 1, "all_shown_agree": 1, "mixed_silent_and_shown": 1, "shown_but_disagree": 1}
+    ci = cluster_precision_ci(rows)
+    assert ci["clusters_with_a_verdict"] == 3 and ci["precision"] == 4 / 5 and ci["ci95"][0] <= ci["precision"] <= ci["ci95"][1]
+    assert cluster_precision_ci([{"cluster": 0, "gold": "U", "shown": None}])["precision"] is None

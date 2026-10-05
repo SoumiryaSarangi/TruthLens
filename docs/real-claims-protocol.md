@@ -74,3 +74,19 @@ shown verdicts move when the same claims arrive wrapped in a chatty forward (the
 measured by pairing each id's RC-B and RC-C result (`eval.metrics.paired_flip_counts`: both silent, silent to shown, shown to silent, same verdict, flipped,
 and correct in each). Rows 91 and 117-120 remain flagged in both files.
 
+
+**Correction 3 (2026-10-05, before RC-B or RC-D is run; RC-A still running and untouched). RC-C is withdrawn and RC-D replaces it.** The owner supplied a third file
+(`real_forwards_collected_new.csv`, copied to the gitignored `data/private/real_forwards_triplets.csv`): 120 rows that are **40 claims, each in three renderings**
+(English, Roman Hindi or Roman Punjabi, and for 20 of them Devanagari or Gurmukhi), 42 T, 63 F and 15 U, wrapped in templated forward phrases ("Guys, got this
+in a group", "pls check before forwarding", "true or fake??"). They are written claims, not collected forwards (the owner could not give dates), and the three
+renderings of a claim are **not independent**. Decisions, all fixed before any of these rows is run:
+- **RC-B (`real_forwards.csv`, the plain 120) stays the one set the transfer rule is read on.** It has the most distinct claims and clean text. The chatty-rewrite
+  file of correction 2 (RC-C) is **deleted and withdrawn**; its question is covered by RC-D and nothing was run on it.
+- **RC-D is the language-triplet set.** It is never used for the transfer rule. It answers: does the same claim get the same shown verdict in English, in Roman
+  letters and in native script (the project's romanization question), and how often is the checker silent in each language?
+- **Six rows are dropped before the run** because the text states its own verdict, so the label can be read either way (rows 8, 9, 14, 15, 68, 83: for example row 8
+  says antibiotics do not cure viral colds, which is TRUE, but is labelled F). The owner's labels are not changed; the rows are excluded and listed. 114 rows, 40 clusters, remain.
+- **Statistics respect the clusters:** precision and its 95% interval come from a bootstrap that resamples whole clusters (`eval.metrics.cluster_precision_ci`, seed 42), never
+  from a Wilson interval over rows; per-language coverage and precision are reported; consistency across a cluster is counted by `eval.metrics.cluster_consistency`
+  (all silent, all shown and agreeing, silent in some renderings, shown but disagreeing).
+- Rows 91 and 117-120 of the plain file and the templated wrappers are disclosed in the report; RC-D is described there as "owner-supplied written claims in three renderings".
