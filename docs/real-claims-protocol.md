@@ -106,3 +106,29 @@ Recharge", India Post and EPFO scams, LPG refill rules), and it has native-scrip
   stands** (`eval.metrics.transfer_verdict_with_clusters`). Both numbers are reported.
 - RC-D (the language triplets) is unchanged and remains a separate, small language-consistency check, never used for the rule. RC-A is the main measurement and RC-B the
   second; if they disagree, both are reported and the more conservative reading is the headline.
+
+## Result (2026-10-05; run `80932a36cbf2`, `results/80932a36cbf2.json`; served system unchanged, owner's running server)
+
+Read against the rule fixed above. Nothing was changed because of these numbers. A2's errors were not read.
+
+| Set | Claims | Shown | Coverage | Decidable shown | Correct | False Supported | Rule |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| A (AVeriTeC dev) | 500 | 61 | 0.122 | 56 | 56 | 0 of 305 false | transfers |
+| A1 | 250 | 30 | 0.120 | 28 | 28 | 0 of 150 | transfers |
+| A2 | 250 | 31 | 0.124 | 28 | 28 | 0 of 155 | transfers |
+| B (owner's 150 written claims) | 150 | 6 | 0.040 | 6 | 4 | 0 of 75 | partly transfers |
+| D (triplets, 114 rows, 40 clusters) | 114 | 6 | 0.053 | 6 | 5 | 0 of 57 | partly transfers |
+
+- **RC-B by source family** (25 clusters): precision 0.667, 95% interval 0.25 to 1.0; false-Supported 0 of 75. The conservative verdict is **partly transfers**: the
+  false-Supported bar holds, the precision bar cannot be met on 6 shown verdicts (Wilson lower bound 0.30).
+- **Where the verdicts came from.** A: 55 of 61 from a matched fact-check (50 of 50 decidable correct), 6 from Wikipedia (6 of 6). B: 1 fact-check (1 of 1), 5 Wikipedia (3 of 5).
+  D: 2 fact-check (2 of 2), 4 Wikipedia (3 of 4). On A, 5 verdicts were shown on claims whose gold is "not enough evidence" (excluded from precision; reported).
+- **Coverage collapses outside FEVER:** about 30% on FEVER (protocol 2), 12.2% on AVeriTeC dev, 4.0% on the owner's written claims. The live check is silent far more often on real claims.
+- **Wrong answers on B and D** (all three are TRUE claims shown "Refuted" from Wikipedia, in Roman Hindi or Roman Punjabi): the Constitution coming into force on 26 January 1950
+  (B), reporting cyber fraud to 1930 (B), the Aadhaar VID claim (D). A1 has none. Causes are NOT yet tallied: a taxonomy is fixed before any silent case is read.
+- **RC-D language consistency:** of 40 claims, 35 silent in every rendering, 5 shown in some renderings and silent in others, 0 shown in all three, 0 shown with disagreeing verdicts.
+  Shown by rendering: English 0 of 40, Hindi (Devanagari) 2 of 10, Hindi (Roman) 2 of 36, Punjabi (Gurmukhi) 1 of 10, Punjabi (Roman) 1 of 18 (the Roman Punjabi one is the wrong answer).
+  Six shown verdicts cannot say that language matters; they say the checker is mostly silent in every rendering.
+- **Reading:** where the check speaks it is right on AVeriTeC (56 of 56) and never called a false claim Supported anywhere (0 of 437 gold-false). It does not yet carry real
+  forwards: it is silent on 96% of the owner's written claims, and its few Wikipedia verdicts on Roman-script claims include true claims called Refuted.
+  Limits: B and D are written claims, not collected forwards; 6 shown verdicts are too few for a precision claim in either direction.

@@ -727,6 +727,7 @@ Each cut is recorded with its reason, as SRS §7 requires.
   Punjabi results are a machine-translation round trip, not natural text. Six wrong
   answers in 106 are listed in §8b and `docs/live-fever-protocol-2.md`, with their causes
   not investigated.
+- A later measurement of the served live check on real-style claims (`docs/real-claims-protocol.md`, run `80932a36cbf2`): on AVeriTeC dev it showed 61 verdicts in 500 claims, 56 of 56 decidable ones right and no false claim called Supported; on the owner's 150 written claims (not collected forwards) it showed 6, 4 right, so it is silent on 96% of them and its precision there is unmeasured. Coverage falls from about 3 in 10 on FEVER to about 1 in 8 and 1 in 25.
 - The word view (§8b) is faithful to the models by a narrow margin (ratio 2.04 against a bar of 2.0), is claim-word level only
   (30 of 130 verdict claims were too short to test), and explains the models, not the world. The offline guess has no word view.
 - Offline, romanized free text often retrieves loosely related evidence (§9); the
