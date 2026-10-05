@@ -421,6 +421,7 @@ class Orchestrator:
         weights = [relevant[i].cosine for i in judged]
         verdict, confidence, dist = live_verdict([probs[i] for i in judged], weights)
         agreed = True
+        conflict = verdict == "Conflicting"
         if self.cfg.live_translate and nli:
             # THE VALIDATED RULE (docs/live-fever-protocol-2.md, variant V2): a verdict is shown
             # only if a second NLI model, BART-large-MNLI, reaches the SAME Supported or Refuted
@@ -439,6 +440,7 @@ class Orchestrator:
             p_verdict, p_conf, _ = live_verdict([x.probs for x in partner],
                                                 [relevant[i].cosine for i in nli])
             agreed = verdict == p_verdict and verdict in ("Supported", "Refuted")
+            conflict = verdict == "Conflicting" and p_verdict == "Conflicting"
             confidence = min(confidence, p_conf)
             if not agreed:
                 trace.record("aggregate", "live_two_model", 0.0,
@@ -455,6 +457,7 @@ class Orchestrator:
             confidence=min(max(confidence, 0.0), 1.0), abstained=abstained, verdict_probs=dist,
             explanation=explanation, explanation_source="template", explanation_lang="en",
             cited=cited, live_sources=found.sources_used, claim_en=hypothesis,
+            sources_disagree=conflict and abstained,
         )
 
     def explain_words(self, hypothesis: str, premise: str, verdict: str) -> dict:

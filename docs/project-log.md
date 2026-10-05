@@ -3209,3 +3209,11 @@ tested taking the first sentence that states a finding, on a fresh 60 (seed 43, 
 **27 of 60 = 45% extracted, gate 1 failed, feature off.** Both takes failed because most publishers' pages (boomlive, checkyourfact, AFP) give a plain GET nothing usable.
 Options, each a new protocol and probably a headless-browser dependency: per-publisher extractors, or store one-line summaries when the fact-check index is built.
 The pineapple card therefore still shows the fact-checker's headline only. Unchanged: live true/false cards still quote their source sentence (1c8d158).
+
+### "The sources disagree" wording after a live look-up (2026-10-05, owner approved)
+
+"Mount everest is not the tallest mountain above sea level" got the generic "Be careful ... couldn't find a source that checks this" although the trace showed
+two Wikipedia pages read in opposite directions (both models: Conflicting; no verdict by the two-model rule). Now `ClaimResult.sources_disagree` is set when both
+models read the sources as Conflicting and no verdict is shown, and the card says "The sources I found disagree with each other on this one. Here is what I found."
+under "Hard to say" (not the warning). Wording only: no verdict, threshold or number changed. `plain.reason.sources_disagree` (hi/pa machine-drafted, in the review sheet),
+2 tests in `tests/test_live_pipeline.py`, check `live_disagree` in `scripts/ui_plain_check.js`. Needs a server restart (backend field).

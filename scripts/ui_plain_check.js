@@ -84,6 +84,10 @@ data.responses.push({ shows: "words_button", body: { input: { lang: "en", script
       text: "Hyderabad is the capital of Telangana.", premise: "Hyderabad is the capital of Telangana. It is large.",
       retrieval_score: 0.8, stance: "Supports", stance_prob: 0.97, source: "wikipedia" }] }] } });
 
+// A live look-up whose sources point opposite ways: says so, and is not the generic warning even if the offline lean was "false".
+data.responses.push({ shows: "live_disagree", body: { input: { lang: "en", script: "latn" }, unchecked_claims: [],
+  results: [{ ...liveBase, _careful: true, sources_disagree: true, verdict: "NEI", confidence: 0.0, abstained: true }] } });
+
 // Words an ordinary reader should never meet outside Details.
 const JARGON = [/contradict/i, /\bevidence\b/i, /calibrat/i, /\bstance\b/i, /stage trace/i, /\bNEI\b/, /\bRefutes\b/, /\bSupports\b/,
   /\bNeutral\b/, /confidence/i, /\bmodels?\b/i, /\bband\b/i, /\bHigh\b/, /\bMedium\b/, /\bLow\b/, /explanation/i,
@@ -172,6 +176,10 @@ for (const lang of ["en", "hi", "pa"]) {
       if (!main.includes("words-btn") || !main.includes('data-premise="Hyderabad is the capital of Telangana. It is large."'))
         problems.push("words button: missing, or not carrying the judged premise");
     } else if (main.includes("words-btn")) problems.push("words button offered where there is no live verdict to explain");
+    if (r.shows === "live_disagree") {
+      if (lang === "en" && !/sources I found disagree/.test(body)) problems.push("live disagree: does not say the sources disagree");
+      if (/Be careful/.test(body)) problems.push("live disagree: shown the generic warning");
+    }
     if (r.shows === "greeting") {
       if (main.includes("act-force")) problems.push("greeting: offered 'Check it anyway'");
       if (!/greeting|अभिवादन|ਨਮਸਕਾਰ/.test(body)) problems.push("greeting: does not say it is a greeting");
@@ -197,7 +205,7 @@ for (const lang of ["en", "hi", "pa"]) {
 // Gurmukhi is answered in Hindi or Punjabi.
 api.setAns(null); api.setS(STR.en);
 const expectedLang = { fast_path: "en", romanized_hindi: "en", gurmukhi: "pa", claim_extraction: "en",
-  not_a_claim: "en", abstained: "pa", live_verdict: "en", live_none: "en", similar: "en", similar_unrated: "en", forced_greeting: "en", live_similar: "en", live_careful: "en", greeting: "en", words_button: "en" };
+  not_a_claim: "en", abstained: "pa", live_verdict: "en", live_none: "en", similar: "en", similar_unrated: "en", forced_greeting: "en", live_similar: "en", live_careful: "en", greeting: "en", words_button: "en", live_disagree: "en" };
 for (const r of data.responses) {
   const html = api.render(r.body);
   const got = (html.match(/<div class="card[^"]*" (?:id="[^"]*" )?lang="(\w+)"/) || [])[1];

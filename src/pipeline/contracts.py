@@ -133,6 +133,9 @@ class ClaimResult(BaseModel):
     gate_reason: Literal["greeting", "too_short", "no_content"] | None = None
     # The English claim a live verdict was judged on (the translation, for Hindi, Punjabi and Roman input).
     claim_en: str | None = None
+    # True when a live look-up found sources that point opposite ways (both models read it as Conflicting), so the
+    # card can say "the sources disagree" and not the generic "nothing checks this". Wording only; no verdict moves.
+    sources_disagree: bool = False
 
     @field_validator("explanation_source")
     @classmethod

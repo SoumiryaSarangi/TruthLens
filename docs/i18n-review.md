@@ -304,3 +304,4 @@ from their `_comment`.
 | `plain.words.loading` | One moment… | थोड़ा रुकिए… | ਥੋੜ੍ਹਾ ਰੁਕੋ… | |
 | `plain.why.label` | Why: this is what the source says | क्यों: स्रोत में यह लिखा है | ਕਿਉਂ: ਸਰੋਤ ਵਿੱਚ ਇਹ ਲਿਖਿਆ ਹੈ | |
 | `plain.why.english` | The source is in English. | यह स्रोत अंग्रेज़ी में है। | ਇਹ ਸਰੋਤ ਅੰਗਰੇਜ਼ੀ ਵਿੱਚ ਹੈ। | |
+| `plain.reason.sources_disagree` | The sources I found disagree with each other on this one. Here is what I found. | मुझे जो स्रोत मिले, वे इस बारे में एक-दूसरे से सहमत नहीं हैं। जो मिला, वह नीचे है। | ਮੈਨੂੰ ਜੋ ਸਰੋਤ ਮਿਲੇ, ਉਹ ਇਸ ਬਾਰੇ ਇੱਕ-ਦੂਜੇ ਨਾਲ ਸਹਿਮਤ ਨਹੀਂ ਹਨ। ਜੋ ਮਿਲਿਆ, ਉਹ ਹੇਠਾਂ ਹੈ। | |

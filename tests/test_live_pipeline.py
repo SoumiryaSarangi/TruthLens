@@ -546,3 +546,35 @@ def test_warm_live_is_a_no_op_unless_the_live_verdict_is_on():
     orch.cfg.live_verdict = False
     orch.warm_live()                       # must not load anything or raise
     assert orch._translator is None and orch._live_partner_nli is None
+
+
+class _AlternatingStance:
+    """Reads the first passage as Supports and the second as Refutes (two sources that disagree)."""
+    impl = "fake"
+
+    def label(self, claim, passages):
+        out = []
+        for i, _ in enumerate(passages):
+            probs = S if i % 2 == 0 else R
+            out.append(SimpleNamespace(stance=max(probs, key=probs.get), prob=max(probs.values()), probs=probs))
+        return out
+
+
+def test_sources_that_point_opposite_ways_are_flagged_as_disagreeing_and_still_give_no_verdict():
+    pages = [_grounded_page("Mumbai"), _grounded_page("India")]
+    orch = make_translating(FakeLive(LiveResult(passages=pages, sources_used=["wikipedia"])),
+                            FakeTranslator("Mumbai is a city in India"))
+    orch.stance = orch._live_nli = _AlternatingStance()
+    orch._live_partner_nli = _AlternatingStance()
+    res = orch.verify("मुंबई भारत का एक शहर है", live=True).results[0]
+    assert res.verdict != "Supported" and res.verdict != "Refuted" and res.abstained
+    assert res.sources_disagree is True
+
+
+def test_agreement_or_plain_ignorance_is_not_flagged_as_a_disagreement():
+    orch = make_translating(FakeLive(LiveResult(passages=[_grounded_page()], sources_used=["wikipedia"])),
+                            FakeTranslator("Mumbai is a city in India"))
+    orch.stance = orch._live_nli = FakeStance(N)
+    orch._live_partner_nli = FakeStance(N)
+    assert orch.verify("मुंबई भारत का एक शहर है", live=True).results[0].sources_disagree is False
+
