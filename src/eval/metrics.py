@@ -753,6 +753,10 @@ def real_claims_metrics(rows: Sequence[dict[str, Any]], *, min_precision: float 
     return out
 
 
+def _is_correct(gold: str, shown: str | None) -> bool:
+    return shown is not None and gold in ("T", "F") and (shown == "Supported") == (gold == "T")
+
+
 def paired_flip_counts(plain: dict[str, tuple[str, str | None]], chatty: dict[str, tuple[str, str | None]]) -> dict[str, int]:
     """The same claims shown plain and wrapped in a chatty forward: id -> (gold, shown verdict or None).
 
@@ -764,9 +768,8 @@ def paired_flip_counts(plain: dict[str, tuple[str, str | None]], chatty: dict[st
            "plain_correct": 0, "chatty_correct": 0}
     for i in ids:
         (g, a), (_, b) = plain[i], chatty[i]
-        ok = lambda v: v is not None and g in ("T", "F") and (v == "Supported") == (g == "T")  # noqa: E731
-        out["plain_correct"] += ok(a)
-        out["chatty_correct"] += ok(b)
+        out["plain_correct"] += _is_correct(g, a)
+        out["chatty_correct"] += _is_correct(g, b)
         if a is None and b is None:
             out["both_silent"] += 1
         elif a is None:
