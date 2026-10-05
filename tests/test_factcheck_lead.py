@@ -46,3 +46,20 @@ def test_a_cached_answer_is_returned_without_the_network(tmp_path):
     url = "https://example.org/fact-check/x"
     (tmp_path / (hashlib.sha256(url.encode()).hexdigest()[:20] + ".json")).write_text(json.dumps({"url": url, "lead": "Cached lead sentence that is long enough to be used as a lead."}))
     assert fetch_lead(url, cache_dir=tmp_path).startswith("Cached lead")
+
+
+def test_the_finding_extractor_skips_the_sentence_that_only_restates_the_claim():
+    from retrieval.live.factcheck_lead import extract_finding
+
+    page = ("<html><head><title>Pineapple juice and cough</title></head><body><article>"
+            "<p>A post claiming that pineapple is more effective than cough syrups is doing the rounds of social media.</p>"
+            "<p>BOOM spoke to doctors, who said there is no scientific study showing pineapple juice beats cough syrup by 500 times.</p>"
+            "</article></body></html>")
+    assert extract_finding(page).startswith("BOOM spoke to doctors")
+
+
+def test_the_finding_extractor_gives_nothing_without_a_conclusion_cue_or_for_boilerplate():
+    from retrieval.live.factcheck_lead import extract_finding
+
+    assert extract_finding("<html><body><p>A video of a bridge is being shared widely on social media this week by many users.</p></body></html>") is None
+    assert extract_finding("<html><body><p>Subscribe to our newsletter: this claim is false and fake and we say so every day.</p></body></html>") is None

@@ -96,7 +96,38 @@ def extract_lead(page_html: str, title_hint: str = "") -> str | None:
     return None
 
 
-def fetch_lead(url: str, title_hint: str = "", cache_dir: Path | str = CACHE_DIR, timeout: float = TIMEOUT_S) -> str | None:
+# docs/factcheck-finding-protocol.md: the first sentence that states a finding about the claim.
+CUES = re.compile(
+    r"found that|no evidence|not true|false|fake|misleading|doctored|edited|fabricated|baseless|hoax|debunk"
+    r"|there is no|has no|have no|does not|did not|is not|was not|not a |not an |actually|in fact|old video"
+    r"|old image|unrelated|satire|no such|untrue|incorrect|unverified|not found|no record|clarified|denied", re.I)
+MIN_SENTENCE, MAX_SENTENCE, MAX_PARAGRAPHS = 40, 300, 25
+_SENTENCES = re.compile(r"(?<=[.!?])\s+")
+
+
+def extract_finding(page_html: str, title_hint: str = "") -> str | None:
+    """The first sentence of the article that states a finding (a conclusion cue), or None."""
+    parser = _Page()
+    try:
+        parser.feed(page_html)
+    except Exception:
+        return None
+    title = (_clean(parser.title) or title_hint).lower()
+    for paragraph in parser.paragraphs[:MAX_PARAGRAPHS]:
+        for sentence in _SENTENCES.split(_clean(paragraph)):
+            if (MIN_SENTENCE <= len(sentence) <= MAX_SENTENCE and CUES.search(sentence)
+                    and not BOILERPLATE.search(sentence) and not (title and sentence.lower() in title)):
+                return sentence
+    return None
+
+
+def fetch_finding(url: str, title_hint: str = "", cache_dir: Path | str = CACHE_DIR / "finding", timeout: float = TIMEOUT_S) -> str | None:
+    """`fetch_lead` with the finding extractor (separate cache directory)."""
+    return fetch_lead(url, title_hint, cache_dir, timeout, extractor=extract_finding)
+
+
+def fetch_lead(url: str, title_hint: str = "", cache_dir: Path | str = CACHE_DIR, timeout: float = TIMEOUT_S,
+               extractor=None) -> str | None:
     """GET the page and extract its lead. Cached (a page that answered but had no lead too; a network failure is not)."""
     if not re.match(r"^https?://", url or ""):
         return None
@@ -112,7 +143,7 @@ def fetch_lead(url: str, title_hint: str = "", cache_dir: Path | str = CACHE_DIR
         req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "text/html"})
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             charset = resp.headers.get_content_charset() or "utf-8"
-            lead = extract_lead(resp.read(MAX_BYTES).decode(charset, errors="replace"), title_hint)
+            lead = (extractor or extract_lead)(resp.read(MAX_BYTES).decode(charset, errors="replace"), title_hint)
     except Exception:
         return None                                           # not cached: a network blip must not be remembered
     try:
