@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-05T00:00:00Z",
+  "title": "Design System: TruthLens",
+  "extensions": {
+    "colorMeta": {
+      "cobalt-rail": { "role": "primary", "displayName": "Proofreader's Cobalt", "canonical": "#1636a8", "tonalRamp": ["#0b1b5a", "#0f2480", "#1636a8", "#3a55c0", "#6379d0", "#8fa0e0", "#c9d6fb", "#e3e9fb"] },
+      "desk-newsprint": { "role": "neutral", "displayName": "Cool Newsprint", "canonical": "#e7eaee", "tonalRamp": ["#0a0e15", "#2f3a4b", "#46525e", "#7c8794", "#b4bcc7", "#d3d9e0", "#e7eaee", "#f4f6f8"] },
+      "sheet": { "role": "neutral", "displayName": "Clean Sheet", "canonical": "#ffffff", "tonalRamp": ["#151b26", "#232d3b", "#46525e", "#8a95a2", "#c4cbd4", "#e1e5ea", "#f2f4f6", "#ffffff"] },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#0e1520", "tonalRamp": ["#0e1520", "#232d3b", "#46525e", "#6b7683", "#a3afbd", "#c9d1d8", "#e8edf4", "#f4f6f9"] },
+      "supported-fg": { "role": "state", "displayName": "Supported Green", "canonical": "#0b6b2f", "tonalRamp": ["#12321d", "#0b6b2f", "#2e8a4f", "#5aa874", "#8fe3a8", "#b9edc8", "#e3f5e8", "#f2faf4"] },
+      "refuted-fg": { "role": "state", "displayName": "Refuted Red", "canonical": "#a11a1a", "tonalRamp": ["#3b1414", "#a11a1a", "#c04545", "#d97676", "#ffb4b4", "#fdd0d0", "#fde8e8", "#fff4f4"] },
+      "conflicting-fg": { "role": "state", "displayName": "Conflicting Amber", "canonical": "#7a4500", "tonalRamp": ["#3a2a0a", "#7a4500", "#a1650f", "#c88a3a", "#ffd28a", "#ffe3b3", "#fff1d6", "#fff9ec"] },
+      "nei-fg": { "role": "state", "displayName": "Not Enough Evidence Grey", "canonical": "#3f4a54", "tonalRamp": ["#262c31", "#3f4a54", "#66717b", "#8e98a1", "#c9d1d8", "#dde2e6", "#eceff1", "#f6f7f8"] },
+      "abstained-fg": { "role": "state", "displayName": "Abstained Grey", "canonical": "#3f4a54", "tonalRamp": ["#1b2328", "#3f4a54", "#66717b", "#8e98a1", "#c9d1d8", "#dde2e6", "#f4f5f6", "#fafbfb"] },
+      "error-fg": { "role": "state", "displayName": "Error Red", "canonical": "#a1190f", "tonalRamp": ["#3b1a17", "#a1190f", "#c0463d", "#d97b73", "#ff9a8f", "#fdc4be", "#fdeceb", "#fff6f5"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Rail headline", "purpose": "The product sentence in the cobalt rail, system serif." },
+      "verdict": { "displayName": "Verdict word", "purpose": "The one-word answer with its pencil stroke; sans for Hindi and Punjabi." },
+      "quote": { "displayName": "Forwarded quote", "purpose": "The forward set as a serif quote in the narrow desk column, 34ch max." },
+      "body": { "displayName": "Body", "purpose": "Base text, 15px at default, rem so it follows the reader's setting." },
+      "reason": { "displayName": "Reason", "purpose": "The one sentence of why in the answer card." },
+      "label": { "displayName": "Label", "purpose": "Buttons, folds and source lines." },
+      "indic": { "displayName": "Indic text", "purpose": "Hindi and Punjabi: letter-spacing 0, leading 1.7." }
+    },
+    "shadows": [
+      { "name": "desk-shadow", "value": "0 1px 2px rgba(14, 21, 32, .08), 0 12px 24px -10px rgba(14, 21, 32, .24)", "purpose": "The only lift: the answer card on the desk. Dark mode uses rgba(0,0,0,.5) and .7." },
+      { "name": "composer-paper", "value": "0 2px 8px -2px rgba(0, 0, 0, .35)", "purpose": "Makes the composer read as paper on the cobalt rail." },
+      { "name": "proof-sheet-drop", "value": "drop-shadow(0 22px 34px rgba(14, 21, 32, .24))", "purpose": "Soft ambient shadow under the empty-state proof sheet." }
+    ],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(.23, 1, .32, 1)", "purpose": "The one easing token for every entrance: critically damped, no overshoot." },
+      { "name": "stamp", "value": ".3s var(--ease-out) .06s", "purpose": "Verdict banner settles onto the sheet (opacity, scale 1.04 to 1, 3px blur to none)." },
+      { "name": "draw", "value": ".5s var(--ease-out) .22s", "purpose": "Pencil stroke under the verdict word via stroke-dashoffset; never applied to abstained." },
+      { "name": "reduced-motion-fade", "value": ".15s linear", "purpose": "Under prefers-reduced-motion: reduce every entrance is an opacity fade and the spinner is hidden." }
+    ],
+    "breakpoints": [
+      { "name": "desk", "value": "1100px" },
+      { "name": "two-pane", "value": "1360px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Verdict Banner",
+      "kind": "custom",
+      "refersTo": "verdict-refuted",
+      "description": "Signature: icon badge plus the verdict word in serif with a pencil stroke under it. Never colour alone.",
+      "html": "<span class=\"ds-verdict\" role=\"img\" aria-label=\"Verdict: False\"><span class=\"ds-badge\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 6l12 12M18 6L6 18\"/></svg></span><span class=\"ds-word\">False<svg class=\"ds-stroke\" viewBox=\"0 0 300 14\" preserveAspectRatio=\"none\" aria-hidden=\"true\"><path d=\"M2 9 C 46 3, 98 13, 156 7 S 258 10, 298 4\"/></svg></span></span>",
+      "css": ".ds-verdict { display: flex; align-items: center; gap: 1rem; color: var(--refuted-fg, #a11a1a); font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif; font-weight: 700; font-size: 2.4rem; line-height: 1.12; padding: .1rem 0 .8rem; } .ds-badge { display: grid; place-items: center; width: 3.2rem; height: 3.2rem; border-radius: 50%; background: color-mix(in srgb, currentColor 16%, transparent); flex: none; } .ds-word { position: relative; display: inline-block; } .ds-stroke { position: absolute; left: 0; bottom: -.55rem; width: 100%; height: .55rem; overflow: visible; } .ds-stroke path { fill: none; stroke: currentColor; stroke-width: 4; stroke-linecap: round; opacity: .8; }"
+    },
+    {
+      "name": "Abstained Verdict",
+      "kind": "custom",
+      "refersTo": "verdict-abstained",
+      "description": "Not committed: grey, dashed edge, dashed stroke that is never animated.",
+      "html": "<div class=\"ds-abstained\"><span class=\"ds-word\">Cannot say yet<svg class=\"ds-stroke\" viewBox=\"0 0 300 14\" preserveAspectRatio=\"none\" aria-hidden=\"true\"><path pathLength=\"1\" d=\"M2 9 C 46 3, 98 13, 156 7 S 258 10, 298 4\"/></svg></span></div>",
+      "css": ".ds-abstained { border: 2px dashed var(--abstained-fg, #3f4a54); background: var(--abstained-bg, #f4f5f6); color: var(--abstained-fg, #3f4a54); border-radius: 1.1rem; padding: 1.25rem 1.5rem; font-family: 'Iowan Old Style', Georgia, serif; font-weight: 700; font-size: 2rem; } .ds-word { position: relative; display: inline-block; } .ds-stroke { position: absolute; left: 0; bottom: -.55rem; width: 100%; height: .55rem; overflow: visible; } .ds-stroke path { fill: none; stroke: currentColor; stroke-width: 4; stroke-linecap: round; opacity: .8; stroke-dasharray: .045 .05; }"
+    },
+    {
+      "name": "Answer Card",
+      "kind": "card",
+      "refersTo": "answer-card",
+      "description": "White sheet with the desk shadow, holding verdict, reason, action and source.",
+      "html": "<div class=\"ds-card\"><p class=\"ds-reason\">The source says the claim is not true.</p><p class=\"ds-action\">Do not forward it.</p></div>",
+      "css": ".ds-card { background: var(--bubble-in, #fff); color: var(--text, #0e1520); border-radius: 1.1rem; padding: 1.5rem 1.75rem 1.25rem; box-shadow: 0 1px 2px rgba(14,21,32,.08), 0 12px 24px -10px rgba(14,21,32,.24); font-family: system-ui, 'Segoe UI', sans-serif; } .ds-reason { margin: .7rem 0; font-size: 1.08rem; line-height: 1.5; } .ds-action { margin: .6rem 0; font-size: 1.02rem; font-weight: 650; }"
+    },
+    {
+      "name": "Forward Quote",
+      "kind": "custom",
+      "refersTo": "forward-quote",
+      "description": "The forwarded message as a serif quote under a 2px ink rule; no box.",
+      "html": "<div class=\"ds-forward\"><div class=\"ds-fwd\">Forwarded</div><div class=\"ds-quote\">Drink hot water every hour and the virus dies.</div></div>",
+      "css": ".ds-forward { border-top: 2px solid var(--text, #0e1520); padding-top: 1rem; color: var(--text, #0e1520); max-width: 20rem; } .ds-fwd { font-family: system-ui, 'Segoe UI', sans-serif; font-size: .82rem; font-weight: 600; letter-spacing: .02em; margin-bottom: .45rem; color: var(--muted, #46525e); } .ds-quote { font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif; font-size: 1.2rem; line-height: 1.5; max-width: 34ch; }"
+    },
+    {
+      "name": "Pill Button",
+      "kind": "button",
+      "refersTo": "button-pill",
+      "description": "Secondary actions and example chips: white pill, rule border, cobalt text, 2.75rem tall.",
+      "html": "<button class=\"ds-pill\" type=\"button\">Copy reply</button>",
+      "css": ".ds-pill { display: inline-flex; align-items: center; gap: .4rem; font: inherit; font-size: .92rem; min-height: 2.75rem; padding: .3rem 1rem; border-radius: 1.4rem; border: 1px solid var(--line, #b4bcc7); background: var(--chip-bg, #fff); color: var(--chip-fg, #1636a8); cursor: pointer; transition: transform .12s ease-out, background-color .15s ease-out; } .ds-pill:hover { background: var(--chip-hover, #e3e9fb); } .ds-pill:focus-visible { outline: 2px solid var(--focus, #1636a8); outline-offset: 2px; } .ds-pill:active { transform: scale(.97); }"
+    },
+    {
+      "name": "Composer",
+      "kind": "input",
+      "refersTo": "composer-field",
+      "description": "Paper textarea on the cobalt rail with a round white send button.",
+      "html": "<div class=\"ds-rail\"><form class=\"ds-composer\"><textarea class=\"ds-field\" placeholder=\"Paste a forwarded message\"></textarea><button type=\"submit\" class=\"ds-send\" aria-label=\"Send\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 3 10 14M21 3l-7 18-4-7-7-4 18-7z\"/></svg></button></form></div>",
+      "css": ".ds-rail { background: #1636a8; padding: 1.5rem 2.5rem; } .ds-composer { display: grid; grid-template-columns: 1fr auto; gap: .75rem; align-items: end; } .ds-field { grid-column: 1 / -1; min-height: 8.5rem; font: inherit; font-size: 1.08rem; line-height: 1.55; color: #0e1520; background: #fff; border: 0; border-radius: 1.1rem; padding: 1rem 1.2rem; box-shadow: 0 2px 8px -2px rgba(0,0,0,.35); resize: none; } .ds-field:focus-visible { outline: 3px solid #fff; outline-offset: 2px; } .ds-send { grid-column: 2; display: grid; place-items: center; width: 3.4rem; height: 3.4rem; border-radius: 50%; border: 0; background: #fff; color: #1636a8; cursor: pointer; } .ds-send:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }"
+    },
+    {
+      "name": "Band Meter",
+      "kind": "chip",
+      "refersTo": "button-pill",
+      "description": "Confidence as three bars plus the word; the word carries the meaning. Band comes from /version.",
+      "html": "<span class=\"ds-band\">Medium</span>",
+      "css": ".ds-band { display: inline-flex; align-items: center; gap: .4rem; font-size: .8rem; color: var(--muted, #46525e); border: 1px solid var(--line, #b4bcc7); border-radius: 1rem; padding: .05rem .6rem; } .ds-band::before { content: ''; width: 1.1rem; height: .5rem; border-radius: .25rem; opacity: .55; background: linear-gradient(90deg, currentColor 0 30%, transparent 30% 35%, currentColor 35% 65%, transparent 65% 70%, var(--line, #b4bcc7) 70% 100%); }"
+    },
+    {
+      "name": "Fold",
+      "kind": "nav",
+      "refersTo": "button-pill",
+      "description": "Details fold with a drawn chevron, never a typed glyph.",
+      "html": "<details class=\"ds-fold\"><summary>Details</summary><p>Technical notes appear here.</p></details>",
+      "css": ".ds-fold { border-top: 1px solid var(--line-soft, #d3d9e0); padding-top: .25rem; font-family: system-ui, 'Segoe UI', sans-serif; } .ds-fold > summary { display: flex; align-items: center; gap: .5rem; cursor: pointer; font-size: .95rem; min-height: 2.5rem; list-style: none; color: var(--link, #1636a8); } .ds-fold > summary::-webkit-details-marker { display: none; } .ds-fold > summary::before { content: ''; width: .5rem; height: .5rem; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); flex: none; transition: transform .18s cubic-bezier(.23,1,.32,1); } .ds-fold[open] > summary::before { transform: rotate(45deg); } .ds-fold > summary:focus-visible { outline: 2px solid var(--focus, #1636a8); outline-offset: 2px; }"
+    },
+    {
+      "name": "Error Bubble",
+      "kind": "card",
+      "refersTo": "error-bubble",
+      "description": "Tinted red surface with an inset edge, drawn icon, plain message and a Retry pill.",
+      "html": "<div class=\"ds-error\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v6M12 16.5h.01\"/></svg><p>The check could not be completed.</p></div>",
+      "css": ".ds-error { display: flex; gap: .5rem; align-items: flex-start; color: var(--err, #a1190f); background: var(--err-bg, #fdeceb); box-shadow: inset 0 0 0 1px var(--err, #a1190f); border-radius: 1.1rem; padding: .55rem .75rem; font-family: system-ui, 'Segoe UI', sans-serif; } .ds-error p { margin: 0; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Proof Desk",
+    "overview": "A check is a proof being marked, not a chat. On a laptop (1100 px and up) the page is two panes: a saturated cobalt rail on the left where you paste and try an example, and a cool newsprint desk on the right where every answer sits beside the forward it answers. The world is a newspaper proof sheet read by an editor. It lends type (a system serif for display and quoted text), palette, density and one signature move. It never supplies the navigation or controls, which stay standard: a textarea, pill buttons, details folds. Below 1100 px the earlier single-column chat (WhatsApp-style, teal header, beige ground, 440 px column) is deliberately unchanged because the owner pinned it.",
+    "keyCharacteristics": [
+      "Cobalt rail, grey desk, near-black ink; verdict colours are state roles only, never decoration.",
+      "System serif for the rail headline, the forwarded quote and the verdict word; system sans for everything operable.",
+      "One signature: the markup, a hand-drawn stroke under the verdict word.",
+      "Flat tonal surfaces; one soft shadow for the answer card.",
+      "Offline, system fonts only, no web fonts, no images."
+    ],
+    "rules": [
+      { "name": "The Colour-Is-State Rule", "body": "Green, red, amber and grey mean a verdict and nothing else. Cobalt is the only brand colour; it never stands for a verdict.", "section": "colors" },
+      { "name": "The Two-Pair Rule", "body": "A new text and background pair is added as a token in light and dark and checked for 4.5:1 in both, desktop included.", "section": "colors" },
+      { "name": "The Indic Room Rule", "body": "Hindi and Punjabi text gets letter-spacing 0 and line-height 1.7 (1.4 to 1.5 in display sizes). Forwarded text carries no lang attribute, so its body is always 1.65. Never track or clip matras and conjuncts.", "section": "typography" },
+      { "name": "The Serif-For-Quotes Rule", "body": "The serif is for the rail headline, the forwarded quote, source quotes and the verdict word. Controls, labels and sources are sans.", "section": "typography" },
+      { "name": "The Flat-Rail Rule", "body": "The rail has no shadow and no border; depth is the contrast of cobalt against newsprint.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do give every verdict a drawn icon and its word; colour only reinforces.",
+      "Do keep abstained distinct: grey, dashed edge, dashed unanimated stroke, \"Leaning\" only inside Details.",
+      "Do read confidence bands from `/version`; with no bands show none.",
+      "Do show \"Checking…\" and nothing else while waiting.",
+      "Do set Hindi and Punjabi at letter-spacing 0 and tall leading (1.7; 1.4 to 1.5 in display sizes).",
+      "Do use `--ease-out` for every entrance and gate motion on `prefers-reduced-motion: no-preference`.",
+      "Do draw chevrons and icons as CSS or inline SVG; keep controls at 2.5rem tall or more.",
+      "Do keep verdict colours as state roles and add new colour pairs as tokens checked at 4.5:1 in light and dark."
+    ],
+    "donts": [
+      "Don't float the phone column in a desktop browser, or turn the desk into a dashboard of tiles.",
+      "Don't use exclamation marks in any string.",
+      "Don't add fake progress (bars, percentages, rotating messages).",
+      "Don't invent a verdict colour or use cobalt for a verdict.",
+      "Don't use web fonts, images or network assets; the demo must run offline.",
+      "Don't put desk tokens into the phone world below 1100 px, or edit the phone column's look; the owner pinned it.",
+      "Don't put desktop tokens inside the first light or first dark block; the desktop overrides stay after them.",
+      "Don't add hard offset shadows or typed glyph icons or chevrons."
+    ]
+  }
+}

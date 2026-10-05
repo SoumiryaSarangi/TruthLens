@@ -40,6 +40,7 @@ const ICONS = {
   globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',
   search: '<circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/>',
   warn: '<path d="M12 4 3 19h18L12 4z"/><path d="M12 10v4M12 17h.01"/>',
+  forward: '<path d="M14 5l6 6-6 6"/><path d="M20 11H9a5 5 0 0 0-5 5v2"/>',
 };
 
 function ico(name) {
@@ -115,6 +116,11 @@ function applyStaticStrings() {
     el.placeholder = t(el.dataset.i18nPlaceholder, {}, el.placeholder);
   });
   $("send").setAttribute("aria-label", t("send", {}, "Send"));
+  // The desktop rail sets the product sentence large: its first sentence is the headline.
+  const intro = t("intro");
+  const split = intro.match(/^(.+?[.\u0964!?])\s+([\s\S]*)$/);
+  $("hero-lead").textContent = split ? split[1] : intro;
+  $("hero-rest").textContent = split ? split[2] : "";
 }
 
 /* ------------------------------------------------------------------- boot */
@@ -128,6 +134,7 @@ async function boot() {
   S = STR[UI_LANG];
   document.documentElement.lang = S._lang || "en";
   applyStaticStrings();
+  if (window.matchMedia("(min-width: 1100px)").matches) document.querySelector("details.examples").open = true;
 
   fetch("/health").then((r) => r.json()).then((h) => {
     const ok = h.status === "ok";
@@ -194,7 +201,7 @@ async function send(text, { echo = true } = {}) {
 
   lastText = text;
   if (echo) {
-    bubble("out", `<div class="fwd">↪ ${esc(t("forwarded"))}</div><div class="body">${esc(text)}</div>`);
+    bubble("out", `<div class="fwd">${ico("forward")}${esc(t("forwarded"))}</div><div class="body">${esc(text)}</div>`);
     $("text").value = "";
   }
   const pending = bubble("in",
@@ -542,7 +549,7 @@ function plainCard(r, inp, idx) {
 
   let html = `<div class="card plain${c.kind === "abstained" || c.kind === "lean" ? " abstained" : ""}" id="${id}" lang="${esc(lang)}">
     <p class="plain-head"><span class="chip big ${esc(chipClass)}" role="img"
-      aria-label="${esc(t("verdict_aria", { label: title }))}"><span aria-hidden="true">${ico(icon)}</span><span>${esc(title)}</span></span></p>
+      aria-label="${esc(t("verdict_aria", { label: title }))}"><span aria-hidden="true">${ico(icon)}</span><span class="verdict-word">${esc(title)}<svg class="markup" viewBox="0 0 300 14" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path pathLength="1" d="M2 9 C 46 3, 98 13, 156 7 S 258 10, 298 4"/></svg></span></span></p>
     <p class="reason">${esc(reason)}${sure ? ` <span class="sure">${esc(sure)}</span>` : ""}</p>
     <p class="action">${esc(action)}</p>`;
   const quote = sourceQuote(c, r);
@@ -691,7 +698,7 @@ function technicalCard(r, inp, cardId, lean = false) {
   const flags = r.manipulation_flags || [];
   if (flags.length) {
     html += `<p class="flags" title="${esc(t("manipulation_title"))}">
-      <span aria-hidden="true">⚠</span> ${flags.map((f) => esc(t(`technique.${f}`, {}, f))).join(" · ")}</p>`;
+      ${ico("warn")} ${flags.map((f) => esc(t(`technique.${f}`, {}, f))).join(" · ")}</p>`;
   }
   html += inputNote(inp, r.explanation_lang);
   html += `<p class="disclaimer">${esc(t("disclaimer"))}</p></div>`;

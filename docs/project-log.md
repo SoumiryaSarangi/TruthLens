@@ -3224,3 +3224,15 @@ under "Hard to say" (not the warning). Wording only: no verdict, threshold or nu
 words.hint/none/unavailable/loading), 21 kept; placeholders preserved, the `_comment` notes for the reviewed sets replaced by the review note, and
 `docs/i18n-review.md` records the outcome. **Still NOT YET REVIEWED: `plain.why.label`, `plain.why.english`, `plain.reason.sources_disagree`** (added after the sheet went out;
 if the owner's 33 included them, remove the two remaining notes in hi.json and pa.json `_comment`). The render check's Punjabi greeting pattern now matches "ਸਲਾਮ-ਦੁਆ".
+
+### The desktop workspace, the proof desk (2026-10-05, branch `ui-restyle`, owner's request: "a proper webpage ... for laptop/desktop")
+
+The owner found the first restyle (a refined phone column) "nothing special" and asked for a real desktop page. Decisions (asked, not assumed): full desktop
+workspace, confident and editorial, replace in place. World: a newspaper proof sheet marked by an editor; cobalt rail, newsprint desk, system serif for display
+and quotes; signature move = the markup (verdict word stamped on, pencil stroke drawn under it; dashed and still for abstained). Phone widths (under 1100 px)
+keep the earlier WhatsApp-style column on purpose. Frontend only: `app/static/{index.html,app.js,styles.css}`, no i18n edits, no new copy. Process: PRODUCT.md and the
+direction contract (`.impeccable/surfaces/app-static-index-html.md`; the owner's pinned direction beat the concept roll, seed c4ac5c88), build, one detector run
+(clean after advisories fixed), screenshots at 1100, 1280, 1360, 1440, 1920 and 390 in light and dark in en, hi and pa (real-time Chrome DevTools captures; no horizontal
+overflow at any width), `impeccable-finish-reviewer` (disposition fix: Indic leading, glyph icons, verdict scale, nested frames, microtext, proof-sheet placeholders, sticky
+forward; all applied, one regression it found, a sticky quote overlapping the card in the stacked layout, fixed), `impeccable-documenter` (`DESIGN.md`, `.impeccable/design.json`).
+Not done: the phone world was not moved to the cobalt identity (owner pinned it), and `/review-animations` can only be run by the owner. `make lint` and `make test` (875 passed) pass.

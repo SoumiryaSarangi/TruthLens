@@ -49,6 +49,29 @@ Desktop: a centred phone-width column, max 440 px, so it reads as a phone in a p
 
 **Sample chips** fill the composer with a canned forward, one per path in §11. They exist so a live demo never depends on typing Hindi on a projector keyboard.
 
+### Desktop workspace (2026-10-05, owner's request; supersedes "a centred phone-width column" at 1100 px and up)
+
+On a laptop or desktop (1100 px and wider) the page is a two-pane **proof desk**, not a phone floated in a browser. Below 1100 px nothing changes: the
+single 440 px chat column above is the page, and it stays WhatsApp-styled on purpose (the owner pinned it). Layout, tokens and rules, all in `styles.css`
+(the desktop block and its overrides at the end of the file):
+
+- **Rail (left, 27 to 35 rem, cobalt):** brand and health pill, the product sentence set large in the serif (the first sentence of `intro` is the
+  headline, the rest a short line; set by `app.js` from the existing string, no new copy), the composer (large textarea, round send button) and the
+  examples, open by default on a laptop.
+- **Desk (right, cool newsprint):** each check is a row. At 1360 px and up the forward is a serif quote in a narrow column (sticky beside a tall answer)
+  and the plain card is in the wide column; from 1100 to 1359 px the quote sits above the card, one column. Before the first check the desk shows an
+  authored proof sheet (decorative SVG, no copy): six editor's marks in the six verdict colours against ruled columns.
+- **The answer at desk scale:** the verdict word is the headline of the proof (serif, about 2.5 rem) with its icon badge, no box around it. An abstained
+  answer has ONE dashed edge, on the answer card itself. Quotes from sources are hairline-rule quotes. Small print is at least .9 rem.
+- **Signature move, the markup:** when an answer arrives the banner settles (about 0.3 s, no bounce) and a pencil stroke is drawn under the verdict word
+  (about 0.5 s). Abstained gets a dashed stroke that is never animated. Only under `prefers-reduced-motion: no-preference`; under reduce it is a short fade.
+- **Colour:** the desktop token pair (`--bar-bg` cobalt, `--app-bg` newsprint, `--serif`) comes after the first light and dark blocks because
+  `tests/test_ui_static.py` reads those only. The desktop values were checked for WCAG AA by script on 2026-10-05: every test pair plus the new
+  pairs (verdict colours on the card and on the abstained ground, links and muted text on the quote ground, the 88% white rail text on cobalt at 8.07:1 light
+  and 11.62:1 dark) pass in light and dark. A change to a desktop token must repeat that check.
+- **Unchanged rules:** an icon and a word for every verdict, abstained looks different from NEI, bands come from `/version`, no fake progress, no
+  exclamation marks, Hindi and Punjabi strings untouched. Detector: `impeccable detect app/static` returns no findings. The design record is `DESIGN.md`.
+
 ## 4. Flow and states
 
 ```
