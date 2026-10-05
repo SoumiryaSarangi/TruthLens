@@ -22,7 +22,8 @@ SEED = 42
 
 
 def is_wrong(gold: str, shown: str | None) -> bool:
-    return shown in ("Supported", "Refuted") and (shown == "Supported") != (gold == "T")
+    """A shown verdict that contradicts a DECIDABLE gold (T or F). A gold-U claim is never right or wrong here (the protocol counts decidable claims)."""
+    return gold in ("T", "F") and shown in ("Supported", "Refuted") and (shown == "Supported") != (gold == "T")
 
 
 def diag_shown(d: dict) -> str | None:
@@ -58,7 +59,7 @@ def load_natural(arm: str) -> dict[str, dict]:
 
 def tally(rows: dict[str, dict], kind: str | None = None) -> dict:
     sel = [r for r in rows.values() if kind is None or r.get("kind") == kind]
-    shown = [r for r in sel if r["shown"]]
+    shown = [r for r in sel if r["shown"] and r["gold"] in ("T", "F")]
     return {"n": len(sel), "shown": len(shown), "correct": sum(not is_wrong(r["gold"], r["shown"]) for r in shown),
             "wrong": sum(is_wrong(r["gold"], r["shown"]) for r in shown),
             "false_supported": sum(r["shown"] == "Supported" and r["gold"] == "F" for r in sel)}

@@ -42,3 +42,31 @@ letters (the language column says English for many Roman Hindi sentences and is 
 (that the concessions were restored). The owner's paraphrase restates the headline, which is TRUE; the mechanical rule (paraphrase gold = the source's rating) would label it False. **For this one pair the gold is flipped (paraphrase T, negation F)**, a labelling fix made before any run and independent of any output.
 Result: **paraphrases 30 gold F and 9 gold T; negations 30 gold T and 9 gold F** (the flipped pair adds a ninth source for the harmful direction: 9 negations are gold F). Sources 29, 32 and 34 also contain a negative word but are themselves the false claims, so their mapping is unchanged.
 **Run procedure and files:** `diagnose --set g --suffix _A` (guard off) and `--suffix _B` (guard on) write `diag_g_A.jsonl` and `diag_g_B.jsonl`; the retention arm is `collect --set a --only A2 --suffix _guard` and `collect --set e --suffix _guard`; `scripts/polarity_guard_v2_check.py` computes the rule once.
+
+## Result (2026-10-06, run `b3a6fdfb6933`, `results/b3a6fdfb6933.json`): the guard FAILS its pre-registered rule on two items, both narrowly; `live_match_guard` is set back to false
+Both arms through the served pipeline (arm A: git `62165de`, guard off; arm B: git `7488e0a`, guard on, the owner restarted between arms), RC-G (78 sentences) and A2 plus RC-E (335 claims, the retention check). A first computation counted verdicts on unverifiable (gold U) claims as right or wrong, which
+the protocol does not do (it counts decidable claims); the script was corrected and rerun and the first results file was deleted. The numbers below are the corrected run.
+
+| RC-G | arm A (no guard) | arm B (guard on) |
+| --- | --- | --- |
+| paraphrases: shown / correct | 13 / 13 | 11 / 11 |
+| negations: shown / wrong | 11 / **11** (all wrong) | 3 / **3** |
+| negations: false Supported | **3** | **0** |
+| fact-check matches blocked | | 10 (none unchecked for language) |
+| degraded runs | 8 | 0 |
+| A2 + RC-E (decidable): shown / correct / wrong | 52 / 51 / 1 | 51 / 51 / 0 |
+
+| Rule item | result | verdict |
+| --- | --- | --- |
+| 1 informative (at least 6 wrong negations in A) | 11 | met |
+| 2 wrong negations in B at most 25% of A | 3 of 11 = 27% (cluster bootstrap 95% interval 0% to 56%) | **NOT met** (one sentence over: 2.75 allowed) |
+| 3 right paraphrases kept at least 85% | 11 of 13 = 84.6% | **NOT met** (one sentence under) |
+| 4 right natural answers kept at least 90% | 51 of 51 | met |
+| 5 no new wrong verdict | none | met |
+| 6 no false Supported on RC-G in B | 0 (3 in A) | met |
+
+**By the rule fixed before any data, the guard does not stay on. `live_match_guard` is false in the served config (the owner restarts the server to return to it).** The rule is not reinterpreted: two of six items fail, by one sentence each.
+- **What the guard did:** 8 of the 11 wrong negated verdicts and all 3 false Supported removed; 2 of 13 right paraphrases became silent (a silent answer is not a wrong one); on A2 plus RC-E nothing right was lost and the one wrong verdict was removed. Together with RC-F (the English-only version removed 14 of 18) the direction is consistent.
+- **The 3 remaining wrong negations are not fact-check answers:** they are answered by the Wikipedia evidence path (`path: evidence`, the validated two-model rule) that misreads a TRUE negated claim ("Pulse oximeter cannot show the oxygen level of pens and biscuits") as Refuted. The guard does not cover that path.
+- **The danger in the served system stands:** with no guard, RC-G showed 11 wrong negated verdicts, 3 of them false Supported; this is recorded in the report. The code stays in the repo (tested, off).
+- **A POST HOC option the owner may take:** switching the guard on anyway as a recorded owner decision (its safety effect is large and its cost is two silent answers), disclosed as not meeting the pre-registered rule. It would be labelled POST HOC and does not change this result.

@@ -1,0 +1,119 @@
+{
+  "config_hash": "b3a6fdfb6933",
+  "created_utc": "2026-10-05T20:58:37+00:00",
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p9_polarity_guard_v2",
+  "git": {
+    "branch": "main",
+    "dirty": true,
+    "sha": "7488e0a9ea8c19d43ee62c9142360e75ae3d43ad"
+  },
+  "inputs": {
+    "config": {
+      "experiment": "p9_polarity_guard_v2",
+      "protocol": "docs/polarity-guard-v2-protocol.md",
+      "seed": 42,
+      "task": "polarity_guard_v2"
+    },
+    "protocol_sha256": "3e5134b6bb40d9406325a4a84cc4ece68fa599ea37e5ca2594a0b6a38dc2a35b"
+  },
+  "metrics": {
+    "guard_stays_on_by_the_rule": false,
+    "natural": {
+      "A": {
+        "correct": 51,
+        "false_supported": 0,
+        "n": 335,
+        "shown": 52,
+        "wrong": 1
+      },
+      "B": {
+        "correct": 51,
+        "false_supported": 0,
+        "n": 335,
+        "shown": 51,
+        "wrong": 0
+      },
+      "degraded_A": 15,
+      "degraded_B": 0
+    },
+    "negation_wrong_remaining_share_cluster_bootstrap95": [
+      0.0,
+      0.5555555555555556
+    ],
+    "new_wrong_in_B_not_in_A": [],
+    "rcg": {
+      "B_blocked": 10,
+      "B_unchecked_fact_check_answers": 0,
+      "degraded_A": 8,
+      "degraded_B": 0,
+      "negation": {
+        "A": {
+          "correct": 0,
+          "false_supported": 3,
+          "n": 39,
+          "shown": 11,
+          "wrong": 11
+        },
+        "B": {
+          "correct": 0,
+          "false_supported": 0,
+          "n": 39,
+          "shown": 3,
+          "wrong": 3
+        }
+      },
+      "paraphrase": {
+        "A": {
+          "correct": 13,
+          "false_supported": 0,
+          "n": 39,
+          "shown": 13,
+          "wrong": 0
+        },
+        "B": {
+          "correct": 11,
+          "false_supported": 0,
+          "n": 39,
+          "shown": 11,
+          "wrong": 0
+        }
+      }
+    },
+    "rules": {
+      "1_informative_at_least_6_wrong_negations_in_A": true,
+      "2_wrong_negations_in_B_at_most_25pct_of_A": false,
+      "3_right_paraphrases_kept_85pct": false,
+      "4_natural_right_kept_90pct_of_A": true,
+      "5_no_new_wrong": true,
+      "6_no_false_supported_on_rcg_in_B": true
+    }
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "polarity_guard_v2"
+}
