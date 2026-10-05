@@ -56,4 +56,11 @@ improvement to try first (the error causes come from A1 and RC-B only). Coverage
 
 ## Dated corrections
 
-(none yet)
+**Correction 1 (2026-10-05, before RC-B is run; RC-A had been started and is untouched).** The owner's file for RC-B (`real_forwards_fresh_120.csv`, copied to the
+gitignored `data/private/real_forwards.csv`) is **120 written claims, not collected forwards**: 100 in Roman Hindi and 20 in Roman Punjabi, each labelled by the
+owner with an institutional source (WHO, NPCI, UIDAI, ISRO, ECI and others), 45 T, 66 F and 9 U, and none of them copied from a family group. It is therefore
+reported as **"RC-B: owner-supplied claims in the style of forwards"**, never as real WhatsApp forwards, and the report must say so. Five rows (91, 117, 118,
+119, 120) carry commentary about their own verifiability inside the claim text (for example "this number is not verified"); all five are labelled U, which is
+never counted as an error, but they are listed in the result and the result is also given without them. The rule for reading RC-B is the protocol's rule applied
+to its decidable (T and F) claims, with the caveat above that 111 decidable claims give wide intervals. RC-A is unchanged and remains the main
+measurement.
