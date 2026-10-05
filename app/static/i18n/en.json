@@ -207,7 +207,10 @@
   "scope": {
     "title": "What this is for",
     "built_for_title": "Built for",
-    "built_for": "Short claims like the ones people forward (health cures, money schemes, “WhatsApp will start charging”), in English, Hindi and Punjabi, including typed in Roman letters. It works best when a fact-checker has already looked at the claim, or when Wikipedia can settle it.",
+    "built_for_1": "Short claims people forward: health cures, money schemes, “WhatsApp will start charging”.",
+    "built_for_2": "English, Hindi and Punjabi, including typed in Roman letters.",
+    "built_for_3": "Claims a fact-checker has already looked at.",
+    "built_for_4": "Plain facts that Wikipedia can settle.",
     "not_for_title": "Not built for",
     "not_for_1": "Recent events (an exam or a news story from this month): the sources used are out of date.",
     "not_for_2": "Private or local events: there is no public source for them.",

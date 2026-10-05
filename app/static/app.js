@@ -58,15 +58,17 @@ function bannerIcon(c, sim) {
 /* What this is built for and what it is not (owner, 2026-10-05): a closed fold, so the first screen stays a paste box. */
 function scopeHtml() {
   const items = [t("scope.not_for_1"), t("scope.not_for_2"), t("scope.not_for_3"), t("scope.not_for_4"), t("scope.not_for_5")];
+  const built = [t("scope.built_for_1"), t("scope.built_for_2"), t("scope.built_for_3"), t("scope.built_for_4")];
   return `<details class="scope"><summary>${esc(t("scope.title"))}</summary><div class="scope-body">
-    <p class="scope-h">${esc(t("scope.built_for_title"))}</p><p>${esc(t("scope.built_for"))}</p>
+    <p class="scope-h">${esc(t("scope.built_for_title"))}</p><ul>${built.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
     <p class="scope-h">${esc(t("scope.not_for_title"))}</p><ul>${items.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div></details>`;
 }
 
 /* The same two lists as two open columns (laptop): under the proof sheet, and in the corner popover. */
 function scopeColumns() {
   const items = [t("scope.not_for_1"), t("scope.not_for_2"), t("scope.not_for_3"), t("scope.not_for_4"), t("scope.not_for_5")];
-  return `<div class="scope-col"><h2>${esc(t("scope.built_for_title"))}</h2><p>${esc(t("scope.built_for"))}</p></div>
+  const built = [t("scope.built_for_1"), t("scope.built_for_2"), t("scope.built_for_3"), t("scope.built_for_4")];
+  return `<div class="scope-col"><h2>${esc(t("scope.built_for_title"))}</h2><ul>${built.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>
     <div class="scope-col"><h2>${esc(t("scope.not_for_title"))}</h2><ul>${items.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>`;
 }
 

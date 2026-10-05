@@ -3246,3 +3246,5 @@ A closed fold, `scope.*` strings (en, hi, pa; hi/pa machine-drafted, review shee
 Placement change (2026-10-05, owner chose option 1): on a laptop the "Built for / Not built for" text moved out of the rail to the empty desk under the proof sheet (the sheet shrinks to about 24 rem or 40% of the height), plus a "What this is for" corner link that opens it as a popover; the phone keeps the closed fold in the empty chat.
 
 Placement change 2 (2026-10-05, owner): the lists were removed from the empty desk, which is the proof sheet alone again; only the top-right "What this is for" corner link and its popover remain on a laptop. The phone keeps the closed fold in the empty chat.
+
+The "Built for" paragraph became four bullet points (scope.built_for_1..4, replacing scope.built_for; hi/pa machine-drafted, review sheet updated) so both lists read the same.
