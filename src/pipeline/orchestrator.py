@@ -80,6 +80,10 @@ class PipelineConfig:
     # None = the module default (0.90). 0.70 was chosen by the rule of docs/live-retrieval-v2-protocol.md (Stage 4). The OFFLINE
     # fast path keeps `tau_match`. Left out of describe() unless set, so no earlier config hash moves.
     tau_live_match: float | None = None
+    # Polarity guard (docs/polarity-guard-v2-protocol.md): a fact-check match is blocked when the live NLI model reads the matched
+    # fact-checked claim (translated to English if Hindi or Punjabi) as contradicting the user's claim. Off until that protocol's rule
+    # passes; left out of describe() unless on.
+    live_match_guard: bool = False
     # Offer the on-demand "which words mattered" view for a live verdict (docs/word-highlight-protocol.md).
     # Off until that protocol's faithfulness rule passes. Left out of describe() unless on.
     word_view: bool = False
@@ -122,6 +126,8 @@ class PipelineConfig:
             out["live_retrieval_v2"] = True
         if self.tau_live_match is not None:
             out["tau_live_match"] = self.tau_live_match
+        if self.live_match_guard:
+            out["live_match_guard"] = True
         if self.tau_similar is not None:
             out["tau_similar"] = self.tau_similar
         if self.word_view:
@@ -130,6 +136,7 @@ class PipelineConfig:
 
 
 LIVE_NLI_MODEL = "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli"
+LIVE_MATCH_GUARD_P = 0.5     # docs/polarity-guard-v2-protocol.md: block a fact-check match at P(Contradiction) >= this
 LIVE_PARTNER_MODEL = "facebook/bart-large-mnli"
 
 
@@ -250,6 +257,43 @@ class Orchestrator:
                     return self.stance
             return self._live_nli
 
+    def _guard_hypothesis(self, trace: Trace, claim, english: str | None) -> str | None:
+        """The English form of the claim for the polarity guard: the translation, or the claim itself when it is already English;
+        None (the guard cannot check) when a Hindi or Punjabi claim could not be translated."""
+        if english:
+            return english
+        lang = trace.pre.lang if trace.pre else "en"
+        return claim.text if lang not in ("hi", "pa") else None
+
+    def _match_guard_blocks(self, trace: Trace, match, hypothesis: str | None) -> bool:
+        """True when the polarity guard blocks this fact-check match (docs/polarity-guard-v2-protocol.md).
+
+        A similarity match carries no polarity: "X does not cure Y" is close to "X cures Y" and inherited its verdict (18 of 18 shown
+        verdicts on negated claims were wrong, run 2bbc13d6e982). The matched fact-checked claim, in English, is the premise and the
+        user's claim, in English, the hypothesis; Contradiction at LIVE_MATCH_GUARD_P or above blocks. Only ever removes a verdict.
+        A match that cannot be checked (a language other than English, Hindi or Punjabi, no text, a failure) stands, and the trace says so.
+        """
+        if not self.cfg.live_match_guard:
+            return False
+        text = (match.claim_text or "").strip()
+        if not hypothesis or not text:
+            trace.record("guard", "match_polarity", 0.0, "fact-check match not checked (no claim text to compare)")
+            return False
+        try:
+            if match.lang in ("hi", "pa"):
+                text = self._get_translator().translate(text, match.lang, "en")
+            elif match.lang != "en":
+                trace.record("guard", "match_polarity", 0.0, "fact-check match not checked (language)")
+                return False
+            p = self._live_stance().label(hypothesis, [text])[0].probs.get("Refutes", 0.0)
+        except Exception as exc:
+            trace.record("guard", "match_polarity", 0.0, f"degraded: polarity guard failed ({type(exc).__name__}); match kept")
+            return False
+        blocked = p >= LIVE_MATCH_GUARD_P
+        trace.record("guard", "match_polarity", 0.0,
+                     f"fact-check match {'BLOCKED' if blocked else 'kept'}: P(contradiction) {p:.2f} (matched claim: {text[:80]})")
+        return blocked
+
     def _get_translator(self):
         with self._live_init:
             if self._translator is None:
@@ -352,6 +396,8 @@ class Orchestrator:
             trace.record("live", "sources", 0.0, note)
 
         # A published fact-check of THIS claim answers it, as on the offline fast path.
+        if found.match is not None and self._match_guard_blocks(trace, found.match, self._guard_hypothesis(trace, claim, english)):
+            found.match = None                 # blocked: the claim falls through to the evidence below, as if nothing had matched
         if found.match is not None:
             out = self._from_factcheck(trace, claim, found.match)
             out.live_sources = found.sources_used
@@ -544,7 +590,11 @@ class Orchestrator:
                             lambda: self.matcher.top1(claim),
                             getattr(self.matcher, "note", None))
         if match is not None and match.score >= self.cfg.tau_match:
-            return self._from_factcheck(trace, claim, match)
+            hypothesis = None
+            if self.cfg.live_match_guard:
+                hypothesis = self._guard_hypothesis(trace, claim, self._english_claim(trace, claim, self._claim_forms(trace, claim, claim_idx)))
+            if not self._match_guard_blocks(trace, match, hypothesis):
+                return self._from_factcheck(trace, claim, match)
         result = self._evidence_path(trace, claim, claim_idx)
         # A fact-check that is probably about something similar, offered to read and never believed:
         # below tau_match there is no verdict from it, but the reader is pointed at it

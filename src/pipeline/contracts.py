@@ -70,6 +70,9 @@ class FactCheckMatch(BaseModel):
     url: str
     publisher: str
     lang: Lang
+    # The fact-checked CLAIM as the fact-checker or the index states it (not the review headline). Only the polarity guard
+    # reads it (docs/polarity-guard-v2-protocol.md); None when the source did not give one.
+    claim_text: str | None = None
 
 
 class SimilarMatch(BaseModel):

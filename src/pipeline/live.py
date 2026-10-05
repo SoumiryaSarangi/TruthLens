@@ -205,7 +205,7 @@ class LiveEvidence:
             result.match = FactCheckMatch(
                 factcheck_id=hit.url, score=cos, verdict=verdict, title=hit.title or hit.claim_text,
                 url=hit.url, publisher=hit.publisher or "a fact-checker",
-                lang=hit.lang if hit.lang in ("en", "hi", "pa") else "other")
+                lang=hit.lang if hit.lang in ("en", "hi", "pa") else "other", claim_text=hit.claim_text or None)
             result.sources_used.append("google_factcheck")
 
         for hit, cos in sorted(zip(hits, fc_cos, strict=True), key=lambda t: -t[1])[:self.n_factcheck]:

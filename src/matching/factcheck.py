@@ -234,4 +234,5 @@ class FactCheckMatcher:
             url=info.url or "",
             publisher=info.publisher or "unknown",
             lang=info.lang if info.lang in SUPPORTED_LANGS else "other",
+            claim_text=info.text or None,
         )
