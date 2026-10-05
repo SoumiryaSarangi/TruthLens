@@ -22,6 +22,38 @@ let cardSeq = 0;
 
 const MAX_CHARS = 4000;  // FR-1, mirrored from the API so the error is instant
 
+/* ----------------------------------------------------------------- icons
+ * Drawn once, one stroke weight (UI_UX.md §6: every verdict has an icon AND a word). Decorative: each is
+ * aria-hidden and the word beside it carries the meaning, so the glyph strings in i18n are not used for the
+ * plain card. */
+const ICONS = {
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  x: '<path d="M6 6l12 12M18 6L6 18"/>',
+  conflict: '<path d="M4 8h13m-3-3 3 3-3 3M20 16H7m3-3-3 3 3 3"/>',
+  help: '<circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1.1.9-1.1 1.7M12 17h.01"/>',
+  abstained: '<circle cx="12" cy="12" r="8.5" stroke-dasharray="3 3"/>',
+  alert: '<path d="M12 4 3 19h18L12 4z"/><path d="M12 10v4M12 17h.01"/>',
+  similar: '<path d="M5 9c2-2 4-2 7 0s5 2 7 0M5 15c2-2 4-2 7 0s5 2 7 0"/>',
+  chat: '<path d="M5 6h14v9h-8.5L7 18v-3H5z"/>',
+  speaker: '<path d="M4 10v4h3l5 4V6L7 10H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>',
+  copy: '<rect x="9" y="9" width="10" height="10" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',
+  search: '<circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/>',
+  warn: '<path d="M12 4 3 19h18L12 4z"/><path d="M12 10v4M12 17h.01"/>',
+};
+
+function ico(name) {
+  return `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICONS[name] || ""}</svg>`;
+}
+
+/* The icon of a plain card's banner, from the same facts that choose its title. */
+function bannerIcon(c, sim) {
+  if (showsSim(c, sim)) return "similar";
+  if (isCareful(c)) return "alert";
+  if (c.kind === "abstained" || c.kind === "lean") return "abstained";
+  return { Supported: "check", Refuted: "x", Conflicting: "conflict" }[c.v] || "help";
+}
+
 /* ---------------------------------------------------------------- strings */
 
 async function loadStrings(lang) {
@@ -452,7 +484,7 @@ function plainFlags(r, lang) {
   const flags = r.manipulation_flags || [];
   if (!flags.length) return "";
   const list = flags.map((f) => tl(lang, `plain.technique.${f}`)).join(", ");
-  return `<p class="plain-flags"><span aria-hidden="true">⚠</span> ${esc(tl(lang, "plain.flags", { list }))}</p>`;
+  return `<p class="plain-flags">${ico("warn")}<span>${esc(tl(lang, "plain.flags", { list }))}</span></p>`;
 }
 
 function replyText(c, sources, lang, sim) {
@@ -479,11 +511,11 @@ function plainCard(r, inp, idx) {
     // A greeting has nothing to look up, so it is not offered a check (the server would refuse it anyway).
     if (r.gate_reason === "greeting") {
       return `<div class="card neutral-card plain" lang="${esc(lang)}">
-      <p class="neutral-title"><span aria-hidden="true">${esc(icons.NotAClaim || "💬")}</span> ${esc(tl(lang, "plain.greeting_title"))}</p>
+      <p class="neutral-title">${ico("chat")}<span>${esc(tl(lang, "plain.greeting_title"))}</span></p>
       <p class="reason">${esc(tl(lang, "plain.greeting_note"))}</p></div>`;
     }
     return `<div class="card neutral-card plain" lang="${esc(lang)}">
-      <p class="neutral-title"><span aria-hidden="true">${esc(icons.NotAClaim || "💬")}</span> ${esc(tl(lang, "plain.none_title"))}</p>
+      <p class="neutral-title">${ico("chat")}<span>${esc(tl(lang, "plain.none_title"))}</span></p>
       <p class="reason">${esc(tl(lang, "plain.none_note"))}</p>
       ${original ? `<div class="actions"><button type="button" class="act act-force" data-text="${esc(original)}"
         data-idx="${idx}" data-card-lang="${esc(lang)}">${esc(tl(lang, "plain.check_anyway"))}</button></div>
@@ -496,9 +528,7 @@ function plainCard(r, inp, idx) {
   const title = plainTitle(c, lang, sim);
   const chipClass = isCareful(c) ? "Conflicting" : c.kind === "abstained" || c.kind === "lean" ? "abstained" : (c.v === "Conflicting" || c.v === "NEI" || c.v === "Refuted"
     || c.v === "Supported" ? c.v : "NEI");
-  const icon = showsSim(c, sim) ? (icons.similar || "\u2248")
-    : (isCareful(c) ? (icons.careful || "\u26a0")
-      : (c.kind === "abstained" || c.kind === "lean" ? icons.abstained : icons[c.v]));
+  const icon = bannerIcon(c, sim);
   const reason = plainReason(c, r, lang, sim);
   const action = plainAction(c, lang, sim);
   const sources = showsSim(c, sim) && c.kind === "lean" ? []
@@ -512,7 +542,7 @@ function plainCard(r, inp, idx) {
 
   let html = `<div class="card plain${c.kind === "abstained" || c.kind === "lean" ? " abstained" : ""}" id="${id}" lang="${esc(lang)}">
     <p class="plain-head"><span class="chip big ${esc(chipClass)}" role="img"
-      aria-label="${esc(t("verdict_aria", { label: title }))}"><span aria-hidden="true">${esc(icon || "")}</span>${esc(title)}</span></p>
+      aria-label="${esc(t("verdict_aria", { label: title }))}"><span aria-hidden="true">${ico(icon)}</span><span>${esc(title)}</span></span></p>
     <p class="reason">${esc(reason)}${sure ? ` <span class="sure">${esc(sure)}</span>` : ""}</p>
     <p class="action">${esc(action)}</p>`;
   const quote = sourceQuote(c, r);
@@ -536,16 +566,16 @@ function plainCard(r, inp, idx) {
   }
   html += `<div class="actions">
       <button type="button" class="act act-listen" data-speak="${esc(speak)}" data-card-lang="${esc(lang)}"
-        aria-label="${esc(tl(lang, "plain.listen"))}"><span aria-hidden="true">🔊</span> ${esc(tl(lang, "plain.listen"))}</button>
+        aria-label="${esc(tl(lang, "plain.listen"))}">${ico("speaker")}${esc(tl(lang, "plain.listen"))}</button>
       <button type="button" class="act act-copy" data-reply="${esc(replyText(c, sources, lang, sim))}" data-card-lang="${esc(lang)}"
-        aria-label="${esc(tl(lang, "plain.copy"))}"><span aria-hidden="true">📋</span> ${esc(tl(lang, "plain.copy"))}</button>
+        aria-label="${esc(tl(lang, "plain.copy"))}">${ico("copy")}${esc(tl(lang, "plain.copy"))}</button>
     </div><p class="note act-note" hidden></p>`;
 
   const ws = wordsSource(c, r);
   if (ws) {
     html += `<div class="words-box"><button type="button" class="act words-btn" data-card-lang="${esc(lang)}"
       data-claim="${esc(ws.claim)}" data-premise="${esc(ws.premise)}" data-verdict="${esc(ws.verdict)}"
-      data-shown="${esc((r.claim && r.claim.text) || "")}"><span aria-hidden="true">🔍</span> ${esc(tl(lang, "plain.words.button"))}</button>
+      data-shown="${esc((r.claim && r.claim.text) || "")}">${ico("search")}${esc(tl(lang, "plain.words.button"))}</button>
       <div class="words-view" hidden></div></div>`;
   }
 
@@ -555,7 +585,7 @@ function plainCard(r, inp, idx) {
       && (c.kind === "lean" || r.abstained || bandName !== "High")) {
     if (c.kind === "lean") html += `<p class="action">${esc(tl(lang, "plain.try_online"))}</p>`;
     html += `<button type="button" class="live-btn" data-card="${id}" data-claim="${esc(r.claim.text)}" data-idx="${idx}"${r._forced ? ' data-forced="1"' : ""}>
-      <span aria-hidden="true">🌐</span> ${esc(tl(lang, "live_button"))}</button>
+      ${ico("globe")}${esc(tl(lang, "live_button"))}</button>
       <p class="note live-privacy">${esc(tl(lang, "live_privacy"))}</p>`;
   }
   html += `<p class="disclaimer">${esc(tl(lang, "disclaimer"))}</p>`;
@@ -589,7 +619,7 @@ function technicalCard(r, inp, cardId, lean = false) {
     const band = liveUsed ? null : bandName;     // live confidence is uncalibrated: no band
     if (band) {
       // A band, not a percentage (UI_UX.md §7); the exact value is one hover away.
-      head += `<span class="band" tabindex="0"
+      head += `<span class="band" data-band="${esc(band)}" tabindex="0"
         title="${esc(t("band_title", { value: Number(r.confidence).toFixed(2) }))}">
         ${esc(t(`band.${band}`, {}, band))}</span>`;
     }
@@ -640,7 +670,7 @@ function technicalCard(r, inp, cardId, lean = false) {
   if (n) {
     // Live sources ARE the answer, so they start open; offline evidence starts collapsed.
     html += `<button type="button" class="trail-toggle" aria-expanded="${liveUsed}"
-      aria-controls="${id}-trail">${liveUsed ? "▾" : "▸"} ${esc(t(liveUsed ? "hide_evidence" : "see_evidence", { n }))}</button>
+      aria-controls="${id}-trail"><span class="chev" aria-hidden="true"></span><span>${esc(t(liveUsed ? "hide_evidence" : "see_evidence", { n }))}</span></button>
       <ol class="trail" id="${id}-trail"${liveUsed ? "" : " hidden"}>`;
     (r.passages || []).forEach((p, k) => {
       const stance = p.stance;           // null on live evidence, which is listed, not judged
@@ -719,7 +749,7 @@ async function searchLive(btn) {
   if (!result || !(result.live_sources || []).length) {
     // A source was down, or the server refused: the earlier answer stays, visibly.
     btn.disabled = false;
-    btn.textContent = `🌐 ${tl(lang, "live_button")}`;
+    btn.innerHTML = `${ico("globe")}${esc(tl(lang, "live_button"))}`;
     const note = btn.parentElement.querySelector(".live-privacy");
     if (note) note.textContent = tl(lang, "live_unavailable");
     return;
@@ -814,7 +844,7 @@ async function copyReply(btn) {
   }
   if (ok) {
     const label = btn.innerHTML;
-    btn.innerHTML = `<span aria-hidden="true">✓</span> ${esc(tl(lang, "plain.copied"))}`;
+    btn.innerHTML = `${ico("check")}${esc(tl(lang, "plain.copied"))}`;
     setTimeout(() => { btn.innerHTML = label; }, 2000);
     if (note) note.hidden = true;
   } else if (note) {
@@ -854,8 +884,8 @@ function toggleTrail(btn) {
   const open = list.hidden;
   list.hidden = !open;
   btn.setAttribute("aria-expanded", String(open));
-  btn.textContent = `${open ? "▾" : "▸"} ${t(open ? "hide_evidence" : "see_evidence",
-    { n: list.children.length })}`;
+  btn.querySelector("span:not(.chev)").textContent = t(open ? "hide_evidence" : "see_evidence",
+    { n: list.children.length });
 }
 
 /* --------------------------------------------------------------- keyboard */
