@@ -1,0 +1,93 @@
+{
+  "config_hash": "2e34a941d690",
+  "created_utc": "2026-10-05T13:05:50+00:00",
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p9_silence_diagnosis",
+  "git": {
+    "branch": "main",
+    "dirty": true,
+    "sha": "62d77e6830f02502846b7a6496135b8be5bc4f50"
+  },
+  "inputs": {
+    "config": {
+      "experiment": "p9_silence_diagnosis",
+      "protocol": "docs/silence-diagnosis-protocol.md",
+      "seed": 42,
+      "task": "silence_diagnosis"
+    },
+    "protocol_sha256": "21a407d69de333f5ec60dc4f93b5843e1307bd8ddceecd6ea17389af63015e03"
+  },
+  "metrics": {
+    "a1": {
+      "categories": {
+        "BOTH_NEI": 26,
+        "NOT_JUDGED": 73,
+        "NO_SOURCE": 1
+      },
+      "categories_gold_t_or_f": {
+        "BOTH_NEI": 22,
+        "NOT_JUDGED": 63,
+        "NO_SOURCE": 0
+      },
+      "rerun": 100,
+      "silent": 100,
+      "silent_by_gold": {
+        "F": 57,
+        "T": 28,
+        "U": 15
+      },
+      "silent_with_similar_suggestion": 24,
+      "status_differs_from_first_run": 0
+    },
+    "b": {
+      "categories": {
+        "BOTH_NEI": 43,
+        "NOT_JUDGED": 91,
+        "NO_SOURCE": 2,
+        "ONE_SIDED": 6
+      },
+      "categories_gold_t_or_f": {
+        "BOTH_NEI": 35,
+        "NOT_JUDGED": 75,
+        "NO_SOURCE": 1,
+        "ONE_SIDED": 6
+      },
+      "rerun": 150,
+      "silent": 142,
+      "silent_by_gold": {
+        "F": 70,
+        "T": 47,
+        "U": 25
+      },
+      "silent_with_similar_suggestion": 6,
+      "status_differs_from_first_run": 2
+    }
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "silence_diagnosis"
+}

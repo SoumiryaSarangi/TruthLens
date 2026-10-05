@@ -38,4 +38,35 @@ Only after that are individual claims of A1 and B read (never A2), to choose the
 (Wilson lower bound 0.80) and false-Supported upper bound at most 0.08. **Coverage is the goal, but a change that raises coverage by lowering precision below those bars is rejected.**
 
 ## Result
-(to be filled after the run)
+Run `2e34a941d690` (`results/2e34a941d690.json`), 2026-10-05. Collection finished (B 150, A1 100). The taxonomy held: OTHER and INFRA are both 0%.
+
+| Cause of silence | B (142 silent) | of which gold T/F | A1 (100 silent) | of which gold T/F |
+| --- | --- | --- | --- | --- |
+| NOT_JUDGED (pages found, none passed to the models) | 91 (64%) | 75 | 73 (73%) | 63 |
+| BOTH_NEI (judged, nothing settles it) | 43 (30%) | 35 | 26 (26%) | 22 |
+| ONE_SIDED (the two models did not agree) | 6 (4%) | 6 | 0 | 0 |
+| NO_SOURCE | 2 (1%) | 1 | 1 (1%) | 0 |
+
+- **Reproducibility:** the shown/silent status of a claim differed from the first run for 2 of 150 (B) and 0 of 100 (A1). The silence is stable, not noise.
+- **Silent by gold (B):** 25 U (correctly silent), 70 F, 47 T. Silent with a similar-fact-check suggestion: 6 of 142 (B), 24 of 100 (A1).
+- **By the decision rule:** the largest category with a known fix is NOT_JUDGED (retrieval, query building and the page-grounding gate). It is above 35%, so the rule asks whether a fix exists.
+
+**What NOT_JUDGED is** (read from A1 and B only, after the tally; the trace notes say so): in 77 of the 91 B cases and 65 of the 73 A1 cases, pages with relevance at least 0.5 WERE found and
+then dropped by the grounding gate ("listed, not judged: not a page about the claim's subject"), which needs every content word of a page title to appear in the claim. The rest had no page above 0.5.
+The retrieved pages are mostly weakly relevant: the median top relevance of a NOT_JUDGED claim is about 0.57 in B and 0.60 in A1, and the pages are often a different topic from the claim
+("Intermittent water supply" for a UPI claim, "Sukanya Samriddhi Account" for a PMJDY claim).
+
+**POST HOC simulation (variants not pre-registered; `scripts/title_gate_simulation.py`, titles only, no model run):** among the 114 gold-T/F silent claims that had a Wikipedia page at least 0.5 relevant,
+how many would get a page past a looser gate? Stem matching (Indian~India): 6 in B, 1 in A1. Plus acronyms (UPI~Unified Payments Interface, OTP~One-time password): 23 in B, 2 in A1.
+Two-thirds of title words with the head word: 9 and 7. That is at most 23 of 125 gold-T/F B claims (18%) and 2 of 85 in A1 reaching the models, before the models agree or not, and some of
+the admitted pairs are plausible but wrong ("Freecharge" for the "PM Free Recharge" scam claim), which is exactly how a false Supported is made.
+
+**Decision (by the rule written above; the owner delegated it):**
+1. **No change to the served live check.** A looser gate is a small, unvalidatable and risky lever: at most about 2% of A1 and 15% of B could reach the models, the number that would end as
+   correct shown verdicts is a fraction of that, and the held-out data cannot validate such a change (A2 has about 31 shown verdicts in 250; a change affecting about 2% of claims moves about 5 of them).
+2. **NOT_JUDGED and BOTH_NEI are reported as LIMITS, not worked around:** the check is silent mainly because Wikipedia and the fact-check search do not hold a page about the claim, or
+   hold one that does not settle it. This is a source limit. Real scam-style forwards (a fake "PM Free Recharge" scheme, a made-up bank rule) are exactly what Wikipedia does not cover.
+3. The cheapest honest gain is not a model change but the wording: when the check is silent, the card already says nothing settles it and points to a fact-checker; that is the product
+   behaving as designed, and it is what the relatives' usability test should now measure.
+4. What would need NEW data and its own protocol if the owner wants coverage later: whole-article reading for BOTH_NEI; a larger, newer fact-check index (the live fact-check search
+   answers 55 of 61 shown verdicts on AVeriTeC); Roman-script matching for the fast path.

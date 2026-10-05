@@ -242,6 +242,14 @@ def _is_shown(d: dict) -> bool:
 
 def tally() -> int:
     import collections
+
+    from common.hashing import canonical_json, sha256_bytes, sha256_file
+    from common.io_jsonl import write_json
+    from common.provenance import env_info, git_info
+    from common.seeds import set_all_seeds
+
+    seeded = set_all_seeds(SEED)
+    summary: dict = {}
     for which in ("b", "a1"):
         rows = read_jsonl(OUT / f"diag_{which}.jsonl")
         if not rows:
@@ -259,6 +267,18 @@ def tally() -> int:
         if which == "b":
             print("  by language:", dict(collections.Counter(r.get("lang") for r in silent)))
         print("  silent with a similar-fact-check suggestion:", sum(1 for r in silent if r["diag"].get("similar")))
+        summary[which] = {"rerun": len(rows), "silent": len(silent), "categories": dict(cats),
+                          "categories_gold_t_or_f": {k: sum(1 for r in silent if category(r["diag"]) == k and r["gold"] in ("T", "F")) for k in cats},
+                          "status_differs_from_first_run": flips, "silent_by_gold": dict(collections.Counter(r["gold"] for r in silent)),
+                          "silent_with_similar_suggestion": sum(1 for r in silent if r["diag"].get("similar"))}
+    cfg = {"experiment": "p9_silence_diagnosis", "task": "silence_diagnosis", "protocol": "docs/silence-diagnosis-protocol.md", "seed": SEED}
+    sha = sha256_file(ROOT / "docs" / "silence-diagnosis-protocol.md")
+    h = sha256_bytes(canonical_json(cfg) + sha.encode() + canonical_json(summary))[:12]
+    write_json(ROOT / "results" / f"{h}.json", {
+        "config_hash": h, "experiment": cfg["experiment"], "task": cfg["task"], "created_utc": datetime.now(UTC).isoformat(timespec="seconds"),
+        "git": git_info(), "env": env_info(), "seed": SEED, "seeded_libraries": seeded, "inputs": {"config": cfg, "protocol_sha256": sha},
+        "metrics": summary})
+    print(f"\nwritten results/{h}.json")
     return 0
 
 
