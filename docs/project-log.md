@@ -111,18 +111,49 @@ historical rationale, lowest precedence.
     gate now also rejects, under any verdict but Supported, a sentence that
     entails the claim.
 
-**Where things stand (2026-10-05): the project is COMPLETE except the demo itself
-and one human review.** Phases 1-7 are done. The one test run is scored and written
-up (`docs/report.md`, `docs/acceptance.md`, `docs/error-analysis.md`,
-`docs/test-protocol.md`); after it came two post-test improvements (lexicon
-transliteration + native-script query for romanized free text; live
-Wikipedia/Google Fact Check search). **Live search now gives a VERDICT, under a rule that was
-pre-registered and passed** (entry "Live verdict shipped" at the bottom; report §8b;
-`docs/live-fever-protocol-2.md`). **Do not change the served model or any reported number:
-the test split is spent**, and the live verdict never runs in an evaluation. What remains:
-the demo (`UI_UX.md` §11): run `python scripts/demo_check.py` first (must print
-OK), then `make serve` (or `.venv\Scripts\python.exe scripts\serve.py`), click each chip once
-to load every model; the live models load in the background about 40 s after the server is ready.
+**Where things stand (2026-10-05, end of day; last commit `f4872a7`, 846 tests, lint clean, CI green): the
+project is COMPLETE except the demo, the owner's reviews and the relatives' test.** Phases 1-7 are done. The one test
+run is scored and written up (`docs/report.md`, `docs/acceptance.md`, `docs/error-analysis.md`, `docs/test-protocol.md`).
+**Do not change the served model or any reported number: the test split is spent**, and nothing built after it (live
+search, plain card, similar fact-check) ever runs in an evaluation. What was built AFTER the test run, in order
+(each has its own entry at the bottom of this log):
+1. Romanized free text: lexicon transliteration + a native-script query (report 8a).
+2. Live Wikipedia + Google Fact Check search, then a live VERDICT that earned its place: four hand-written probe sets
+   rejected it, two pre-registered FEVER measurements decided it (protocol 1 missed its accuracy bar by two claims, protocol 2 on
+   350 fresh claims with the owner's real-world labels passed all four gates). Served as: claim translated to English, a page
+   judged only if about the claim's subject, DeBERTa-v3-large and BART-large-MNLI must agree (report 8b).
+3. A **plain-language card for ordinary readers** (the owner's parents and grandparents are the audience): one verdict word,
+   one reason, what to do, sources, Listen, Copy a reply; the full technical card sits in a closed "Details" fold.
+4. After the owner tried their own questions: **the offline evidence-path guess is never shown as an answer** (it said
+   Refuted to 122 of 125 true claims and to "Paris is the capital of France"). It is now "Be careful with this one: I
+   couldn't find a source that checks this exact claim. Most messages like this turn out to be false." (amber) or, for another
+   lean, "Hard to say". Verdicts are shown only for a matched published fact-check (fast path) and the live check.
+5. A **"similar fact-check" card** ("{publisher} looked at something similar [and rated it False]. This may not be the same
+   message."): `ClaimResult.similar_match`, `tau_similar` **0.70** (the owner's post-hoc product decision; the pre-fixed rule gave
+   0.86; `docs/similar-factcheck-protocol.md`), offered even when the fact-check's rating cannot be mapped
+   (`FactCheckMatcher.similar`, `SimilarMatch`). On 30 typical hoaxes through the real stages: 1 fast-path verdict, 6 similar
+   cards, 22 "Be careful", 1 refused by the claim gate.
+6. "Check it anyway" for a message the claim gate refuses (`force_claim`, an optional request flag, off by default); the API
+   normalizes text to Unicode NFC (two forms of one Punjabi letter gave Refuted vs NEI); `scripts/serve.py` replaces the
+   Unix-only `make serve` line (`.venv\Scripts\python.exe scripts\serve.py`).
+
+**WHAT THE OWNER STILL HAS TO DO (nothing else is open):**
+1. **Restart the server** (their running one has an OLD backend; the page files are served live from disk, the Python backend
+   is not) and hard-refresh (Ctrl+F5). Then `python scripts/demo_check.py` must print OK (not re-run since the last UI changes;
+   the chips are unchanged but the Roman-Hindi and long-forward chips are now "Be careful" cards, not verdicts).
+2. **Review the new Hindi and Punjabi strings**, all at the bottom of `docs/i18n-review.md` (each section says NOT YET
+   REVIEWED and names the `_comment` sentence to remove from `hi.json` and `pa.json` once applied): the honest-card strings (7),
+   the similar-fact-check strings (10), the "be careful" and unrated-suggestion strings (4). The 55 plain-card strings and the
+   live-verdict strings are already reviewed and applied.
+3. **Run the relatives' usability test** with 3-5 people per `docs/usability-test.md` (questions and pass bars fixed before testing;
+   task B now expects "Be careful with this one"), send the results sheet, then write `docs/usability-results.md` and update report
+   section 6.
+4. Rehearse the demo (`UI_UX.md` section 11): fact-checked chip, a similar-fact-check example ("WhatsApp will start charging users from
+   next month", "Lemon water cures cancer"), the careful card, a live click ("Hyderabad is the capital of Telangana", "Methyl Phenidate is
+   good medicine for ADHD": click once beforehand so the response is cached), the greeting. Read the report end to end once.
+5. Optional: `tau_similar` 0.65 (about 13 of 30 hoaxes get a source, ~59% dev precision) is a one-line change in
+   `configs/pipeline/dev.yaml`; the deferred live extras (better qualifier judge, more than 30% live coverage) are in memory and
+   need a new pre-registered protocol.
 
 **Rules a new session must not re-learn:**
 - The test split is locked to the agent: `TRUTHLENS_ALLOW_TEST=1` is refused by the
@@ -134,6 +165,20 @@ to load every model; the live models load in the background about 40 s after the
   validated on FRESH data, never the set that motivated it (live probe sets 1 and 2).
 - `rm -rf` is deny-listed. Long shell commands with nested quotes fail: write a
   script file instead. Git-commit messages must not mention the test-split flag.
+- **The audience is ordinary people**, not engineers (owner, 2026-10-05): plain words, the reader's language, what to do next, technical detail
+  only inside "Details". No language buttons on the page (the owner did not want them); the page language follows the browser or `?lang=`; each
+  answer follows its MESSAGE's script (Devanagari or Gurmukhi -> Hindi or Punjabi, Latin letters -> English). The look is the earlier one (15 px
+  type, 440 px column); do not enlarge it again.
+- **Never show the offline evidence-path verdict as an answer** and never "I am quite sure" on it (see item 4 above). The owner asked for the old
+  "Probably false" back; it was declined with the data and the owner accepted the "Be careful" wording. A verdict needs an earned source: fast path or live.
+- **The owner runs their own server on port 8000** while testing. Never kill it; never load GPU models in another process while it runs (model loads fail
+  with OSError / paging-file errors and results are invalid). For matcher-only checks use `CUDA_VISIBLE_DEVICES=""` on the CPU, or query the owner's
+  server over HTTP. A second server for screenshots needs the owner's server stopped.
+- **Checking the UI without a browser tool:** Node render checks (`scripts/ui_plain_check.js reports/ui_responses.json`, `ui_render_check.js`,
+  `ui_live_check.js`, `ui_evidence_check.js`) plus headless Chrome (`C:\Program Files\Google\Chrome\Application\chrome.exe --headless=new --screenshot=...`)
+  against a TEMPORARY `app/static/_preview.html` (index.html plus a script that calls `send(...)`); delete it afterwards.
+- Decisions are the owner's when they are product choices; record a choice made after seeing the numbers as POST HOC (the `tau_similar` 0.70 entry is
+  the model). Pre-registered protocols are never edited after the first run except by dated corrections.
 
 **Working files, all gitignored and on this machine:** AVeriTeC cached passages
 `results/preds/p6_passages_{train,dev}.jsonl`; scored passages
@@ -156,13 +201,13 @@ built on this machine (Python 3.11 via uv, CUDA torch, models cached on `D:`).
 
 | | |
 | --- | --- |
-| **Current phase** | **ALL PHASES COMPLETE (2026-10-04).** Phase 7 done: test run scored, report, acceptance, error analysis; native-speaker review of the hi/pa UI applied. Post-test: lexicon transliteration + native-script free-text query, live search with a pre-registered, validated two-model verdict (2026-10-05). Remaining: the owner's review of 3 new hi/pa strings, then the demo. The test split is spent. Headline test result: served verdict macro-F1 **0.2622** vs claim-only control **0.3085** (paired -0.0463, CI [-0.094, +0.001]) and majority 0.1447. |
-| **Clock** | Target **2026-10-12**, no fixed external deadline. Phases 1-7 done 2026-10-02; post-test work 2026-10-04. Days 13-14 are writing and demo polish only. |
+| **Current phase** | **ALL PHASES COMPLETE (2026-10-05).** Phase 7 done: test run scored, report, acceptance, error analysis. Post-test, all opt-in and never in an evaluation: lexicon transliteration, live search with a pre-registered validated two-model verdict, a plain-language card for ordinary readers, an honest guess card ("Be careful"), a similar-fact-check card, "Check it anyway". Remaining (owner): restart the server, review the new hi/pa strings, the relatives' usability test, demo rehearsal. The test split is spent. Headline test result: served verdict macro-F1 **0.2622** vs claim-only control **0.3085** (paired -0.0463, CI [-0.094, +0.001]) and majority 0.1447. |
+| **Clock** | Target **2026-10-12**, no fixed external deadline. Phases 1-7 done 2026-10-02; post-test work 2026-10-04 and 2026-10-05. What is left is the owner's reviews, the usability test, the demo and a read of the report. |
 | **Hardware** | i7-14700HX + RTX 4050 laptop GPU, 6 GB VRAM. No Colab. |
 | **Branch model** | Trunk-based. Everything commits straight to `main`. |
 | **Python** | 3.11.16 via uv, in `.venv`. System Python is 3.13 and is not used. |
-| **Served config** | `configs/pipeline/dev.yaml` -- preprocess `hybrid` with the **lexicon** transliterator, claims **`heuristic_span`**, matching `factcheck` (tau_match 0.90), retrieval `hybrid` (RRF@200), free text `corpus` searched with the claim AND its native-script form, stance `xlmr_nli`, aggregate `learned` (aggregator_xlmr_nli_prior), tau_abstain 0.3835, floor off, generation `indicbart` (beam) behind faithfulness `nli`, **manipulation `rules_nli`**, **live_search / live_verdict / live_translate true** (the validated two-model rule; live models offloaded to CPU RAM between uses). `make serve` warms up first. |
-| **Tests** | 822 passing, 9 skipped, 2 gpu-deselected (CI has no torch; many ML tests skip there). |
+| **Served config** | `configs/pipeline/dev.yaml` -- preprocess `hybrid` with the **lexicon** transliterator, claims **`heuristic_span`**, matching `factcheck` (tau_match 0.90), retrieval `hybrid` (RRF@200), free text `corpus` searched with the claim AND its native-script form, stance `xlmr_nli`, aggregate `learned` (aggregator_xlmr_nli_prior), tau_abstain 0.3835, floor off, generation `indicbart` (beam) behind faithfulness `nli`, **manipulation `rules_nli`**, **live_search / live_verdict / live_translate true** (the validated two-model rule; live models offloaded to CPU RAM between uses), **tau_similar 0.70** (the owner's post-hoc choice; rule gave 0.86). `make serve` warms up first. |
+| **Tests** | 846 passing, 9 skipped, 2 gpu-deselected (CI has no torch; many ML tests skip there). Clean clone at `023ef3e` passed lint, leakage and 807 tests. |
 | **Datasets in hand** | AVeriTeC, X-CLAIM, MultiClaim, handtyped (FR-26), Dakshina, **CheckThat! 2025 T2** |
 | **Datasets waiting** | None. Every dataset is downloaded, split, locked and leakage-checked. |
 | **GPU stack** | torch `2.9.1+cu128`, CUDA available on the RTX 4050. ~4.9 GiB usable VRAM. |
@@ -2808,23 +2853,14 @@ complete.** The remaining FR-6 limitation is a data problem with a named owner:
 
 ## Next
 
-Everything planned is done (Phases 1-7, the one test run, the report, the acceptance
-matrix). What remains, in order:
+Everything planned is done. The remaining items are the owner's and are listed, in order, under "WHAT THE OWNER STILL HAS TO DO"
+near the top of this file (restart the server; review the new hi/pa strings; the relatives' usability test and
+`docs/usability-results.md`; demo rehearsal; read the report once; `python scripts/check_report_numbers.py docs/report.md` after any
+edit). Writing and polish only: no new code, no new numbers, unless the owner asks.
 
-1. ~~Owner: review the three new hi/pa live-verdict strings~~ Done 2026-10-05 (all 3 corrected).
-2. **The demo** (`UI_UX.md` §11): `python scripts/demo_check.py` must print OK; then
-   `make serve`; click each chip once so every model is loaded (first requests take
-   30+ s). Order: greeting, fact-checked, Roman Hindi, thin evidence. The live-search
-   button on a claim such as "Hyderabad is the capital of Telangana" gives a verdict when the two
-   models agree (and says how it was tested); click it once beforehand so the responses are cached.
-3. **Writing/polish only** (Days 13-14): no code, no new numbers. The report is
-   `docs/report.md`; re-run `scripts/check_report_numbers.py docs/report.md` after
-   any edit.
-
-Optional future work, all outside the frozen result: a judge that separates qualifiers
-("first Indian" against "first Indian-born woman") and answers more than 30% of claims, under a
-new pre-registered protocol on fresh claims; an accurate transliterator (IndicXlit in its own
-venv); a correction for the verdict model's "forwarded claims are false" prior.
+Optional, all outside the frozen result: `tau_similar` 0.65; a judge that separates qualifiers ("first Indian" against "first
+Indian-born woman") and answers more than 30% of claims (new pre-registered protocol on fresh claims; deferred by the owner, in
+memory); IndicXlit in its own venv; a correction for the verdict model's "forwarded claims are false" prior.
 
 **The floor to beat, per component** is superseded by the test table in
 `docs/report.md` §8.

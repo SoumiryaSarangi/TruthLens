@@ -29,9 +29,11 @@ strings are reviewed and applied.
   (the claim translated to English, a page judged only if about the claim's subject, two NLI
   models must agree). Report §8b, `docs/live-fever-protocol.md`, `docs/live-fever-protocol-2.md`.
 
-**What remains:** the demo (`UI_UX.md` §11) after
-`python scripts/demo_check.py`. Optional future work: a better judge for the qualifiers
-that still fool it ("first Indian" against "first Indian-born woman"), and more than 30% coverage.
+**What remains (all the owner's; see `docs/project-log.md`, "WHAT THE OWNER STILL HAS TO DO"):** restart the server; review the new
+Hindi/Punjabi strings (`docs/i18n-review.md`, bottom sections); the relatives' usability test (`docs/usability-test.md`); demo rehearsal
+(`UI_UX.md` section 11); a last read of the report. Also built after the live verdict: the plain card for ordinary readers, the "Be careful"
+wording (the offline guess is never shown as an answer), the similar-fact-check card (`tau_similar` 0.70, `docs/similar-factcheck-protocol.md`),
+"Check it anyway". Optional future work: a better qualifier judge and more than 30% live coverage (new protocol on fresh claims).
 
 Target date **2026-10-12**, no fixed external deadline (confirmed 2026-09-30).
 
