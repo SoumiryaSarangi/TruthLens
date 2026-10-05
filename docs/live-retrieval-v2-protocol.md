@@ -126,3 +126,23 @@ If no candidate meets all three, **Stage 4 is dropped and recorded**. Reported f
 at most 0.08; and pooled shown decidable verdicts at least 37 (the baseline 28 plus 30%); the more conservative of row and source-cluster verdicts stands. Fact-check matching does not read the agency pages RC-E was written from, so RC-E is a fair
 test here (unlike a new Wikipedia-side source). A2's matches are computed only after the dev choice is recorded. **If it passes, `TAU_MATCH` for the live path is changed (a separate config key `tau_live_match`), the owner restarts the server, and
 A2 plus RC-E are run through the served system once to confirm the offline projection; if the served run disagrees with the projection, the worse reading is reported.** If it fails, nothing is shipped.
+
+## Result of the Stage 4 development step (2026-10-05, run `72772ef47d7c`, `results/72772ef47d7c.json`; A1 plus B, 400 claims, gold T/F/U; recorded BEFORE A2 or RC-E matches were computed)
+The collected v1 result on A1 plus B: 36 shown, 34 decidable, **32 correct** (the gain bar is therefore 42 correct). Projected result by threshold (the fact-check match decides first, else what v1 showed):
+
+| tau | shown | decidable shown | correct | precision (Wilson lower) | false Supported | shown on unverifiable | meets the rule |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| v1 (none) | 36 | 34 | 32 | 0.941 (0.809) | 0 | 2 | |
+| 0.90 | 38 | 36 | 34 | 0.944 (0.819) | 0 | 2 | no (34 < 42) |
+| 0.85 | 45 | 43 | 40 | 0.930 (0.814) | 0 | 2 | no (40 < 42) |
+| 0.80 | 55 | 52 | 48 | 0.923 (0.818) | 0 | 3 | yes |
+| 0.75 | 64 | 61 | 56 | 0.918 (0.822) | 0 | 3 | yes |
+| 0.70 | 67 | 64 | 58 | 0.906 (0.810) | 0 | 3 | yes |
+
+**By the rule fixed above (the LOWEST passing tau), the chosen tau is 0.70.** Coverage rises from 0.090 to 0.168 on the dev sets, with no false Supported in 225 false claims. Read before the final test, as warnings and not as a change of rule:
+- 0.70 is also the value that offers a "similar fact-check" as a suggestion (`tau_similar`); choosing it turns that suggestion into a verdict, which changes what the card promises, and its dev precision (0.906) only just clears the 0.90 line. The final bars below are the judge, not this table.
+- The shown verdicts come from a handful of publishers (PolitiFact, BOOM, India Today, USA Today, AFP, misbar, Alt News, Snopes); on the dev sets matches may be partly favoured because AVeriTeC claims were themselves taken from fact-check articles.
+  RC-E and A2 are the test of whether this survives; RC-E's claims were not written from fact-check articles.
+- Wording: a verdict by fact-check match is shown as "already checked by <publisher>", with their rating, never a model's. If the final test passes the card's wording must stay exactly that, and the lower threshold is disclosed in the report.
+
+**Next, once:** the chosen tau on A2 plus RC-E with the pooled final bars (precision at least 0.85, Wilson lower at least 0.80, false-Supported upper bound at most 0.08, correct shown decidable at least 37 against the v1 baseline of 28 on that pool).

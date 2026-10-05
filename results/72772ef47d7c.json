@@ -1,0 +1,204 @@
+{
+  "config_hash": "72772ef47d7c",
+  "created_utc": "2026-10-05T15:05:52+00:00",
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p9_factcheck_match_curve_dev",
+  "git": {
+    "branch": "main",
+    "dirty": true,
+    "sha": "10799f5967ef6d4674a299cc3a7775c741ede8ac"
+  },
+  "inputs": {
+    "config": {
+      "experiment": "p9_factcheck_match_curve_dev",
+      "protocol": "docs/live-retrieval-v2-protocol.md",
+      "seed": 42,
+      "task": "factcheck_match_curve_dev"
+    },
+    "protocol_sha256": "f7ac07b37a8b004556a220a900fddf5593370a04a463114ad777bc5cbca6bfda"
+  },
+  "metrics": {
+    "by_tau": {
+      "0.70": {
+        "correct": 58,
+        "coverage": 0.1675,
+        "decidable_shown": 64,
+        "false_supported": 0,
+        "false_supported_wilson95": [
+          0.0,
+          0.016786551265995167
+        ],
+        "fc_shown_by_publisher": {
+          "AFP Fact Check": 4,
+          "Alt News": 4,
+          "BOOM Fact Check": 7,
+          "India Today": 6,
+          "PolitiFact": 10,
+          "Snopes.com": 4,
+          "USA Today": 5,
+          "misbar.com": 4
+        },
+        "gold_false": 225,
+        "meets_rule": true,
+        "n": 400,
+        "precision": 0.90625,
+        "precision_wilson_lower": 0.8101712030635407,
+        "shown": 67,
+        "shown_on_unverifiable": 3
+      },
+      "0.75": {
+        "correct": 56,
+        "coverage": 0.16,
+        "decidable_shown": 61,
+        "false_supported": 0,
+        "false_supported_wilson95": [
+          0.0,
+          0.016786551265995167
+        ],
+        "fc_shown_by_publisher": {
+          "AFP Fact Check": 4,
+          "Alt News": 4,
+          "BOOM Fact Check": 6,
+          "India Today": 6,
+          "PolitiFact": 10,
+          "Snopes.com": 4,
+          "USA Today": 5,
+          "misbar.com": 4
+        },
+        "gold_false": 225,
+        "meets_rule": true,
+        "n": 400,
+        "precision": 0.9180327868852459,
+        "precision_wilson_lower": 0.8220533810108364,
+        "shown": 64,
+        "shown_on_unverifiable": 3
+      },
+      "0.80": {
+        "correct": 48,
+        "coverage": 0.1375,
+        "decidable_shown": 52,
+        "false_supported": 0,
+        "false_supported_wilson95": [
+          0.0,
+          0.016786551265995167
+        ],
+        "fc_shown_by_publisher": {
+          "": 3,
+          "AFP Fact Check": 4,
+          "Alt News": 3,
+          "BOOM Fact Check": 5,
+          "India Today": 5,
+          "PolitiFact": 9,
+          "USA Today": 4,
+          "misbar.com": 3
+        },
+        "gold_false": 225,
+        "meets_rule": true,
+        "n": 400,
+        "precision": 0.9230769230769231,
+        "precision_wilson_lower": 0.8182643750912105,
+        "shown": 55,
+        "shown_on_unverifiable": 3
+      },
+      "0.85": {
+        "correct": 40,
+        "coverage": 0.1125,
+        "decidable_shown": 43,
+        "false_supported": 0,
+        "false_supported_wilson95": [
+          0.0,
+          0.016786551265995167
+        ],
+        "fc_shown_by_publisher": {
+          "": 3,
+          "AFP Fact Check": 2,
+          "Alt News": 3,
+          "BOOM Fact Check": 4,
+          "India Today": 4,
+          "PolitiFact": 8,
+          "USA Today": 2,
+          "misbar.com": 3
+        },
+        "gold_false": 225,
+        "meets_rule": false,
+        "n": 400,
+        "precision": 0.9302325581395349,
+        "precision_wilson_lower": 0.8139101297785699,
+        "shown": 45,
+        "shown_on_unverifiable": 2
+      },
+      "0.90": {
+        "correct": 34,
+        "coverage": 0.095,
+        "decidable_shown": 36,
+        "false_supported": 0,
+        "false_supported_wilson95": [
+          0.0,
+          0.016786551265995167
+        ],
+        "fc_shown_by_publisher": {
+          "": 4,
+          "Alt News": 3,
+          "BOOM Fact Check": 3,
+          "India Today": 2,
+          "PolitiFact": 7,
+          "Snopes.com": 2,
+          "USA Today": 2,
+          "misbar.com": 2
+        },
+        "gold_false": 225,
+        "meets_rule": false,
+        "n": 400,
+        "precision": 0.9444444444444444,
+        "precision_wilson_lower": 0.8185534265532164,
+        "shown": 38,
+        "shown_on_unverifiable": 2
+      }
+    },
+    "chosen_tau": 0.7,
+    "correct_needed_for_gain": 42,
+    "v1_baseline_A1_B": {
+      "correct": 32,
+      "coverage": 0.09,
+      "decidable_shown": 34,
+      "false_supported": 0,
+      "false_supported_wilson95": [
+        0.0,
+        0.016786551265995167
+      ],
+      "gold_false": 225,
+      "n": 400,
+      "precision": 0.9411764705882353,
+      "precision_wilson_lower": 0.8090639295407052,
+      "shown": 36,
+      "shown_on_unverifiable": 2
+    }
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "factcheck_match_curve_dev"
+}

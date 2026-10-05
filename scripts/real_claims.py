@@ -191,6 +191,8 @@ def _diag_claims(which: str) -> list[dict]:
     """B (all 150) or the 100 random A1 claims that were silent in the first run (docs/silence-diagnosis-protocol.md)."""
     if which == "b":
         return rcb_claims()
+    if which == "e":      # only the English translation is wanted from this run (offline fact-check scoring); RC-E errors stay unread
+        return rcb_claims("real_forwards_new.csv", "rce", "E")
     first = {r["uid"]: r for r in read_jsonl(OUT / "rca.collect.jsonl")}
     silent = [c for c in rca_claims() if c["part"] == "A1" and first.get(c["uid"], {}).get("final", {}).get("shown") is None]
     random.Random(SEED).shuffle(silent)
@@ -302,7 +304,7 @@ def main() -> int:
     c.add_argument("--set", choices=("a", "b", "d", "e"), required=True)
     sub.add_parser("report")
     g = sub.add_parser("diagnose")
-    g.add_argument("--set", choices=("b", "a1"), required=True)
+    g.add_argument("--set", choices=("b", "a1", "e"), required=True)
     sub.add_parser("tally")
     args = ap.parse_args()
     if args.cmd == "diagnose":
