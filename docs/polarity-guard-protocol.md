@@ -51,3 +51,14 @@ served run disagrees, the worse reading is reported and the key is left off. **I
 ## What the owner provides
 After approval the agent builds `rcf_sources.csv` (about 60 real fact-checked claims, with publisher, rating and URL) and sends it. The owner (or friends) writes a paraphrase and a negation for each, in the same column layout as
 `real_forwards.csv` plus a `source_id` and a `kind` column (paraphrase or negation), without looking at any system output. About 100 sentences.
+
+## Status and correction 1 (2026-10-05, after approval; written BEFORE any RC-F sentence exists and before any guard output)
+**The owner approved the protocol.** The source list was built from the Google Fact Check index by `scripts/build_rcf_sources.py` (English claims, 6 to 22 words, clear rating, no video/photo/post claims, no politics or bare statistics, at most 5 per publisher),
+then curated by hand for simple factual claims whose paraphrase and negation can be written naturally (near-duplicate lemon claims, question headlines about events, "mostly false" ratings and person-specific political items were dropped). Result:
+**44 sources: 40 rated False and only 4 rated True.** The protocol asked for at least 60 and at least 8 True. The index simply holds very few True-rated claims (fact-checkers publish mostly debunks): 8 True candidates across about 250 queries, 4 usable.
+Consequences, stated now:
+- **The harmful direction (a false claim inheriting "Supported") can be tested on at most 4 sources**, so it is effectively NOT tested; it stays a disclosed limit and pass-rule item 4 is reported but cannot carry weight.
+- **The observable error is the mild direction:** the negation of a False-rated source is a TRUE claim, and a polarity-blind match shows it Refuted. The test of pass-rule item 1 uses those negations (40 sources).
+- The informativeness condition is unchanged: with fewer than 6 wrong shown negations WITHOUT the guard the result is "not testable" and the guard is not adopted.
+- The owner fills a wide sheet (`rcf_for_owner.csv`: one row per source, columns `paraphrase`, `negation`, `language`, `skip_reason`); the agent converts it mechanically to long form (kind = paraphrase or negation; gold of a paraphrase = the source's rating,
+  gold of a negation = the opposite). Rows with a blank cell are skipped and counted.
