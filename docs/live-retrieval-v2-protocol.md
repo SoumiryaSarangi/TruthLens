@@ -1,6 +1,6 @@
-# Live retrieval v2: finding a page that is about the claim (DRAFT, awaiting the owner's approval; written 2026-10-05 before any code or run)
+# Live retrieval v2: finding a page that is about the claim (APPROVED by the owner 2026-10-05; written before any code or run)
 
-**Status: DRAFT. Nothing in this file is built or run. The owner approves it, then it is committed as final, then code is written.**
+**Status: APPROVED (2026-10-05). The owner approved the three stages and supplied RC-E. Correction 1 below was written before RC-E or any v2 code was run.**
 
 ## Why
 `docs/silence-diagnosis-protocol.md` (run `2e34a941d690`): the served live check is silent on 96% of the owner's written claims and 88% of AVeriTeC dev claims. In 64% to 73% of silent cases pages were
@@ -55,3 +55,21 @@ Wikipedia or fact-check page). They are written claims, and are reported that wa
 ## Limits stated now
 Wikipedia will still not hold pages for many local forwards; Stage 1 cannot create coverage that does not exist, only find coverage that is there. The expected gain is modest (the post-hoc ceiling from the title
 gate alone was about 18% of decidable B claims), and the true effect may be smaller or none. A negative result is reported as such. Fast-path Roman matching and offline-wording changes are separate protocols.
+
+## Correction 1 (2026-10-05, before RC-E is run and before any v2 code exists): RC-E as received, and how the final bars use it
+The owner supplied `real_forwards_new_100plus.csv` (copied to the git-ignored `data/private/real_forwards_new.csv`): 100 written claims, 50 F, 25 T, 25 U, each tied to a source URL (Income Tax, RBI, Jan Suraksha, PFRDA,
+MoHUA, India Post, WHO, NHS, NASA, NCCIH, CDC and others), 32 distinct first URLs. Facts about the file, checked by script before any run:
+- **All 100 are typed in Latin letters.** The language column says 21 are "Hindi (Devanagari)" and 5 "Gurmukhi Punjabi", but none contains Devanagari or Gurmukhi: the column is wrong for those 26 rows and **is not used**.
+  RC-E tests English and Roman Hindi/Punjabi only. It cannot say anything about native script (RC-D, RC-B and A cover that).
+- **15 U rows state their own hedge** ("... lekin evidence abhi limited hai", "... studies ka result abhi mixed hai", "... par evidence abhi settle nahi hua"), so the label can be read from the text. They are
+  **dropped before any run (rows 86 to 100)**, the same policy as RC-D's six self-verdict rows. **85 claims remain: 50 F, 25 T, 10 U**, in 30 source families (a cluster is the first source URL). This is below the 100 asked for.
+- Source column limits that do not change a label: row 78 (alpha-lipoic acid) cites the cinnamon page and row 88 (melatonin) cites a vitamin page; the labels stand. The month and "where seen" columns are unverified and unused.
+  Many claims are variants of one source fact (five on RTGS, four on the e-rupee), so clusters, not rows, carry the statistics.
+- Written claims, not collected forwards; labels are the owner's.
+
+**RC-E is run on the CURRENT served system first (the v1 baseline), BEFORE any v2 code is started**, through the owner's running server, and its errors are NOT read (it is the fresh set; reading them would spend it).
+
+**Final bars (replaces the A2-only wording above, because RC-E alone will have too few shown verdicts to carry a precision bar):** evaluated ONCE on the POOL of A2 (250) and RC-E (85), reported also per set. The pooled
+bars: precision on shown decidable claims at least 0.85 with Wilson lower bound at least 0.80; false-Supported rate with Wilson upper bound at most 0.08; and a real gain: pooled shown decidable verdicts at least 30% above
+the v1 baseline on the same pool (A2 28 plus RC-E's v1 count, measured first). Cluster-bootstrap intervals (RC-E by source URL) are reported and the more conservative of the row and cluster verdicts stands, as in
+`docs/real-claims-protocol.md`. If the pooled bars fail, v2 is not shipped.

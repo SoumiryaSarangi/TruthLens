@@ -51,6 +51,11 @@ def rca_claims() -> list[dict]:
 RCD_EXCLUDED = {8, 9, 14, 15, 68, 83}
 
 
+# RC-E rows (the owner's 100 new claims) whose text states that the evidence is limited or unsettled, so the U label can be
+# read from the text itself: rows 86-100, dropped before any run (docs/live-retrieval-v2-protocol.md, correction 1).
+RCE_EXCLUDED = set(range(86, 101))
+
+
 def rcb_claims(name: str = "real_forwards.csv", prefix: str = "rcb", part: str = "B") -> list[dict]:
     path = ROOT / "data" / "private" / name
     if not path.exists():
@@ -64,6 +69,11 @@ def rcb_claims(name: str = "real_forwards.csv", prefix: str = "rcb", part: str =
                 if part == "B":
                     rec["lang"] = r.get("language", "")
                     rec["family"] = (r.get("source_for_label") or "").strip()
+                if part == "E":
+                    if int(r["id"]) in RCE_EXCLUDED:
+                        continue
+                    urls = [w for w in (r.get("source_for_label") or "").split() if w.startswith("http")]
+                    rec["family"] = urls[0] if urls else (r.get("source_for_label") or "").strip()
                 if part == "D":
                     if int(r["id"]) in RCD_EXCLUDED:
                         continue
@@ -96,6 +106,7 @@ def summarise(body: dict) -> dict:
 def collect(which: str) -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     claims = (rca_claims() if which == "a" else rcb_claims() if which == "b"
+              else rcb_claims("real_forwards_new.csv", "rce", "E") if which == "e"
               else rcb_claims("real_forwards_triplets.csv", "rcd", "D"))
     path = OUT / f"rc{which}.collect.jsonl"
     done = {r["uid"] for r in read_jsonl(path)}
@@ -130,21 +141,23 @@ def report() -> int:
     from eval.metrics import real_claims_metrics
 
     seeded = set_all_seeds(SEED)
-    a, b, d = (read_jsonl(OUT / f"rc{k}.collect.jsonl") for k in "abd")
+    a, b, d, e = (read_jsonl(OUT / f"rc{k}.collect.jsonl") for k in "abde")
     pick = lambda rs: [{"gold": r["gold"], "shown": r["final"].get("shown"), "decider": r["final"].get("decider")} for r in rs]  # noqa: E731
-    sets = {"A1": [r for r in a if r["part"] == "A1"], "A2": [r for r in a if r["part"] == "A2"], "A": a, "B": b, "D": d}
+    sets = {"A1": [r for r in a if r["part"] == "A1"], "A2": [r for r in a if r["part"] == "A2"], "A": a, "B": b, "D": d, "E": e}
     metrics = {k: real_claims_metrics(pick(v)) for k, v in sets.items() if v}
     errors = {k: [{"uid": r["uid"], "gold": r["gold"], "shown": r["final"].get("shown"), "decider": r["final"].get("decider"), "text": r["text"]}
                   for r in sets[k] if r["final"].get("shown") and (r["final"]["shown"] == "Supported") != (r["gold"] == "T") and r["gold"] in ("T", "F")]
               for k in ("A1", "B", "D") if sets.get(k)}
-    if b:
+    for key, rs in (("B", b), ("E", e)):
+        if not rs:
+            continue
         from eval.metrics import cluster_rates_ci, transfer_verdict_with_clusters
-        fams = {f: i for i, f in enumerate(sorted({r["family"] for r in b}))}
-        brows = [{"cluster": fams[r["family"]], "gold": r["gold"], "shown": r["final"].get("shown")} for r in b]
+        fams = {f: i for i, f in enumerate(sorted({r["family"] for r in rs}))}
+        brows = [{"cluster": fams[r["family"]], "gold": r["gold"], "shown": r["final"].get("shown")} for r in rs]
         rates = cluster_rates_ci(brows)
-        metrics["B"]["cluster_rates"] = rates
-        metrics["B"]["transfers_conservative"] = transfer_verdict_with_clusters(metrics["B"]["transfers"], rates)
-        print("RC-B by source family:", json.dumps(rates), "->", metrics["B"]["transfers_conservative"])
+        metrics[key]["cluster_rates"] = rates
+        metrics[key]["transfers_conservative"] = transfer_verdict_with_clusters(metrics[key]["transfers"], rates)
+        print(f"RC-{key} by source family:", json.dumps(rates), "->", metrics[key]["transfers_conservative"])
     for k, m in metrics.items():
         al = m["all"]
         print(f"{k}: n={al['n']} shown={al['shown']} coverage={al['coverage']:.3f} precision={al['precision']} "
@@ -286,7 +299,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
     c = sub.add_parser("collect")
-    c.add_argument("--set", choices=("a", "b", "d"), required=True)
+    c.add_argument("--set", choices=("a", "b", "d", "e"), required=True)
     sub.add_parser("report")
     g = sub.add_parser("diagnose")
     g.add_argument("--set", choices=("b", "a1"), required=True)
