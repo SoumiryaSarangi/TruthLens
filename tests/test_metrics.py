@@ -493,13 +493,24 @@ def test_real_claims_metrics_flags_false_supported_and_low_precision():
 
 
 def test_cluster_consistency_and_the_cluster_bootstrap():
-    from eval.metrics import cluster_consistency, cluster_precision_ci
+    from eval.metrics import cluster_consistency, cluster_rates_ci
 
     rows = [{"cluster": 0, "gold": "T", "shown": "Supported"}, {"cluster": 0, "gold": "T", "shown": "Supported"},
             {"cluster": 1, "gold": "F", "shown": None}, {"cluster": 1, "gold": "F", "shown": None},
             {"cluster": 2, "gold": "F", "shown": "Refuted"}, {"cluster": 2, "gold": "F", "shown": None},
             {"cluster": 3, "gold": "F", "shown": "Supported"}, {"cluster": 3, "gold": "F", "shown": "Refuted"}]
     assert cluster_consistency(rows) == {"clusters": 4, "all_silent": 1, "all_shown_agree": 1, "mixed_silent_and_shown": 1, "shown_but_disagree": 1}
-    ci = cluster_precision_ci(rows)
-    assert ci["clusters_with_a_verdict"] == 3 and ci["precision"] == 4 / 5 and ci["ci95"][0] <= ci["precision"] <= ci["ci95"][1]
-    assert cluster_precision_ci([{"cluster": 0, "gold": "U", "shown": None}])["precision"] is None
+    ci = cluster_rates_ci(rows)
+    assert ci["clusters"] == 4 and ci["precision"] == 4 / 5 and ci["precision_ci95"][0] <= ci["precision"] <= ci["precision_ci95"][1]
+    assert ci["false_supported_rate"] == 1 / 6 and ci["false_supported_ci95"][0] <= ci["false_supported_rate"] <= ci["false_supported_ci95"][1]
+    assert cluster_rates_ci([{"cluster": 0, "gold": "U", "shown": None}])["precision"] is None
+
+
+def test_the_conservative_transfer_verdict_takes_the_worse_of_the_two_intervals():
+    from eval.metrics import transfer_verdict_with_clusters
+
+    wide = {"precision": 0.9, "precision_ci95": [0.7, 0.99], "false_supported_rate": 0.02, "false_supported_ci95": [0.0, 0.05]}
+    assert transfer_verdict_with_clusters("transfers", wide) == "partly transfers"          # the cluster interval is too wide
+    tight = {"precision": 0.95, "precision_ci95": [0.9, 0.99], "false_supported_rate": 0.01, "false_supported_ci95": [0.0, 0.04]}
+    assert transfer_verdict_with_clusters("transfers", tight) == "transfers"
+    assert transfer_verdict_with_clusters("does not transfer", tight) == "does not transfer"

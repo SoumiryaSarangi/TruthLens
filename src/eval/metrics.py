@@ -775,28 +775,55 @@ def cluster_consistency(rows: Sequence[dict[str, Any]]) -> dict[str, int]:
     return out
 
 
-def cluster_precision_ci(rows: Sequence[dict[str, Any]], n_boot: int = 1000, seed: int = 42) -> dict[str, Any]:
-    """Precision of shown verdicts on decidable claims with a 95% interval that resamples whole CLUSTERS.
+def _is_correct(gold: str, shown: str | None) -> bool:
+    return shown is not None and gold in ("T", "F") and (shown == "Supported") == (gold == "T")
 
-    Renderings of one claim are not independent, so the plain Wilson interval would be too narrow.
+
+def cluster_rates_ci(rows: Sequence[dict[str, Any]], n_boot: int = 1000, seed: int = 42) -> dict[str, Any]:
+    """Precision of shown verdicts on decidable claims, and the false-Supported rate over gold-false claims, each with a 95%
+    interval that resamples whole CLUSTERS (claims that are close variants of each other are not independent).
+
+    Rows: {"cluster": int, "gold": "T"|"F"|"U", "shown": None|"Supported"|"Refuted"}. Used for RC-B (a cluster is one source family)
+    and RC-D (a cluster is one claim in several renderings): docs/real-claims-protocol.md.
     """
     import numpy as np
 
-    by: dict[int, list[tuple[int, int]]] = {}
+    ids = sorted({r["cluster"] for r in rows})
+    pos = {c: i for i, c in enumerate(ids)}
+    shown_dec = np.zeros(len(ids))
+    right = np.zeros(len(ids))
+    gold_f = np.zeros(len(ids))
+    fs = np.zeros(len(ids))
     for r in rows:
+        i = pos[r["cluster"]]
+        if r["gold"] == "F":
+            gold_f[i] += 1
+            fs[i] += r["shown"] == "Supported"
         if r["shown"] in ("Supported", "Refuted") and r["gold"] in ("T", "F"):
-            by.setdefault(r["cluster"], []).append((1 if _is_correct(r["gold"], r["shown"]) else 0, 1))
-    clusters = list(by.values())
-    if not clusters:
-        return {"precision": None, "ci95": [None, None], "clusters_with_a_verdict": 0}
-    right = np.array([sum(c for c, _ in cl) for cl in clusters], dtype=float)
-    total = np.array([sum(n for _, n in cl) for cl in clusters], dtype=float)
-    rng = np.random.default_rng(seed)
-    idx = rng.integers(0, len(clusters), size=(n_boot, len(clusters)))
-    boots = right[idx].sum(axis=1) / total[idx].sum(axis=1)
-    return {"precision": float(right.sum() / total.sum()), "ci95": [float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5))],
-            "clusters_with_a_verdict": len(clusters)}
+            shown_dec[i] += 1
+            right[i] += _is_correct(r["gold"], r["shown"])
+    if shown_dec.sum() == 0 or gold_f.sum() == 0:
+        return {"precision": None, "precision_ci95": [None, None], "false_supported_rate": None,
+                "false_supported_ci95": [None, None], "clusters": len(ids)}
+    idx = np.random.default_rng(seed).integers(0, len(ids), size=(n_boot, len(ids)))
+    with np.errstate(divide="ignore", invalid="ignore"):
+        prec = right[idx].sum(axis=1) / shown_dec[idx].sum(axis=1)
+        fsr = fs[idx].sum(axis=1) / gold_f[idx].sum(axis=1)
+    prec, fsr = prec[np.isfinite(prec)], fsr[np.isfinite(fsr)]
+    return {"precision": float(right.sum() / shown_dec.sum()), "precision_ci95": [float(np.percentile(prec, 2.5)), float(np.percentile(prec, 97.5))],
+            "false_supported_rate": float(fs.sum() / gold_f.sum()),
+            "false_supported_ci95": [float(np.percentile(fsr, 2.5)), float(np.percentile(fsr, 97.5))], "clusters": len(ids)}
 
 
-def _is_correct(gold: str, shown: str | None) -> bool:
-    return shown is not None and gold in ("T", "F") and (shown == "Supported") == (gold == "T")
+def transfer_verdict_with_clusters(wilson_verdict: str, rates: dict[str, Any], *, min_precision: float = 0.85,
+                                   min_precision_lower: float = 0.80, max_false_supported_upper: float = 0.08) -> str:
+    """The protocol's rule applied to the cluster intervals, combined with the row-level (Wilson) verdict: the MORE
+    conservative of the two stands (correction 4)."""
+    order = ["does not transfer", "partly transfers", "transfers"]
+    if rates["precision"] is None:
+        return "does not transfer"
+    ok_p = rates["precision"] >= min_precision and rates["precision_ci95"][0] >= min_precision_lower
+    ok_f = rates["false_supported_ci95"][1] <= max_false_supported_upper
+    cluster_verdict = "transfers" if ok_p and ok_f else ("partly transfers" if ok_p or ok_f else "does not transfer")
+    return min(wilson_verdict, cluster_verdict, key=order.index)
+

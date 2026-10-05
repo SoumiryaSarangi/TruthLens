@@ -61,6 +61,9 @@ def rcb_claims(name: str = "real_forwards.csv", prefix: str = "rcb", part: str =
             label = (r.get("label") or "").strip().upper()
             if r.get("text", "").strip() and label in ("T", "F", "U"):
                 rec = {"uid": f"{prefix}:{r['id']}", "text": r["text"].strip(), "gold": label, "part": part}
+                if part == "B":
+                    rec["lang"] = r.get("language", "")
+                    rec["family"] = (r.get("source_for_label") or "").strip()
                 if part == "D":
                     if int(r["id"]) in RCD_EXCLUDED:
                         continue
@@ -134,6 +137,14 @@ def report() -> int:
     errors = {k: [{"uid": r["uid"], "gold": r["gold"], "shown": r["final"].get("shown"), "decider": r["final"].get("decider"), "text": r["text"]}
                   for r in sets[k] if r["final"].get("shown") and (r["final"]["shown"] == "Supported") != (r["gold"] == "T") and r["gold"] in ("T", "F")]
               for k in ("A1", "B", "D") if sets.get(k)}
+    if b:
+        from eval.metrics import cluster_rates_ci, transfer_verdict_with_clusters
+        fams = {f: i for i, f in enumerate(sorted({r["family"] for r in b}))}
+        brows = [{"cluster": fams[r["family"]], "gold": r["gold"], "shown": r["final"].get("shown")} for r in b]
+        rates = cluster_rates_ci(brows)
+        metrics["B"]["cluster_rates"] = rates
+        metrics["B"]["transfers_conservative"] = transfer_verdict_with_clusters(metrics["B"]["transfers"], rates)
+        print("RC-B by source family:", json.dumps(rates), "->", metrics["B"]["transfers_conservative"])
     for k, m in metrics.items():
         al = m["all"]
         print(f"{k}: n={al['n']} shown={al['shown']} coverage={al['coverage']:.3f} precision={al['precision']} "
@@ -144,12 +155,12 @@ def report() -> int:
             print(f"  [{e['gold']} but {e['shown']} via {e['decider']}] {e['text'][:140]}")
     triplets = None
     if d:
-        from eval.metrics import cluster_consistency, cluster_precision_ci
+        from eval.metrics import cluster_consistency, cluster_rates_ci
         trows = [{"cluster": r["cluster"], "lang": r["lang"], "gold": r["gold"], "shown": r["final"].get("shown")} for r in d]
-        triplets = {"consistency": cluster_consistency(trows), "precision_cluster_bootstrap95": cluster_precision_ci(trows),
+        triplets = {"consistency": cluster_consistency(trows), "rates_cluster_bootstrap95": cluster_rates_ci(trows),
                     "by_language": {lg: real_claims_metrics([{"gold": t["gold"], "shown": t["shown"], "decider": None}
                                                              for t in trows if t["lang"] == lg])["all"] for lg in sorted({t["lang"] for t in trows})}}
-        print(chr(10) + "RC-D (40 claims x 3 renderings):", json.dumps(triplets["consistency"]), "precision CI by cluster bootstrap:", triplets["precision_cluster_bootstrap95"])
+        print(chr(10) + "RC-D (40 claims x 3 renderings):", json.dumps(triplets["consistency"]), "cluster bootstrap:", json.dumps(triplets["rates_cluster_bootstrap95"]))
         for lg, m in triplets["by_language"].items():
             print(f"  {lg}: n={m['n']} shown={m['shown']} coverage={m['coverage']:.3f} precision={m['precision']}")
     cfg = {"experiment": "p9_real_claims", "task": "real_claims", "protocol": "docs/real-claims-protocol.md", "seed": SEED}

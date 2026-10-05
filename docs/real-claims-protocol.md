@@ -90,3 +90,19 @@ renderings of a claim are **not independent**. Decisions, all fixed before any o
   from a Wilson interval over rows; per-language coverage and precision are reported; consistency across a cluster is counted by `eval.metrics.cluster_consistency`
   (all silent, all shown and agreeing, silent in some renderings, shown but disagreeing).
 - Rows 91 and 117-120 of the plain file and the templated wrappers are disclosed in the report; RC-D is described there as "owner-supplied written claims in three renderings".
+
+**Correction 4 (2026-10-05, before RC-B or RC-D is run; RC-A is complete and untouched). The owner supplied a fourth file, which replaces the plain 120 as RC-B.**
+`real_forwards_collected.csv`, copied to the gitignored `data/private/real_forwards.csv` (the earlier plain-120 file is overwritten and is no longer used):
+**150 written claims** with a source column, a language, a month and a "where seen" column: 75 F, 50 T, 25 U (the U rows are "no public source settles this local claim" tests
+of staying silent); English 43, Roman Hindi 47, Hindi 35, Gurmukhi Punjabi 14, Roman Punjabi 11. It is better than the earlier files because the claims are distinct
+(25 source families, not one claim in several languages), the false ones imitate real scam forwards (the "WhatsApp will charge Rs 2 per message" chain, "PM Free
+Recharge", India Post and EPFO scams, LPG refill rules), and it has native-script rows and local unverifiable claims. Limits, stated before the run:
+- **Not collected forwards.** The month and "where seen" columns cannot be verified and are never used in any analysis; the set is reported as "owner-supplied written claims
+  modelled on real forwards". Some are near-duplicates in different languages (the WhatsApp-charging message appears five times).
+- **Source column errors that do not change a label:** rows 60 and 84 (zero gravity near the ISS), 80 and 137 (lemon water and cancer) cite a page that does not discuss
+  the claim; the labels F stand, and the rows are listed in the report.
+- **Clusters:** a cluster is a **source family** (the `source_for_label` string, 25 of them), because claims on one topic are not independent. The transfer rule is applied
+  twice, on the row-level Wilson intervals and on cluster-bootstrap intervals (`eval.metrics.cluster_rates_ci`, seed 42, 1000 resamples), and **the more conservative verdict
+  stands** (`eval.metrics.transfer_verdict_with_clusters`). Both numbers are reported.
+- RC-D (the language triplets) is unchanged and remains a separate, small language-consistency check, never used for the rule. RC-A is the main measurement and RC-B the
+  second; if they disagree, both are reported and the more conservative reading is the headline.
