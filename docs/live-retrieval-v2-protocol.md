@@ -146,3 +146,28 @@ The collected v1 result on A1 plus B: 36 shown, 34 decidable, **32 correct** (th
 - Wording: a verdict by fact-check match is shown as "already checked by <publisher>", with their rating, never a model's. If the final test passes the card's wording must stay exactly that, and the lower threshold is disclosed in the report.
 
 **Next, once:** the chosen tau on A2 plus RC-E with the pooled final bars (precision at least 0.85, Wilson lower at least 0.80, false-Supported upper bound at most 0.08, correct shown decidable at least 37 against the v1 baseline of 28 on that pool).
+
+## Result of the Stage 4 final test (2026-10-05, run `6ff18b9f8dfc`, `results/6ff18b9f8dfc.json`): THE PRE-REGISTERED BARS ARE MET, with the decomposition below
+Run once (a lock file prevents a repeat), tau 0.70, on A2 plus RC-E, pooled (335 claims, 205 false):
+
+| | v1 (tau 0.90, as served) | tau 0.70 |
+| --- | --- | --- |
+| shown | 31 | 59 |
+| shown decidable | 28 | 54 |
+| correct | 28 | **53** (bar: at least 37) |
+| precision (Wilson lower) | 1.000 (0.879) | **0.981 (0.902)** (bars: 0.85 and 0.80) |
+| false Supported | 0 of 205 | **0 of 205** (Wilson upper 0.018; bar: at most 0.08) |
+| shown on unverifiable claims | 3 | 5 |
+
+**All bars met, so by the rule the change is adopted.** The decomposition, which the pooled number hides:
+- **All of the gain is on A2** (31 shown to 59; 53 of 54 decidable correct). **RC-E gains nothing: not one of its 85 claims has any rated fact-check match at all** (0 shown at every threshold). The claims written from agency
+  FAQ pages (RBI, Income Tax, NCCIH, WHO) are simply not what fact-checkers publish, so no threshold helps them.
+- **On the owner's 150 written claims (B, a dev set) tau 0.70 shows 11 instead of 6, with 8 correct** (v1: 4 of 6). The three wrong ones include one polarity error: the TRUE claim "NASA says the Great Wall of China is not
+  visible to the naked eye from the Moon" matched (cosine 0.77) a Snopes check of the opposite claim and was shown Refuted. **A similarity match carries no polarity**: a negated claim inherits the verdict of the claim it denies, and a lower
+  threshold admits more such pairs. The harmful direction (a false claim inheriting "Supported" from a fact-check of a true claim) did not occur in 205 false claims, but the data cannot rule it out.
+- **A2 is AVeriTeC**, whose claims were taken from fact-check articles of the kind the Google index holds, so its gain is the best case for this route; the result says the route works on claims that WERE fact-checked, not that more
+  WhatsApp-style claims are covered.
+
+**Decision.** The rule was fixed in advance and its bars are met, so tau 0.70 is adopted for the LIVE fact-check match only (config key `tau_live_match`; the offline fast path and its tau are untouched), with the limits above
+written into the report. **It is served only after the owner restarts the server, and A2 plus RC-E are then run through the served system once to confirm the projection; if the served run disagrees, the worse reading is reported and the
+setting is reverted.** A polarity guard (a negation mismatch between the claim and the matched fact-check blocks a match below 0.90) is the obvious next safeguard but is a NEW rule and needs its own protocol.

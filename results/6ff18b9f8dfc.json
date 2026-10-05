@@ -1,0 +1,129 @@
+{
+  "config_hash": "6ff18b9f8dfc",
+  "created_utc": "2026-10-05T15:37:58+00:00",
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p9_factcheck_match_curve_final",
+  "git": {
+    "branch": "main",
+    "dirty": false,
+    "sha": "6bd3a02f1e0c8e5fa1d7e6d656c2d5b224305842"
+  },
+  "inputs": {
+    "config": {
+      "experiment": "p9_factcheck_match_curve_final",
+      "protocol": "docs/live-retrieval-v2-protocol.md",
+      "seed": 42,
+      "task": "factcheck_match_curve_final"
+    },
+    "protocol_sha256": "16e18da347db3368274be3ac7e41a20f1adee62d6d2e976e8741e0dce9588155"
+  },
+  "metrics": {
+    "A2_at_tau": {
+      "correct": 53,
+      "coverage": 0.236,
+      "decidable_shown": 54,
+      "false_supported": 0,
+      "false_supported_wilson95": [
+        0.0,
+        0.024184233186669263
+      ],
+      "gold_false": 155,
+      "n": 250,
+      "precision": 0.9814814814814815,
+      "precision_wilson_lower": 0.9022856241340362,
+      "shown": 59,
+      "shown_on_unverifiable": 5
+    },
+    "E_at_tau": {
+      "correct": 0,
+      "coverage": 0.0,
+      "decidable_shown": 0,
+      "false_supported": 0,
+      "false_supported_wilson95": [
+        0.0,
+        0.07134760017861413
+      ],
+      "gold_false": 50,
+      "n": 85,
+      "precision": null,
+      "precision_wilson_lower": null,
+      "shown": 0,
+      "shown_on_unverifiable": 0
+    },
+    "E_cluster_rates": {
+      "clusters": 30,
+      "false_supported_ci95": [
+        null,
+        null
+      ],
+      "false_supported_rate": null,
+      "precision": null,
+      "precision_ci95": [
+        null,
+        null
+      ]
+    },
+    "correct_needed_for_gain": 37,
+    "final_bars_met": true,
+    "pooled_at_tau": {
+      "correct": 53,
+      "coverage": 0.1761194029850746,
+      "decidable_shown": 54,
+      "false_supported": 0,
+      "false_supported_wilson95": [
+        1.734723475976807e-18,
+        0.01839413927614563
+      ],
+      "gold_false": 205,
+      "n": 335,
+      "precision": 0.9814814814814815,
+      "precision_wilson_lower": 0.9022856241340362,
+      "shown": 59,
+      "shown_on_unverifiable": 5
+    },
+    "pooled_v1_baseline": {
+      "correct": 28,
+      "coverage": 0.09253731343283582,
+      "decidable_shown": 28,
+      "false_supported": 0,
+      "false_supported_wilson95": [
+        1.734723475976807e-18,
+        0.01839413927614563
+      ],
+      "gold_false": 205,
+      "n": 335,
+      "precision": 1.0,
+      "precision_wilson_lower": 0.8793566935605293,
+      "shown": 31,
+      "shown_on_unverifiable": 3
+    },
+    "tau": 0.7
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "factcheck_match_curve_final"
+}
