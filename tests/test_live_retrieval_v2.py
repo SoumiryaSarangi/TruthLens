@@ -95,3 +95,29 @@ def test_live_evidence_uses_v2_queries_only_when_asked(tmp_path):
         live.gather(["The UPI PIN should be kept secret"], "en")
         searched_upi_alone = any("srsearch=UPI&" in c or c.endswith("srsearch=UPI") for c in opener.calls)
         assert searched_upi_alone is expect_acronym_search
+
+
+def test_the_live_match_threshold_is_a_separate_key_served_at_0_70_and_absent_unless_set():
+    assert PipelineConfig().tau_live_match is None and "tau_live_match" not in PipelineConfig().describe()
+    served = PipelineConfig.load("configs/pipeline/dev.yaml")
+    assert served.tau_live_match == 0.70
+    assert served.describe()["tau_live_match"] == 0.70
+    assert served.tau_match == 0.90                       # the OFFLINE fast path is untouched
+
+
+def test_a_live_fact_check_hit_counts_as_this_claim_only_at_or_above_the_live_threshold(tmp_path):
+    from retrieval.live.factcheck import FactCheckHit
+
+    class OneHit:
+        available = True
+
+        def search(self, query):
+            return [FactCheckHit(claim_text="Great Wall visible from space", publisher="Snopes", title="t", url="https://s/1",
+                                 rating="False", lang="en")]
+
+    def run(tau):
+        live = LiveEvidence(wikipedia=WikipediaLive(fetcher(tmp_path / str(tau), Opener([]))), factcheck=OneHit(), tau_match=tau,
+                            encode=lambda texts: [[0.8, 0.6] if i == 0 else [1.0, 0.0] for i, _ in enumerate(texts)])
+        return live.gather(["the wall is visible"], "en").match
+
+    assert run(0.90) is None and run(0.70) is not None and run(0.70).verdict == "Refuted"      # cosine 0.80 sits between

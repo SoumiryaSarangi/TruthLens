@@ -76,6 +76,10 @@ class PipelineConfig:
     # Retrieval v2 for live Wikipedia (docs/live-retrieval-v2-protocol.md): entity and acronym queries and deeper
     # candidates. Off until that protocol's pooled bars pass on A2 + RC-E. Left out of describe() unless on.
     live_retrieval_v2: bool = False
+    # Cosine at which a LIVE Google fact-check hit counts as "this claim already checked" (the verdict is the publisher's own).
+    # None = the module default (0.90). 0.70 was chosen by the rule of docs/live-retrieval-v2-protocol.md (Stage 4). The OFFLINE
+    # fast path keeps `tau_match`. Left out of describe() unless set, so no earlier config hash moves.
+    tau_live_match: float | None = None
     # Offer the on-demand "which words mattered" view for a live verdict (docs/word-highlight-protocol.md).
     # Off until that protocol's faithfulness rule passes. Left out of describe() unless on.
     word_view: bool = False
@@ -116,6 +120,8 @@ class PipelineConfig:
             out["live_translate"] = True
         if self.live_retrieval_v2:
             out["live_retrieval_v2"] = True
+        if self.tau_live_match is not None:
+            out["tau_live_match"] = self.tau_live_match
         if self.tau_similar is not None:
             out["tau_similar"] = self.tau_similar
         if self.word_view:
@@ -225,7 +231,8 @@ class Orchestrator:
         if self._live is None:
             from pipeline.live import LiveEvidence
 
-            self._live = LiveEvidence(to_english=self.cfg.live_translate, retrieval_v2=self.cfg.live_retrieval_v2)
+            self._live = LiveEvidence(to_english=self.cfg.live_translate, retrieval_v2=self.cfg.live_retrieval_v2,
+                                       **({"tau_match": self.cfg.tau_live_match} if self.cfg.tau_live_match is not None else {}))
         return self._live
 
     def _live_stance(self):
