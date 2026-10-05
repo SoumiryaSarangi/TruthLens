@@ -35,6 +35,8 @@
   --chip-hover: #e7f3f0;
   --select-bg: #b9e4dc;
   --scroll-thumb: #b5bcc1;
+  /* One curve for every entrance (critically damped, no overshoot). */
+  --ease-out: cubic-bezier(.23, 1, .32, 1);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -80,8 +82,9 @@ body {
      Devanagari and Gurmukhi on Windows (UI_UX.md §2). */
   font-family: system-ui, "Segoe UI", "Nirmala UI", "Noto Sans Devanagari",
                "Noto Sans Gurmukhi", sans-serif;
-  font-size: 15px;
+  font-size: .9375rem;          /* 15px at the browser default, and it follows the reader's text-size setting */
   line-height: 1.5;
+  font-optical-sizing: auto;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   accent-color: var(--chip-fg);
@@ -145,9 +148,11 @@ body {
 .bubble.in { align-self: flex-start; border-top-left-radius: .2rem; }
 .bubble .fwd { display: flex; align-items: center; gap: .3rem; font-size: .78rem; color: var(--muted);
                font-style: italic; margin-bottom: .2rem; }
-.bubble .body { white-space: pre-wrap; text-wrap: pretty; }
+.bubble .body { white-space: pre-wrap; text-wrap: pretty; line-height: 1.65; }   /* a forwarded message carries no lang attribute: room for matras in any script */
 .bubble.error { color: var(--err); background: var(--err-bg); border: 1px solid var(--err); }
 .bubble.error p { margin: 0 0 .25rem; }
+.err-line { display: flex; align-items: flex-start; gap: .5rem; }
+.err-line .ico { margin-top: .15rem; }
 
 .checking { color: var(--muted); display: inline-flex; align-items: center; gap: .55rem; }
 .spinner { width: .95rem; height: .95rem; border: 2px solid var(--line);
@@ -216,15 +221,15 @@ body {
 .path { font-size: .82rem; color: var(--muted); margin: .3rem 0; }
 .explanation { margin: .4rem 0; text-wrap: pretty; }
 .cite { font: inherit; font-size: .8rem; font-weight: 700; color: var(--link);
-        background: none; border: 0; padding: .15rem .25rem; margin: -.15rem 0; min-width: 1.6rem; cursor: pointer;
+        background: none; border: 0; padding: .35rem .35rem; margin: -.35rem -.1rem; min-width: 2rem; cursor: pointer;
         text-decoration: underline; border-radius: .25rem; }
 .note { font-size: .8rem; color: var(--muted); margin: .25rem 0; text-wrap: pretty; }
 .flags { font-size: .82rem; color: var(--conflicting-fg); margin: .4rem 0 0; }
 
 .trail-toggle { display: inline-flex; align-items: center; gap: .4rem; font: inherit; font-size: .85rem;
-                color: var(--link); background: none; border: 0; padding: .35rem 0; min-height: 2rem; cursor: pointer; }
+                color: var(--link); background: none; border: 0; padding: .35rem 0; min-height: 2.5rem; cursor: pointer; }
 .trail { list-style: none; margin: .3rem 0 0; padding: 0; }
-.trail li { border-left: 3px solid var(--line); padding: .35rem 0 .35rem .6rem; margin-bottom: .45rem; }
+.trail li { border: 1px solid var(--line-soft); border-radius: .5rem; padding: .45rem .65rem; margin-bottom: .45rem; }
 .trail li:target, .trail li.flash { outline: 2px solid var(--focus); outline-offset: 2px; }
 .stance { font-size: .72rem; font-weight: 700; text-transform: uppercase; padding: .05rem .35rem;
           border-radius: .25rem; margin-right: .3rem; }
@@ -248,13 +253,13 @@ mark { background: var(--mark-bg); color: var(--text); padding: 0 .1rem; border-
 /* ---------------------------------------------------------------- controls */
 
 .actions { display: flex; flex-wrap: wrap; gap: .5rem; margin: .8rem 0 .2rem; }
-.act { display: inline-flex; align-items: center; gap: .4rem; font: inherit; font-size: .88rem; min-height: 2.5rem;
-       padding: .3rem .95rem; border-radius: 1.25rem; border: 1px solid var(--line); background: var(--chip-bg);
+.act { display: inline-flex; align-items: center; gap: .4rem; font: inherit; font-size: .88rem; min-height: 2.75rem;
+       padding: .3rem 1rem; border-radius: 1.4rem; border: 1px solid var(--line); background: var(--chip-bg);
        color: var(--chip-fg); cursor: pointer; }
 .act.on { outline: 2px solid var(--focus); }
 .act-note { margin: .25rem 0; }
 .live-btn, .retry { display: inline-flex; align-items: center; gap: .4rem; font: inherit; font-size: .88rem;
-                    min-height: 2.5rem; margin-top: .5rem; padding: .3rem .95rem; border-radius: 1.25rem;
+                    min-height: 2.75rem; margin-top: .5rem; padding: .3rem 1rem; border-radius: 1.4rem;
                     border: 1px solid var(--line); background: var(--chip-bg); color: var(--chip-fg); cursor: pointer; }
 .live-btn:disabled { opacity: .7; cursor: wait; }
 .words-box { margin-top: .5rem; }
@@ -273,7 +278,7 @@ mark.word-key > span { font-size: .7em; margin-right: .15rem; }
 /* Folds: a real summary with a drawn chevron, never a typed glyph. */
 details.more { margin-top: .6rem; border-top: 1px solid var(--line-soft); padding-top: .25rem; }
 details.more > summary, details.examples > summary, details.trace > summary { display: flex; align-items: center; gap: .5rem; cursor: pointer;
-                                                     font-size: .88rem; min-height: 2.25rem; list-style: none; }
+                                                     font-size: .88rem; min-height: 2.5rem; list-style: none; }
 details.more > summary { color: var(--link); }
 details.examples > summary { color: var(--chip-fg); padding: .1rem 0 .3rem; }
 details.trace > summary { color: var(--muted); font-size: .78rem; }
@@ -291,7 +296,7 @@ details.more .technical { margin-top: .35rem; }
 .bottombar { padding: .45rem .6rem calc(.6rem + env(safe-area-inset-bottom)); background: var(--app-bg);
              border-top: 1px solid var(--line); }
 .chips { display: flex; gap: .4rem; overflow-x: auto; padding-bottom: .5rem; scrollbar-width: thin; }
-.sample { flex: none; font: inherit; font-size: .84rem; min-height: 2.25rem; padding: .3rem .85rem;
+.sample { flex: none; font: inherit; font-size: .84rem; min-height: 2.5rem; padding: .3rem .85rem;
           border-radius: 1.25rem; border: 1px solid var(--line); background: var(--chip-bg);
           color: var(--chip-fg); cursor: pointer; }
 .composer { display: flex; gap: .5rem; align-items: flex-end; }
@@ -316,18 +321,20 @@ details.more .technical { margin-top: .35rem; }
  * Only what carries meaning: a reply arriving, a verdict being revealed, an expander opening, and press feedback.
  * Critically damped: ease-out on opacity and transform, no overshoot, no bounce (apple-design §14). */
 @media (prefers-reduced-motion: no-preference) {
-  .bubble { animation: bubble-in .22s cubic-bezier(.23, 1, .32, 1) both; }
+  .bubble { animation: bubble-in .22s var(--ease-out) both; }
   .bubble.out { transform-origin: right bottom; }
   .bubble.in { transform-origin: left bottom; }
-  .card { animation: reveal .28s cubic-bezier(.23, 1, .32, 1) both; }
-  .trail:not([hidden]), .words-view:not([hidden]) { animation: rise .2s cubic-bezier(.23, 1, .32, 1) both; }
-  details > summary::before, .trail-toggle .chev { transition: transform .18s cubic-bezier(.23, 1, .32, 1); }
+  .card { animation: reveal .28s var(--ease-out) both; }
+  .trail:not([hidden]), .words-view:not([hidden]) { animation: rise .2s var(--ease-out) both; }
+  details > summary::before, .trail-toggle .chev { transition: transform .18s var(--ease-out); }
   .act, .live-btn, .retry, .sample, .send { transition: transform .12s ease-out, background-color .15s ease-out; }
   .act:active, .live-btn:active, .retry:active, .sample:active, .send:active { transform: scale(.97); }
+  .act:active, .live-btn:active, .retry:active, .sample:active { background: var(--chip-hover); }
+  .cite:active, .trail-toggle:active, details > summary:active { opacity: .65; }
   @supports (interpolate-size: allow-keywords) {
     details.more { interpolate-size: allow-keywords; }
     details.more::details-content { block-size: 0; overflow: clip; opacity: 0;
-      transition: block-size .24s cubic-bezier(.23, 1, .32, 1), opacity .2s ease-out, content-visibility .24s allow-discrete; }
+      transition: block-size .24s var(--ease-out), opacity .2s ease-out, content-visibility .24s allow-discrete; }
     details.more[open]::details-content { block-size: auto; opacity: 1; }
   }
 }
@@ -335,14 +342,21 @@ details.more .technical { margin-top: .35rem; }
 @keyframes reveal { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 @keyframes rise { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
 
-/* UI_UX.md §9: no spinner animation under reduced motion -- "Checking…" only. */
+/* UI_UX.md §9 and apple-design §14: under reduced motion the spinner goes ("Checking…" only), every slide and
+ * scale becomes a short opacity fade, and nothing moves. */
 @media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  * { scroll-behavior: auto !important; }
   .spinner { display: none; }
+  .bubble, .card, .trail:not([hidden]), .words-view:not([hidden]) { animation: fade-in .15s linear both; }
 }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 
 /* -------------------------------------------------- user preferences (apple-design §14) */
+@media (prefers-reduced-transparency: reduce) {
+  .health { background: var(--bar-bg); border: 1px solid var(--bar-fg); }
+}
 @media (prefers-contrast: more) {
+  .health { background: var(--bar-bg); border: 1px solid var(--bar-fg); }
   :root { --line: #6b777f; --line-soft: #6b777f; }
   .bubble, .act, .live-btn, .retry, .sample, .composer textarea { border: 1px solid var(--text); }
   .chip.big { border-width: 2px; }

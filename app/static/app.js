@@ -172,7 +172,7 @@ function renderChips(samples) {
 
 function showComposerError(msg) {
   const el = $("composer-error");
-  el.textContent = msg;
+  el.innerHTML = msg ? `${ico("alert")}<span>${esc(msg)}</span>` : "";
   el.hidden = !msg;
 }
 
@@ -223,7 +223,7 @@ async function send(text, { echo = true } = {}) {
   }
   if (!res || !res.ok) {
     pending.className = "bubble in error";
-    pending.innerHTML = `<p>${esc(t("error_server"))}</p>
+    pending.innerHTML = `<p class="err-line">${ico("alert")}<span>${esc(t("error_server"))}</span></p>
       <button type="button" class="retry">${esc(t("retry"))}</button>`;
     pending.querySelector(".retry").addEventListener("click", () => {
       pending.remove();
