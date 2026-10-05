@@ -3148,3 +3148,13 @@ becoming less sure for no reason. Now, when the card was a "Be careful" before t
 turn out to be false." (`plain.reason.careful_live`, hi/pa machine-drafted, added to the review sheet and the `_comment`). Same finding as
 before, not a new verdict; a checked-anyway greeting and a card with a similar fact-check keep their own wording. Frontend only
 (`_careful` set in `searchLive`); check `live_careful` added to `scripts/ui_plain_check.js`.
+
+### A greeting is not offered a check (2026-10-05, approved plan part 2)
+
+"Good morning" reached a card only because the reader pressed "Check it anyway" and then "Look this up online", and the online page
+("Solemnity of Mary") was irrelevant. Now `claims.heuristic.why_not_claim` says why the gate refused a text (`greeting`, `too_short`,
+`no_content`; `ClaimResult.gate_reason`, NotAClaim only), `force_claim` is ignored for a greeting (a message that is only greetings, blessings,
+chain requests or emoji), and the card says "Just a greeting ... nothing here to check" with no "Check it anyway" button. A fragment like "JEE paper leaked"
+keeps the button. The gate itself (`is_check_worthy`, and so every claims-stage number) is untouched. New strings `plain.greeting_title`,
+`plain.greeting_note` (hi/pa machine-drafted, in `docs/i18n-review.md`). Note: "Happy Diwali everyone" passes the gate (4 words; the greeting
+pattern does not know festivals), unchanged and out of scope. Tests: 849 passed (run with CUDA_VISIBLE_DEVICES="" because the owner's server holds the GPU).

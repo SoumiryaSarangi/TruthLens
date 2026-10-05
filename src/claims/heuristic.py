@@ -122,6 +122,20 @@ def is_check_worthy(text: str) -> bool:
     return len(_WORD.findall(residue)) >= MIN_TOKENS
 
 
+def why_not_claim(text: str) -> str:
+    """Why the gate refuses a text: "greeting" (only greetings, blessings, chain requests or emoji;
+    nothing in it could be looked up, so "Check it anyway" is not offered), "too_short" (a fragment
+    the reader may overrule), or "no_content" (empty). Not a second gate: `is_check_worthy` decides.
+    """
+    cleaned = strip_artefacts(text or "")
+    if not cleaned.strip():
+        return "no_content"
+    residue = _residue(cleaned)
+    if residue != " ".join(cleaned.split()) and len(_WORD.findall(residue)) <= 1:
+        return "greeting"
+    return "too_short"
+
+
 def split_sentences(text: str) -> list[str]:
     return [s.strip() for s in _SENTENCE.split(text or "") if s.strip()]
 

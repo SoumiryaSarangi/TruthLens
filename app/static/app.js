@@ -386,6 +386,12 @@ function plainCard(r, inp, idx) {
   if (c.kind === "none") {
     // The claim gate refuses short fragments ("JEE paper leaked"), so the reader can overrule it.
     const original = (inp && inp.original) || (r.claim && r.claim.text) || "";
+    // A greeting has nothing to look up, so it is not offered a check (the server would refuse it anyway).
+    if (r.gate_reason === "greeting") {
+      return `<div class="card neutral-card plain" lang="${esc(lang)}">
+      <p class="neutral-title"><span aria-hidden="true">${esc(icons.NotAClaim || "💬")}</span> ${esc(tl(lang, "plain.greeting_title"))}</p>
+      <p class="reason">${esc(tl(lang, "plain.greeting_note"))}</p></div>`;
+    }
     return `<div class="card neutral-card plain" lang="${esc(lang)}">
       <p class="neutral-title"><span aria-hidden="true">${esc(icons.NotAClaim || "💬")}</span> ${esc(tl(lang, "plain.none_title"))}</p>
       <p class="reason">${esc(tl(lang, "plain.none_note"))}</p>

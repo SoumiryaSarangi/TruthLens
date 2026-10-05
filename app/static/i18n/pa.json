@@ -1,5 +1,5 @@
 {
-  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. The live_* strings and source_name.* (live search, added 2026-10-04) were reviewed by the owner the same day; 3 corrected, 7 kept. The three live-verdict strings (live_verdict_basis, live_validated, live_no_verdict; added 2026-10-05) were reviewed by the owner the same day: all 3 corrected. The plain-card strings (the 'plain' block and the reworded intro, live_button, live_privacy and stage_trace; added 2026-10-05) were reviewed by the owner the same day: all corrected as given; plain.flags kept by the owner's decision; masculine first-person forms replaced by gender-neutral ones the same day. NOT YET REVIEWED (added 2026-10-05, machine-drafted): lean_note, and plain.none_title, none_note (reworded), check_anyway, no_exact, related_label, try_online. NOT YET REVIEWED (added 2026-10-05, machine-drafted): the 'similar fact-check' strings (plain.title.similar, plain.similar.*, plain.reply.similar). NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.title.careful, plain.reason.careful. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.similar.reason_unrated, plain.reply.similar_unrated. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.reason.careful_live.",
+  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. The live_* strings and source_name.* (live search, added 2026-10-04) were reviewed by the owner the same day; 3 corrected, 7 kept. The three live-verdict strings (live_verdict_basis, live_validated, live_no_verdict; added 2026-10-05) were reviewed by the owner the same day: all 3 corrected. The plain-card strings (the 'plain' block and the reworded intro, live_button, live_privacy and stage_trace; added 2026-10-05) were reviewed by the owner the same day: all corrected as given; plain.flags kept by the owner's decision; masculine first-person forms replaced by gender-neutral ones the same day. NOT YET REVIEWED (added 2026-10-05, machine-drafted): lean_note, and plain.none_title, none_note (reworded), check_anyway, no_exact, related_label, try_online. NOT YET REVIEWED (added 2026-10-05, machine-drafted): the 'similar fact-check' strings (plain.title.similar, plain.similar.*, plain.reply.similar). NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.title.careful, plain.reason.careful. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.similar.reason_unrated, plain.reply.similar_unrated. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.reason.careful_live. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.greeting_title, plain.greeting_note.",
   "_lang": "pa",
   "title": "TruthLens",
   "intro": "ਜੋ ਸੁਨੇਹਾ ਤੁਹਾਨੂੰ ਕਿਸੇ ਨੇ ਭੇਜਿਆ ਹੈ, ਉਹ ਇੱਥੇ ਪੇਸਟ ਕਰੋ ਅਤੇ ਤੀਰ ਦਬਾਓ। ਤੁਹਾਨੂੰ ਦਿਖੇਗਾ ਕਿ ਉਹ ਸੱਚ ਜਾਂ ਝੂਠ ਲੱਗਦਾ ਹੈ ਅਤੇ ਕਿਉਂ।",
@@ -185,7 +185,9 @@
         "NEI": "ਤੈਅ ਨਹੀਂ"
       },
       "reason_unrated": "{publisher} ਨੇ ਇਸ ਨਾਲ ਮਿਲਦੀ-ਜੁਲਦੀ ਗੱਲ ਦੀ ਜਾਂਚ ਕੀਤੀ ਹੈ। ਹੋ ਸਕਦਾ ਹੈ ਇਹ ਉਹੀ ਸੁਨੇਹਾ ਨਾ ਹੋਵੇ।"
-    }
+    },
+    "greeting_title": "ਇਹ ਸਿਰਫ਼ ਇੱਕ ਨਮਸਕਾਰ ਹੈ",
+    "greeting_note": "ਇਹ ਇੱਕ ਨਮਸਕਾਰ ਜਾਂ ਸ਼ੁਭਕਾਮਨਾ ਲੱਗਦੀ ਹੈ। ਇਸ ਵਿੱਚ ਜਾਂਚਣ ਲਾਇਕ ਕੋਈ ਗੱਲ ਨਹੀਂ ਹੈ।"
   },
   "lean_note": "ਸਿਸਟਮ ਦਾ ਆਪਣਾ ਝੁਕਾਅ, ਜੋ ਖੁੱਲ੍ਹੇ ਪਾਠ ਲਈ ਭਰੋਸੇਯੋਗ ਨਹੀਂ ਹੈ: {label}।"
 }

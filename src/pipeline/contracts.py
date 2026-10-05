@@ -126,6 +126,8 @@ class ClaimResult(BaseModel):
     # The best published fact-check when it scored below tau_match (so no fast-path verdict) but at
     # or above tau_similar: a SUGGESTION to read, never a verdict. docs/similar-factcheck-protocol.md
     similar_match: SimilarMatch | None = None
+    # Why the claim gate refused this text ("greeting", "too_short", "no_content"); only on NotAClaim.
+    gate_reason: Literal["greeting", "too_short", "no_content"] | None = None
 
     @field_validator("explanation_source")
     @classmethod

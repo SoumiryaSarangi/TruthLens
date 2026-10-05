@@ -473,6 +473,11 @@ class Orchestrator:
         if not trace.checkworthy and not force_claim:
             trace.results.append(self._not_a_claim(trace))       # FR-6
             return trace
+        if not trace.checkworthy and self._not_a_claim(trace).gate_reason == "greeting":
+            # A greeting or blessing has nothing to look up, so "Check it anyway" is not honoured
+            # (it only sent "Good morning" to Wikipedia and got an unrelated page back).
+            trace.results.append(self._not_a_claim(trace))
+            return trace
 
         if not trace.checkworthy:
             # "Check it anyway" (the reader's explicit request, never used in an evaluation): the
@@ -767,6 +772,7 @@ class Orchestrator:
         )
 
     def _not_a_claim(self, trace: Trace) -> ClaimResult:
+        from claims.heuristic import why_not_claim
         from pipeline.contracts import Claim
 
         text = trace.pre.normalized if trace.pre else ""
@@ -775,6 +781,7 @@ class Orchestrator:
             passages=[], verdict="NotAClaim", confidence=1.0, abstained=False,
             explanation="There is no checkable factual claim here.",
             explanation_source="template", explanation_lang="en", cited=[],
+            gate_reason=why_not_claim(text),
         )
 
     def _from_factcheck(self, trace: Trace, claim, match) -> ClaimResult:

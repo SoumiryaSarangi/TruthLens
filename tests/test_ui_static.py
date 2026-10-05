@@ -129,7 +129,8 @@ def _plain_keys() -> set[str]:
     keys |= {f"plain.reply.{k}" for k in ("Refuted", "Supported", "check", "source", "similar")}
     keys |= {"plain.title.similar", "plain.similar.reason", "plain.similar.action", "plain.similar.label"}
     keys |= {"plain.title.careful", "plain.reason.careful", "icon.careful"}
-    keys |= {"plain.similar.reason_unrated", "plain.reply.similar_unrated", "plain.reason.careful_live"}
+    keys |= {"plain.similar.reason_unrated", "plain.reply.similar_unrated", "plain.reason.careful_live",
+             "plain.greeting_title", "plain.greeting_note"}
     keys |= {f"plain.similar.rating.{v}" for v in VERDICTS} | {"icon.similar"}
     keys |= {f"plain.{k}" for k in ("none_title", "none_note", "claim_label", "sources_label", "closest_label",
                                     "found_label", "listen", "listen_stop", "listen_none", "copy", "copied",

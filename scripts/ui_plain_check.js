@@ -70,6 +70,12 @@ data.responses.push({ shows: "live_careful", body: { input: { lang: "en", script
   results: [{ ...liveBase, claim: { claim_id: "c1", text: "Kal se WhatsApp ke paise lagenge" }, _careful: true,
     verdict: "NEI", confidence: 0.0, abstained: true, similar_match: null }] } });
 
+// A greeting: no "Check it anyway", and it says there is nothing to check.
+data.responses.push({ shows: "greeting", body: { input: { lang: "en", script: "latn", original: "Good morning, stay blessed" },
+  unchecked_claims: [], results: [{ claim: { claim_id: "c1", text: "Good morning, stay blessed" }, path: "none", match: null,
+    verdict: "NotAClaim", confidence: 1, abstained: false, explanation: "x", explanation_source: "template", explanation_lang: "en",
+    cited: [], passages: [], live_sources: [], manipulation_flags: [], gate_reason: "greeting" }] } });
+
 // Words an ordinary reader should never meet outside Details.
 const JARGON = [/contradict/i, /\bevidence\b/i, /calibrat/i, /\bstance\b/i, /stage trace/i, /\bNEI\b/, /\bRefutes\b/, /\bSupports\b/,
   /\bNeutral\b/, /confidence/i, /\bmodels?\b/i, /\bband\b/i, /\bHigh\b/, /\bMedium\b/, /\bLow\b/, /explanation/i,
@@ -93,7 +99,7 @@ for (const lang of ["en", "hi", "pa"]) {
     const { main, details } = split(html);
     const problems = [];
     const body = text(main);
-    const isNone = r.shows === "not_a_claim";
+    const isNone = r.shows === "not_a_claim" || r.shows === "greeting";
     if (!isNone) {
       if (!main.includes('class="chip big')) problems.push("no plain headline");
       if (!main.includes('class="reason"')) problems.push("no reason");
@@ -151,6 +157,10 @@ for (const lang of ["en", "hi", "pa"]) {
       if ((main.match(/newsmeter\.in\/fact-check\/pineapple/g) || []).length > 1 + (main.includes('data-reply') ? 1 : 0))
         problems.push("live similar: the fact-check is listed twice");
     }
+    if (r.shows === "greeting") {
+      if (main.includes("act-force")) problems.push("greeting: offered 'Check it anyway'");
+      if (!/greeting|अभिवादन|ਨਮਸਕਾਰ/.test(body)) problems.push("greeting: does not say it is a greeting");
+    }
     if (r.shows === "live_careful") {
       if (lang === "en" && !/Be careful with this one/.test(body)) problems.push("live careful: lost the warning");
       if (lang === "en" && !/looked online too and still/.test(body)) problems.push("live careful: does not say it looked online");
@@ -172,7 +182,7 @@ for (const lang of ["en", "hi", "pa"]) {
 // Gurmukhi is answered in Hindi or Punjabi.
 api.setAns(null); api.setS(STR.en);
 const expectedLang = { fast_path: "en", romanized_hindi: "en", gurmukhi: "pa", claim_extraction: "en",
-  not_a_claim: "en", abstained: "pa", live_verdict: "en", live_none: "en", similar: "en", similar_unrated: "en", forced_greeting: "en", live_similar: "en", live_careful: "en" };
+  not_a_claim: "en", abstained: "pa", live_verdict: "en", live_none: "en", similar: "en", similar_unrated: "en", forced_greeting: "en", live_similar: "en", live_careful: "en", greeting: "en" };
 for (const r of data.responses) {
   const html = api.render(r.body);
   const got = (html.match(/<div class="card[^"]*" (?:id="[^"]*" )?lang="(\w+)"/) || [])[1];

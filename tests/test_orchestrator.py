@@ -548,3 +548,20 @@ def test_a_matcher_that_fails_when_asked_for_a_suggestion_offers_none(kb):
     orch.matcher = Broken(0.80)
     assert orch.verify("Were 4400 nursing posts restored?", claim_idx=7).results[0].similar_match is None
 
+
+
+def test_a_greeting_is_not_checked_even_when_the_reader_forces_it(kb):
+    """'Good morning' sent to Wikipedia only returned an unrelated page; nothing in a greeting can be looked up."""
+    orch = make(kb)
+    orch.claims = _RejectingGate()
+    for text in ("Good morning, stay blessed", "Suprabhat dosto"):
+        result = orch.verify(text, force_claim=True).results[0]
+        assert result.verdict == "NotAClaim" and result.gate_reason == "greeting", text
+
+
+def test_a_fragment_that_is_not_a_greeting_is_still_forceable_and_says_why_it_was_refused(kb):
+    orch = make(kb)
+    orch.claims = _RejectingGate()
+    refused = orch.verify("JEE paper leaked").results[0]
+    assert refused.verdict == "NotAClaim" and refused.gate_reason == "too_short"
+    assert orch.verify("JEE paper leaked", force_claim=True).results[0].verdict != "NotAClaim"

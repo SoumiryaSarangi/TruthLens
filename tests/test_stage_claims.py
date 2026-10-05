@@ -294,3 +294,14 @@ def test_extraction_is_delegated_to_the_rules():
     trace = stage.extract(trace_with("Sarkar ne kaha ki har student ko 6000 milenge."))
     assert [c.text for c in trace.claims] == [
         "Sarkar ne kaha ki har student ko 6000 milenge."]
+
+
+def test_why_the_gate_refused_distinguishes_a_greeting_from_a_fragment():
+    from claims.heuristic import why_not_claim
+
+    for greeting in ("Good morning, stay blessed 🙏", "Suprabhat", "सुप्रभात", "Sat Sri Akal ji"):
+        assert why_not_claim(greeting) == "greeting", greeting
+    # a short fragment that asserts something is the reader's to overrule, not a greeting
+    assert why_not_claim("JEE paper leaked") == "too_short"
+    assert why_not_claim("Jai Hind! Vaccine causes autism") == "too_short"
+    assert why_not_claim("   ") == "no_content"
