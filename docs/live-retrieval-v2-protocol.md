@@ -105,3 +105,24 @@ The pass rule was a pooled ratio of at least 1.25 and no set lower. The pooled r
 - **Stage 2 is not run:** its condition (BOTH_NEI the largest remaining cause) is not met; NOT_JUDGED is.
 - **Stage 3 (a new source) has a validity problem to settle first:** RC-E was written FROM agency pages (RBI, Income Tax, NCCIH, WHO and so on), so testing a source that adds those same sites on RC-E would be circular (the answer is in the
   page the claim was written from). A new source can only be validated on A2 and claims written independently of it.
+
+## Stage 4 (2026-10-05, written BEFORE any fact-check match score is computed): the live fact-check match threshold, measured as a curve
+**Why.** On AVeriTeC 55 of the 61 shown verdicts came from a published fact-check that matched the claim (cosine at least `TAU_MATCH` = 0.90, `pipeline/live.py`), not from Wikipedia. 0.90 was chosen on FEVER-style dev claims and was never measured as a
+precision-versus-coverage curve on real claims, which `CLAUDE.md` requires for a fast-path threshold ("the tau table is the result"). A lower threshold would answer more claims from the fact-checkers' own verdicts, with the risk that the matched fact-check is
+of a similar but different claim.
+
+**Measurement (no verdict is served; the served system is not touched).** `scripts/factcheck_match_curve.py`: for every claim, the same Google Fact Check queries as the live path (every form of the claim, the English translation included), each hit
+scored by BGE-M3 (CPU) against the fact-checked claim text exactly as `LiveEvidence.gather` does; the BEST hit that has a rating mapped to Supported or Refuted (`rating_to_verdict`) is stored (cosine, verdict, publisher, URL). Offline, for each
+candidate tau in {0.90, 0.85, 0.80, 0.75, 0.70}, a claim is "shown by fact-check" when its best cosine is at least tau; as in the orchestrator, a fact-check match decides before Wikipedia is consulted, so the projected shown set is
+{fact-check matches at tau} plus {claims the collected v1 run showed from Wikipedia with no match at tau}. Everything uses the stored per-claim results of `docs/real-claims-protocol.md`; no model other than BGE-M3 and no server is needed.
+
+**Selection (dev sets: A1 plus B, gold T/F/U; fixed now).** The chosen tau is the LOWEST candidate that meets all of:
+1. precision on shown decidable (gold T/F) claims, pooled, at least 0.90;
+2. zero false-Supported (a shown Supported on a gold-F claim) in A1 plus B;
+3. projected shown decidable verdicts at least 30% above the v1 count on A1 plus B (28 + 4 = 32 correct shown decidable verdicts; 32 x 1.3 = 41.6, so at least 42).
+If no candidate meets all three, **Stage 4 is dropped and recorded**. Reported for every tau regardless: coverage, precision, false-Supported, shown on unverifiable (gold U) claims, and the share of shown verdicts per publisher.
+
+**Final test (once).** The chosen tau, applied offline to the stored matches of A2 (250) and RC-E (85), pooled, against the bars of correction 1: precision at least 0.85 with Wilson lower bound at least 0.80; false-Supported Wilson upper bound
+at most 0.08; and pooled shown decidable verdicts at least 37 (the baseline 28 plus 30%); the more conservative of row and source-cluster verdicts stands. Fact-check matching does not read the agency pages RC-E was written from, so RC-E is a fair
+test here (unlike a new Wikipedia-side source). A2's matches are computed only after the dev choice is recorded. **If it passes, `TAU_MATCH` for the live path is changed (a separate config key `tau_live_match`), the owner restarts the server, and
+A2 plus RC-E are run through the served system once to confirm the offline projection; if the served run disagrees with the projection, the worse reading is reported.** If it fails, nothing is shipped.
