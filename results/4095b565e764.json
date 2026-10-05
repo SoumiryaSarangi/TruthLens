@@ -1,0 +1,1357 @@
+{
+  "config_hash": "4095b565e764",
+  "created_utc": "2026-10-05T00:57:11+00:00",
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p9_word_faithfulness",
+  "git": {
+    "branch": "main",
+    "dirty": false,
+    "sha": "f4e86efc3cff8d8d13c33d8518d202d53a60410d"
+  },
+  "inputs": {
+    "config": {
+      "experiment": "p9_word_faithfulness",
+      "k": 3,
+      "min_tokens": 6,
+      "models": [
+        "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli",
+        "facebook/bart-large-mnli"
+      ],
+      "n_random": 20,
+      "population": "reports/live_fever/fresh_en.scored.jsonl",
+      "protocol": "docs/word-highlight-protocol.md",
+      "seed": 42,
+      "task": "word_faithfulness"
+    },
+    "population_sha256": "506833097b6941feb380515c08c027a193c7d50d07164ae7854193b8eb352ad6",
+    "protocol_sha256": "54cc102c44e08d1a4fe5175be4fe4c595b74b0df01a8a339ad2a8a2fefba8779"
+  },
+  "metrics": {
+    "gates": {
+      "bottom_not_above_random": true,
+      "mean_ratio": true,
+      "win_rate": true
+    },
+    "mean_diff_ci95": [
+      0.29332369197583846,
+      0.38415515258326455
+    ],
+    "mean_drop_bottom": 0.016675309894003013,
+    "mean_drop_random": 0.3257874191987551,
+    "mean_drop_top": 0.6649751683648994,
+    "mean_ratio": 2.0411321284300854,
+    "n": 98,
+    "passes": true,
+    "win_rate": 0.9081632653061225,
+    "wins": 89
+  },
+  "per_claim": [
+    {
+      "drop_bottom": 0.0047605931758880615,
+      "drop_random": 0.23888586636749096,
+      "drop_top": 0.49779565539211035,
+      "n_words": 8,
+      "top_words": [
+        "was",
+        "directed",
+        "Blum."
+      ],
+      "uid": "fever_fresh:en:dev:00001",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.00907847285270691,
+      "drop_random": 0.44614754285212255,
+      "drop_top": 0.9865610714186914,
+      "n_words": 7,
+      "top_words": [
+        "Terry",
+        "only",
+        "NHL."
+      ],
+      "uid": "fever_fresh:en:dev:00003",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.05228886008262634,
+      "drop_random": 0.5640552921955532,
+      "drop_top": 0.9932380501995794,
+      "n_words": 6,
+      "top_words": [
+        "born",
+        "in",
+        "Naples."
+      ],
+      "uid": "fever_fresh:en:dev:00007",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.0017223358154296875,
+      "drop_random": 0.38747717719015784,
+      "drop_top": 0.9948596563772298,
+      "n_words": 8,
+      "top_words": [
+        "Aarhus",
+        "center",
+        "Germany."
+      ],
+      "uid": "fever_fresh:en:dev:00013",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.0065357983112335205,
+      "drop_random": 0.12298344853334128,
+      "drop_top": 0.21866962313652039,
+      "n_words": 9,
+      "top_words": [
+        "Press",
+        "Secretary",
+        "senior"
+      ],
+      "uid": "fever_fresh:en:dev:00014",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 0.4948405153118074,
+      "drop_random": 0.512917765165912,
+      "drop_top": 0.49967772234231234,
+      "n_words": 6,
+      "top_words": [
+        "is",
+        "a",
+        "tunnel."
+      ],
+      "uid": "fever_fresh:en:dev:00020",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 0.002187788486480713,
+      "drop_random": 0.15225012101000174,
+      "drop_top": 0.5798470126464963,
+      "n_words": 6,
+      "top_words": [
+        "is",
+        "TV",
+        "show."
+      ],
+      "uid": "fever_fresh:en:dev:00022",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.004331856966018677,
+      "drop_random": 0.16564906854182482,
+      "drop_top": 0.3585704416036606,
+      "n_words": 9,
+      "top_words": [
+        "work",
+        "of",
+        "music."
+      ],
+      "uid": "fever_fresh:en:dev:00026",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": -0.013066321611404419,
+      "drop_random": 0.5884106854442507,
+      "drop_top": 0.5731549933552742,
+      "n_words": 6,
+      "top_words": [
+        "comprised",
+        "all",
+        "country."
+      ],
+      "uid": "fever_fresh:en:dev:00029",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.19425985729321837,
+      "drop_random": 0.23378725817456142,
+      "drop_top": 0.3149622328055557,
+      "n_words": 9,
+      "top_words": [
+        "Angela",
+        "Bassett",
+        "alive"
+      ],
+      "uid": "fever_fresh:en:dev:00032",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": -0.0006543993949890137,
+      "drop_random": 0.4749240733803163,
+      "drop_top": 0.985215977038024,
+      "n_words": 9,
+      "top_words": [
+        "not",
+        "part",
+        "States."
+      ],
+      "uid": "fever_fresh:en:dev:00034",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.002570033073425293,
+      "drop_random": 0.46055501950977484,
+      "drop_top": 0.8255423558875918,
+      "n_words": 9,
+      "top_words": [
+        "Jameson",
+        "erotic",
+        "1990."
+      ],
+      "uid": "fever_fresh:en:dev:00037",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.005217462778091431,
+      "drop_random": 0.48368954566540195,
+      "drop_top": 0.6497831218875945,
+      "n_words": 6,
+      "top_words": [
+        "is",
+        "a",
+        "character."
+      ],
+      "uid": "fever_fresh:en:dev:00038",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 4.380941390991211e-05,
+      "drop_random": 0.3012420308654328,
+      "drop_top": 0.9976029340759851,
+      "n_words": 10,
+      "top_words": [
+        "Penguin",
+        "zero",
+        "impact"
+      ],
+      "uid": "fever_fresh:en:dev:00040",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.4888684982433915,
+      "drop_random": 0.17114551390477573,
+      "drop_top": 0.47291667497484013,
+      "n_words": 8,
+      "top_words": [
+        "born",
+        "June",
+        "of"
+      ],
+      "uid": "fever_fresh:en:dev:00043",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.009030282497406006,
+      "drop_random": 0.36113650934275937,
+      "drop_top": 0.9646512027829885,
+      "n_words": 8,
+      "top_words": [
+        "prime",
+        "minister",
+        "Canada."
+      ],
+      "uid": "fever_fresh:en:dev:00046",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.0001335442066192627,
+      "drop_random": 0.020010247826576233,
+      "drop_top": 0.05203217267990112,
+      "n_words": 14,
+      "top_words": [
+        "Chairman",
+        "Defence",
+        "after"
+      ],
+      "uid": "fever_fresh:en:dev:00050",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 0.007889479398727417,
+      "drop_random": 0.3529046330892015,
+      "drop_top": 0.9921957274782471,
+      "n_words": 10,
+      "top_words": [
+        "little",
+        "impact",
+        "Britain."
+      ],
+      "uid": "fever_fresh:en:dev:00055",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.09094804525375366,
+      "drop_random": 0.09451025780290365,
+      "drop_top": -0.008645385503768921,
+      "n_words": 8,
+      "top_words": [
+        "by",
+        "a",
+        "woman."
+      ],
+      "uid": "fever_fresh:en:dev:00056",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 0.07629619538784027,
+      "drop_random": 0.526375631429255,
+      "drop_top": 0.7626707738963887,
+      "n_words": 6,
+      "top_words": [
+        "Khan",
+        "rap",
+        "artist."
+      ],
+      "uid": "fever_fresh:en:dev:00057",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.022927939891815186,
+      "drop_random": 0.48261473801321697,
+      "drop_top": 0.9603061510133557,
+      "n_words": 10,
+      "top_words": [
+        "live",
+        "album",
+        "Sevenfold."
+      ],
+      "uid": "fever_fresh:en:dev:00058",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.00020316243171691895,
+      "drop_random": 0.3199897398240864,
+      "drop_top": 0.9662996474653482,
+      "n_words": 8,
+      "top_words": [
+        "was",
+        "directed",
+        "Elmo."
+      ],
+      "uid": "fever_fresh:en:dev:00063",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.0006175041198730469,
+      "drop_random": 0.6394813685154077,
+      "drop_top": 0.9949616633821279,
+      "n_words": 6,
+      "top_words": [
+        "is",
+        "exclusively",
+        "teacher."
+      ],
+      "uid": "fever_fresh:en:dev:00070",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.024792492389678955,
+      "drop_random": 0.051666241884231565,
+      "drop_top": 0.21111029386520386,
+      "n_words": 8,
+      "top_words": [
+        "1974,",
+        "Kyle",
+        "born."
+      ],
+      "uid": "fever_fresh:en:dev:00074",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 0.4069358631968498,
+      "drop_random": 0.3429369532968849,
+      "drop_top": 0.4259102940559387,
+      "n_words": 8,
+      "top_words": [
+        "which",
+        "things",
+        "happened."
+      ],
+      "uid": "fever_fresh:en:dev:00075",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 0.000302731990814209,
+      "drop_random": 0.553153131401632,
+      "drop_top": 0.9894858249463141,
+      "n_words": 6,
+      "top_words": [
+        "refused",
+        "Reese",
+        "Witherspoon."
+      ],
+      "uid": "fever_fresh:en:dev:00079",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.15545493364334106,
+      "drop_random": 0.4987357304758916,
+      "drop_top": 0.7997947694384493,
+      "n_words": 6,
+      "top_words": [
+        "is",
+        "a",
+        "hat."
+      ],
+      "uid": "fever_fresh:en:dev:00085",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.009950459003448486,
+      "drop_random": 0.413203033991158,
+      "drop_top": 0.9320412003435194,
+      "n_words": 9,
+      "top_words": [
+        "was",
+        "born",
+        "1970s."
+      ],
+      "uid": "fever_fresh:en:dev:00092",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": -0.00921371579170227,
+      "drop_random": 0.40119450392958245,
+      "drop_top": 0.9888706035126233,
+      "n_words": 10,
+      "top_words": [
+        "incapable",
+        "of",
+        "appearing"
+      ],
+      "uid": "fever_fresh:en:dev:00094",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.002696424722671509,
+      "drop_random": 0.04264247268438339,
+      "drop_top": 0.20166456699371338,
+      "n_words": 7,
+      "top_words": [
+        "Blues",
+        "an",
+        "film."
+      ],
+      "uid": "fever_fresh:en:dev:00095",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 0.25375373661518097,
+      "drop_random": 0.6366850116515707,
+      "drop_top": 0.9519382878788747,
+      "n_words": 7,
+      "top_words": [
+        "only",
+        "Canadian",
+        "miniseries."
+      ],
+      "uid": "fever_fresh:en:dev:00099",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.06891390681266785,
+      "drop_random": 0.14489256097003816,
+      "drop_top": 0.45013898704200983,
+      "n_words": 7,
+      "top_words": [
+        "was",
+        "born",
+        "1977."
+      ],
+      "uid": "fever_fresh:en:dev:00101",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 0.002344787120819092,
+      "drop_random": 0.14738462027162313,
+      "drop_top": 0.7871435359120369,
+      "n_words": 6,
+      "top_words": [
+        "director",
+        "was",
+        "Boyle."
+      ],
+      "uid": "fever_fresh:en:dev:00104",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": -0.020881245844066143,
+      "drop_random": 0.36522215780059925,
+      "drop_top": 0.41299442772287875,
+      "n_words": 6,
+      "top_words": [
+        "was",
+        "married",
+        "1978."
+      ],
+      "uid": "fever_fresh:en:dev:00129",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.05922272801399231,
+      "drop_random": 0.1511029845190933,
+      "drop_top": 0.9234177504549734,
+      "n_words": 17,
+      "top_words": [
+        "writer",
+        "in",
+        "1616."
+      ],
+      "uid": "fever_fresh:en:dev:00133",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.0014781653881072998,
+      "drop_random": 0.12133544832468032,
+      "drop_top": 0.17577534914016724,
+      "n_words": 7,
+      "top_words": [
+        "a",
+        "rock",
+        "band."
+      ],
+      "uid": "fever_fresh:en:dev:00134",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": -0.03995293378829956,
+      "drop_random": 0.45712484996038255,
+      "drop_top": 0.937177320549381,
+      "n_words": 8,
+      "top_words": [
+        "the",
+        "Twilight",
+        "series."
+      ],
+      "uid": "fever_fresh:en:dev:00136",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.01779612898826599,
+      "drop_random": 0.7051697188726394,
+      "drop_top": 0.9962291092379019,
+      "n_words": 6,
+      "top_words": [
+        "not",
+        "a",
+        "nation."
+      ],
+      "uid": "fever_fresh:en:dev:00137",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.0007829070091247559,
+      "drop_random": 0.6275393411549886,
+      "drop_top": 0.9820800675079226,
+      "n_words": 8,
+      "top_words": [
+        "was",
+        "Dutch",
+        "band."
+      ],
+      "uid": "fever_fresh:en:dev:00139",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.006478697061538696,
+      "drop_random": 0.2174021556507796,
+      "drop_top": 0.8506713286042213,
+      "n_words": 6,
+      "top_words": [
+        "Spade",
+        "appeared",
+        "Sheep."
+      ],
+      "uid": "fever_fresh:en:dev:00140",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": -0.004712605266831815,
+      "drop_random": 0.342706100437681,
+      "drop_top": 0.4756329323281534,
+      "n_words": 7,
+      "top_words": [
+        "finished",
+        "college",
+        "1972."
+      ],
+      "uid": "fever_fresh:en:dev:00145",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.00022470951080322266,
+      "drop_random": 0.25715368616511114,
+      "drop_top": 0.9851314406841993,
+      "n_words": 11,
+      "top_words": [
+        "and",
+        "in",
+        "2001."
+      ],
+      "uid": "fever_fresh:en:dev:00148",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.0009724795818328857,
+      "drop_random": 0.0279780775308609,
+      "drop_top": 0.09654003381729126,
+      "n_words": 9,
+      "top_words": [
+        "between",
+        "2002",
+        "and"
+      ],
+      "uid": "fever_fresh:en:dev:00150",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 0.2611730024218559,
+      "drop_random": 0.2445554684876697,
+      "drop_top": 0.7238755357102491,
+      "n_words": 6,
+      "top_words": [
+        "at",
+        "High",
+        "School."
+      ],
+      "uid": "fever_fresh:en:dev:00156",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.018605738878250122,
+      "drop_random": 0.19165501894894987,
+      "drop_top": 0.608733001165092,
+      "n_words": 7,
+      "top_words": [
+        "stars",
+        "Blade",
+        "Runner"
+      ],
+      "uid": "fever_fresh:en:dev:00161",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 0.0003396272659301758,
+      "drop_random": 0.6543102522235131,
+      "drop_top": 0.878434144804487,
+      "n_words": 6,
+      "top_words": [
+        "Jardine",
+        "unable",
+        "sing."
+      ],
+      "uid": "fever_fresh:en:dev:00163",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.13180330395698547,
+      "drop_random": 0.39079409702681006,
+      "drop_top": 0.8486483155284077,
+      "n_words": 6,
+      "top_words": [
+        "by",
+        "is",
+        "Recovery."
+      ],
+      "uid": "fever_fresh:en:dev:00164",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 0.000260084867477417,
+      "drop_random": 0.40396306850561814,
+      "drop_top": 0.9982337488327175,
+      "n_words": 8,
+      "top_words": [
+        "not",
+        "by",
+        "John"
+      ],
+      "uid": "fever_fresh:en:dev:00166",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.007494032382965088,
+      "drop_random": 0.44362343599350423,
+      "drop_top": 0.9767325441353023,
+      "n_words": 6,
+      "top_words": [
+        "born",
+        "on",
+        "Mars."
+      ],
+      "uid": "fever_fresh:en:dev:00175",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.00519251823425293,
+      "drop_random": 0.0890268862247467,
+      "drop_top": 0.22429755330085754,
+      "n_words": 6,
+      "top_words": [
+        "Phillip",
+        "written",
+        "operas."
+      ],
+      "uid": "fever_fresh:en:dev:00179",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 0.0001487135887145996,
+      "drop_random": 0.33676879668491894,
+      "drop_top": 0.9942039547022432,
+      "n_words": 7,
+      "top_words": [
+        "only",
+        "a",
+        "dancer."
+      ],
+      "uid": "fever_fresh:en:dev:00187",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.08218243718147278,
+      "drop_random": 0.280316411703825,
+      "drop_top": 0.5453268180135638,
+      "n_words": 10,
+      "top_words": [
+        "Henry",
+        "stars",
+        "and"
+      ],
+      "uid": "fever_fresh:en:dev:00188",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 0.46890347450971603,
+      "drop_random": 0.6292373611271614,
+      "drop_top": 0.6123846489936113,
+      "n_words": 6,
+      "top_words": [
+        "Ward",
+        "declared",
+        "Ward."
+      ],
+      "uid": "fever_fresh:en:dev:00189",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.2860848158597946,
+      "drop_random": 0.45048739090707385,
+      "drop_top": 0.996676656359341,
+      "n_words": 9,
+      "top_words": [
+        "personal",
+        "essay",
+        "about"
+      ],
+      "uid": "fever_fresh:en:dev:00190",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.26546627283096313,
+      "drop_random": 0.062210283323656766,
+      "drop_top": -0.32702207565307617,
+      "n_words": 14,
+      "top_words": [
+        "New",
+        "Orleans",
+        "NBA."
+      ],
+      "uid": "fever_fresh:en:dev:00191",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 0.43977856636047363,
+      "drop_random": 0.7075701449241023,
+      "drop_top": 0.9950015979120508,
+      "n_words": 7,
+      "top_words": [
+        "The",
+        "one",
+        "building."
+      ],
+      "uid": "fever_fresh:en:dev:00193",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.5180328107089736,
+      "drop_random": -0.14181446097500156,
+      "drop_top": 0.3387612155638635,
+      "n_words": 10,
+      "top_words": [
+        "game",
+        "the",
+        "genre."
+      ],
+      "uid": "fever_fresh:en:dev:00194",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 0.274591276422143,
+      "drop_random": 0.47902085582099974,
+      "drop_top": 0.53001060616225,
+      "n_words": 9,
+      "top_words": [
+        "daughter",
+        "the",
+        "Bibliotheca"
+      ],
+      "uid": "fever_fresh:en:dev:00195",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -8.538365364074707e-05,
+      "drop_random": 0.23519893045449863,
+      "drop_top": 0.9079413181170821,
+      "n_words": 9,
+      "top_words": [
+        "Rourke",
+        "unable",
+        "appear"
+      ],
+      "uid": "fever_fresh:en:dev:00199",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.0024001896381378174,
+      "drop_random": 0.0208568274974823,
+      "drop_top": 0.35555800795555115,
+      "n_words": 8,
+      "top_words": [
+        "1986,",
+        "began",
+        "career."
+      ],
+      "uid": "fever_fresh:en:dev:00203",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 0.31338041415438056,
+      "drop_random": 0.22742485998605844,
+      "drop_top": 0.23502165731042624,
+      "n_words": 7,
+      "top_words": [
+        "Dub",
+        "producer",
+        "music."
+      ],
+      "uid": "fever_fresh:en:dev:00207",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.34346820041537285,
+      "drop_random": 0.16197375922929497,
+      "drop_top": 0.5235879652391304,
+      "n_words": 13,
+      "top_words": [
+        "anywhere",
+        "except",
+        "Pixar."
+      ],
+      "uid": "fever_fresh:en:dev:00208",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.2980102002620697,
+      "drop_random": 0.3021253471029922,
+      "drop_top": 0.5560221922351047,
+      "n_words": 8,
+      "top_words": [
+        "Artpop",
+        "first-week",
+        "500,000"
+      ],
+      "uid": "fever_fresh:en:dev:00211",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.011531829833984375,
+      "drop_random": 0.18993569035083055,
+      "drop_top": 0.0719749927520752,
+      "n_words": 9,
+      "top_words": [
+        "arts",
+        "by",
+        "Appropriation"
+      ],
+      "uid": "fever_fresh:en:dev:00213",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": -0.5718447183026001,
+      "drop_random": 0.13032257499289698,
+      "drop_top": 0.382683492382057,
+      "n_words": 14,
+      "top_words": [
+        "leader",
+        "of",
+        "what"
+      ],
+      "uid": "fever_fresh:en:dev:00219",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": -0.005360960960388184,
+      "drop_random": 0.5154052712947305,
+      "drop_top": 0.9798786202445626,
+      "n_words": 11,
+      "top_words": [
+        "80s",
+        "film",
+        "Stoker."
+      ],
+      "uid": "fever_fresh:en:dev:00223",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.0005978047847747803,
+      "drop_random": 0.1492163870629156,
+      "drop_top": 0.99076928361319,
+      "n_words": 13,
+      "top_words": [
+        "nothing",
+        "nature",
+        "of"
+      ],
+      "uid": "fever_fresh:en:dev:00226",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.013868868350982666,
+      "drop_random": 0.3427462408551946,
+      "drop_top": 0.7066886574029922,
+      "n_words": 6,
+      "top_words": [
+        "Arthur",
+        "born",
+        "1922."
+      ],
+      "uid": "fever_fresh:en:dev:00227",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 0.00015470385551452637,
+      "drop_random": 0.2956696917361114,
+      "drop_top": 0.9933820039732382,
+      "n_words": 11,
+      "top_words": [
+        "is",
+        "dissociated",
+        "from"
+      ],
+      "uid": "fever_fresh:en:dev:00232",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.43043405562639236,
+      "drop_random": 0.39721144002396613,
+      "drop_top": 0.4857437936589122,
+      "n_words": 6,
+      "top_words": [
+        "Daggering",
+        "of",
+        "dance."
+      ],
+      "uid": "fever_fresh:en:dev:00233",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": -0.008768647909164429,
+      "drop_random": -0.0004994705319404602,
+      "drop_top": 0.03210058808326721,
+      "n_words": 18,
+      "top_words": [
+        "best",
+        "of",
+        "Review."
+      ],
+      "uid": "fever_fresh:en:dev:00240",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 0.34951967373490334,
+      "drop_random": 0.36799602819373833,
+      "drop_top": 0.3540269732475281,
+      "n_words": 8,
+      "top_words": [
+        "subsidiary",
+        "of",
+        "General"
+      ],
+      "uid": "fever_fresh:en:dev:00251",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 0.40520524233579636,
+      "drop_random": 0.484675761393737,
+      "drop_top": 0.2672887146472931,
+      "n_words": 9,
+      "top_words": [
+        "Superhero",
+        "Captain",
+        "America's"
+      ],
+      "uid": "fever_fresh:en:dev:00254",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": -0.0011754035949707031,
+      "drop_random": 0.5801976914182887,
+      "drop_top": 0.9944883899806882,
+      "n_words": 8,
+      "top_words": [
+        "only",
+        "a",
+        "film."
+      ],
+      "uid": "fever_fresh:en:dev:00259",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.04476550221443176,
+      "drop_random": 0.09081051284447313,
+      "drop_top": 0.42072565853595734,
+      "n_words": 9,
+      "top_words": [
+        "about",
+        "adolescence",
+        "Jr."
+      ],
+      "uid": "fever_fresh:en:dev:00263",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": 0.00010815262794494629,
+      "drop_random": 0.3807821403657726,
+      "drop_top": 0.9956854143529199,
+      "n_words": 6,
+      "top_words": [
+        "not",
+        "a",
+        "musician."
+      ],
+      "uid": "fever_fresh:en:dev:00265",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.03469305578619242,
+      "drop_random": 0.15156422335567185,
+      "drop_top": 0.5011488908785395,
+      "n_words": 7,
+      "top_words": [
+        "married",
+        "Glenn",
+        "Beck"
+      ],
+      "uid": "fever_fresh:en:dev:00270",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.005398422479629517,
+      "drop_random": 0.004581424593925476,
+      "drop_top": -0.007149934768676758,
+      "n_words": 14,
+      "top_words": [
+        "Oscar",
+        "magazine's",
+        "twice."
+      ],
+      "uid": "fever_fresh:en:dev:00278",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": -0.026589959859848022,
+      "drop_random": 0.14692420939099976,
+      "drop_top": 0.38803228735923767,
+      "n_words": 9,
+      "top_words": [
+        "name",
+        "Middleton",
+        "Shand."
+      ],
+      "uid": "fever_fresh:en:dev:00290",
+      "verdict": "Supported"
+    },
+    {
+      "drop_bottom": -0.0002288520336151123,
+      "drop_random": 0.6548232109023957,
+      "drop_top": 0.9626737220096402,
+      "n_words": 6,
+      "top_words": [
+        "formed",
+        "Blink-182",
+        "2002."
+      ],
+      "uid": "fever_fresh:en:dev:00292",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.10590043663978577,
+      "drop_random": 0.23231635126139735,
+      "drop_top": 0.2861694903112948,
+      "n_words": 12,
+      "top_words": [
+        "The",
+        "destroyed",
+        "by"
+      ],
+      "uid": "fever_fresh:en:dev:00295",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.3169146031141281,
+      "drop_random": 0.4078323494475626,
+      "drop_top": 0.9397714209626429,
+      "n_words": 7,
+      "top_words": [
+        "Halsey's",
+        "debut",
+        "LP"
+      ],
+      "uid": "fever_fresh:en:dev:00297",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.0018860995769500732,
+      "drop_random": 0.08130238234298304,
+      "drop_top": 0.717269666492939,
+      "n_words": 13,
+      "top_words": [
+        "Victoria",
+        "album",
+        "1990."
+      ],
+      "uid": "fever_fresh:en:dev:00300",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.028480827808380127,
+      "drop_random": 0.5352042587343021,
+      "drop_top": 0.8009850142989308,
+      "n_words": 8,
+      "top_words": [
+        "Rourke",
+        "only",
+        "3."
+      ],
+      "uid": "fever_fresh:en:dev:00307",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.23225054144859314,
+      "drop_random": 0.3407847451933776,
+      "drop_top": 0.6769083642866462,
+      "n_words": 10,
+      "top_words": [
+        "an",
+        "1872",
+        "film."
+      ],
+      "uid": "fever_fresh:en:dev:00309",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.00025525689125061035,
+      "drop_random": 0.5577048963925335,
+      "drop_top": 0.8637635242193937,
+      "n_words": 8,
+      "top_words": [
+        "disassociated",
+        "from",
+        "Gomez."
+      ],
+      "uid": "fever_fresh:en:dev:00317",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.0008408129215240479,
+      "drop_random": 0.5329498298407997,
+      "drop_top": 0.987828119774349,
+      "n_words": 7,
+      "top_words": [
+        "a",
+        "radio",
+        "show."
+      ],
+      "uid": "fever_fresh:en:dev:00318",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.05942140519618988,
+      "drop_random": 0.35292580569457643,
+      "drop_top": 0.6560514390876051,
+      "n_words": 7,
+      "top_words": [
+        "Bad",
+        "around",
+        "60s."
+      ],
+      "uid": "fever_fresh:en:dev:00321",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.13647258281707764,
+      "drop_random": 0.5262924027105328,
+      "drop_top": 0.9742735343897948,
+      "n_words": 7,
+      "top_words": [
+        "is",
+        "a",
+        "horse."
+      ],
+      "uid": "fever_fresh:en:dev:00322",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.3820784349227324,
+      "drop_random": 0.3470749560139666,
+      "drop_top": 0.40701727851410396,
+      "n_words": 9,
+      "top_words": [
+        "is",
+        "the",
+        "full"
+      ],
+      "uid": "fever_fresh:en:dev:00323",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 2.2351741790771484e-06,
+      "drop_random": 0.16143964268412675,
+      "drop_top": 0.9975431201164611,
+      "n_words": 12,
+      "top_words": [
+        "did",
+        "not",
+        "start"
+      ],
+      "uid": "fever_fresh:en:dev:00325",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.4134647101163864,
+      "drop_random": -0.00877794980769977,
+      "drop_top": 0.4286588076502085,
+      "n_words": 9,
+      "top_words": [
+        "only",
+        "first-week",
+        "sales"
+      ],
+      "uid": "fever_fresh:en:dev:00329",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.002515554428100586,
+      "drop_random": 0.6041565180872567,
+      "drop_top": 0.9979356739204377,
+      "n_words": 6,
+      "top_words": [
+        "only",
+        "in",
+        "laptops."
+      ],
+      "uid": "fever_fresh:en:dev:00330",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.0023312270641326904,
+      "drop_random": 0.40100287424138514,
+      "drop_top": 0.9961071192228701,
+      "n_words": 14,
+      "top_words": [
+        "in",
+        "1995",
+        "album."
+      ],
+      "uid": "fever_fresh:en:dev:00331",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -0.00027179718017578125,
+      "drop_random": 0.18195424261430163,
+      "drop_top": 0.8238670788705349,
+      "n_words": 12,
+      "top_words": [
+        "incapable",
+        "involved",
+        "film"
+      ],
+      "uid": "fever_fresh:en:dev:00334",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -9.745359420776367e-06,
+      "drop_random": 0.31622515974595444,
+      "drop_top": 0.9711962826550007,
+      "n_words": 10,
+      "top_words": [
+        "is",
+        "fourth",
+        "album."
+      ],
+      "uid": "fever_fresh:en:dev:00336",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": 0.003969669342041016,
+      "drop_random": 0.6175371876379359,
+      "drop_top": 0.8618047330528498,
+      "n_words": 7,
+      "top_words": [
+        "Squad",
+        "American",
+        "band."
+      ],
+      "uid": "fever_fresh:en:dev:00345",
+      "verdict": "Refuted"
+    },
+    {
+      "drop_bottom": -8.45789909362793e-05,
+      "drop_random": 0.08120134958298877,
+      "drop_top": 0.531227276820573,
+      "n_words": 7,
+      "top_words": [
+        "neither",
+        "nor",
+        "comedy."
+      ],
+      "uid": "fever_fresh:en:dev:00349",
+      "verdict": "Refuted"
+    }
+  ],
+  "population": {
+    "fewer_than_3_helpful_words": 2,
+    "fewer_than_6_words": 30,
+    "n_scored": 98,
+    "n_with_shown_verdict": 130
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "word_faithfulness"
+}

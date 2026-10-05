@@ -684,6 +684,24 @@ code-mixing.
     हैं", the evidence contradicts it), keeping the system's
     evidence-not-truth framing in every language.
 
+### The word view: which words mattered
+
+The original goal for the project was a real-or-fake call with the words that most influenced it highlighted. The
+live verdict is the one place a real NLI decision exists to explain, so the card offers, on request, a
+**"Which words mattered?"** view: the three words of the (English) claim whose removal lowers the two models' probability of
+the shown verdict most, and the source sentence they leaned on (`docs/word-highlight-protocol.md`). It is occlusion, not
+a new model, and it never changes a verdict. Its rule was fixed before any word influence was computed: delete the top three
+words and compare with deleting three random words and the three least influential words, on the 130 claims of the fresh
+FEVER run that got a verdict (98 had six or more words; 2 of those had fewer than three helpful words and are left out).
+Run 4095b565e764: deleting the top words beat deleting random words on 0.908 (run 4095b565e764) of claims, the mean
+drop in the verdict's probability was 0.665 (run 4095b565e764) against 0.326 (run 4095b565e764) for random words, a ratio of
+2.04 (run 4095b565e764) against a bar of 2.0 (a narrow pass), and deleting the least influential words cost 0.017
+(run 4095b565e764), below random, as required. **What this does and does not show:** the highlight is faithful to the two models'
+reading, which is the thing tested; it does not say why a claim is false in the world; the top words were chosen by
+single-word deletion and tested by three-word deletion on the same pair; it exists only for verdicts that exist (about 2% of
+messages on the fast path, about 30% through the live check) and not for the offline guess; Hindi and Punjabi messages are
+explained over their English translation; and whether readers find it useful is for the usability test, not this number.
+
 ## 11. Limitations and cuts
 
 Each cut is recorded with its reason, as SRS §7 requires.
@@ -709,6 +727,8 @@ Each cut is recorded with its reason, as SRS §7 requires.
   Punjabi results are a machine-translation round trip, not natural text. Six wrong
   answers in 106 are listed in §8b and `docs/live-fever-protocol-2.md`, with their causes
   not investigated.
+- The word view (§8b) is faithful to the models by a narrow margin (ratio 2.04 against a bar of 2.0), is claim-word level only
+  (30 of 130 verdict claims were too short to test), and explains the models, not the world. The offline guess has no word view.
 - Offline, romanized free text often retrieves loosely related evidence (§9); the
   fix of §8a helps but does not remove it.
 - The served pipeline uses 4.60 of the roughly 4.9 GiB that Windows leaves usable on the GPU.

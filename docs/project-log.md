@@ -3158,3 +3158,16 @@ chain requests or emoji), and the card says "Just a greeting ... nothing here to
 keeps the button. The gate itself (`is_check_worthy`, and so every claims-stage number) is untouched. New strings `plain.greeting_title`,
 `plain.greeting_note` (hi/pa machine-drafted, in `docs/i18n-review.md`). Note: "Happy Diwali everyone" passes the gate (4 words; the greeting
 pattern does not know festivals), unchanged and out of scope. Tests: 849 passed (run with CUDA_VISIBLE_DEVICES="" because the owner's server holds the GPU).
+
+### The word view: "Which words mattered?" (2026-10-05, approved plan part 1)
+
+Built after the owner asked how the project compares with the original goal (real-or-fake plus the words that influenced the
+decision). `docs/word-highlight-protocol.md` (rule fixed first, commit dff4112) -> `src/explain/` (occlusion helpers, `explain_words`),
+`NLIStance.score_pairs` reused, `POST /explain_words`, `PipelineConfig.word_view`, `Passage.premise` and `ClaimResult.claim_en` (live
+only), `eval.metrics.word_faithfulness_metrics`, `scripts/word_faithfulness.py`, the card button and strings (hi/pa machine-drafted,
+in `docs/i18n-review.md`). Run once on the CPU against the stored `fever_fresh` captures (reports/word_faithfulness_run.log):
+**results/4095b565e764.json: win rate 0.908 (89 of 98), mean drop top 0.665 vs random 0.326 (ratio 2.04, bar 2.0: a narrow pass),
+bottom 0.017: all three gates passed, so `word_view: true` is served.** 30 of 130 verdict claims had fewer than six words and 2 had fewer
+than three helpful words; both counts are in the result. A 3-claim smoke run was made before the real run (its ratio was 1.98; it
+decided nothing and wrote no result). Not done: a fast-path word view (needs its own protocol). The button appears only after the
+owner restarts the server (the backend has a new route). Test suite: 860 passed, 9 skipped, 2 deselected (CUDA hidden because the owner's server holds the GPU; one earlier whole-file run of `tests/test_orchestrator.py` crashed with a Windows access violation under memory pressure, each test passed alone and the full suite passed afterwards).

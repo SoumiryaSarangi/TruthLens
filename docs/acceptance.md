@@ -42,6 +42,7 @@ with the reason.
 | FR-25 | P0 | review | `docs/results.md`: every row carries its baseline | V |
 | FR-26 | P0 | review, eval | hand-typed 100 (`data/splits/handtyped/`); MultiClaim natural romanized; `x_claim_romanized` dev 02c59ee296a0 / f05dd5f44b16, test 67e8435985a6 vs 418bf3876e80 (same posts) | V |
 | FR-27 | P1 | review | `docs/figures/tsne_parallel_claims.png` | V |
+| FR-29 | P2 | test, measurement | `tests/test_word_view.py`, `scripts/ui_plain_check.js` (`words_button`), `scripts/word_faithfulness.py`; run 4095b565e764 | V - shipped under the rule in `docs/word-highlight-protocol.md` (win rate 0.908, mean ratio 2.04 against a bar of 2.0, bottom-3 control passed); explains the models, not the world |
 | FR-28 | P2 | test, demo | `tests/test_live_sources.py`, `tests/test_live_pipeline.py`, `scripts/ui_live_check.js`, `scripts/ui_evidence_check.js`; AVeriTeC dev byte-identical to 164d2289c90b with it in place; `docs/live-search-probe.md` | V — served WITH a verdict under the rule pre-registered and validated in `docs/live-fever-protocol-2.md` (all four gates passed; protocol 1 missed its accuracy bar by two claims and is reported alongside); `tests/test_live_pipeline.py` covers the two-model rule; probe sets 1-4 are context |
 
 ## Non-functional requirements

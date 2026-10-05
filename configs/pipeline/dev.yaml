@@ -79,6 +79,11 @@ live_search: true
 live_verdict: true
 live_translate: true
 
+# word_view: the on-demand "Which words mattered?" button on a live verdict (docs/word-highlight-protocol.md).
+# Shipped because the pre-registered faithfulness rule passed (run 4095b565e764). It explains the two NLI models'
+# reading of the sources; it never changes a verdict, and it is not computed unless the reader asks.
+word_view: true
+
 # relevance_floor (FR-12): OFF, chosen on dev in Phase 6 by verdict macro-F1.
 # 0.45 and 0.50 abstain on zero dev claims; 0.55 and 0.60 abstain on 3 and 9 and
 # only lower macro-F1 (0.60: -0.0065, CI excludes 0). AVeriTeC pools are

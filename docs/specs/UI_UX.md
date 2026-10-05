@@ -199,6 +199,15 @@ claim. The card is then replaced by a live card:
   fact-check shows its publisher's own rating.
 If a source is down the earlier answer stays and the note under the button says so.
 
+### Word view and greeting (2026-10-05)
+
+- **"Which words mattered?"** appears on a live Supported/Refuted verdict card only (`/version` `config.word_view`), never on a fast-path,
+  careful, similar or hard-to-say card. One tap shows the claim with up to three words marked with a **mark and a ▲ glyph (never colour
+  alone)**, a one-line hint, a note when the words are those of the English version of a Hindi/Punjabi message, and the one source
+  sentence that mattered most; a second tap folds it away. If the server cannot compute it, it says so and the card is unchanged.
+- A message that is only a greeting or blessing shows "Just a greeting: nothing here to check" with no "Check it anyway" button
+  (`gate_reason: "greeting"`); a short fragment keeps the button.
+
 ## 6. Visual language for verdicts
 
 **Colour is never the only signal.** Every verdict has an icon *and* a word.
