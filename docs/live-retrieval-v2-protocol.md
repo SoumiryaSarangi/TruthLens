@@ -82,3 +82,8 @@ The development check 1 above was written over claims that were silent under v1,
 - **Pass:** v2's share is at least 1.25 times v1's, on the pooled population and not lower on either set. If it fails, Stage 1 is dropped and recorded; nothing else in this protocol is run for it.
 - **Deviation from the Stage 1 text, stated:** acronyms are all-capital tokens of 3 to 6 letters (2-letter forms such as "PM" are too ambiguous to search alone), up to 3 per claim, so a claim can cost up to 9
   Wikipedia calls (v1: 2 to 4), not 6. The request rate stays well inside the polite limit because the fetcher caches and spaces calls.
+
+## v1 baseline on RC-E (2026-10-05, run `417fe19821a5`, `results/417fe19821a5.json`; the served system, before any v2 code was run on it)
+RC-E, 85 claims (50 F, 25 T, 10 U): **0 verdicts shown (coverage 0.000)**, 0 false Supported in 50 false claims; precision is undefined with nothing shown. The errors of RC-E were not read (there are none to read). So the pooled A2 + RC-E
+v1 baseline is **28 shown decidable verdicts, all correct** (A2 28, RC-E 0), and the gain bar fixed in correction 1 ("at least 30% above the v1 baseline on the same pool") is **at least 37 shown decidable verdicts on the pool**
+(28 x 1.3 = 36.4, rounded up), together with precision at least 0.85 (Wilson lower bound at least 0.80) and a false-Supported Wilson upper bound of at most 0.08.
