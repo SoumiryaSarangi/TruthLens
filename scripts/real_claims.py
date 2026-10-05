@@ -136,8 +136,7 @@ def report() -> int:
         from eval.metrics import paired_flip_counts
         paired = paired_flip_counts({r["uid"].split(":")[1]: (r["gold"], r["final"].get("shown")) for r in b},
                                     {r["uid"].split(":")[1]: (r["gold"], r["final"].get("shown")) for r in c})
-        print("
-B (plain) vs C (chatty), same 120 claims:", json.dumps(paired))
+        print("\nB (plain) vs C (chatty), same 120 claims:", json.dumps(paired))
     cfg = {"experiment": "p9_real_claims", "task": "real_claims", "protocol": "docs/real-claims-protocol.md", "seed": SEED}
     sha = sha256_file(ROOT / "docs" / "real-claims-protocol.md")
     h = sha256_bytes(canonical_json(cfg) + sha.encode() + str(sum(len(v) for v in sets.values())).encode())[:12]
