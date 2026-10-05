@@ -62,3 +62,15 @@ Consequences, stated now:
 - The informativeness condition is unchanged: with fewer than 6 wrong shown negations WITHOUT the guard the result is "not testable" and the guard is not adopted.
 - The owner fills a wide sheet (`rcf_for_owner.csv`: one row per source, columns `paraphrase`, `negation`, `language`, `skip_reason`); the agent converts it mechanically to long form (kind = paraphrase or negation; gold of a paraphrase = the source's rating,
   gold of a negation = the opposite). Rows with a blank cell are skipped and counted.
+
+## Correction 2 (2026-10-05; RC-F received; written BEFORE any RC-F sentence is run and before any guard output exists)
+**RC-F as received:** `rcf_for_owner_filled.csv` (git-ignored in `data/private/`), 44 sources, every row filled, none skipped; converted mechanically (`data/private/rcf_claims.csv`) to **88 sentences: 44 paraphrases (40 gold F, 4 gold T) and 44 negations
+(40 gold T, 4 gold F)**; 48 Roman Hindi and 40 English; 6 of the "paraphrases" are verbatim copies of the source sentence (reported separately, and not removed). Written by the owner without sight of any system output.
+
+**How the offline measure is computed (fixed now):**
+- **Without the guard** = what the running server (tau_live_match 0.70, no guard) returns for the sentence (`diagnose --set f` stores the result, the English translation and whether a fact-check match decided).
+- **With the guard** = the same result, except that when a FACT-CHECK match decided and the guard blocks it (P(Contradiction) of DeBERTa, premise = the matched fact-checked claim text, hypothesis = the sentence's English form, at least 0.5; matched text in English only),
+  the sentence is counted as **silent**. The true served fall-through (a blocked match may be answered by Wikipedia instead) is not simulated; that is what the served confirmation run measures. A result decided by Wikipedia is never changed by the guard.
+- The matched hit is recomputed with the same Google queries and BGE-M3 scoring as the live path (`best_match` in `scripts/factcheck_match_curve.py`, now also returning the hit's claim text and language), on the English form where one exists.
+- **Retention on the natural sets** uses the projection at 0.70 of A1, B, A2 and RC-E (`factcheck_match_curve.project`): of the correct shown verdicts decided by a fact-check match, the share the guard does not block. Their errors are not used to choose anything.
+- Outcomes per RC-F kind: shown, correct, wrong (a shown verdict that contradicts the gold; for a gold-F sentence, shown Supported is also counted as false Supported). The pass rule above is applied to these numbers exactly as written. Row and source-cluster bootstrap intervals (1000 resamples, seed 42) are reported.
