@@ -73,6 +73,9 @@ class PipelineConfig:
     # meaningful with live_verdict. Left out of describe() unless on, so no
     # existing config hash moves.
     live_translate: bool = False
+    # Retrieval v2 for live Wikipedia (docs/live-retrieval-v2-protocol.md): entity and acronym queries and deeper
+    # candidates. Off until that protocol's pooled bars pass on A2 + RC-E. Left out of describe() unless on.
+    live_retrieval_v2: bool = False
     # Offer the on-demand "which words mattered" view for a live verdict (docs/word-highlight-protocol.md).
     # Off until that protocol's faithfulness rule passes. Left out of describe() unless on.
     word_view: bool = False
@@ -111,6 +114,8 @@ class PipelineConfig:
                "stages": dict(self.stages or {})}
         if self.live_translate:
             out["live_translate"] = True
+        if self.live_retrieval_v2:
+            out["live_retrieval_v2"] = True
         if self.tau_similar is not None:
             out["tau_similar"] = self.tau_similar
         if self.word_view:
@@ -220,7 +225,7 @@ class Orchestrator:
         if self._live is None:
             from pipeline.live import LiveEvidence
 
-            self._live = LiveEvidence(to_english=self.cfg.live_translate)
+            self._live = LiveEvidence(to_english=self.cfg.live_translate, retrieval_v2=self.cfg.live_retrieval_v2)
         return self._live
 
     def _live_stance(self):

@@ -24,7 +24,7 @@ from data.verdicts import rating_to_verdict
 from pipeline.contracts import FactCheckMatch
 from retrieval.live.factcheck import FactCheckHit, GoogleFactCheck
 from retrieval.live.http import LiveError
-from retrieval.live.wikipedia import WikipediaLive, build_queries
+from retrieval.live.wikipedia import WikipediaLive, build_queries, build_queries_v2
 
 TAU_MATCH = 0.90          # the served fast-path threshold, chosen on dev (Phase 4)
 GOOGLE_QUERY_CHARS = 300
@@ -136,7 +136,7 @@ class LiveEvidence:
                  factcheck: GoogleFactCheck | None = None,
                  encode: Callable[[list[str]], Sequence[Sequence[float]]] = default_encode,
                  tau_match: float = TAU_MATCH, n_wikipedia: int = 5, n_factcheck: int = 3,
-                 to_english: bool = False) -> None:
+                 to_english: bool = False, retrieval_v2: bool = False) -> None:
         self.wikipedia = wikipedia or WikipediaLive()
         self.factcheck = factcheck or GoogleFactCheck()
         self.encode = encode
@@ -144,11 +144,13 @@ class LiveEvidence:
         self.n_wikipedia = n_wikipedia
         self.n_factcheck = n_factcheck
         self.to_english = to_english      # read English Wikipedia (the translated-claim route)
+        self.retrieval_v2 = retrieval_v2  # entity and acronym queries, deeper candidates (docs/live-retrieval-v2-protocol.md)
 
     # -- the two sources, each isolated so one failing cannot take the other down --
     def _wikipedia(self, forms: list[str], lang: str, result: LiveResult):
         try:
-            return self.wikipedia.search(build_queries(forms, lang), to_english=self.to_english)
+            queries = build_queries_v2(forms, lang) if self.retrieval_v2 else build_queries(forms, lang)
+            return self.wikipedia.search(queries, to_english=self.to_english)
         except LiveError as exc:
             result.notes.append(f"degraded: wikipedia unavailable ({exc})")
             return []

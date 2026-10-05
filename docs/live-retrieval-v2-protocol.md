@@ -73,3 +73,12 @@ MoHUA, India Post, WHO, NHS, NASA, NCCIH, CDC and others), 32 distinct first URL
 bars: precision on shown decidable claims at least 0.85 with Wilson lower bound at least 0.80; false-Supported rate with Wilson upper bound at most 0.08; and a real gain: pooled shown decidable verdicts at least 30% above
 the v1 baseline on the same pool (A2 28 plus RC-E's v1 count, measured first). Cluster-bootstrap intervals (RC-E by source URL) are reported and the more conservative of the row and cluster verdicts stands, as in
 `docs/real-claims-protocol.md`. If the pooled bars fail, v2 is not shipped.
+
+## Correction 2 (2026-10-05, after the Stage 1 code and tests exist, BEFORE any v2 retrieval number is computed): the retrieval check has a defined, non-zero baseline
+The development check 1 above was written over claims that were silent under v1, so its v1 value is zero by construction and "a 25% relative rise" has no meaning. It is replaced by:
+- **Population:** every gold-T/F claim of B (125) and of A1 (the English claims of AVeriTeC dev A1, gold T or F). Forms: the claim as run, plus the English translation stored in `diag_b.jsonl` for B (A1 is English already).
+- **Measure:** the share of claims with at least one live Wikipedia page that passes the UNCHANGED relevance floor (BGE-M3 cosine 0.5) and the UNCHANGED `title_grounded` gate, under v1 queries and under v2 queries,
+  from the live Wikipedia API (no fact-check calls, no NLI, no verdict; `scripts/retrieval_v2_check.py`, BGE-M3 on CPU so the owner's server is not disturbed). Also reported: Wikipedia requests per claim (mean and maximum).
+- **Pass:** v2's share is at least 1.25 times v1's, on the pooled population and not lower on either set. If it fails, Stage 1 is dropped and recorded; nothing else in this protocol is run for it.
+- **Deviation from the Stage 1 text, stated:** acronyms are all-capital tokens of 3 to 6 letters (2-letter forms such as "PM" are too ambiguous to search alone), up to 3 per claim, so a claim can cost up to 9
+  Wikipedia calls (v1: 2 to 4), not 6. The request rate stays well inside the polite limit because the fetcher caches and spaces calls.

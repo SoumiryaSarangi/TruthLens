@@ -23,12 +23,16 @@ import re
 import urllib.parse
 from dataclasses import dataclass
 
-from pipeline.relevance import content_terms
+from pipeline.relevance import STOPWORDS, content_terms
 from retrieval.live.http import Fetcher
 
 API = "https://{lang}.wikipedia.org/w/api.php"
 LANGS = ("en", "hi", "pa")
 MAX_TERMS = 8
+DEEP_PER_SEARCH = 8        # retrieval v2: titles per query (v1: 5)
+MAX_ACRONYMS = 3           # retrieval v2: acronyms resolved per claim
+MAX_PHRASES = 2            # retrieval v2: proper-noun phrases in the entity query
+ACRONYM_TITLES = 2         # retrieval v2: titles taken from a search of an acronym alone
 LEAD_CHARS = 700
 SNIPPET_CHARS = 500
 _TAGS = re.compile(r"<[^>]+>")
@@ -61,6 +65,78 @@ def build_queries(forms: list[str], lang_hint: str) -> list[tuple[str, str]]:
     return out
 
 
+_PHRASE_JOIN = frozenset({"of", "the", "and", "for", "de"})
+_CAP_WORD = re.compile(r"[A-Z][\w'\u2019-]*")
+_ACRONYM = re.compile(r"^[A-Z]{3,6}$")
+# Capitalised only because they open a sentence or are shouted: never an entity or an acronym.
+_NOT_ENTITY = STOPWORDS | frozenset({"the", "a", "an", "if", "since", "when", "now", "all", "any", "do", "does", "is", "are", "was", "it",
+                         "this", "that", "yes", "no", "ok", "pls", "plz", "fake", "true", "false", "note", "alert", "urgent", "new",
+                         "january", "february", "march", "april", "may", "june", "july", "august", "september", "october",
+                         "november", "december", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"})
+
+
+def entity_phrases(text: str, limit: int = MAX_PHRASES) -> list[str]:
+    """Runs of capitalised words ('Atal Pension Yojana', 'Reserve Bank of India'), longest first.
+
+    Wikipedia's search ANDs quoted phrases, so a claim that names a thing finds the page about the thing,
+    where eight ORed content words find the pages that merely contain many of them. Acronyms are left to
+    `acronyms` (they are searched alone). A word that is capitalised only because it opens the sentence is skipped.
+    """
+    tokens = [re.sub(r"['\u2019]s$", "", t) for t in re.findall(r"[\w'\u2019-]+", text)]
+    phrases: list[list[str]] = []
+    run: list[str] = []
+    for i, tok in enumerate(tokens):
+        is_cap = bool(_CAP_WORD.fullmatch(tok)) and not _ACRONYM.match(tok) and not (i == 0 and tok.lower() in _NOT_ENTITY)
+        if (is_cap and tok.lower() not in _NOT_ENTITY) or (run and tok.lower() in _PHRASE_JOIN and i + 1 < len(tokens) and _CAP_WORD.fullmatch(tokens[i + 1])):
+            run.append(tok)
+        else:
+            if run:
+                phrases.append(run)
+            run = []
+    if run:
+        phrases.append(run)
+    seen, out = set(), []
+    for words in sorted((p for p in phrases if len(" ".join(p)) >= 4), key=lambda p: -len(" ".join(p))):
+        phrase = " ".join(words)
+        if phrase.lower() not in seen:
+            seen.add(phrase.lower())
+            out.append(phrase)
+    return out[:limit]
+
+
+def acronyms(forms: list[str], limit: int = MAX_ACRONYMS) -> list[str]:
+    """All-capital tokens of 3 to 6 letters (UPI, OTP, PMJDY), in order of first appearance, from every form of the claim."""
+    seen: list[str] = []
+    for form in forms:
+        for tok in re.findall(r"[A-Za-z]+", form):
+            if _ACRONYM.match(tok) and tok.lower() not in _NOT_ENTITY and tok not in seen:
+                seen.append(tok)
+    return seen[:limit]
+
+
+def build_queries_v2(forms: list[str], lang_hint: str) -> list[tuple]:
+    """Retrieval v2 (docs/live-retrieval-v2-protocol.md, stage 1): the v1 OR queries, kept and deepened, plus an
+    entity query and one query per acronym. Each item is (language, query, titles to take).
+
+    Every query is English Wikipedia except the v1 native-script one. The union is re-ranked by BGE-M3 exactly as
+    in v1 and the same grounding gate decides what is judged: nothing here loosens a gate.
+    """
+    out: list[tuple] = [(lang, query, DEEP_PER_SEARCH) for lang, query in build_queries(forms, lang_hint)]
+    latin = [f for f in forms if f.isascii()]
+    phrases = entity_phrases(latin[-1]) if latin else []      # the English form is last (see the orchestrator)
+    if phrases:
+        out.append(("en", " ".join(f'"{p}"' for p in phrases), DEEP_PER_SEARCH))
+    for acro in acronyms(latin):
+        out.append(("en", acro, ACRONYM_TITLES))
+    seen, unique = set(), []
+    for item in out:
+        key = (item[0], item[1])
+        if key not in seen:
+            seen.add(key)
+            unique.append(item)
+    return unique
+
+
 def _clean(text: str) -> str:
     return " ".join(html.unescape(_TAGS.sub("", text or "")).split())
 
@@ -76,9 +152,9 @@ class WikipediaLive:
         self.fetcher = fetcher or Fetcher()
         self.per_search = per_search
 
-    def _search(self, lang: str, query: str) -> list[dict]:
+    def _search(self, lang: str, query: str, limit: int | None = None) -> list[dict]:
         url = (API.format(lang=lang) + "?action=query&list=search&format=json"
-               f"&srlimit={self.per_search}&srprop=snippet&srsearch={urllib.parse.quote(query)}")
+               f"&srlimit={limit or self.per_search}&srprop=snippet&srsearch={urllib.parse.quote(query)}")
         return self.fetcher.get_json(url).get("query", {}).get("search", [])
 
     def _leads(self, lang: str, titles: list[str]) -> dict[str, str]:
@@ -100,7 +176,7 @@ class WikipediaLive:
         return {p["title"]: p["langlinks"][0]["*"] for p in pages.values()
                 if p.get("langlinks") and "title" in p}
 
-    def search(self, queries: list[tuple[str, str]], to_english: bool = False) -> list[WikiCandidate]:
+    def search(self, queries: list[tuple], to_english: bool = False) -> list[WikiCandidate]:
         """Candidates for every (language, query), one fetch of leads per language.
 
         `to_english` swaps a hi/pa page for its English counterpart (language links)
@@ -109,8 +185,8 @@ class WikipediaLive:
         no English counterpart keeps its own text.
         """
         by_lang: dict[str, dict[str, str]] = {}
-        for lang, query in queries:
-            for hit in self._search(lang, query):
+        for lang, query, *limit in queries:
+            for hit in self._search(lang, query, limit[0] if limit else None):
                 by_lang.setdefault(lang, {}).setdefault(hit["title"], _clean(hit.get("snippet", "")))
         out: list[WikiCandidate] = []
         if to_english:
