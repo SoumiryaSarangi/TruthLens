@@ -43,4 +43,13 @@ link. Absent when extraction fails. `factcheck_lead: true` in the served config 
 
 ## Dated corrections
 
-(none yet)
+(none to the rule.)
+
+## Result (2026-10-05, run 9e209d11fc4d, run once): FEATURE OFF
+
+**Gate 1 failed: a finding sentence was extracted for 27 of 60 = 45.0%** (bar 70%), so the feature is off and gate 2 (my labelling) was not run.
+Works: thequint 4/4, usatoday 6/6, factly 4/4, newsmobile 4/6, newsmeter 2/2 (the pineapple fact-check's publisher), politifact, factcheck.org, altnews.
+Fails: boomlive 0/4, checkyourfact 0/6, indiatoday 0/3, asianet 0/2, thip.media 0/1 and every AFP desk (0/12) - these pages mostly give no usable
+paragraph to a plain GET (client-rendered). Of the first 8 extracted sentences, 2 were junk by eye (a PolitiFact Facebook-programme sentence; a "Follow us on
+Facebook! ... latest debunks" footer), read after the run and not a gate. Not tuned. Per-publisher rules or a headless browser would be a new protocol and
+a new dependency.

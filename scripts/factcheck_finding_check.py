@@ -62,14 +62,19 @@ def collect() -> int:
 def score() -> int:
     seeded = set_all_seeds(SEED)
     items = json.loads(COLLECTED.read_text(encoding="utf-8"))
-    labels = json.loads(LABELS.read_text(encoding="utf-8"))     # {id: true|false}, written by the assistant before this runs
     ok = [o for o in items if o["sentence"]]
-    missing = [o["id"] for o in ok if o["id"] not in labels]
-    if missing:
-        raise SystemExit(f"unlabelled sentences: {missing}")
     coverage = len(ok) / len(items)
-    finding = sum(1 for o in ok if labels[o["id"]]) / len(ok) if ok else 0.0
-    gates = {"coverage": coverage >= BAR, "states_a_finding": finding >= BAR}
+    if coverage < BAR:
+        # Gate 1 already failed, so the feature is off whatever the sentences say; they are not labelled.
+        labels, finding, label_gate = {}, None, False
+    else:
+        labels = json.loads(LABELS.read_text(encoding="utf-8"))     # {id: true|false}, written by the assistant first
+        missing = [o["id"] for o in ok if o["id"] not in labels]
+        if missing:
+            raise SystemExit(f"unlabelled sentences: {missing}")
+        finding = sum(1 for o in ok if labels[o["id"]]) / len(ok) if ok else 0.0
+        label_gate = finding >= BAR
+    gates = {"coverage": coverage >= BAR, "states_a_finding": label_gate}
     passes = all(gates.values())
     print(json.dumps({"n": len(items), "extracted": len(ok), "coverage": coverage, "states_a_finding": finding,
                       "gates": gates, "passes": passes}, indent=1))

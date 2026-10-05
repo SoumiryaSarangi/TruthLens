@@ -1,0 +1,603 @@
+{
+  "config_hash": "9e209d11fc4d",
+  "created_utc": "2026-10-05T02:13:20+00:00",
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p9_factcheck_finding",
+  "git": {
+    "branch": "main",
+    "dirty": true,
+    "sha": "c60fe0a389af00893a925c8d6c732df8cc6313b0"
+  },
+  "inputs": {
+    "config": {
+      "bar": 0.7,
+      "experiment": "p9_factcheck_finding",
+      "n": 60,
+      "protocol": "docs/factcheck-finding-protocol.md",
+      "seed": 43,
+      "task": "factcheck_finding"
+    },
+    "protocol_sha256": "93f130d9c2b70186d5ed95d9dd2645632d3f923ce8f891a61ea652d6b3b2057e"
+  },
+  "metrics": {
+    "bar": 0.7,
+    "coverage": 0.45,
+    "extracted": 27,
+    "gates": {
+      "coverage": false,
+      "states_a_finding": false
+    },
+    "n": 60,
+    "passes": false,
+    "states_a_finding": null
+  },
+  "per_item": [
+    {
+      "id": "216660",
+      "publisher": "thequint.com",
+      "rating": "Refuted",
+      "sentence": "While the scholarship is awarded only to girls, there is no no evidence to prove that it is given to those from the Muslim community.",
+      "states_a_finding": null,
+      "title": "Fact-Check: Did Malabar Gold Award Scholarships Only to Muslim Girls? No!",
+      "url": "https://www.thequint.com/news/webqoof/malabar-gold-muslim-girl-scholarship-fact-check"
+    },
+    {
+      "id": "30637",
+      "publisher": "politifact.com",
+      "rating": "Refuted",
+      "sentence": "This post was flagged as part of Facebook’s efforts to combat false news and misinformation on its News Feed.",
+      "states_a_finding": null,
+      "title": "No, Beto O'Rourke did not dismiss veterans and the elderly",
+      "url": "https://www.politifact.com/factchecks/2019/feb/14/viral-image/no-beto-orourke-didnt-dismiss-veterans-and-elderly/"
+    },
+    {
+      "id": "260468",
+      "publisher": "usatoday.com",
+      "rating": "Refuted",
+      "sentence": "But a spokesperson for the Treasury, which oversees the production of American currency, said the claim is baseless.",
+      "states_a_finding": null,
+      "title": "Fact check: Billions of pre-2021 US dollars will remain valid currency after January 2023",
+      "url": "https://www.usatoday.com/story/news/factcheck/2022/11/24/fact-check-false-claim-pre-2021-us-dollars-invalid-2023/10740604002/"
+    },
+    {
+      "id": "38761",
+      "publisher": "checkyourfact.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "FACT CHECK: Viral Image Claims To Show George Soros In A Nazi Uniform",
+      "url": "http://checkyourfact.com/2019/10/10/fact-check-fake-photograph-george-soros-nazi/"
+    },
+    {
+      "id": "300919",
+      "publisher": "usatoday.com",
+      "rating": "Refuted",
+      "sentence": "Follow us on Facebook!Like our page to get updates throughout the day on our latest debunks",
+      "states_a_finding": null,
+      "title": "No, CDC didn't say new COVID-19 variant is more contagious among vaccinated | Fact check",
+      "url": "https://www.usatoday.com/story/news/factcheck/2023/09/01/post-distorts-cdc-risk-breakdown-of-new-covid-19-variant-fact-check/70722275007/"
+    },
+    {
+      "id": "121787",
+      "publisher": "factly.in",
+      "rating": "Refuted",
+      "sentence": "Hence, the claim made in the post is FALSE.",
+      "states_a_finding": null,
+      "title": "The central government collects more tax on petrol than most state governments",
+      "url": "https://factly.in/the-central-government-collects-more-tax-on-petrol-than-the-state-government/"
+    },
+    {
+      "id": "351907",
+      "publisher": "semakanfakta.afp.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "Video of dancers in elephant costume falsely shared as real animal performing in India",
+      "url": "https://semakanfakta.afp.com/node/56808"
+    },
+    {
+      "id": "419214",
+      "publisher": "newsmobile.in",
+      "rating": "Refuted",
+      "sentence": "NewsMobile fact-checked the viral newspaper clipping, and found it to be MISLEADING.",
+      "states_a_finding": null,
+      "title": "Fact Check: Viral Newspaper Clippings’ Claim That Uddhav Thackeray Apologised For 1992 Riots Is Fabricated",
+      "url": "https://www.newsmobile.in/nm-fact-checker/fact-check-viral-newspaper-clipping-claiming-uddhav-thackerays-apology-is-fabricated/"
+    },
+    {
+      "id": "350196",
+      "publisher": "checkyourfact.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "FACT CHECK: Did Greg Abbott Say Biden Should Learn From Putin?",
+      "url": "https://checkyourfact.com/2024/02/06/fact-check-did-greg-abbott-say-biden-should-learn-from-putin/"
+    },
+    {
+      "id": "360609",
+      "publisher": "factly.in",
+      "rating": "Refuted",
+      "sentence": "Fact: The original video has been edited between timestamps 02:41:22 to 02:41:25 and is being shared out of context to spread misinformation.",
+      "states_a_finding": null,
+      "title": "A clipped video shared as Amit Shah’s comments that India should be divided into South India and North India",
+      "url": "https://factly.in/a-clipped-video-shared-as-amit-shahs-comments-that-india-should-be-divided-into-south-india-and-north-india/"
+    },
+    {
+      "id": "131877",
+      "publisher": "newsmeter.in",
+      "rating": "Refuted",
+      "sentence": "We found that India Today debunked the claim and spoke to Charanjit Channi, the original singer of the music, and his family.",
+      "states_a_finding": null,
+      "title": "Fact Check: Was Punjab chief minister Charanjit Channi singer before entering politics?",
+      "url": "https://newsmeter.in/fact-check/fact-check-was-punjab-chief-minister-charanjit-channi-singer-before-entering-politics-683654"
+    },
+    {
+      "id": "314016",
+      "publisher": "usatoday.com",
+      "rating": "Refuted",
+      "sentence": "Like our page to get updates throughout the day on our latest debunks",
+      "states_a_finding": null,
+      "title": "No, George Floyd court documents don't prove he died of drug overdose | Fact check",
+      "url": "https://www.usatoday.com/story/news/factcheck/2023/11/03/george-floyd-was-murdered-did-not-die-of-drug-overdose-fact-check/71410099007/"
+    },
+    {
+      "id": "129705",
+      "publisher": "usatoday.com",
+      "rating": "Refuted",
+      "sentence": "One of the most pervasive falsehoods is the claim that COVID-19 is just another strain of the seasonal flu.",
+      "states_a_finding": null,
+      "title": "Fact check: Omicron coronavirus variant is not the common cold",
+      "url": "https://www.usatoday.com/story/news/factcheck/2021/12/30/fact-check-omicron-coronavirus-variant-not-common-cold/9037174002/"
+    },
+    {
+      "id": "155067",
+      "publisher": "checkyourfact.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "FACT CHECK: Does This Image Show A Replica Statue Of Liberty In Syria Made From The Rubble Of The Artist’s Home?",
+      "url": "https://checkyourfact.com/2021/06/04/fact-check-replica-statue-liberty-syria-rubble-artist-home/"
+    },
+    {
+      "id": "308859",
+      "publisher": "factual.afp.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "Video game segment falsely shared as Hamas shooting down Israeli helicopters",
+      "url": "https://factual.afp.com/node/52369"
+    },
+    {
+      "id": "206589",
+      "publisher": "factcheck.org",
+      "rating": "Refuted",
+      "sentence": "Yet social media posts distorted a comment from a Centers for Disease Control and Prevention official about such reports to falsely say he admitted the vaccines cause “debilitating illnesses.”",
+      "states_a_finding": null,
+      "title": "Posts Falsely Claim CDC Official Admitted COVID-19 Vaccines Cause ‘Debilitating Illnesses’",
+      "url": "https://www.factcheck.org/2023/02/scicheck-posts-falsely-claim-cdc-official-admitted-covid-19-vaccines-cause-debilitating-illnesses/"
+    },
+    {
+      "id": "251384",
+      "publisher": "usatoday.com",
+      "rating": "Refuted",
+      "sentence": "But the retailer did not make this announcement, and a Dollar General spokesperson told USA TODAY the claim is “not accurate.”",
+      "states_a_finding": null,
+      "title": "Fact check: False claim Dollar General is switching to 24-hour operations",
+      "url": "https://www.usatoday.com/story/news/factcheck/2022/08/19/fact-check-false-claim-dollar-general-announced-24-hour-stores/10346410002/"
+    },
+    {
+      "id": "132548",
+      "publisher": "factly.in",
+      "rating": "Refuted",
+      "sentence": "This photo has nothing to do with the new United Stated President Joe Biden.",
+      "states_a_finding": null,
+      "title": "An old photo of Muslims praying in front of the US Capitol is being shared as a recent one",
+      "url": "https://factly.in/an-old-photo-of-muslims-praying-in-front-of-the-us-capitol-is-being-shared-as-a-recent-one/"
+    },
+    {
+      "id": "94102",
+      "publisher": "factcheckgreek.afp.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "Analysis piece from 2018 sparks misinformation about Nigeria's debt to China",
+      "url": "https://factcheckgreek.afp.com/node/23990"
+    },
+    {
+      "id": "130424",
+      "publisher": "indiatoday.in",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "Fact Check: Fake West Bengal election schedule circulates on social media",
+      "url": "https://www.indiatoday.in/fact-check/story/fact-check-fake-west-bengal-election-schedule-circulates-on-social-media-1770180-2021-02-17"
+    },
+    {
+      "id": "257734",
+      "publisher": "thequint.com",
+      "rating": "Refuted",
+      "sentence": "So, what's wrong?: The family's photograph in the graphic is not from Delhi, neither is it a recent photo showing a beneficiary of the scheme.",
+      "states_a_finding": null,
+      "title": "BJP Shares Old, Unrelated Photo To Show Beneficiary of Housing Scheme in Delhi",
+      "url": "https://www.thequint.com/news/webqoof/saroo-brierley-photo-shared-with-housing-scheme-poster-bjp-fact-check"
+    },
+    {
+      "id": "104052",
+      "publisher": "fakty.afp.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "This photo has circulated in reports since January 2019 about a mosque fire in Indonesia",
+      "url": "https://fakty.afp.com/node/36201"
+    },
+    {
+      "id": "234017",
+      "publisher": "sprawdzam.afp.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "Photo of anti-China banner was taken in Los Angeles, not China",
+      "url": "https://sprawdzam.afp.com/node/45167"
+    },
+    {
+      "id": "236112",
+      "publisher": "usatoday.com",
+      "rating": "Refuted",
+      "sentence": "Though the midterm elections have concluded, false claims of voter fraud continue to spread on social media.",
+      "states_a_finding": null,
+      "title": "Fact check: Photos of trashed mail, ballots are from 2020, not the 2022 midterm elections",
+      "url": "https://www.usatoday.com/story/news/factcheck/2022/11/17/fact-check-pictures-trashed-mail-and-ballots-date-back-2020/10706626002/"
+    },
+    {
+      "id": "133993",
+      "publisher": "factcheckkorea.afp.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "Edited image misleads in posts claiming Trump statue replaced destroyed US monument",
+      "url": "https://factcheckkorea.afp.com/node/43135"
+    },
+    {
+      "id": "68818",
+      "publisher": "boomlive.in",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "Morphed Image Of Arvind Kejriwal And Bhagwant Mann Shared With False Claim",
+      "url": "https://www.boomlive.in/fact-check/politics/arvind-kejriwal-bhagwant-mann-having-meat-alcohol-morphed-image-fake-news-17490"
+    },
+    {
+      "id": "143215",
+      "publisher": "boomlive.in",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "No, This Video Does Not Show Fans Celebrating Italy's Euro 2020 Win",
+      "url": "https://www.boomlive.in/fact-check/fake-news-fact-check-euro-2020-italy-fans-celebrating-bursting-crackers-road-viral-video-taiwan-13883"
+    },
+    {
+      "id": "419350",
+      "publisher": "newsmobile.in",
+      "rating": "Refuted",
+      "sentence": "We fact-checked the post and found the post to be false.",
+      "states_a_finding": null,
+      "title": "Fact Check: Are Banks Charging Rs 150 After 4 Transactions On ATM Withdrawals? Here’s The Truth",
+      "url": "https://www.newsmobile.in/uncategorized/fact-check-are-banks-charging-rs-150-after-4-transactions-on-atm-withdrawals-heres-the-truth/"
+    },
+    {
+      "id": "67492",
+      "publisher": "indiatoday.in",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "Fact Check: Chill. Iceland hasn't declared religions as weapons of mass destruction",
+      "url": "https://www.indiatoday.in/fact-check/story/fact-check-chill-iceland-hasn-t-declared-religions-as-weapons-of-mass-destruction-1475856-2019-03-12"
+    },
+    {
+      "id": "133328",
+      "publisher": "semakanfakta.afp.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "This video shows Chinese medical scientist Zhong Nanshan visiting a hospital in 2016",
+      "url": "https://semakanfakta.afp.com/node/28833"
+    },
+    {
+      "id": "277875",
+      "publisher": "factcheck.afp.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "Old video altered to falsely claim 'fraud charges against Trump were dropped'",
+      "url": "https://factcheck.afp.com/doc.afp.com.33D72NK"
+    },
+    {
+      "id": "153254",
+      "publisher": "checkyourfact.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "FACT CHECK: Is Olive Garden Funding Trump’s Re-Election Campaign?",
+      "url": "https://checkyourfact.com/2019/11/14/fact-check-olive-garden-campaign-election-donald-trump/"
+    },
+    {
+      "id": "351412",
+      "publisher": "indiatoday.in",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "Fact Check: Video of feud between Hamid Ansari and Mayawati has nothing to do with namaz",
+      "url": "https://www.indiatoday.in/fact-check/story/fact-check-video-feud-between-hamid-ansari-mayawati-nothing-namaz-2501694-2024-02-13"
+    },
+    {
+      "id": "150296",
+      "publisher": "boomlive.in",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "Photo Of Sri Lankan Artist Viral As Protest Against Hathras Incident",
+      "url": "https://www.boomlive.in/fake-news/photo-of-sri-lankan-artist-viral-as-protest-against-hathras-incident-10027"
+    },
+    {
+      "id": "266563",
+      "publisher": "thequint.com",
+      "rating": "Refuted",
+      "sentence": "An old video that shows a scuffle is being shared with a claim that it is from Arunachal Pradesh's Tawang Sector, where a clash between the China's People's Liberation Army (PLA) and Indian soldiers broke out on 9 December.",
+      "states_a_finding": null,
+      "title": "No, It’s Not a Recent Video of the India-China Clash in Arunachal Pradesh",
+      "url": "https://www.thequint.com/news/webqoof/old-video-shared-after-tawang-clash-india-china-fact-check"
+    },
+    {
+      "id": "429202",
+      "publisher": "checkyourfact.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "FACT CHECK: Did DOGE Forward The Names Of 163 Members Of Congress To The IRS For ‘Immediate Audit?’",
+      "url": "https://checkyourfact.com/2025/02/21/fact-check-doge-members-congress-irs-audit/"
+    },
+    {
+      "id": "314569",
+      "publisher": "thequint.com",
+      "rating": "Refuted",
+      "sentence": "The truth: The video has been on the internet since August 2019 and does not have any connection to the ongoing Israel-Hamas conflict.",
+      "states_a_finding": null,
+      "title": "Old Video of Hezbollah Missiles Falsely Linked to Israel-Hamas Conflict",
+      "url": "https://www.thequint.com/news/webqoof/old-video-of-hezbollah-missile-cache-falsely-shared-as-recent-fact-check"
+    },
+    {
+      "id": "276159",
+      "publisher": "asianetnews.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "മുംബൈയില്‍ കൊവിഡ് വ്യാപനം തടയാന്‍ ആര്‍മിയെ വിന്യസിക്കുന്നതായി വ്യാജ പ്രചാരണം",
+      "url": "https://www.asianetnews.com/fact-check-news/reality-behind-message-claims-mumbai-and-pune-to-be-under-military-lockdown-qa5yn5"
+    },
+    {
+      "id": "429391",
+      "publisher": "checkyourfact.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "FACT CHECK: Facebook Post Makes False Claim About Ninth Circuit Court Of Appeals, Biden Pardons",
+      "url": "https://checkyourfact.com/2025/02/18/fact-check-post-claim-ninth-circuit-court-appeals-biden-pardons/"
+    },
+    {
+      "id": "418547",
+      "publisher": "newsmeter.in",
+      "rating": "Refuted",
+      "sentence": "NewsMeter found that the claim is false.",
+      "states_a_finding": null,
+      "title": "Fact Check: Pawan Kalyan promotes Araku Coffee with his t-shirt? Know the truth here",
+      "url": "https://newsmeter.in/fact-check/pawan-kalyan-promotes-araku-coffee-with-his-t-shirt-know-the-truth-here-742596"
+    },
+    {
+      "id": "354336",
+      "publisher": "factcheck.afp.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "Photos show firearms seized by Ethiopian police, not rebel group in Amhara region",
+      "url": "https://factcheck.afp.com/doc.afp.com.34KF33L"
+    },
+    {
+      "id": "142476",
+      "publisher": "altnews.in",
+      "rating": "Refuted",
+      "sentence": "Alt News found that the video actually represents a mock drill near Ambadevi temple in Amravati, Maharastra.",
+      "states_a_finding": null,
+      "title": "Mock drill video from Ambadevi temple, Maharashtra shared as terrorists arrested",
+      "url": "https://www.altnews.in/mock-drill-video-from-ambadevi-temple-maharashtra-shared-as-terrorists-arrested/"
+    },
+    {
+      "id": "411311",
+      "publisher": "asianetnews.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "ആശുപത്രിയില്‍ നിന്നുള്ള മന്‍മോഹന്‍ സിങിന്‍റെ അവസാന ചിത്രമോ അത്? സത്യാവസ്ഥ ഇത്- Fact Check",
+      "url": "https://www.asianetnews.com/fact-check/does-this-is-manmohan-singh-last-photo-here-is-the-reality-sp5gtw"
+    },
+    {
+      "id": "103171",
+      "publisher": "fakty.afp.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "This image shows two Kenyan actresses – not Tanzania’s new leader and her daughter",
+      "url": "https://fakty.afp.com/node/32450"
+    },
+    {
+      "id": "101756",
+      "publisher": "verafiles.org",
+      "rating": "Refuted",
+      "sentence": "A claim that those who receive the coronavirus disease 2019 (COVID-19) vaccines are “dangerous” as they become a “real carrier of the virus” is FALSE.",
+      "states_a_finding": null,
+      "title": "VERA FILES FACT CHECK: Anti-vax doctor, ex-education Usec peddle falsehoods about COVID-19 jabs",
+      "url": "https://verafiles.org/articles/vera-files-fact-check-anti-vax-doctor-ex-education-usec-pedd"
+    },
+    {
+      "id": "245530",
+      "publisher": "factly.in",
+      "rating": "Refuted",
+      "sentence": "With all this evidence, we can conclude that the claim made in the viral post is False.",
+      "states_a_finding": null,
+      "title": "This news story of a Delhi man winning 70 lakh rupees in a mobile casino is a work of fiction",
+      "url": "https://factly.in/this-news-story-of-a-delhi-man-winning-70-lakh-rupees-in-a-mobile-casino-is-a-work-of-fiction/"
+    },
+    {
+      "id": "342556",
+      "publisher": "factcheck.afp.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "Debunked Georgia voter fraud allegations resurface online",
+      "url": "https://factcheck.afp.com/doc.afp.com.348E33R"
+    },
+    {
+      "id": "15002",
+      "publisher": "newsmobile.in",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "Fact Check: Video of clash from Romania shared with false Paris link",
+      "url": "https://newsmobile.in/articles/2020/11/19/fact-check-video-of-clash-from-romania-shared-with-false-paris-link/"
+    },
+    {
+      "id": "197929",
+      "publisher": "politifact.com",
+      "rating": "Refuted",
+      "sentence": "The Federal Emergency Management Agency said the language is not \"new,\" nor is it related to the Russia-Ukraine conflict.",
+      "states_a_finding": null,
+      "title": "FEMA added COVID-19 safety measures to nuclear explosion protocols before Russia invaded Ukraine",
+      "url": "https://www.politifact.com/factchecks/2022/mar/03/facebook-posts/fema-added-covid-19-safety-measures-nuclear-explos/"
+    },
+    {
+      "id": "41654",
+      "publisher": "factual.afp.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "Cuban president did not 'announce resignation' immediately after anti-government protests",
+      "url": "https://factual.afp.com/node/34885"
+    },
+    {
+      "id": "93066",
+      "publisher": "newsmobile.in",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "Fact Check: Did Olympic Gold Medalist Neeraj Chopra Tweet Against PM Modi? Here’s The Truth",
+      "url": "https://newsmobile.in/articles/2021/08/12/fact-check-did-olympic-gold-medalist-neeraj-chopra-tweet-against-pm-modi-heres-the-truth/"
+    },
+    {
+      "id": "127977",
+      "publisher": "healthfeedback.org",
+      "rating": "Refuted",
+      "sentence": "The WHO official was not referring to presymptomatic individuals in her statement.",
+      "states_a_finding": null,
+      "title": "People who do not show COVID-19 symptoms can and do transmit it to others; physical distancing and face masks effectively reduce the risk of transmission",
+      "url": "https://healthfeedback.org/claimreview/people-who-do-not-show-covid-19-symptoms-can-and-do-transmit-it-to-others-physical-distancing-and-face-masks-effectively-reduce-the-risk-of-transmission/"
+    },
+    {
+      "id": "366836",
+      "publisher": "newsmobile.in",
+      "rating": "Refuted",
+      "sentence": "NewsMobile fact-checked the viral post, and found it to be false.",
+      "states_a_finding": null,
+      "title": "Fact Check: Viral Post Of Assault On Man At Brazil Subway Station Falsely Linked To UK",
+      "url": "https://www.newsmobile.in/2023/10/10/fact-check-viral-post-of-assault-on-man-at-brazil-subway-station-falsely-linked-to-uk/"
+    },
+    {
+      "id": "378809",
+      "publisher": "srilanka.factcrescendo.com",
+      "rating": "Refuted",
+      "sentence": "Many misleading AI-generated images circulate on social media, often creating confusion and spreading misinformation.",
+      "states_a_finding": null,
+      "title": "A giant octopus washed ashore on the coast of Indonesia- AI-generated - Fact Crescendo Sri Lanka English",
+      "url": "https://srilanka.factcrescendo.com/english/a-giant-octopus-washed-ashore-on-the-coast-of-indonesia-ai-generated/"
+    },
+    {
+      "id": "111337",
+      "publisher": "newsmobile.in",
+      "rating": "Refuted",
+      "sentence": "NewsMobile fact-checked the post and found it to be misleading as the pictures are old.",
+      "states_a_finding": null,
+      "title": "Did Queen Elizabeth visit a Gurudwara in London? Here’s the truth behind these pictures",
+      "url": "https://www.newsmobile.in/2020/05/08/did-queen-elizabeth-visit-a-gurudwara-in-london-heres-the-truth-behind-these-pictures/"
+    },
+    {
+      "id": "144483",
+      "publisher": "checamos.afp.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "This video actually shows an international Muslim organisation discussing coronavirus support grants",
+      "url": "https://checamos.afp.com/video-actually-shows-international-muslim-organisation-discussing-coronavirus-support-grants"
+    },
+    {
+      "id": "226120",
+      "publisher": "boomlive.in",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "Edited Clip Of Rahul Gandhi's \"Atta 40rs Per Litre\" Faux Pas Goes Viral",
+      "url": "https://www.boomlive.in/fact-check/navika-kumar-rahul-gandhi-halla-bol-delhi-ramlila-congress-bjp-19128"
+    },
+    {
+      "id": "370202",
+      "publisher": "fakty.afp.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "Deepfake video targets Pakistan ex-first lady Bushra Bibi",
+      "url": "https://fakty.afp.com/node/57626"
+    },
+    {
+      "id": "372798",
+      "publisher": "checamos.afp.com",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "Video of opposition party leader 'conceding defeat' in India 2024 election was doctored",
+      "url": "https://checamos.afp.com/node/57843"
+    },
+    {
+      "id": "360456",
+      "publisher": "thip.media",
+      "rating": "Refuted",
+      "sentence": null,
+      "states_a_finding": null,
+      "title": "Garima Dev Verman, Author at THIP Media",
+      "url": "https://www.thip.media/author/garima-dev-verman/page/13/"
+    }
+  ],
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "factcheck_finding"
+}

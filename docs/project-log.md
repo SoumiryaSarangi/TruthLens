@@ -3201,3 +3201,11 @@ tested reading the article's opening paragraph automatically (one GET of the pub
 `scripts/factcheck_lead_check.py`, results/39860deeb1d8.json: **36 of 60 = 60%, below the 70% bar, so it is off and not wired into the card.** AFP desks mostly fail, and
 the leads that work usually restate the claim, not the reason. Left in the repo as a documented negative result (module, 6 tests, script). Options if the owner
 still wants it: a per-publisher extractor on a fresh sample (new protocol), or accept that a fast-path card shows the fact-checker's headline as its explanation.
+
+### "Why" on a fast-path answer, take 2 (finding sentence): also NOT shipped (2026-10-05)
+
+The owner said the pineapple card still had no why. `docs/factcheck-finding-protocol.md` (rule, cue list, 70% gates, my labelling rule fixed first, commit d7acd0f)
+tested taking the first sentence that states a finding, on a fresh 60 (seed 43, disjoint from take 1). `scripts/factcheck_finding_check.py`, results/9e209d11fc4d.json:
+**27 of 60 = 45% extracted, gate 1 failed, feature off.** Both takes failed because most publishers' pages (boomlive, checkyourfact, AFP) give a plain GET nothing usable.
+Options, each a new protocol and probably a headless-browser dependency: per-publisher extractors, or store one-line summaries when the fact-check index is built.
+The pineapple card therefore still shows the fact-checker's headline only. Unchanged: live true/false cards still quote their source sentence (1c8d158).
