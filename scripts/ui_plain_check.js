@@ -182,7 +182,7 @@ for (const lang of ["en", "hi", "pa"]) {
     }
     if (r.shows === "greeting") {
       if (main.includes("act-force")) problems.push("greeting: offered 'Check it anyway'");
-      if (!/greeting|अभिवादन|ਨਮਸਕਾਰ/.test(body)) problems.push("greeting: does not say it is a greeting");
+      if (!/greeting|अभिवादन|ਸਲਾਮ/.test(body)) problems.push("greeting: does not say it is a greeting");
     }
     if (r.shows === "live_careful") {
       if (lang === "en" && !/Be careful with this one/.test(body)) problems.push("live careful: lost the warning");

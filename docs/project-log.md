@@ -3217,3 +3217,10 @@ two Wikipedia pages read in opposite directions (both models: Conflicting; no ve
 models read the sources as Conflicting and no verdict is shown, and the card says "The sources I found disagree with each other on this one. Here is what I found."
 under "Hard to say" (not the warning). Wording only: no verdict, threshold or number changed. `plain.reason.sources_disagree` (hi/pa machine-drafted, in the review sheet),
 2 tests in `tests/test_live_pipeline.py`, check `live_disagree` in `scripts/ui_plain_check.js`. Needs a server restart (backend field).
+
+### The owner's review of the 33 newer hi/pa strings (2026-10-05)
+
+12 corrections applied as given (lean_note, plain.none_title pa, related_label, similar.label, similar.rating.NEI hi, similar.reason pa, greeting_title/note pa,
+words.hint/none/unavailable/loading), 21 kept; placeholders preserved, the `_comment` notes for the reviewed sets replaced by the review note, and
+`docs/i18n-review.md` records the outcome. **Still NOT YET REVIEWED: `plain.why.label`, `plain.why.english`, `plain.reason.sources_disagree`** (added after the sheet went out;
+if the owner's 33 included them, remove the two remaining notes in hi.json and pa.json `_comment`). The render check's Punjabi greeting pattern now matches "ਸਲਾਮ-ਦੁਆ".

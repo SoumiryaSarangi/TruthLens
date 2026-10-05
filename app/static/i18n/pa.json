@@ -1,5 +1,5 @@
 {
-  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. The live_* strings and source_name.* (live search, added 2026-10-04) were reviewed by the owner the same day; 3 corrected, 7 kept. The three live-verdict strings (live_verdict_basis, live_validated, live_no_verdict; added 2026-10-05) were reviewed by the owner the same day: all 3 corrected. The plain-card strings (the 'plain' block and the reworded intro, live_button, live_privacy and stage_trace; added 2026-10-05) were reviewed by the owner the same day: all corrected as given; plain.flags kept by the owner's decision; masculine first-person forms replaced by gender-neutral ones the same day. NOT YET REVIEWED (added 2026-10-05, machine-drafted): lean_note, and plain.none_title, none_note (reworded), check_anyway, no_exact, related_label, try_online. NOT YET REVIEWED (added 2026-10-05, machine-drafted): the 'similar fact-check' strings (plain.title.similar, plain.similar.*, plain.reply.similar). NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.title.careful, plain.reason.careful. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.similar.reason_unrated, plain.reply.similar_unrated. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.reason.careful_live. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.greeting_title, plain.greeting_note. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.words.*. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.why.*. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.reason.sources_disagree.",
+  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. The live_* strings and source_name.* (live search, added 2026-10-04) were reviewed by the owner the same day; 3 corrected, 7 kept. The three live-verdict strings (live_verdict_basis, live_validated, live_no_verdict; added 2026-10-05) were reviewed by the owner the same day: all 3 corrected. The plain-card strings (the 'plain' block and the reworded intro, live_button, live_privacy and stage_trace; added 2026-10-05) were reviewed by the owner the same day: all corrected as given; plain.flags kept by the owner's decision; masculine first-person forms replaced by gender-neutral ones the same day. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.why.*. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.reason.sources_disagree. The honest-card, similar-fact-check, careful, unrated-suggestion, careful-after-search, greeting and word-view strings (added 2026-10-05) were reviewed by the owner the same day: 12 corrected as given (lean_note, plain.none_title (pa), related_label, similar.label, similar.rating.NEI (hi), similar.reason (pa), greeting_title and greeting_note (pa), words.hint, words.none, words.unavailable, words.loading), the rest kept.",
   "_lang": "pa",
   "title": "TruthLens",
   "intro": "ਜੋ ਸੁਨੇਹਾ ਤੁਹਾਨੂੰ ਕਿਸੇ ਨੇ ਭੇਜਿਆ ਹੈ, ਉਹ ਇੱਥੇ ਪੇਸਟ ਕਰੋ ਅਤੇ ਤੀਰ ਦਬਾਓ। ਤੁਹਾਨੂੰ ਦਿਖੇਗਾ ਕਿ ਉਹ ਸੱਚ ਜਾਂ ਝੂਠ ਲੱਗਦਾ ਹੈ ਅਤੇ ਕਿਉਂ।",
@@ -140,7 +140,7 @@
       "Medium": "ਮੈਨੂੰ ਠੀਕ-ਠਾਕ ਭਰੋਸਾ ਹੈ।",
       "Low": "ਮੈਨੂੰ ਬਹੁਤਾ ਭਰੋਸਾ ਨਹੀਂ ਹੈ।"
     },
-    "none_title": "ਮੈਨੂੰ ਜਾਂਚਣ ਲਈ ਦਾਅਵਾ ਨਹੀਂ ਮਿਲਿਆ",
+    "none_title": "ਮੈਨੂੰ ਜਾਂਚਣ ਲਈ ਕੋਈ ਦਾਅਵਾ ਨਹੀਂ ਮਿਲਿਆ",
     "none_note": "ਇੱਥੇ ਮੈਨੂੰ ਜਾਂਚਣ ਲਈ ਪੂਰਾ ਦਾਅਵਾ ਨਹੀਂ ਮਿਲਿਆ। ਜੇ ਇਹ ਕੋਈ ਦਾਅਵਾ ਹੈ, ਤਾਂ ਇਸਨੂੰ ਪੂਰੇ ਵਾਕ ਵਿੱਚ ਲਿਖੋ, ਜਿਵੇਂ “ਪੇਪਰ ਲੀਕ ਹੋ ਗਿਆ।”",
     "claim_label": "ਮੈਂ ਇਸ ਦਾਅਵੇ ਦੀ ਜਾਂਚ ਕੀਤੀ:",
     "sources_label": "ਇਹ ਜਾਣਕਾਰੀ ਕਿੱਥੋਂ ਮਿਲੀ:",
@@ -173,12 +173,12 @@
     "closest_label": "ਸਭ ਤੋਂ ਨੇੜਲੇ ਸਰੋਤ ਜੋ ਮੈਨੂੰ ਮਿਲੇ:",
     "check_anyway": "ਫਿਰ ਵੀ ਜਾਂਚੋ",
     "no_exact": "ਮੈਨੂੰ ਅਜਿਹਾ ਕੋਈ ਸਰੋਤ ਨਹੀਂ ਮਿਲਿਆ ਜੋ ਠੀਕ ਇਸੇ ਦਾਅਵੇ ਦੀ ਜਾਂਚ ਕਰਦਾ ਹੋਵੇ।",
-    "related_label": "ਜੋ ਸਭ ਤੋਂ ਨੇੜਲੀਆਂ ਚੀਜ਼ਾਂ ਮਿਲੀਆਂ (ਹੋ ਸਕਦਾ ਹੈ ਉਹ ਇਸ ਦਾਅਵੇ ਬਾਰੇ ਨਾ ਹੋਣ):",
+    "related_label": "ਮੈਨੂੰ ਮਿਲੀਆਂ ਸਭ ਤੋਂ ਮਿਲਦੀਆਂ-ਜੁਲਦੀਆਂ ਚੀਜ਼ਾਂ (ਹੋ ਸਕਦਾ ਹੈ ਇਹ ਇਸ ਦਾਅਵੇ ਬਾਰੇ ਨਾ ਹੋਣ):",
     "try_online": "ਸਹੀ ਜਵਾਬ ਲੈਣ ਲਈ ਇਸਨੂੰ ਆਨਲਾਈਨ ਖੋਜੋ।",
     "similar": {
-      "reason": "{publisher} ਨੇ ਇਸ ਨਾਲ ਮਿਲਦੀ-ਜੁਲਦੀ ਗੱਲ ਦੀ ਜਾਂਚ ਕੀਤੀ ਅਤੇ ਉਸਨੂੰ {rating} ਦੱਸਿਆ। ਹੋ ਸਕਦਾ ਹੈ ਇਹ ਉਹੀ ਸੁਨੇਹਾ ਨਾ ਹੋਵੇ।",
+      "reason": "{publisher} ਨੇ ਇਸ ਨਾਲ ਮਿਲਦੀ-ਜੁਲਦੀ ਗੱਲ ਦੀ ਜਾਂਚ ਕੀਤੀ ਅਤੇ ਉਸਨੂੰ {rating} ਕਿਹਾ। ਹੋ ਸਕਦਾ ਹੈ ਇਹ ਉਹੀ ਸੁਨੇਹਾ ਨਾ ਹੋਵੇ।",
       "action": "ਇਸਨੂੰ ਅੱਗੇ ਭੇਜਣ ਤੋਂ ਪਹਿਲਾਂ ਕਿਰਪਾ ਕਰਕੇ ਪੜ੍ਹ ਲਵੋ।",
-      "label": "ਉਹ ਫ਼ੈਕਟ-ਚੈਕ:",
+      "label": "ਫ਼ੈਕਟ-ਚੈਕ:",
       "rating": {
         "Refuted": "ਝੂਠ",
         "Supported": "ਸੱਚ",
@@ -187,22 +187,22 @@
       },
       "reason_unrated": "{publisher} ਨੇ ਇਸ ਨਾਲ ਮਿਲਦੀ-ਜੁਲਦੀ ਗੱਲ ਦੀ ਜਾਂਚ ਕੀਤੀ ਹੈ। ਹੋ ਸਕਦਾ ਹੈ ਇਹ ਉਹੀ ਸੁਨੇਹਾ ਨਾ ਹੋਵੇ।"
     },
-    "greeting_title": "ਇਹ ਸਿਰਫ਼ ਇੱਕ ਨਮਸਕਾਰ ਹੈ",
-    "greeting_note": "ਇਹ ਇੱਕ ਨਮਸਕਾਰ ਜਾਂ ਸ਼ੁਭਕਾਮਨਾ ਲੱਗਦੀ ਹੈ। ਇਸ ਵਿੱਚ ਜਾਂਚਣ ਲਾਇਕ ਕੋਈ ਗੱਲ ਨਹੀਂ ਹੈ।",
+    "greeting_title": "ਇਹ ਸਿਰਫ਼ ਸਲਾਮ-ਦੁਆ ਹੈ",
+    "greeting_note": "ਇਹ ਇੱਕ ਸਲਾਮ-ਦੁਆ ਜਾਂ ਸ਼ੁਭਕਾਮਨਾ ਲੱਗਦੀ ਹੈ। ਇਸ ਵਿੱਚ ਜਾਂਚਣ ਵਾਲੀ ਕੋਈ ਗੱਲ ਨਹੀਂ ਹੈ।",
     "words": {
       "button": "ਕਿਹੜੇ ਸ਼ਬਦ ਅਹਿਮ ਸਨ?",
       "title": "ਇਨ੍ਹਾਂ ਸ਼ਬਦਾਂ ਨੇ ਜਵਾਬ ਉੱਤੇ ਸਭ ਤੋਂ ਵੱਧ ਅਸਰ ਪਾਇਆ:",
-      "hint": "ਨਿਸ਼ਾਨ ਵਾਲੇ ਸ਼ਬਦ ਹਟਾਉਣ ਨਾਲ ਜਵਾਬ ਸਭ ਤੋਂ ਵੱਧ ਬਦਲਦਾ ਹੈ।",
+      "hint": "ਜਿਨ੍ਹਾਂ ਸ਼ਬਦਾਂ 'ਤੇ ਨਿਸ਼ਾਨ ਹੈ, ਉਨ੍ਹਾਂ ਨੇ ਜਵਾਬ ਨੂੰ ਸਭ ਤੋਂ ਵੱਧ ਬਦਲਿਆ।",
       "note_english": "ਇਹ ਤੁਹਾਡੇ ਸੁਨੇਹੇ ਦੇ ਅੰਗਰੇਜ਼ੀ ਰੂਪ ਦੇ ਸ਼ਬਦ ਹਨ।",
       "source": "ਸਰੋਤ ਦਾ ਇਹ ਵਾਕ ਸਭ ਤੋਂ ਅਹਿਮ ਸੀ:",
-      "none": "ਕੋਈ ਇੱਕ ਸ਼ਬਦ ਵੱਖਰਾ ਖ਼ਾਸ ਨਹੀਂ ਨਿਕਲਿਆ।",
-      "unavailable": "ਇਹ ਹੁਣੇ ਨਹੀਂ ਦਿਖਾਇਆ ਜਾ ਸਕਿਆ।",
-      "loading": "ਥੋੜ੍ਹਾ ਰੁਕੋ…"
+      "none": "ਕੋਈ ਇੱਕ ਸ਼ਬਦ ਖਾਸ ਤੌਰ 'ਤੇ ਵੱਖਰਾ ਨਹੀਂ ਲੱਗਿਆ।",
+      "unavailable": "ਇਹ ਹੁਣੇ ਦਿਖਾਉਣਾ ਸੰਭਵ ਨਹੀਂ ਹੈ।",
+      "loading": "ਇੱਕ ਪਲ…"
     },
     "why": {
       "label": "ਕਿਉਂ: ਸਰੋਤ ਵਿੱਚ ਇਹ ਲਿਖਿਆ ਹੈ",
       "english": "ਇਹ ਸਰੋਤ ਅੰਗਰੇਜ਼ੀ ਵਿੱਚ ਹੈ।"
     }
   },
-  "lean_note": "ਸਿਸਟਮ ਦਾ ਆਪਣਾ ਝੁਕਾਅ, ਜੋ ਖੁੱਲ੍ਹੇ ਪਾਠ ਲਈ ਭਰੋਸੇਯੋਗ ਨਹੀਂ ਹੈ: {label}।"
+  "lean_note": "ਸਿਸਟਮ ਦਾ ਆਪਣਾ ਝੁਕਾਅ, ਜੋ ਫ੍ਰੀ-ਟੈਕਸਟ ਲਈ ਭਰੋਸੇਯੋਗ ਨਹੀਂ ਹੈ: {label}।"
 }

@@ -305,3 +305,13 @@ from their `_comment`.
 | `plain.why.label` | Why: this is what the source says | क्यों: स्रोत में यह लिखा है | ਕਿਉਂ: ਸਰੋਤ ਵਿੱਚ ਇਹ ਲਿਖਿਆ ਹੈ | |
 | `plain.why.english` | The source is in English. | यह स्रोत अंग्रेज़ी में है। | ਇਹ ਸਰੋਤ ਅੰਗਰੇਜ਼ੀ ਵਿੱਚ ਹੈ। | |
 | `plain.reason.sources_disagree` | The sources I found disagree with each other on this one. Here is what I found. | मुझे जो स्रोत मिले, वे इस बारे में एक-दूसरे से सहमत नहीं हैं। जो मिला, वह नीचे है। | ਮੈਨੂੰ ਜੋ ਸਰੋਤ ਮਿਲੇ, ਉਹ ਇਸ ਬਾਰੇ ਇੱਕ-ਦੂਜੇ ਨਾਲ ਸਹਿਮਤ ਨਹੀਂ ਹਨ। ਜੋ ਮਿਲਿਆ, ਉਹ ਹੇਠਾਂ ਹੈ। | |
+
+---
+
+## Outcome of the review of the 2026-10-05 strings (owner, 2026-10-05)
+
+33 strings reviewed; **12 corrected as given and applied** (lean_note; plain.none_title pa; plain.related_label; plain.similar.label; plain.similar.rating.NEI hi;
+plain.similar.reason pa; plain.greeting_title pa; plain.greeting_note pa; plain.words.hint; plain.words.none; plain.words.unavailable; plain.words.loading); the rest kept as drafted.
+All placeholders ({label}, {publisher}, {rating}) were preserved and the helper stays gender-neutral. **Still NOT YET REVIEWED:** `plain.why.label`, `plain.why.english` and
+`plain.reason.sources_disagree` (added after the sheet was sent), which keep their notes in the `_comment` of hi.json and pa.json.
+

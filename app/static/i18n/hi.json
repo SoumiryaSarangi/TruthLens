@@ -1,5 +1,5 @@
 {
-  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. The live_* strings and source_name.* (live search, added 2026-10-04) were reviewed by the owner the same day; 3 corrected, 7 kept. The three live-verdict strings (live_verdict_basis, live_validated, live_no_verdict; added 2026-10-05) were reviewed by the owner the same day: all 3 corrected. The plain-card strings (the 'plain' block and the reworded intro, live_button, live_privacy and stage_trace; added 2026-10-05) were reviewed by the owner the same day: all corrected as given; plain.flags kept by the owner's decision; masculine first-person forms replaced by gender-neutral ones the same day. NOT YET REVIEWED (added 2026-10-05, machine-drafted): lean_note, and plain.none_title, none_note (reworded), check_anyway, no_exact, related_label, try_online. NOT YET REVIEWED (added 2026-10-05, machine-drafted): the 'similar fact-check' strings (plain.title.similar, plain.similar.*, plain.reply.similar). NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.title.careful, plain.reason.careful. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.similar.reason_unrated, plain.reply.similar_unrated. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.reason.careful_live. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.greeting_title, plain.greeting_note. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.words.*. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.why.*. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.reason.sources_disagree.",
+  "_comment": "Reviewed by the project owner (native speaker review, docs/i18n-review.md), 2026-10-02. Corrections applied as given. The live_* strings and source_name.* (live search, added 2026-10-04) were reviewed by the owner the same day; 3 corrected, 7 kept. The three live-verdict strings (live_verdict_basis, live_validated, live_no_verdict; added 2026-10-05) were reviewed by the owner the same day: all 3 corrected. The plain-card strings (the 'plain' block and the reworded intro, live_button, live_privacy and stage_trace; added 2026-10-05) were reviewed by the owner the same day: all corrected as given; plain.flags kept by the owner's decision; masculine first-person forms replaced by gender-neutral ones the same day. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.why.*. NOT YET REVIEWED (added 2026-10-05, machine-drafted): plain.reason.sources_disagree. The honest-card, similar-fact-check, careful, unrated-suggestion, careful-after-search, greeting and word-view strings (added 2026-10-05) were reviewed by the owner the same day: 12 corrected as given (lean_note, plain.none_title (pa), related_label, similar.label, similar.rating.NEI (hi), similar.reason (pa), greeting_title and greeting_note (pa), words.hint, words.none, words.unavailable, words.loading), the rest kept.",
   "_lang": "hi",
   "title": "TruthLens",
   "intro": "जो संदेश आपको किसी ने भेजा है, उसे यहाँ पेस्ट करें और तीर दबाएँ। आपको दिखेगा कि वह सच या झूठ लगता है और क्यों।",
@@ -173,17 +173,17 @@
     "closest_label": "सबसे क़रीबी स्रोत जो मुझे मिले:",
     "check_anyway": "फिर भी जाँचें",
     "no_exact": "मुझे ऐसा कोई स्रोत नहीं मिला जो ठीक इसी दावे की जाँच करता हो।",
-    "related_label": "जो सबसे क़रीबी चीज़ें मिलीं (हो सकता है वे इस दावे के बारे में न हों):",
+    "related_label": "मुझे मिली सबसे मिलती-जुलती चीज़ें (हो सकता है ये इस दावे के बारे में न हों):",
     "try_online": "सही जवाब पाने के लिए इसे ऑनलाइन खोजें।",
     "similar": {
       "reason": "{publisher} ने इससे मिलती-जुलती बात की जाँच की और उसे {rating} बताया। हो सकता है यह वही संदेश न हो।",
       "action": "इसे आगे भेजने से पहले कृपया पढ़ लें।",
-      "label": "वह फ़ैक्ट-चेक:",
+      "label": "फ़ैक्ट-चेक:",
       "rating": {
         "Refuted": "झूठ",
         "Supported": "सच",
         "Conflicting": "आंशिक सच या भ्रामक",
-        "NEI": "अनिर्णीत"
+        "NEI": "तय नहीं"
       },
       "reason_unrated": "{publisher} ने इससे मिलती-जुलती बात की जाँच की है। हो सकता है यह वही संदेश न हो।"
     },
@@ -192,17 +192,17 @@
     "words": {
       "button": "कौन-से शब्द मायने रखते थे?",
       "title": "इन शब्दों ने जवाब पर सबसे ज़्यादा असर डाला:",
-      "hint": "निशान वाले शब्द हटाने पर जवाब सबसे ज़्यादा बदलता है।",
+      "hint": "जिन शब्दों पर निशान है, उन्होंने जवाब को सबसे ज़्यादा बदला।",
       "note_english": "ये आपके संदेश के अंग्रेज़ी रूप के शब्द हैं।",
       "source": "स्रोत का यह वाक्य सबसे ज़्यादा मायने रखता था:",
-      "none": "कोई एक शब्द अलग से ख़ास नहीं निकला।",
-      "unavailable": "अभी यह नहीं दिखाया जा सका।",
-      "loading": "थोड़ा रुकिए…"
+      "none": "कोई एक शब्द खास तौर पर अलग नहीं दिखा।",
+      "unavailable": "अभी इसे दिखाना संभव नहीं है।",
+      "loading": "एक पल…"
     },
     "why": {
       "label": "क्यों: स्रोत में यह लिखा है",
       "english": "यह स्रोत अंग्रेज़ी में है।"
     }
   },
-  "lean_note": "सिस्टम का अपना झुकाव, जो खुले पाठ के लिए भरोसेमंद नहीं है: {label}।"
+  "lean_note": "सिस्टम का अपना झुकाव, जो फ़्री-टेक्स्ट के लिए भरोसेमंद नहीं है: {label}।"
 }
