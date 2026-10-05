@@ -111,6 +111,62 @@ historical rationale, lowest precedence.
     gate now also rejects, under any verdict but Supported, a sentence that
     entails the claim.
 
+## LATEST STATE (2026-10-05, late evening; last commit on `main` is `fdd51fa` or newer): read this before "Where things stand" below, which is older
+
+**Everything is on `main` and pushed.** `ui-restyle` was merged (fast-forward) and deleted. At the merge: 875 tests passed, lint clean, `scripts/check_report_numbers.py docs/report.md` 0 problems.
+The project is complete except the owner-side items and the model-improvement work that has just started.
+
+### 1. The frontend (done, merged)
+- **Desktop workspace "the proof desk"** (1100 px and up): cobalt rail (brand, health pill, the `intro` sentence set large as a serif headline, composer, example chips open) and a cool newsprint desk. Each answer sits beside its forward
+  (the forward is a serif quote; a sticky forward was REMOVED after it made forwards pile up); under 1360 px the forward sits above the answer. Signature move "the markup": the verdict word at headline scale with a pencil stroke drawn under it
+  (dashed and never animated for abstained). The empty desk is an authored SVG proof sheet. A top-right "What this is for" link opens "Built for / Not built for" as a native popover (strings `scope.*`, bullets).
+  **Below 1100 px the earlier WhatsApp-style 440 px column is unchanged on purpose** (owner pinned it), with the scope text as a closed fold in the empty chat.
+- Files: `app/static/{index.html,app.js,styles.css}` (+ `i18n/*.json` strings). The desktop token overrides sit AFTER the first light/dark pair because `tests/test_ui_static.py` reads those two blocks only; desktop AA was checked by script
+  and is written in `docs/specs/UI_UX.md` ("Desktop workspace"). Any desktop token change must repeat that check.
+- Design records: `PRODUCT.md`, `DESIGN.md`, `.impeccable/design.json`, `.impeccable/surfaces/app-static-index-html.md` (direction contract), `.impeccable/config.json` (`buildPath: code`). Impeccable is installed at project scope
+  (`.claude/skills/impeccable`, engine binary git-ignored) with Emil Kowalski's `animate`, `review-animations`, `find-animation-opportunities` and `apple-design` in `.claude/skills/`. The owner ran `/review-animations`; all its fixes are
+  applied (`49cd1df`). `impeccable detect app/static` has 0 non-advisory findings (42 advisory design-system drift notes, left).
+- How the UI was checked without a browser tool: a throwaway preview harness (static server plus a fixtures script, deleted afterwards) and real-time Chrome DevTools screenshots through a small node script. Headless `--screenshot` with virtual
+  time does NOT advance CSS animations, so never judge motion from it. Those helper scripts lived in the session scratchpad and are not in the repo.
+- Hindi/Punjabi strings: reviewed and applied for everything except **`plain.why.label`, `plain.why.english`, `plain.reason.sources_disagree`** (their `_comment` notes remain; remove them once the owner confirms the review covered them).
+- Features added in this stretch (each logged below in this file): live-card "Why" quote (`1c8d158`; undo with `git revert 1c8d158`), "sources disagree" wording, a greeting is never offered a check, the word view ("Which words mattered?", run
+  4095b565e764), the owner's Hindi/Punjabi corrections, the scope text.
+
+### 2. Measured and NOT shipped (negative results, all recorded)
+- "Be careful" decided by hoax cues instead of the model's lean: `docs/careful-rule-protocol.md`, results/e165f84eb4a9.json, failed 2 of 4 gates (the owner chose to leave the lean-based wording).
+- A fact-check "why" on the fast path by reading the article: `docs/factcheck-lead-protocol.md` (36 of 60 = 60%, results/39860deeb1d8.json) and `docs/factcheck-finding-protocol.md` (27 of 60 = 45%, results/9e209d11fc4d.json), both under the 70% bar; the code is left, unwired.
+
+### 3. THE CURRENT WORK: how well does the live check do on real claims? (`docs/real-claims-protocol.md`, pre-registered, dated corrections 1-4)
+The owner asked to "improve the model more". The agreed first step (their choice) is a real-claims measurement of the served live check, as a MEASUREMENT: the served system is frozen and nothing changes because of it. Context: the test split is spent;
+offline verdict macro-F1 0.2622 vs the claim-only control 0.3085; the fast path answers about 2% of messages at 81% precision; the live check was validated only on FEVER (94.3% precision, 3 false Supported in 225, about 30% coverage).
+- **Sets.** RC-A: all 500 AVeriTeC dev claims (gold T, F or U from the fact-checkers), split once by seed 42 into **A1 (250, its errors may be read)** and **A2 (250, LOCKED: do not read A2 errors until an improvement is final and is tested once on it)**.
+  RC-B (the MAIN real-forwards set): the owner's 150-claim file `data/private/real_forwards.csv` (git-ignored; 75 F, 50 T, 25 U; 25 source families; English, Roman Hindi, Hindi, Gurmukhi and Roman Punjabi). **These are owner-supplied written claims modelled on
+  real forwards, NOT collected forwards.** Their month and "where seen" columns are unverified and unused; rows 60, 84, 80 and 137 cite the wrong source (the labels stand). RC-D: `data/private/real_forwards_triplets.csv`, 40 claims in 3 renderings
+  (languages), six self-verdict rows (8, 9, 14, 15, 68, 83) excluded, 114 rows; used only for language consistency, never for the rule. RC-C (a chatty rewrite) was withdrawn and deleted before it was run; an earlier plain-120 file was overwritten.
+  `data/private/` is git-ignored: private data is never committed.
+- **Run.** `scripts/real_claims.py collect --set a|b|d` calls the owner's RUNNING server (`POST /verify`, `live_search: true`), sequentially, resumable, one re-run for a degraded source. `python scripts/real_claims.py report` computes the metrics
+  (in `eval.metrics`: `real_claims_metrics`, `cluster_consistency`, `cluster_rates_ci`, `transfer_verdict_with_clusters`, all tested), writes `results/<hash>.json` and prints the A1, B and D wrong answers only. The collected data is in
+  `reports/real_claims/*.collect.jsonl` (`reports/` is git-ignored: local only).
+- **Rule fixed in advance.** The live check "transfers" if precision on shown verdicts for decidable (T or F) claims is at least 85% with a Wilson lower bound of at least 80%, AND the false-Supported rate (shown Supported on a gold-F claim, over gold-F
+  claims) has a Wilson upper bound of at most 8%; it "partly transfers" if exactly one holds. For RC-B the rule is also applied to cluster-bootstrap intervals (a cluster is a source family) and the MORE conservative verdict stands. Coverage has no bar.
+- **Status when this was written:** RC-A complete (500 of 500). RC-B about 60 of 150 and RC-D 0 of 114, running through a retrying PowerShell chain started from the session scratchpad (not in the repo); the first B attempt died silently after 8 claims for
+  an unknown reason. **To resume by hand:** keep the owner's server running on port 8000, then run `.venv\Scripts\python.exe scripts\real_claims.py collect --set b` and `--set d` (each skips finished claims); check progress with
+  `wc -l reports/real_claims/rca.collect.jsonl rcb.collect.jsonl rcd.collect.jsonl` (targets 500, 150, 114). No numbers have been computed or looked at yet.
+- **Next, in order:** (1) when B and D are complete, run `python scripts/real_claims.py report`; (2) write the result into `docs/real-claims-protocol.md` ("Result"), the report's limitations, this log, and `docs/acceptance.md` if relevant, with the
+  results hash (run `scripts/check_report_numbers.py docs/report.md` after any report edit); (3) read the A1 and RC-B wrong answers, tally causes under a taxonomy fixed before reading, and name the first improvement; (4) improvement candidates, each
+  needing a NEW protocol on fresh data (GPU headroom is about 1 GiB): Roman-script matching for the fast path (pineapple scores 0.92 in English and 0.72 in Roman Hindi against the same fact-check), a judge for qualifiers and negation plus reading the
+  whole Wikipedia article for the live check (coverage maybe 30% to 40-45%), one-line reasons stored in the fact-check index, an offline Wikipedia snapshot, newer fact-checks; (5) A2 stays locked until an improvement is final.
+
+### 4. Owner-side items
+(2) review the hi/pa strings `plain.why.*` and `plain.reason.sources_disagree` in `docs/i18n-review.md`; (3) the relatives' usability test (`docs/usability-test.md`) once the model and project are frozen; (4) rehearse the demo the day before it
+(`python scripts/demo_check.py` needs the owner's server stopped; it last printed OK on the first restyle commit). Already done: server restart, report read, `/review-animations`, merge. Keep the server running while the real-claims run is going.
+
+### 5. Standing rules (all still binding)
+Never print or commit the Google Fact Check key (`.env`). The test split is spent and `TRUTHLENS_ALLOW_TEST` is owner-only. No attribution trailers in commits. Never kill the owner's server or load GPU models in another process while it runs (run tests with
+`CUDA_VISIBLE_DEVICES=""`; `tests/test_orchestrator.py` can crash on memory, so run the suite in two parts if it does). The live rule V2 is frozen and changing it needs a new protocol on fresh claims. Record choices made after seeing numbers as POST HOC.
+Plan first, the owner approves, then build. Shell heredocs can lose backslash escapes: write scripts with the Write tool and use `chr(92)` for a literal backslash.
+
+
 **Where things stand (2026-10-05, end of day; last commit `f4872a7`, 846 tests, lint clean, CI green): the
 project is COMPLETE except the demo, the owner's reviews and the relatives' test.** Phases 1-7 are done. The one test
 run is scored and written up (`docs/report.md`, `docs/acceptance.md`, `docs/error-analysis.md`, `docs/test-protocol.md`).
