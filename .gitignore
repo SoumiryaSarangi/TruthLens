@@ -77,6 +77,8 @@ hf_cache/
 **/.impeccable/live/deferred-svelte-component-accepts.json
 **/.impeccable/live/*.png
 # impeccable-ignore-end
+# The Impeccable engine binary is per-machine (the launcher downloads it once): never committed.
+.claude/skills/impeccable/scripts/bin/
 
 # --- Force-include the frozen splits -----------------------------------------
 # These lines must stay LAST. A broad data/ pattern above must never be able to
