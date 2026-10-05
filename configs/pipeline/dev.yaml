@@ -83,6 +83,10 @@ live_translate: true
 # (Stage 4): dev A1+B 58 correct of 64 shown vs 32 at 0.90, final A2+RC-E 53 correct of 54 shown vs 28, 0 false Supported in 205
 # (runs 72772ef47d7c, 6ff18b9f8dfc). Limits: all the gain is on AVeriTeC; none on RC-E; a similarity match carries no polarity.
 tau_live_match: 0.70
+# live_match_guard: ARM B of docs/polarity-guard-v2-protocol.md. ON only while that protocol's rule is being measured; if the rule
+# fails this line is set back to false and the failure is recorded. A fact-check match is blocked when DeBERTa reads the matched claim
+# (translated to English if Hindi or Punjabi) as contradicting the user's claim (P >= 0.5).
+live_match_guard: true
 
 # word_view: the on-demand "Which words mattered?" button on a live verdict (docs/word-highlight-protocol.md).
 # Shipped because the pre-registered faithfulness rule passed (run 4095b565e764). It explains the two NLI models'

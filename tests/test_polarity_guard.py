@@ -139,7 +139,9 @@ def test_the_offline_fast_path_match_is_guarded_too():
     assert kept.path == "fast"
 
 
-def test_the_guard_is_off_by_default_everywhere_it_is_served():
+def test_the_guard_is_off_by_default_in_the_config_class_and_the_served_key_is_a_bool():
     assert PipelineConfig().live_match_guard is False and "live_match_guard" not in PipelineConfig().describe()
-    assert PipelineConfig.load("configs/pipeline/dev.yaml").live_match_guard is False
+    # The served config's value is the protocol's decision (docs/polarity-guard-v2-protocol.md): it is on only while the rule is measured
+    # and stays on only if the rule passes, so the test pins that the key exists and is a bool, not a value.
+    assert isinstance(PipelineConfig.load("configs/pipeline/dev.yaml").live_match_guard, bool)
     assert PipelineConfig(live_match_guard=True).describe()["live_match_guard"] is True
