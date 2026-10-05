@@ -83,13 +83,14 @@ def rcb_claims(name: str = "real_forwards.csv", prefix: str = "rcb", part: str =
     return out
 
 
-def rcf_claims() -> list[dict]:
-    """RC-F (docs/polarity-guard-protocol.md): the owner's paraphrases and negations of real fact-checked claims, in long form."""
-    path = ROOT / "data" / "private" / "rcf_claims.csv"
+def rcf_claims(name: str = "rcf_claims.csv", prefix: str = "rcf", part: str = "F") -> list[dict]:
+    """RC-F and RC-G (docs/polarity-guard-protocol.md, docs/polarity-guard-v2-protocol.md): the owner's paraphrases and negations of real
+    fact-checked claims, in long form."""
+    path = ROOT / "data" / "private" / name
     if not path.exists():
         raise SystemExit(f"{path} does not exist (see docs/polarity-guard-protocol.md)")
     with path.open(encoding="utf-8", newline="") as f:
-        return [{"uid": f"rcf:{r['id']}", "text": r["text"].strip(), "gold": r["gold"], "part": "F", "kind": r["kind"],
+        return [{"uid": f"{prefix}:{r['id']}", "text": r["text"].strip(), "gold": r["gold"], "part": part, "kind": r["kind"],
                  "source_id": int(r["source_id"]), "lang": r["language"], "verbatim": r["verbatim_copy"] == "1"} for r in csv.DictReader(f)]
 
 
@@ -205,6 +206,8 @@ def _diag_claims(which: str) -> list[dict]:
         return rcb_claims()
     if which == "f":
         return rcf_claims()
+    if which == "g":
+        return rcf_claims("rcg_claims.csv", "rcg", "G")
     if which == "e":      # only the English translation is wanted from this run (offline fact-check scoring); RC-E errors stay unread
         return rcb_claims("real_forwards_new.csv", "rce", "E")
     first = {r["uid"]: r for r in read_jsonl(OUT / "rca.collect.jsonl")}
@@ -223,9 +226,9 @@ def detail(body: dict) -> dict:
                           "stance_prob": p.get("stance_prob")} for p in (r.get("passages") or [])]}
 
 
-def diagnose(which: str) -> int:
+def diagnose(which: str, suffix: str = "") -> int:
     claims = _diag_claims(which)
-    path = OUT / f"diag_{which}.jsonl"
+    path = OUT / f"diag_{which}{suffix}.jsonl"
     done = {r["uid"] for r in read_jsonl(path)}
     print(f"diagnose {which}: {len(claims)} claims, {len(done)} done", flush=True)
     for i, c in enumerate(claims, 1):
@@ -352,11 +355,12 @@ def main() -> int:
     sub.add_parser("confirm")
     sub.add_parser("report")
     g = sub.add_parser("diagnose")
-    g.add_argument("--set", choices=("b", "a1", "e", "f"), required=True)
+    g.add_argument("--set", choices=("b", "a1", "e", "f", "g"), required=True)
+    g.add_argument("--suffix", default="", help="write diag_<set><suffix>.jsonl (the guard test uses _A and _B)")
     sub.add_parser("tally")
     args = ap.parse_args()
     if args.cmd == "diagnose":
-        return diagnose(args.set)
+        return diagnose(args.set, args.suffix)
     if args.cmd == "confirm":
         return confirm()
     return collect(args.set, args.suffix, args.only) if args.cmd == "collect" else tally() if args.cmd == "tally" else report()
