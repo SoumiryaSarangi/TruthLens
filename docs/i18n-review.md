@@ -335,3 +335,7 @@ Machine-drafted hi/pa; same rules as above (first person gender-neutral, placeho
 | `scope.not_for_3` | Opinions and predictions: there is nothing to check. | राय और भविष्यवाणियाँ: इनमें जाँचने लायक कुछ नहीं होता। | ਰਾਇ ਅਤੇ ਭਵਿੱਖਬਾਣੀਆਂ: ਇਨ੍ਹਾਂ ਵਿੱਚ ਜਾਂਚਣ ਵਾਲੀ ਕੋਈ ਗੱਲ ਨਹੀਂ ਹੁੰਦੀ। | |
 | `scope.not_for_4` | Very short fragments: write them as a full sentence. | बहुत छोटे टुकड़े: इन्हें पूरे वाक्य में लिखें। | ਬਹੁਤ ਛੋਟੇ ਟੁਕੜੇ: ਇਨ੍ਹਾਂ ਨੂੰ ਪੂਰੇ ਵਾਕ ਵਿੱਚ ਲਿਖੋ। | |
 | `scope.not_for_5` | Anything with no source to be found: the answer is “Hard to say”, not a guess. | जिसका कोई स्रोत न मिले: जवाब “पक्का कहना मुश्किल है” होगा, अंदाज़ा नहीं लगाया जाएगा। | ਜਿਸ ਦਾ ਕੋਈ ਸਰੋਤ ਨਾ ਮਿਲੇ: ਜਵਾਬ “ਪੱਕਾ ਕਹਿਣਾ ਔਖਾ ਹੈ” ਹੋਵੇਗਾ, ਅੰਦਾਜ਼ਾ ਨਹੀਂ ਲਗਾਇਆ ਜਾਵੇਗਾ। | |
+
+### Outcome of the 'What this is for' review (owner, 2026-10-05)
+
+12 strings reviewed; 9 corrected as given and applied (scope.title, built_for_1 to 4, not_for_title hi, not_for_1 and 2), 3 kept (not_for_3, not_for_4, not_for_5). The `_comment` notes were replaced by the review note.
