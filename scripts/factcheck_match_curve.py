@@ -50,7 +50,8 @@ def best_match(fc, encode, forms: list[str]) -> dict | None:
     for hit, c in zip(hits, cos, strict=True):
         verdict = rating_to_verdict([hit.rating]) if hit.rating else None
         if verdict in ("Supported", "Refuted") and (best is None or c > best["cosine"]):
-            best = {"cosine": float(c), "verdict": verdict, "publisher": hit.publisher or "", "url": hit.url}
+            best = {"cosine": float(c), "verdict": verdict, "publisher": hit.publisher or "", "url": hit.url,
+                    "claim_text": hit.claim_text or hit.title, "lang": hit.lang}
     return best
 
 

@@ -74,3 +74,22 @@ Consequences, stated now:
 - The matched hit is recomputed with the same Google queries and BGE-M3 scoring as the live path (`best_match` in `scripts/factcheck_match_curve.py`, now also returning the hit's claim text and language), on the English form where one exists.
 - **Retention on the natural sets** uses the projection at 0.70 of A1, B, A2 and RC-E (`factcheck_match_curve.project`): of the correct shown verdicts decided by a fact-check match, the share the guard does not block. Their errors are not used to choose anything.
 - Outcomes per RC-F kind: shown, correct, wrong (a shown verdict that contradicts the gold; for a gold-F sentence, shown Supported is also counted as false Supported). The pass rule above is applied to these numbers exactly as written. Row and source-cluster bootstrap intervals (1000 resamples, seed 42) are reported.
+
+## Result (2026-10-06, run `2bbc13d6e982`, `results/2bbc13d6e982.json`): the guard is NOT adopted by the pre-registered rule (5 of 6 conditions hold; item 4 fails)
+Run once, offline (DeBERTa-v3-large and BGE-M3 on the GPU after the owner stopped the server, because the models together do not fit in the RAM left beside the running server), on the owner's 88 sentences and the natural sets' stored matches.
+
+| RC-F | sentences | shown (served, no guard) | correct | wrong | shown with the guard | wrong with the guard |
+| --- | --- | --- | --- | --- | --- | --- |
+| paraphrases (same claim, other words) | 44 | 28 | **28** | 0 | 28 | 0 |
+| negations (the opposite claim) | 44 | 18 | **0** | **18** | 4 | 4 |
+
+- **The headline finding is about the system as served, not the guard: every verdict shown on a negated claim was wrong (18 of 18).** A polarity-blind match answers "X does not cure Y" with the verdict of "X cures Y". Where the system speaks at all it does so for the claim
+  it matched, whatever the sentence says. 14 of those 18 were decided by a live Google fact-check match and the guard blocked all 14 (P(Contradiction) 0.65 to 0.9996); the 4 left were not live matches at all (below).
+- **Rules, as fixed:** informative (18 wrong negations without the guard, at least 6): yes. 1, wrong negations with the guard at most 25% of those without: **4 of 18 = 22%** (cluster bootstrap 95% interval 5% to 43%): met. 2a, right paraphrases kept at least 85%: **28 of 28**: met (also
+  22 of 22 when the 6 verbatim copies are excluded). 2b, right natural-set fact-check verdicts kept at least 90%: **111 of 112 = 99%**: met (the guard blocked 3 of 117: one right, two wrong; the A1, B, A2 wrong ones fell from 5 to 3). 3, no new wrong verdict: met.
+  **4, zero false Supported on RC-F with the guard: NOT met** (1 false Supported, unchanged by the guard).
+- **Why item 4 fails:** the 4 wrong negations that remain, including the one false Supported (the negation of the True-rated Kobe Bryant claim, "Kobe was not the only person to ..."), were decided by the OFFLINE fast path (`path == "fast"`, the stored fact-check index at tau 0.90), not by a live Google match. 12 sentences in RC-F were fast-path decided with no live
+  match to check. **The guard as specified covers live matches only, so it cannot touch them.** The offline fast path is polarity-blind in the same way.
+- **Decision:** by the rule ("adopted only if ALL hold") the guard is **not adopted**, and it is not re-interpreted after the fact (correction 1 had said item 4 "cannot carry weight", which is not the same as waiving it). Nothing in the served configuration changes. The result is nonetheless clear about what a fix would need:
+  **a guard on BOTH matching paths** (the offline fast path matches a fact-check title/claim in the stored index; the same NLI check would apply to it). That is a new rule on a new component and needs its own protocol and FRESH sentences: RC-F has now been read and cannot validate a changed guard.
+- **Limits:** RC-F has only 4 True-rated sources, so the harmful direction rests on one case; the guard reads English only (1 live match in another language was unchecked); a blocked match is counted silent here, and the true served fall-through to Wikipedia was not measured.

@@ -1,0 +1,163 @@
+{
+  "config_hash": "2bbc13d6e982",
+  "created_utc": "2026-10-05T19:02:13+00:00",
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p9_polarity_guard",
+  "git": {
+    "branch": "main",
+    "dirty": true,
+    "sha": "e4d455c778e86070a51beeb3934b757515f3bfca"
+  },
+  "inputs": {
+    "config": {
+      "experiment": "p9_polarity_guard",
+      "protocol": "docs/polarity-guard-protocol.md",
+      "seed": 42,
+      "task": "polarity_guard"
+    },
+    "protocol_sha256": "4834c81a26a6db420ce205ed018a2f6acdfabdec336b5af31138180517342b06"
+  },
+  "metrics": {
+    "RCF_negation": {
+      "blocked": 14,
+      "correct_with": 0,
+      "correct_without": 0,
+      "false_supported_with": 1,
+      "false_supported_without": 1,
+      "n": 44,
+      "shown_with": 4,
+      "shown_without": 18,
+      "wrong_with": 4,
+      "wrong_without": 18
+    },
+    "RCF_paraphrase": {
+      "blocked": 0,
+      "correct_with": 28,
+      "correct_without": 28,
+      "false_supported_with": 0,
+      "false_supported_without": 0,
+      "n": 44,
+      "shown_with": 28,
+      "shown_without": 28,
+      "wrong_with": 0,
+      "wrong_without": 0
+    },
+    "RCF_paraphrase_non_verbatim": {
+      "blocked": 0,
+      "correct_with": 22,
+      "correct_without": 22,
+      "false_supported_with": 0,
+      "false_supported_without": 0,
+      "n": 38,
+      "shown_with": 22,
+      "shown_without": 22,
+      "wrong_with": 0,
+      "wrong_without": 0
+    },
+    "guard_adopted_by_the_rule": false,
+    "guard_threshold_p_contradiction": 0.5,
+    "natural_by_set": {
+      "A1": {
+        "blocked": 0,
+        "correct_with": 50,
+        "correct_without": 50,
+        "false_supported_with": 0,
+        "false_supported_without": 0,
+        "n": 53,
+        "shown_with": 53,
+        "shown_without": 53,
+        "wrong_with": 3,
+        "wrong_without": 3
+      },
+      "A2": {
+        "blocked": 2,
+        "correct_with": 56,
+        "correct_without": 57,
+        "false_supported_with": 0,
+        "false_supported_without": 0,
+        "n": 58,
+        "shown_with": 56,
+        "shown_without": 58,
+        "wrong_with": 0,
+        "wrong_without": 1
+      },
+      "B": {
+        "blocked": 1,
+        "correct_with": 5,
+        "correct_without": 5,
+        "false_supported_with": 0,
+        "false_supported_without": 0,
+        "n": 6,
+        "shown_with": 5,
+        "shown_without": 6,
+        "wrong_with": 0,
+        "wrong_without": 1
+      },
+      "E": {
+        "blocked": 0,
+        "correct_with": 0,
+        "correct_without": 0,
+        "false_supported_with": 0,
+        "false_supported_without": 0,
+        "n": 0,
+        "shown_with": 0,
+        "shown_without": 0,
+        "wrong_with": 0,
+        "wrong_without": 0
+      }
+    },
+    "natural_sets_factcheck_decided": {
+      "blocked": 3,
+      "correct_with": 111,
+      "correct_without": 112,
+      "false_supported_with": 0,
+      "false_supported_without": 0,
+      "n": 117,
+      "shown_with": 114,
+      "shown_without": 117,
+      "wrong_with": 3,
+      "wrong_without": 5
+    },
+    "negation_wrong_remaining_share_cluster_bootstrap95": [
+      0.05256578947368421,
+      0.42857142857142855
+    ],
+    "rcf_factcheck_decided_without_an_english_match_to_check": 13,
+    "rules": {
+      "1_removes_wrong_negations": true,
+      "2a_keeps_right_paraphrases_85": true,
+      "2b_keeps_right_natural_90": true,
+      "3_no_new_wrong": true,
+      "4_zero_false_supported_with_guard": false,
+      "informative_at_least_6_wrong_negations_without_guard": true
+    },
+    "tau_live_match": 0.7
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "polarity_guard"
+}

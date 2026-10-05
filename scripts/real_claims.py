@@ -83,6 +83,16 @@ def rcb_claims(name: str = "real_forwards.csv", prefix: str = "rcb", part: str =
     return out
 
 
+def rcf_claims() -> list[dict]:
+    """RC-F (docs/polarity-guard-protocol.md): the owner's paraphrases and negations of real fact-checked claims, in long form."""
+    path = ROOT / "data" / "private" / "rcf_claims.csv"
+    if not path.exists():
+        raise SystemExit(f"{path} does not exist (see docs/polarity-guard-protocol.md)")
+    with path.open(encoding="utf-8", newline="") as f:
+        return [{"uid": f"rcf:{r['id']}", "text": r["text"].strip(), "gold": r["gold"], "part": "F", "kind": r["kind"],
+                 "source_id": int(r["source_id"]), "lang": r["language"], "verbatim": r["verbatim_copy"] == "1"} for r in csv.DictReader(f)]
+
+
 def post(text: str) -> dict:
     req = urllib.request.Request(f"{SERVER}/verify", data=json.dumps({"text": text, "include_trace": True, "live_search": True}).encode("utf-8"),
                                  headers={"Content-Type": "application/json"})
@@ -193,6 +203,8 @@ def _diag_claims(which: str) -> list[dict]:
     """B (all 150) or the 100 random A1 claims that were silent in the first run (docs/silence-diagnosis-protocol.md)."""
     if which == "b":
         return rcb_claims()
+    if which == "f":
+        return rcf_claims()
     if which == "e":      # only the English translation is wanted from this run (offline fact-check scoring); RC-E errors stay unread
         return rcb_claims("real_forwards_new.csv", "rce", "E")
     first = {r["uid"]: r for r in read_jsonl(OUT / "rca.collect.jsonl")}
@@ -206,7 +218,7 @@ def detail(body: dict) -> dict:
     notes = [e.get("note") or "" for e in (body.get("trace") or {}).get("events", []) if e.get("note")]
     return {"claim_en": r.get("claim_en"), "path": r.get("path"), "verdict": r.get("verdict"), "abstained": r.get("abstained"),
             "confidence": r.get("confidence"), "live_sources": r.get("live_sources") or [], "sources_disagree": r.get("sources_disagree"),
-            "similar": bool(r.get("similar_match")), "notes": notes,
+            "similar": bool(r.get("similar_match")), "match": bool(r.get("match")), "notes": notes,
             "passages": [{"source": p.get("source"), "title": p.get("title"), "retrieval": p.get("retrieval_score"), "stance": p.get("stance"),
                           "stance_prob": p.get("stance_prob")} for p in (r.get("passages") or [])]}
 
@@ -340,7 +352,7 @@ def main() -> int:
     sub.add_parser("confirm")
     sub.add_parser("report")
     g = sub.add_parser("diagnose")
-    g.add_argument("--set", choices=("b", "a1", "e"), required=True)
+    g.add_argument("--set", choices=("b", "a1", "e", "f"), required=True)
     sub.add_parser("tally")
     args = ap.parse_args()
     if args.cmd == "diagnose":
