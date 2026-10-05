@@ -62,4 +62,21 @@ numbers come from `eval.metrics.careful_rule_metrics`; no metric is computed inl
 
 ## Dated corrections
 
-(none yet)
+(none to the rule.)
+
+## Result (2026-10-05, run e165f84eb4a9, run once): R IS NOT ADOPTED
+
+| Gate | Bar | Measured | |
+| --- | --- | --- | --- |
+| False warnings on true AVeriTeC claims | at most 15% | 3 of 122 = 2.5% (Wilson 95% 0.8% to 7.0%) | pass |
+| At most half of the lean rule's share | at most 12.3% | R 2.5%; the lean rule cautioned 24.6% (30 of 122) | pass |
+| Cautions false AVeriTeC claims | at least 15% | 20 of 305 = 6.6% | **FAIL** |
+| Cautions the 30 typical hoaxes | at least 20 | 18 of 30 | **FAIL** |
+
+Also reported: FEVER real-world-true claims, 1 of 125 cautioned (0.8%). Cues fired on the false AVeriTeC claims: Loaded_Language 13,
+Appeal_to_Authority 4, miracle_cure 2, giveaway 1. Per the protocol the lean-based wording stays unchanged and the rule is not tuned.
+
+**What the result says:** R almost never warns about a true claim (that is what it was good at), but it warns about too few false
+ones, and its two largest sources of warnings are the generic pressure rules. Reading the 12 typical hoaxes it missed was done
+AFTER the run and cannot rescue it; one cause found is that the frozen cue lists match whole words, so "free laptops" is missed while
+"free laptop" is caught. A revised rule would need a new protocol on a fresh set.

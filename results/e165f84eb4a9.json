@@ -1,0 +1,82 @@
+{
+  "config_hash": "e165f84eb4a9",
+  "created_utc": "2026-10-05T01:25:11+00:00",
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p9_careful_rule",
+  "git": {
+    "branch": "main",
+    "dirty": true,
+    "sha": "9bf86de26434e0a9f3d4dbeb3c7992f06abe47c7"
+  },
+  "inputs": {
+    "config": {
+      "experiment": "p9_careful_rule",
+      "protocol": "docs/careful-rule-protocol.md",
+      "seed": 42,
+      "task": "careful_rule"
+    },
+    "protocol_sha256": "0d235aa86e0e145337eb29d7b0d5a72d30270f586dde739d02ab0a2dad48b173"
+  },
+  "metrics": {
+    "baseline_true_rate": 0.2459016393442623,
+    "false_cautioned": 20,
+    "false_cue_counts": {
+      "giveaway": 1,
+      "miracle_cure": 2,
+      "technique:Appeal_to_Authority": 4,
+      "technique:Loaded_Language": 13
+    },
+    "false_n": 305,
+    "false_rate": 0.06557377049180328,
+    "fever_true_cautioned": 1,
+    "fever_true_n": 125,
+    "fever_true_rate": 0.008,
+    "fever_true_wilson95": [
+      0.0014135950883795712,
+      0.04392475276964836
+    ],
+    "gates": {
+      "at_most_half_of_baseline": true,
+      "false_claim_recall": false,
+      "false_warning_rate": true,
+      "typical_hoaxes": false
+    },
+    "hoaxes_cautioned": 18,
+    "hoaxes_n": 30,
+    "passes": false,
+    "true_cautioned": 3,
+    "true_n": 122,
+    "true_rate": 0.02459016393442623,
+    "true_wilson95": [
+      0.00839762029491999,
+      0.06980759894510227
+    ]
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "careful_rule"
+}

@@ -3171,3 +3171,15 @@ bottom 0.017: all three gates passed, so `word_view: true` is served.** 30 of 13
 than three helpful words; both counts are in the result. A 3-claim smoke run was made before the real run (its ratio was 1.98; it
 decided nothing and wrote no result). Not done: a fast-path word view (needs its own protocol). The button appears only after the
 owner restarts the server (the backend has a new route). Test suite: 860 passed, 9 skipped, 2 deselected (CUDA hidden because the owner's server holds the GPU; one earlier whole-file run of `tests/test_orchestrator.py` crashed with a Windows access violation under memory pressure, each test passed alone and the full suite passed afterwards).
+
+### "Be careful" decided by the message, not by the model's lean: tried, NOT adopted (2026-10-05, owner-approved build)
+
+The owner noticed that the English "Drinking lemon juice can cure cancer but hospitals don't reveal this" got "Hard to say" after a live look-up
+while the same claim in Roman Hindi got "Be careful": the tone depended on the offline model's lean (NEI vs Refuted), a poor signal.
+`docs/careful-rule-protocol.md` fixed rule R before any measurement (hoax-shape cues in `src/manipulation/hoax_cues.py` plus the existing
+pressure-technique rules; gates: at most 15% false warnings on true AVeriTeC claims and at most half the lean rule's share, at least 15% of
+false AVeriTeC claims and 20 of 30 typical hoaxes warned). Run once (`scripts/careful_rule_check.py`, results/e165f84eb4a9.json):
+2.5% false warnings (the lean rule: 24.6%), but only 6.6% of false claims and 18 of 30 hoaxes warned: **two gates failed, R is not
+adopted, the served wording is unchanged, the cue lists were not tuned.** Nothing user-visible changed. Open choices for the owner (each is a
+new protocol or a product decision): a revised cue list tested on a fresh set (the whole-word plural miss is one known cause), or dropping the lean
+from the tone entirely so every unverified claim says "Hard to say". Tests added: `tests/test_careful_rule.py`.

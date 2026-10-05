@@ -692,3 +692,31 @@ def word_faithfulness_metrics(drop_top: Sequence[float], drop_random: Sequence[f
         "mean_diff_ci95": [float(np.percentile(diffs, 2.5)), float(np.percentile(diffs, 97.5))],
         "gates": gates, "passes": all(gates.values()),
     }
+
+
+def careful_rule_metrics(true_fired: Sequence[bool], false_fired: Sequence[bool], baseline_true_fired: Sequence[bool],
+                         hoax_fired: Sequence[bool], *, max_false_warning: float = 0.15, max_vs_baseline: float = 0.5,
+                         min_false_recall: float = 0.15, min_hoaxes: int = 20) -> dict[str, Any]:
+    """The gates of docs/careful-rule-protocol.md. Each argument is a list of "did the rule caution this message".
+
+    true_fired: the rule on true claims; baseline_true_fired: the rule it replaces on the same claims;
+    false_fired: the rule on false claims; hoax_fired: on the 30 typical hoaxes (illustrative, but a gate).
+    """
+    if not true_fired or not false_fired or not hoax_fired or len(true_fired) != len(baseline_true_fired):
+        raise ValueError("careful_rule_metrics needs non-empty sets and a baseline for every true claim")
+    n_t, k_t = len(true_fired), sum(true_fired)
+    k_b = sum(baseline_true_fired)
+    n_f, k_f = len(false_fired), sum(false_fired)
+    lo, hi = wilson_interval(k_t, n_t)
+    rate_t, rate_b, rate_f = k_t / n_t, k_b / n_t, k_f / n_f
+    gates = {
+        "false_warning_rate": rate_t <= max_false_warning,
+        "at_most_half_of_baseline": rate_t <= max_vs_baseline * rate_b,
+        "false_claim_recall": rate_f >= min_false_recall,
+        "typical_hoaxes": sum(hoax_fired) >= min_hoaxes,
+    }
+    return {"true_n": n_t, "true_cautioned": k_t, "true_rate": rate_t, "true_wilson95": [lo, hi],
+            "baseline_true_rate": rate_b, "false_n": n_f, "false_cautioned": k_f, "false_rate": rate_f,
+            "hoaxes_n": len(hoax_fired), "hoaxes_cautioned": int(sum(hoax_fired)),
+            "gates": gates, "passes": all(gates.values())}
+
