@@ -3192,3 +3192,12 @@ Extractive on purpose: nothing is generated. Checked on real live answers (methy
 Fast-path answers get none: the index holds only the fact-check's headline, and fetching its page would break the offline path. Frontend only
 (`sourceQuote`, `plain.why.*` strings for en/hi/pa, hi/pa in the review sheet, a render check). **The owner is trying it; to remove it, revert this commit
 (see the commit hash in `git log`: "Why quote").**
+
+### "Why" on a fact-checked (fast-path) answer: measured, NOT shipped (2026-10-05, owner request)
+
+The owner asked for a "why" on every FALSE answer, without a button. Live true/false answers already quote their source sentence (commit 1c8d158).
+For a fast-path answer the index holds only the fact-check's headline, so `docs/factcheck-lead-protocol.md` (rule and 70% gate fixed first, commit c78ecfa)
+tested reading the article's opening paragraph automatically (one GET of the public URL, no message text sent). `src/retrieval/live/factcheck_lead.py`,
+`scripts/factcheck_lead_check.py`, results/39860deeb1d8.json: **36 of 60 = 60%, below the 70% bar, so it is off and not wired into the card.** AFP desks mostly fail, and
+the leads that work usually restate the claim, not the reason. Left in the repo as a documented negative result (module, 6 tests, script). Options if the owner
+still wants it: a per-publisher extractor on a fresh sample (new protocol), or accept that a fast-path card shows the fact-checker's headline as its explanation.

@@ -38,4 +38,13 @@ printed for reading; reading them cannot rescue a failure and does not change th
 
 ## Dated corrections
 
-(none yet)
+(none to the rule.)
+
+## Result (2026-10-05, run 39860deeb1d8, run once): FEATURE OFF
+
+A lead was extracted for **36 of 60 = 60.0%** (bar 70%), so the "Why" line on a fact-check answer is **not shown** and the code is not wired
+into the card. By publisher: nearly every AFP page (`factcheck.afp.com`, `factuel`, `fakty`, `checamos`, `semakanfakta`, ...) failed (the index files
+non-English AFP desks under "en"), as did thip.media and some checkyourfact/newsmobile pages; boomlive, factly, politifact, factcheck.org, usatoday,
+thequint and indiatoday mostly worked. Reading the 10 printed leads afterwards (cannot rescue the gate): most state **what the viral claim is**, not **why it
+is false** ("A video showing police officers... has gone viral with a claim that..."), so even a success is often not an explanation. Not tuned.
+A revised extractor (per-publisher rules, the verdict paragraph rather than the first one) would be a new protocol on a fresh sample.

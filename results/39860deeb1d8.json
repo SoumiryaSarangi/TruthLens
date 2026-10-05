@@ -1,0 +1,564 @@
+{
+  "config_hash": "39860deeb1d8",
+  "created_utc": "2026-10-05T01:56:11+00:00",
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p9_factcheck_lead",
+  "git": {
+    "branch": "main",
+    "dirty": false,
+    "sha": "fbc779978733ef9dc616655d67ab1fb893aa613f"
+  },
+  "inputs": {
+    "config": {
+      "bar": 0.7,
+      "experiment": "p9_factcheck_lead",
+      "n": 60,
+      "protocol": "docs/factcheck-lead-protocol.md",
+      "seed": 42,
+      "task": "factcheck_lead"
+    },
+    "protocol_sha256": "73b28c5c96dc0a791f3f6a186ed393c50ab8119ca91852c47ae77ca55ae740ea"
+  },
+  "metrics": {
+    "bar": 0.7,
+    "by_publisher": {
+      "asianetnews.com": [
+        1,
+        1
+      ],
+      "boomlive.in": [
+        6,
+        6
+      ],
+      "checamos.afp.com": [
+        0,
+        2
+      ],
+      "checkyourfact.com": [
+        4,
+        6
+      ],
+      "factcheck.afp.com": [
+        0,
+        6
+      ],
+      "factcheck.org": [
+        3,
+        3
+      ],
+      "factly.in": [
+        4,
+        4
+      ],
+      "factual.afp.com": [
+        0,
+        2
+      ],
+      "factuel.afp.com": [
+        0,
+        1
+      ],
+      "fakty.afp.com": [
+        0,
+        2
+      ],
+      "healthfeedback.org": [
+        1,
+        1
+      ],
+      "indiatoday.in": [
+        2,
+        2
+      ],
+      "misbar.com": [
+        1,
+        2
+      ],
+      "newsmobile.in": [
+        5,
+        6
+      ],
+      "politifact.com": [
+        2,
+        2
+      ],
+      "proveri.afp.com": [
+        0,
+        1
+      ],
+      "semakanfakta.afp.com": [
+        0,
+        2
+      ],
+      "sprawdzam.afp.com": [
+        0,
+        1
+      ],
+      "thequint.com": [
+        3,
+        3
+      ],
+      "thip.media": [
+        0,
+        3
+      ],
+      "usatoday.com": [
+        4,
+        4
+      ]
+    },
+    "extracted": 36,
+    "n": 60,
+    "passes": false,
+    "rate": 0.6
+  },
+  "per_item": [
+    {
+      "id": "369171",
+      "lead": "A video claiming football star Cristiano Ronaldo was recently gifted a motorcycle made entirely of 22-carat gold in Saudi Arabia is doing the rounds on social media. The video gives a detailed look at a sports bike with the Saudi Arabian flag behind it. A Facebook user posted the viral post with a…",
+      "ok": true,
+      "publisher": "newsmobile.in",
+      "url": "https://www.newsmobile.in/2023/05/11/fact-check-did-saudi-arabia-gift-ronaldo-a-bike-made-up-of-22-carat-gold-heres-the-truth/"
+    },
+    {
+      "id": "150183",
+      "lead": null,
+      "ok": false,
+      "publisher": "factcheck.afp.com",
+      "url": "https://factcheck.afp.com/false-claim-circulates-facebook-atm-fees-were-waived-sri-lanka"
+    },
+    {
+      "id": "143077",
+      "lead": "A video showing police officers apprehending a group of people in a metro station has gone viral with a claim that Muslims were arrested in a Paris metro for not wearing masks and spitting on people.",
+      "ok": true,
+      "publisher": "thequint.com",
+      "url": "https://www.thequint.com/news/webqoof/video-from-romania-shared-as-french-police-arresting-muslims-in-paris"
+    },
+    {
+      "id": "234170",
+      "lead": "A viral statement attributed to Rep. Scott Perry about purported election fraud in the 2020 election is fake.",
+      "ok": true,
+      "publisher": "usatoday.com",
+      "url": "https://www.usatoday.com/story/news/factcheck/2023/01/03/fact-check-fabricated-statement-scott-perry-spreads-online-2020-election/10970957002/"
+    },
+    {
+      "id": "35459",
+      "lead": null,
+      "ok": false,
+      "publisher": "thip.media",
+      "url": "https://www.thip.media/author/aditi-gangal/page/83/"
+    },
+    {
+      "id": "366962",
+      "lead": "A picture of a giant skeleton is being shared on social media, claiming that it was found by archaeological experts during an excavation in Kurukshetra, Haryana. The post reads:जय श्री राम राधे राधे जो वामपंथी कहते है कि महाभारत का युद्ध काल्पनिक है, और #सनातन_धर्म कुछ है ही नही। उनके मुंह पर…",
+      "ok": true,
+      "publisher": "newsmobile.in",
+      "url": "https://www.newsmobile.in/2023/07/27/fact-check-edited-image-viral-as-giant-skeleton-discovered-during-an-excavation-in-kurukshetra/"
+    },
+    {
+      "id": "68675",
+      "lead": "The image is on the internet at least since November 2019. So, it has nothing to do with the current lockdown in India which came into effect from 25 March 2020.",
+      "ok": true,
+      "publisher": "factly.in",
+      "url": "https://factly.in/an-old-image-taken-before-the-lockdown-falsely-shared-as-poor-hindus-stranded-due-to-lockdown/"
+    },
+    {
+      "id": "236723",
+      "lead": "BOOM found that the viral video is doctored and the audio of 'Kejriwal Kejriwal' slogans has been overlaid.",
+      "ok": true,
+      "publisher": "boomlive.in",
+      "url": "https://www.boomlive.in/fact-check/politics/fake-news-viral-video-doctored-kejriwal-slogan-front-of-modi-surat-road-show-factcheck-20261"
+    },
+    {
+      "id": "33703",
+      "lead": null,
+      "ok": false,
+      "publisher": "factcheck.afp.com",
+      "url": "https://factcheck.afp.com/doc.afp.com.32FL8BY"
+    },
+    {
+      "id": "302238",
+      "lead": "'മൊറോക്കോയിലെ ഭൂകമ്പത്തെ തുടര്‍ന്ന് അല്‍പം മുമ്പ് ഒരു കെട്ടിടം പൂര്‍ണമായും തകര്‍ന്ന നിമിഷങ്ങള്‍' എന്ന തലക്കെട്ടോടെയാണ് ഒരാള്‍ വീഡിയോ പങ്കുവെച്ചത്",
+      "ok": true,
+      "publisher": "asianetnews.com",
+      "url": "https://www.asianetnews.com/fact-check/morocco-earthquake-video-viral-as-building-completely-collapsed-but-video-is-fake-jje-s0pmn8"
+    },
+    {
+      "id": "248833",
+      "lead": null,
+      "ok": false,
+      "publisher": "checamos.afp.com",
+      "url": "https://checamos.afp.com/node/46670"
+    },
+    {
+      "id": "345250",
+      "lead": "According to the actual headline published by the outlet, a 55-foot statue of the Hindu god Hanuman is being built in Brampton",
+      "ok": true,
+      "publisher": "checkyourfact.com",
+      "url": "https://checkyourfact.com/2024/01/09/fact-check-facebook-post-does-not-show-authentic-toronto-sun-headline/"
+    },
+    {
+      "id": "104530",
+      "lead": null,
+      "ok": false,
+      "publisher": "factcheck.afp.com",
+      "url": "https://factcheck.afp.com/doc.afp.com.9ZE8Z9"
+    },
+    {
+      "id": "311298",
+      "lead": "India Today found that the clip’s audio was edited completely and it was initially intended to be satire.",
+      "ok": true,
+      "publisher": "indiatoday.in",
+      "url": "https://www.indiatoday.in/fact-check/story/fact-check-no-green-missiles-vegan-grenades-greta-thunberg-video-edited-2452830-2023-10-23"
+    },
+    {
+      "id": "152744",
+      "lead": null,
+      "ok": false,
+      "publisher": "checkyourfact.com",
+      "url": "http://checkyourfact.com/2022/04/06/fact-check-irish-examiner-whistle-headline/"
+    },
+    {
+      "id": "199640",
+      "lead": "“The Democrats want you American taxpayers to shell out $3 billion for ‘non-racist’ trees.”",
+      "ok": true,
+      "publisher": "politifact.com",
+      "url": "https://www.politifact.com/factchecks/2021/sep/29/freedomworks/tree-equity-part-35t-bill-targets-low-income-areas/"
+    },
+    {
+      "id": "72024",
+      "lead": null,
+      "ok": false,
+      "publisher": "factcheck.afp.com",
+      "url": "https://factcheck.afp.com/video-shows-indian-and-us-troops-staging-mock-drill-2016-not-clashes-kashmir"
+    },
+    {
+      "id": "312587",
+      "lead": null,
+      "ok": false,
+      "publisher": "factcheck.afp.com",
+      "url": "https://factcheck.afp.com/doc.afp.com.33ZB6VU"
+    },
+    {
+      "id": "395929",
+      "lead": "This is a scripted video from Bangladesh. The people seen in viral video also acted in other videos. It doesn’t depict any real incident.",
+      "ok": true,
+      "publisher": "factly.in",
+      "url": "https://factly.in/scripted-video-shared-as-a-real-incident-of-an-elderly-muslim-man-misbehaving-with-a-burqa-clad-woman/"
+    },
+    {
+      "id": "38378",
+      "lead": "‘This quotation has not been found in any of the writings of Thomas Jefferson’",
+      "ok": true,
+      "publisher": "checkyourfact.com",
+      "url": "http://checkyourfact.com/2019/12/10/fact-check-thomas-jefferson-want-something-never-had-willing-done/"
+    },
+    {
+      "id": "103829",
+      "lead": null,
+      "ok": false,
+      "publisher": "factcheck.afp.com",
+      "url": "https://factcheck.afp.com/image-people-praying-has-circulated-online-least-2016"
+    },
+    {
+      "id": "311634",
+      "lead": "The Netherlands cricket team recently defeated South Africa in the ongoing ICC Cricket World Cup 2023. Against this backdrop, a viral video claiming to show Netherlands’ fans celebrating their win has gone viral on social media. The fans can be seen dancing to the tunes of Jai Shree Ram in the…",
+      "ok": true,
+      "publisher": "newsmobile.in",
+      "url": "https://newsmobile.in/articles/2023/10/24/fact-check-does-this-video-show-the-netherlands-fans-celebrating-win-over-sa-in-cricket-wc-2023-heres-the-truth/"
+    },
+    {
+      "id": "386110",
+      "lead": "The official White House transcript for this speech shows that Biden said “rigor,” not “wigger.”",
+      "ok": true,
+      "publisher": "checkyourfact.com",
+      "url": "https://checkyourfact.com/2024/07/24/fact-check-biden-nato-secretary-general-intellectual-wigger/"
+    },
+    {
+      "id": "274253",
+      "lead": null,
+      "ok": false,
+      "publisher": "sprawdzam.afp.com",
+      "url": "https://sprawdzam.afp.com/node/48593"
+    },
+    {
+      "id": "19141",
+      "lead": "A video purporting to show Ukrainians destroying Russian tanks is from 2014 anti-government demonstrations in Kyiv.",
+      "ok": true,
+      "publisher": "usatoday.com",
+      "url": "https://www.usatoday.com/story/news/factcheck/2022/03/02/fact-check-video-doesnt-show-ukrainians-destroying-russian-tanks/6977704001/"
+    },
+    {
+      "id": "237414",
+      "lead": null,
+      "ok": false,
+      "publisher": "factuel.afp.com",
+      "url": "https://factuel.afp.com/node/44832"
+    },
+    {
+      "id": "68795",
+      "lead": null,
+      "ok": false,
+      "publisher": "newsmobile.in",
+      "url": "https://newsmobile.in/articles/2023/06/07/fact-check-this-image-does-not-show-bhagat-singh-being-whipped-by-britishers-heres-the-truth/"
+    },
+    {
+      "id": "103661",
+      "lead": null,
+      "ok": false,
+      "publisher": "semakanfakta.afp.com",
+      "url": "https://semakanfakta.afp.com/node/35613"
+    },
+    {
+      "id": "244829",
+      "lead": "The much-awaited FIFA World Cup 2022 is scheduled to start on November 20, 2022. A total of 32 teams will compete against each other in 64 matches in the 22nd edition of the tournament. Eight stadiums have been chosen to host the tournament in Qatar. Against the backdrop, a viral video showing a…",
+      "ok": true,
+      "publisher": "newsmobile.in",
+      "url": "https://newsmobile.in/articles/2022/11/22/fact-check-stadium-inauguration-video-viral-as-the-opening-ceremony-of-fifa-wc-2022-in-qatar/"
+    },
+    {
+      "id": "389440",
+      "lead": "A Fox News spokesperson confirmed to Check Your Fact that the outlet did not report this.",
+      "ok": true,
+      "publisher": "checkyourfact.com",
+      "url": "https://checkyourfact.com/2024/08/07/fact-check-fox-news-simone-biles-pregnant-retiring/"
+    },
+    {
+      "id": "103932",
+      "lead": null,
+      "ok": false,
+      "publisher": "fakty.afp.com",
+      "url": "https://fakty.afp.com/node/35651"
+    },
+    {
+      "id": "19709",
+      "lead": "Terrorist imagery and an “Impeach Trump” poster have been added to a photo of four newly elected congresswomen. The doctored image has been widely shared on Facebook.",
+      "ok": true,
+      "publisher": "factcheck.org",
+      "url": "https://www.factcheck.org/2019/01/doctored-photo-targets-new-congresswomen/"
+    },
+    {
+      "id": "1993",
+      "lead": "Requiring COVID-19 vaccination does not violate the Nuremberg Code because the vaccines aren't experimental.",
+      "ok": true,
+      "publisher": "usatoday.com",
+      "url": "https://www.usatoday.com/story/news/factcheck/2021/08/10/fact-check-covid-19-vaccine-mandates-nuremberg-code-not-related/5530548001/"
+    },
+    {
+      "id": "375060",
+      "lead": null,
+      "ok": false,
+      "publisher": "thip.media",
+      "url": "https://www.thip.media/health-news-fact-check/fact-check-is-gender-dysphoria-a-virus/66686/"
+    },
+    {
+      "id": "77126",
+      "lead": null,
+      "ok": false,
+      "publisher": "checkyourfact.com",
+      "url": "http://checkyourfact.com/2021/07/29/fact-check-patrick-mahomes-training-camp-kansas-city-chiefs-name/"
+    },
+    {
+      "id": "108932",
+      "lead": "Posts on social media cite an anonymous Craigslist ad to support the false claim that President Donald Trump's reelection campaign is seeking \"MINORITY Actors\" to hold signs at his June 20 rally in Tulsa, Oklahoma. The Trump campaign says it didn't post the ad, and Craigslist has removed it.",
+      "ok": true,
+      "publisher": "factcheck.org",
+      "url": "https://www.factcheck.org/2020/06/trump-campaign-didnt-advertise-for-minority-actors-in-tulsa/"
+    },
+    {
+      "id": "362238",
+      "lead": "BOOM found that the video is from 2019 and that the flags seen in it are Kerala based IUML's party flags.",
+      "ok": true,
+      "publisher": "boomlive.in",
+      "url": "https://www.boomlive.in/fact-check/viral-video-national-flag-of-pakistan-wayanad-constituency-rahul-gandhi-claim-social-media-24861"
+    },
+    {
+      "id": "141089",
+      "lead": "BOOM found that the viral video is from an incident in Tamaulipas, Mexico.",
+      "ok": true,
+      "publisher": "boomlive.in",
+      "url": "https://www.boomlive.in/fact-check/fake-news-crocodile-attack-woman-dead-body-video-powai-lake-mumbai-bisalpur-dam-rajasthan-debi-river-odisha-mexico-factcheck-14191"
+    },
+    {
+      "id": "305901",
+      "lead": "The video shows an old police raid that took inside a cafe house in Sanjay Place in Agra. There is communal angle in the incident.",
+      "ok": true,
+      "publisher": "factly.in",
+      "url": "https://factly.in/old-video-of-a-police-raid-in-uttar-pradeshs-agra-shared-as-from-madhya-pradesh-with-a-communal-narrative/"
+    },
+    {
+      "id": "353863",
+      "lead": null,
+      "ok": false,
+      "publisher": "proveri.afp.com",
+      "url": "https://proveri.afp.com/node/56587"
+    },
+    {
+      "id": "206071",
+      "lead": "Randomized clinical trials have repeatedly found that ivermectin does not benefit COVID-19 patients. The National Institutes of Health recommends against its use for COVID-19. Ivermectin enthusiasts continue to falsely claim the contrary.",
+      "ok": true,
+      "publisher": "factcheck.org",
+      "url": "https://www.factcheck.org/2022/09/scicheck-clinical-trials-show-ivermectin-does-not-benefit-covid-19-patients-contrary-to-social-media-claims/"
+    },
+    {
+      "id": "149864",
+      "lead": "M Dinakaran, CRPF DIG (Intelligence) denied having received any such news about the kin of the slain CRPF jawans",
+      "ok": true,
+      "publisher": "boomlive.in",
+      "url": "https://www.boomlive.in/no-pulwama-martyrs-widow-did-not-commit-suicide/"
+    },
+    {
+      "id": "91200",
+      "lead": "The original video from Switzerland, showing violent clashes following a football match, was shared a year ago and has been revived again with the same false claim",
+      "ok": true,
+      "publisher": "boomlive.in",
+      "url": "https://www.boomlive.in/old-football-fans-vandalism-video-revived-as-muslims-rioting-in-birmingham/"
+    },
+    {
+      "id": "112130",
+      "lead": "A video, currently doing the rounds on Facebook, shows a man tripping badly and then landing on his head while he tries to hop on a camel. The video is being shared far and wide with different claims. Some have claimed that the man who fell from the camel's back is Rajasthan BJP leader Harish Singh.",
+      "ok": true,
+      "publisher": "indiatoday.in",
+      "url": "https://www.indiatoday.in/fact-check/story/viral-video-election-campaign-camel-truth-rajasthan-1494757-2019-04-05"
+    },
+    {
+      "id": "242320",
+      "lead": null,
+      "ok": false,
+      "publisher": "fakty.afp.com",
+      "url": "https://fakty.afp.com/node/45826"
+    },
+    {
+      "id": "143696",
+      "lead": "Fact-Check | An old video from Karnataka showing the police cracking down on anti-NEP protestors has gone viral with a claim that it shows the West Bengal police attacking protestors who were campaigning in support of hijab.",
+      "ok": true,
+      "publisher": "thequint.com",
+      "url": "https://www.thequint.com/news/webqoof/video-from-karnataka-shared-as-that-from-west-bengal-amid-hijab-row-fact-check"
+    },
+    {
+      "id": "396487",
+      "lead": null,
+      "ok": false,
+      "publisher": "thip.media",
+      "url": "https://www.thip.media/health-news-fact-check/can-the-piles-matrix-kit-heal-piles-and-stop-bleeding-in-one-day/82134/"
+    },
+    {
+      "id": "104268",
+      "lead": null,
+      "ok": false,
+      "publisher": "checamos.afp.com",
+      "url": "https://checamos.afp.com/node/40514"
+    },
+    {
+      "id": "352290",
+      "lead": "The post uses photos of a Kerala woman to falsely claim that Raja Singh's sister has converted to Islam.",
+      "ok": true,
+      "publisher": "boomlive.in",
+      "url": "https://www.boomlive.in/no-bjp-mla-raja-singhs-sister-did-not-convert-to-islam"
+    },
+    {
+      "id": "65582",
+      "lead": null,
+      "ok": false,
+      "publisher": "factual.afp.com",
+      "url": "https://factual.afp.com/node/27137"
+    },
+    {
+      "id": "375687",
+      "lead": "The Supreme Court's March 19 opinion said it was not ruling on whether the law was constitutional. The law remains on hold as litigation continues.",
+      "ok": true,
+      "publisher": "usatoday.com",
+      "url": "https://www.usatoday.com/story/news/factcheck/2024/06/10/texas-senate-bill-constitutional-fact-check/74001738007/"
+    },
+    {
+      "id": "416466",
+      "lead": "Recently, social media users have been circulating an image claiming to show a pro-Palestinian demonstrator holding a sign saying \"You Don't Get To Choose Who We Rape.\"",
+      "ok": true,
+      "publisher": "misbar.com",
+      "url": "https://www.misbar.com/en/factcheck/2024/05/13/the-image-of-a-pro-palestine-protester-holding-a-sign-is-digitally-altered"
+    },
+    {
+      "id": "68527",
+      "lead": "Fact Check of Image of SRK Asking to Vote for AIMIM: A morphed picture showing Shah Rukh Khan wearing a T-shirt that reads 'Vote for MIM' is being shared to claim that it shows the actor supporting the AIMIM.",
+      "ok": true,
+      "publisher": "thequint.com",
+      "url": "https://www.thequint.com/news/webqoof/morphed-image-shah-rukh-khan-vote-for-aimim-shirt-fact-check"
+    },
+    {
+      "id": "195262",
+      "lead": "“CNN lightened the photo of the man who drove into the protester last night in Seattle.”",
+      "ok": true,
+      "publisher": "politifact.com",
+      "url": "https://www.politifact.com/factchecks/2020/jun/17/facebook-posts/cnn-did-not-lighten-photo-man-accused-driving-seat/"
+    },
+    {
+      "id": "280605",
+      "lead": null,
+      "ok": false,
+      "publisher": "factual.afp.com",
+      "url": "https://factual.afp.com/node/49454"
+    },
+    {
+      "id": "214808",
+      "lead": null,
+      "ok": false,
+      "publisher": "semakanfakta.afp.com",
+      "url": "https://semakanfakta.afp.com/node/47327"
+    },
+    {
+      "id": "288741",
+      "lead": "To date, more than 270 million people in the U.S. have received at least one dose of COVID-19 vaccine. Incidental cases of illnesses, including cancer, occurred even before COVID-19 vaccines existed. Therefore, in order to determine if vaccination raises the risk of illness, it isn’t enough to…",
+      "ok": true,
+      "publisher": "healthfeedback.org",
+      "url": "https://healthfeedback.org/claimreview/claim-mouse-study-shows-covid-19-vaccine-causes-turbo-cancer-misinterprets-study-findings/"
+    },
+    {
+      "id": "370296",
+      "lead": "A viral picture showing a white bikini with Delhi Public School’s logo on it is doing the rounds on social media. Many users have shared the image claiming that DPS Goa has allowed bikinis as a school uniform for the girl students during summers. A Facebook user posted the viral post with a…",
+      "ok": true,
+      "publisher": "newsmobile.in",
+      "url": "https://newsmobile.in/articles/2023/04/02/fact-check-viral-clip-claiming-dps-goa-allows-bikinis-as-school-uniform-for-girl-students-during-summers-is-satire/"
+    },
+    {
+      "id": "424952",
+      "lead": null,
+      "ok": false,
+      "publisher": "misbar.com",
+      "url": "https://www.misbar.com/en/factcheck/2020/09/18/biden-didn%E2%80%99t-play-f*ck-tha-police-at-rally"
+    },
+    {
+      "id": "279802",
+      "lead": "The viral visuals are related to a confrontation between the past and present members of a Church in Thrissur, Kerala.",
+      "ok": true,
+      "publisher": "factly.in",
+      "url": "https://factly.in/visuals-of-a-group-of-women-attacking-a-man-are-being-shared-with-a-false-communal-narrative/"
+    }
+  ],
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "factcheck_lead"
+}
