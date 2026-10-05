@@ -171,3 +171,19 @@ Run once (a lock file prevents a repeat), tau 0.70, on A2 plus RC-E, pooled (335
 **Decision.** The rule was fixed in advance and its bars are met, so tau 0.70 is adopted for the LIVE fact-check match only (config key `tau_live_match`; the offline fast path and its tau are untouched), with the limits above
 written into the report. **It is served only after the owner restarts the server, and A2 plus RC-E are then run through the served system once to confirm the projection; if the served run disagrees, the worse reading is reported and the
 setting is reverted.** A polarity guard (a negation mismatch between the claim and the matched fact-check blocks a match below 0.90) is the obvious next safeguard but is a NEW rule and needs its own protocol.
+
+## Result of the served confirmation run (2026-10-05, run `f0d7ab316ff0`, `results/f0d7ab316ff0.json`): CONFIRMED, tau_live_match 0.70 stays
+After the owner restarted the server (git `a18ff91`, `/version` shows `tau_live_match` 0.7), A2 (250) and RC-E (85) were sent through the served system once (`collect --suffix _v70`, then `confirm`). Pooled, 335 claims, 205 false:
+
+| | offline projection (run `6ff18b9f8dfc`) | served run |
+| --- | --- | --- |
+| shown | 59 | 56 |
+| shown decidable | 54 | 52 |
+| correct | 53 | **51** (bar: at least 37; v1 baseline 28) |
+| precision (Wilson lower) | 0.981 (0.902) | **0.981 (0.899)** |
+| false Supported | 0 of 205 | **0 of 205** (Wilson upper 0.018) |
+| shown on unverifiable claims | 5 | 4 |
+
+Every pooled bar is met by the served run. Per set: A2 53 shown, 48 correct of 49 decidable (the one wrong decidable verdict is a true or false claim answered the other way; 4 shown on unverifiable claims); RC-E 3 shown, 3 correct (v1: 0).
+The projection and the served run differ on 9 of 335 claims, and 15 of the 335 ran with a degraded live source (a rate-limited or unreachable source), which is the likely reason the served count is slightly lower (56 against 59 shown). The projection
+is therefore a fair but not exact guide; the served figure is the one reported. **The setting is kept.** The limits written after the final test stand unchanged (the gain is on AVeriTeC; RC-E is mostly silent; a similarity match carries no polarity).

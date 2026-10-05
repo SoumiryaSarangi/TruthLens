@@ -1,0 +1,122 @@
+{
+  "config_hash": "f0d7ab316ff0",
+  "created_utc": "2026-10-05T17:38:42+00:00",
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "experiment": "p9_factcheck_match_served_confirmation",
+  "git": {
+    "branch": "main",
+    "dirty": false,
+    "sha": "baa05a8b41cb88b31adc009e52b2a97009349bdc"
+  },
+  "inputs": {
+    "config": {
+      "experiment": "p9_factcheck_match_served_confirmation",
+      "protocol": "docs/live-retrieval-v2-protocol.md",
+      "seed": 42,
+      "task": "factcheck_match_served_confirmation"
+    },
+    "protocol_sha256": "e61c3f227aa51ed41accb1f931dcc8610c2b14fb674dea4dc67a410f0fd5dff9"
+  },
+  "metrics": {
+    "A2_served": {
+      "correct": 48,
+      "coverage": 0.212,
+      "decidable_shown": 49,
+      "false_supported": 0,
+      "false_supported_wilson95": [
+        0.0,
+        0.024184233186669263
+      ],
+      "gold_false": 155,
+      "n": 250,
+      "precision": 0.9795918367346939,
+      "precision_wilson_lower": 0.8930647837060598,
+      "shown": 53,
+      "shown_on_unverifiable": 4
+    },
+    "E_served": {
+      "correct": 3,
+      "coverage": 0.03529411764705882,
+      "decidable_shown": 3,
+      "false_supported": 0,
+      "false_supported_wilson95": [
+        0.0,
+        0.07134760017861413
+      ],
+      "gold_false": 50,
+      "n": 85,
+      "precision": 1.0,
+      "precision_wilson_lower": 0.43850296436068037,
+      "shown": 3,
+      "shown_on_unverifiable": 0
+    },
+    "claims_degraded": 15,
+    "claims_run": 335,
+    "claims_where_served_differs_from_projection": 9,
+    "correct_needed": 37,
+    "projected_pooled": {
+      "correct": 53,
+      "coverage": 0.1761194029850746,
+      "decidable_shown": 54,
+      "false_supported": 0,
+      "false_supported_wilson95": [
+        1.734723475976807e-18,
+        0.01839413927614563
+      ],
+      "gold_false": 205,
+      "n": 335,
+      "precision": 0.9814814814814815,
+      "precision_wilson_lower": 0.9022856241340362,
+      "shown": 59,
+      "shown_on_unverifiable": 5
+    },
+    "served_bars_met": true,
+    "served_pooled": {
+      "correct": 51,
+      "coverage": 0.16716417910447762,
+      "decidable_shown": 52,
+      "false_supported": 0,
+      "false_supported_wilson95": [
+        1.734723475976807e-18,
+        0.01839413927614563
+      ],
+      "gold_false": 205,
+      "n": 335,
+      "precision": 0.9807692307692307,
+      "precision_wilson_lower": 0.898794887711724,
+      "shown": 56,
+      "shown_on_unverifiable": 4
+    },
+    "wilson_precision_interval": [
+      0.898794887711724,
+      0.996597191966685
+    ]
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "factcheck_match_served_confirmation"
+}
