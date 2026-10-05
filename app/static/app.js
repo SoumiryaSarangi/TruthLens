@@ -274,7 +274,7 @@ function plainCase(r) {
   if (r.verdict === "NotAClaim") return { kind: "none" };
   const live = (r.live_sources || []).length > 0;
   if (r.path === "fast" && r.match && !r.abstained) return { kind: "fast", v: r.verdict, live };
-  if (r.abstained) return { kind: "abstained", v: r.verdict, live };
+  if (r.abstained) return { kind: "abstained", v: r.verdict, live, careful: !!r._careful };
   // The offline evidence path is NOT presented as an answer. On free text it says "Refuted" to almost
   // everything (122 of 125 TRUE claims in the pre-registered test; Paris is the capital of France too),
   // because it mostly reflects "forwarded claims are usually false". A verdict is shown only when it is
@@ -298,6 +298,7 @@ function similarRating(sim, lang) {
 function isCareful(c) {
   // Not for a message the claim gate refused and the reader checked anyway ("Good morning"): the
   // "most messages like this are false" reasoning is about forwarded claims, not about a greeting.
+  if (c.kind === "abstained") return !!(c.live && c.careful);   // a live look-up that found nothing keeps the warning
   return c.kind === "lean" && c.v === "Refuted" && !c.forced;
 }
 
@@ -323,7 +324,7 @@ function plainReason(c, r, lang, sim) {
       : tl(lang, "plain.similar.reason_unrated", { publisher: sim.publisher || "" });
   }
   if (c.kind === "fast") return tl(lang, "plain.reason.fast", { publisher: r.match?.publisher || "" });
-  if (isCareful(c)) return tl(lang, "plain.reason.careful");
+  if (isCareful(c)) return tl(lang, c.live ? "plain.reason.careful_live" : "plain.reason.careful");
   if (c.kind === "lean") return tl(lang, "plain.no_exact");
   if (c.kind === "abstained") {
     if (c.live) return tl(lang, "plain.reason.live_none");
@@ -614,6 +615,10 @@ async function searchLive(btn) {
   }
   if (btn.dataset.forced) result._forced = true;
   if (bubble && bubble._state) {
+    // "Be careful" before the look-up must not turn into "Hard to say" because the look-up found nothing:
+    // it is the same finding (nothing checks this exact claim), now with "I looked online too".
+    const before = (bubble._state.live[idx] || {}).result || (bubble._state.body.results || [])[idx];
+    if (before && isCareful(plainCase(before))) result._careful = true;
     bubble._state.live[idx] = { result, input: body.input || {} };
     renderBubble(bubble);
   }

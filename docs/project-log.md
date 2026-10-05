@@ -3139,3 +3139,12 @@ get a real source, 22 get the careful warning, 1 is refused by the gate. New hi/
    "Copy a reply" say "newsmeter looked at something similar ...", and the fact-check is not listed twice. Frontend only (`app/static/app.js`,
    `showsSim`, `_forced`); no backend, threshold or number changed. Checks added to `scripts/ui_plain_check.js` (`forced_greeting`, `live_similar`).
    Not done, and not approved: lowering the fast-path bar for Roman script (needs a new pre-registered measurement on fresh Roman-Hindi claims).
+
+### "Be careful" survives an empty online look-up (2026-10-05, the owner's point)
+
+A card that said "Be careful with this one" turned into "Hard to say" after "Look this up online" found nothing, which read as the app
+becoming less sure for no reason. Now, when the card was a "Be careful" before the look-up and the look-up still cannot decide, it stays
+"Be careful" with the reason "I looked online too and still couldn't find a source that checks this exact claim. Most messages like this
+turn out to be false." (`plain.reason.careful_live`, hi/pa machine-drafted, added to the review sheet and the `_comment`). Same finding as
+before, not a new verdict; a checked-anyway greeting and a card with a similar fact-check keep their own wording. Frontend only
+(`_careful` set in `searchLive`); check `live_careful` added to `scripts/ui_plain_check.js`.

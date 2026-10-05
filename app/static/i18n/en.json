@@ -125,7 +125,8 @@
       "live_none": "I looked online too, and it is still hard to say. Here is what I found.",
       "live_Supported": "I looked it up online and the sources agree with this.",
       "live_Refuted": "I looked it up online and the sources say this is not right.",
-      "careful": "I couldn't find a source that checks this exact claim. Most messages like this turn out to be false."
+      "careful": "I couldn't find a source that checks this exact claim. Most messages like this turn out to be false.",
+      "careful_live": "I looked online too and still couldn't find a source that checks this exact claim. Most messages like this turn out to be false."
     },
     "action": {
       "Refuted": "Please don't forward it.",
