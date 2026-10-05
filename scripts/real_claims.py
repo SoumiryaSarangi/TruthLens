@@ -1,7 +1,8 @@
 """The live check on real claims (docs/real-claims-protocol.md, pre-registered).
 
     python scripts/real_claims.py collect --set a          # RC-A: 500 AVeriTeC dev claims through the running server
-    python scripts/real_claims.py collect --set b          # RC-B: the owner's forwards (data/private/real_forwards.csv)
+    python scripts/real_claims.py collect --set b          # RC-B: the owner's 120 plain claims (data/private/real_forwards.csv)
+    python scripts/real_claims.py collect --set c          # RC-C: the same 120 claims as chatty forwards with the correction inside (real_forwards_chatty.csv)
     python scripts/real_claims.py report                   # metrics, results/<hash>.json; errors are printed from A1 and B only
 
 The collector calls the owner's running server (`POST /verify`, `live_search: true`), so it measures exactly the
@@ -45,16 +46,16 @@ def rca_claims() -> list[dict]:
     return [{"uid": u, "text": text[u], "gold": GOLD[gold[u]], "part": "A1" if i < 250 else "A2"} for i, u in enumerate(uids)]
 
 
-def rcb_claims() -> list[dict]:
-    path = ROOT / "data" / "private" / "real_forwards.csv"
+def rcb_claims(name: str = "real_forwards.csv", prefix: str = "rcb", part: str = "B") -> list[dict]:
+    path = ROOT / "data" / "private" / name
     if not path.exists():
-        raise SystemExit(f"{path} does not exist: the owner's forwards go there (see real_forwards_TEMPLATE.csv)")
+        raise SystemExit(f"{path} does not exist: the owner's claims go there (see real_forwards_TEMPLATE.csv)")
     out = []
     with path.open(encoding="utf-8-sig", newline="") as f:
         for r in csv.DictReader(f):
             label = (r.get("label") or "").strip().upper()
             if r.get("text", "").strip() and label in ("T", "F", "U"):
-                out.append({"uid": f"rcb:{r['id']}", "text": r["text"].strip(), "gold": label, "part": "B"})
+                out.append({"uid": f"{prefix}:{r['id']}", "text": r["text"].strip(), "gold": label, "part": part})
     return out
 
 
@@ -80,7 +81,8 @@ def summarise(body: dict) -> dict:
 
 def collect(which: str) -> int:
     OUT.mkdir(parents=True, exist_ok=True)
-    claims = rca_claims() if which == "a" else rcb_claims()
+    claims = (rca_claims() if which == "a" else rcb_claims() if which == "b"
+              else rcb_claims("real_forwards_chatty.csv", "rcc", "C"))
     path = OUT / f"rc{which}.collect.jsonl"
     done = {r["uid"] for r in read_jsonl(path)}
     print(f"RC-{which.upper()}: {len(claims)} claims, {len(done)} already done", flush=True)
@@ -114,13 +116,13 @@ def report() -> int:
     from eval.metrics import real_claims_metrics
 
     seeded = set_all_seeds(SEED)
-    a, b = read_jsonl(OUT / "rca.collect.jsonl"), read_jsonl(OUT / "rcb.collect.jsonl")
+    a, b, c = (read_jsonl(OUT / f"rc{k}.collect.jsonl") for k in "abc")
     pick = lambda rs: [{"gold": r["gold"], "shown": r["final"].get("shown"), "decider": r["final"].get("decider")} for r in rs]  # noqa: E731
-    sets = {"A1": [r for r in a if r["part"] == "A1"], "A2": [r for r in a if r["part"] == "A2"], "A": a, "B": b}
+    sets = {"A1": [r for r in a if r["part"] == "A1"], "A2": [r for r in a if r["part"] == "A2"], "A": a, "B": b, "C": c}
     metrics = {k: real_claims_metrics(pick(v)) for k, v in sets.items() if v}
     errors = {k: [{"uid": r["uid"], "gold": r["gold"], "shown": r["final"].get("shown"), "decider": r["final"].get("decider"), "text": r["text"]}
                   for r in sets[k] if r["final"].get("shown") and (r["final"]["shown"] == "Supported") != (r["gold"] == "T") and r["gold"] in ("T", "F")]
-              for k in ("A1", "B") if sets.get(k)}
+              for k in ("A1", "B", "C") if sets.get(k)}
     for k, m in metrics.items():
         al = m["all"]
         print(f"{k}: n={al['n']} shown={al['shown']} coverage={al['coverage']:.3f} precision={al['precision']} "
@@ -129,13 +131,20 @@ def report() -> int:
         print(f"\n{k} wrong answers ({len(errs)}):")
         for e in errs:
             print(f"  [{e['gold']} but {e['shown']} via {e['decider']}] {e['text'][:140]}")
+    paired = None
+    if b and c:
+        from eval.metrics import paired_flip_counts
+        paired = paired_flip_counts({r["uid"].split(":")[1]: (r["gold"], r["final"].get("shown")) for r in b},
+                                    {r["uid"].split(":")[1]: (r["gold"], r["final"].get("shown")) for r in c})
+        print("
+B (plain) vs C (chatty), same 120 claims:", json.dumps(paired))
     cfg = {"experiment": "p9_real_claims", "task": "real_claims", "protocol": "docs/real-claims-protocol.md", "seed": SEED}
     sha = sha256_file(ROOT / "docs" / "real-claims-protocol.md")
     h = sha256_bytes(canonical_json(cfg) + sha.encode() + str(sum(len(v) for v in sets.values())).encode())[:12]
     write_json(ROOT / "results" / f"{h}.json", {
         "config_hash": h, "experiment": cfg["experiment"], "task": cfg["task"], "created_utc": datetime.now(UTC).isoformat(timespec="seconds"),
         "git": git_info(), "env": env_info(), "seed": SEED, "seeded_libraries": seeded, "inputs": {"config": cfg, "protocol_sha256": sha},
-        "metrics": metrics, "errors_A1_and_B_only": errors})
+        "metrics": metrics, "paired_B_vs_C": paired, "errors_A1_B_C": errors})
     print(f"\nwritten results/{h}.json")
     return 0
 

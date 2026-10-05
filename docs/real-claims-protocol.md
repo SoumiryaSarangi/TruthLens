@@ -64,3 +64,13 @@ reported as **"RC-B: owner-supplied claims in the style of forwards"**, never as
 never counted as an error, but they are listed in the result and the result is also given without them. The rule for reading RC-B is the protocol's rule applied
 to its decidable (T and F) claims, with the caveat above that 111 decidable claims give wide intervals. RC-A is unchanged and remains the main
 measurement.
+
+**Correction 2 (2026-10-05, before RC-B or RC-C is run).** The owner supplied a second file, `real_forwards_chatty.csv` (copied from
+`real_forwards_120_lang_updated (1).csv`): **the same 120 claims, same ids and the same labels** (45 T, 66 F, 9 U), rewritten as chatty forwards (English and
+Roman Hindi or Punjabi mixed, emoji, questions, and for most rows the correction written inside the message: "nope", "actually the whole point is...",
+"the claim is wrong"). It is run as **RC-C** and reported separately and **never** used for the transfer rule, because the message often states its own verdict, so the
+checker may be reading the correction and not the claim. The plain RC-B file stays the set the rule is read on. RC-C answers a different question: how much the
+shown verdicts move when the same claims arrive wrapped in a chatty forward (the claim extractor, language handling and the NLI model all see more text),
+measured by pairing each id's RC-B and RC-C result (`eval.metrics.paired_flip_counts`: both silent, silent to shown, shown to silent, same verdict, flipped,
+and correct in each). Rows 91 and 117-120 remain flagged in both files.
+

@@ -752,3 +752,30 @@ def real_claims_metrics(rows: Sequence[dict[str, Any]], *, min_precision: float 
     out["transfers"] = "transfers" if ok_p and ok_f else ("partly transfers" if ok_p or ok_f else "does not transfer")
     return out
 
+
+def paired_flip_counts(plain: dict[str, tuple[str, str | None]], chatty: dict[str, tuple[str, str | None]]) -> dict[str, int]:
+    """The same claims shown plain and wrapped in a chatty forward: id -> (gold, shown verdict or None).
+
+    Counts how the shown verdict moves (docs/real-claims-protocol.md, RC-B against RC-C): both silent, silent to shown,
+    shown to silent, same verdict, and verdict flipped (Supported <-> Refuted), plus how many shown verdicts are correct in each.
+    """
+    ids = sorted(set(plain) & set(chatty))
+    out = {"n": len(ids), "both_silent": 0, "silent_to_shown": 0, "shown_to_silent": 0, "same_verdict": 0, "flipped": 0,
+           "plain_correct": 0, "chatty_correct": 0}
+    for i in ids:
+        (g, a), (_, b) = plain[i], chatty[i]
+        ok = lambda v: v is not None and g in ("T", "F") and (v == "Supported") == (g == "T")  # noqa: E731
+        out["plain_correct"] += ok(a)
+        out["chatty_correct"] += ok(b)
+        if a is None and b is None:
+            out["both_silent"] += 1
+        elif a is None:
+            out["silent_to_shown"] += 1
+        elif b is None:
+            out["shown_to_silent"] += 1
+        elif a == b:
+            out["same_verdict"] += 1
+        else:
+            out["flipped"] += 1
+    return out
+

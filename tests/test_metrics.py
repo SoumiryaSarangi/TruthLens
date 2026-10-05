@@ -490,3 +490,14 @@ def test_real_claims_metrics_flags_false_supported_and_low_precision():
     assert m["all"]["false_supported"] == 20 and m["all"]["precision"] == 0.5 and m["transfers"] == "does not transfer"
     only_fs = [{"gold": "T", "shown": "Supported", "decider": "wikipedia"}] * 80 + [{"gold": "F", "shown": "Supported", "decider": "wikipedia"}] * 2 + [{"gold": "F", "shown": None, "decider": None}] * 38
     assert real_claims_metrics(only_fs)["transfers"] == "partly transfers"
+
+
+def test_paired_flip_counts():
+    from eval.metrics import paired_flip_counts
+
+    plain = {"1": ("T", "Supported"), "2": ("F", None), "3": ("F", "Refuted"), "4": ("F", "Refuted"), "5": ("U", None)}
+    chatty = {"1": ("T", "Supported"), "2": ("F", "Refuted"), "3": ("F", None), "4": ("F", "Supported"), "5": ("U", None)}
+    m = paired_flip_counts(plain, chatty)
+    assert m == {"n": 5, "both_silent": 1, "silent_to_shown": 1, "shown_to_silent": 1, "same_verdict": 1, "flipped": 1,
+                 "plain_correct": 3, "chatty_correct": 2}
+
