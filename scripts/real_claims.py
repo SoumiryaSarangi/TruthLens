@@ -103,12 +103,14 @@ def summarise(body: dict) -> dict:
             "sources_disagree": r.get("sources_disagree"), "degraded": any(n.startswith("degraded") or "degraded" in n for n in notes)}
 
 
-def collect(which: str) -> int:
+def collect(which: str, suffix: str = "", only: str | None = None) -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     claims = (rca_claims() if which == "a" else rcb_claims() if which == "b"
               else rcb_claims("real_forwards_new.csv", "rce", "E") if which == "e"
               else rcb_claims("real_forwards_triplets.csv", "rcd", "D"))
-    path = OUT / f"rc{which}.collect.jsonl"
+    if only:
+        claims = [c for c in claims if c["part"] == only]
+    path = OUT / f"rc{which}{suffix}.collect.jsonl"
     done = {r["uid"] for r in read_jsonl(path)}
     print(f"RC-{which.upper()}: {len(claims)} claims, {len(done)} already done", flush=True)
     t0 = time.time()
@@ -297,11 +299,45 @@ def tally() -> int:
     return 0
 
 
+def confirm() -> int:
+    """The served-system confirmation of Stage 4 (docs/live-retrieval-v2-protocol.md): A2 + RC-E through the restarted server at
+    tau_live_match 0.70, against the offline projection of run 6ff18b9f8dfc and the pooled bars. Run once."""
+    import factcheck_match_curve as fm
+    from eval.metrics import wilson_interval
+
+    served = []
+    for key, name in (("a", "A2"), ("e", "E")):
+        rows = read_jsonl(OUT / f"rc{key}_v70.collect.jsonl")
+        served += [{"set": name, "uid": r["uid"], "gold": r["gold"], "shown": r["final"].get("shown"), "decider": r["final"].get("decider"),
+                    "degraded": bool(r["final"].get("degraded"))} for r in rows]
+    projected = {r["uid"]: r for r in fm.project(["A2", "E"], 0.70)}
+    pooled = fm.summarise(served)
+    base = fm.summarise(fm.project(["A2", "E"], 2.0))
+    need = int(-(-base["correct"] * 1.3 // 1))
+    differ = [r for r in served if (projected[r["uid"]]["shown"] is not None) != (r["shown"] is not None) or projected[r["uid"]]["shown"] != r["shown"]]
+    lo = pooled["precision_wilson_lower"]
+    ok = (pooled["precision"] is not None and pooled["precision"] >= 0.85 and lo >= 0.80 and pooled["false_supported_wilson95"][1] <= 0.08
+          and pooled["correct"] >= need)
+    metrics = {"served_pooled": pooled, "projected_pooled": fm.summarise(list(projected.values())), "correct_needed": need,
+               "claims_run": len(served), "claims_degraded": sum(r["degraded"] for r in served),
+               "claims_where_served_differs_from_projection": len(differ),
+               "A2_served": fm.summarise([r for r in served if r["set"] == "A2"]), "E_served": fm.summarise([r for r in served if r["set"] == "E"]),
+               "wilson_precision_interval": list(wilson_interval(pooled["correct"], pooled["decidable_shown"])) if pooled["decidable_shown"] else None,
+               "served_bars_met": bool(ok)}
+    print(json.dumps(metrics, indent=1))
+    h = fm.write_result("factcheck_match_served_confirmation", metrics)
+    print(f"served bars met: {ok}; written results/{h}.json")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
     c = sub.add_parser("collect")
     c.add_argument("--set", choices=("a", "b", "d", "e"), required=True)
+    c.add_argument("--suffix", default="", help="write rc<set><suffix>.collect.jsonl (the Stage 4 confirmation run uses _v70)")
+    c.add_argument("--only", default=None, help="only the claims of this part (A2)")
+    sub.add_parser("confirm")
     sub.add_parser("report")
     g = sub.add_parser("diagnose")
     g.add_argument("--set", choices=("b", "a1", "e"), required=True)
@@ -309,7 +345,9 @@ def main() -> int:
     args = ap.parse_args()
     if args.cmd == "diagnose":
         return diagnose(args.set)
-    return collect(args.set) if args.cmd == "collect" else tally() if args.cmd == "tally" else report()
+    if args.cmd == "confirm":
+        return confirm()
+    return collect(args.set, args.suffix, args.only) if args.cmd == "collect" else tally() if args.cmd == "tally" else report()
 
 
 if __name__ == "__main__":
