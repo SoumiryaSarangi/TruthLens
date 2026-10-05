@@ -51,6 +51,20 @@ data.responses.push({ shows: "similar_unrated", body: { input: { lang: "en", scr
     similar_match: { factcheck_id: "f2", score: 0.756, verdict: null, title: "Garlic COVID cure claim crushed by experts",
       url: "https://www.aap.com.au/factcheck/garlic", publisher: "aap.com.au", lang: "en" } }] } });
 
+// A greeting the reader chose to check anyway: the claim gate said it is not a claim, so the "most messages like this
+// are false" warning must not be used on it.
+data.responses.push({ shows: "forced_greeting", body: { input: { lang: "en", script: "latn" }, unchecked_claims: [],
+  results: [{ claim: { claim_id: "c1", text: "Good morning, stay blessed" }, path: "evidence", match: null, _forced: true,
+    verdict: "Refuted", confidence: 0.7, abstained: false, explanation: "x", explanation_source: "template", explanation_lang: "en",
+    cited: [], passages: [], live_sources: [], manipulation_flags: [], similar_match: null }] } });
+
+// A live look-up that still cannot decide, with a similar fact-check found earlier: the fact-check leads the card.
+data.responses.push({ shows: "live_similar", body: { input: { lang: "en", script: "latn" }, unchecked_claims: [],
+  results: [{ ...liveBase, claim: { claim_id: "c1", text: "Pineapple juice 500 guna jyada asardar hai" },
+    verdict: "NEI", confidence: 0.0, abstained: true,
+    similar_match: { factcheck_id: "f3", score: 0.722, verdict: "Refuted", title: "Is pineapple juice 500% more effective than cough syrup?",
+      url: "https://newsmeter.in/fact-check/pineapple", publisher: "newsmeter.in", lang: "en" } }] } });
+
 // Words an ordinary reader should never meet outside Details.
 const JARGON = [/contradict/i, /\bevidence\b/i, /calibrat/i, /\bstance\b/i, /stage trace/i, /\bNEI\b/, /\bRefutes\b/, /\bSupports\b/,
   /\bNeutral\b/, /confidence/i, /\bmodels?\b/i, /\bband\b/i, /\bHigh\b/, /\bMedium\b/, /\bLow\b/, /explanation/i,
@@ -122,6 +136,16 @@ for (const lang of ["en", "hi", "pa"]) {
       if (/rated it|\{rating\}|undefined/i.test(body)) problems.push("unrated similar: claims a rating it does not have");
       if (!/similar|मिलत|ਮਿਲਦ/.test(body)) problems.push("unrated similar: does not say it is only similar");
     }
+    if (r.shows === "forced_greeting") {
+      if (/Be careful/.test(body)) problems.push("forced greeting: shown the 'most messages like this are false' warning");
+      if (lang === "en" && !/Hard to say/.test(body)) problems.push("forced greeting: not 'Hard to say'");
+    }
+    if (r.shows === "live_similar") {
+      if (lang === "en" && !/looked at something similar/.test(body)) problems.push("live similar: the fact-check does not lead the card");
+      if (/it is still hard to say/.test(body)) problems.push("live similar: still says hard to say");
+      if ((main.match(/newsmeter\.in\/fact-check\/pineapple/g) || []).length > 1 + (main.includes('data-reply') ? 1 : 0))
+        problems.push("live similar: the fact-check is listed twice");
+    }
     if (r.shows === "live_verdict") {
       if (!main.includes("plain-sources") || /class="sure"/.test(main)) problems.push("live verdict: sources missing, or an uncalibrated 'how sure' shown");
       if (!main.includes("Hyderabad</a>")) problems.push("live verdict: no source link");
@@ -138,7 +162,7 @@ for (const lang of ["en", "hi", "pa"]) {
 // Gurmukhi is answered in Hindi or Punjabi.
 api.setAns(null); api.setS(STR.en);
 const expectedLang = { fast_path: "en", romanized_hindi: "en", gurmukhi: "pa", claim_extraction: "en",
-  not_a_claim: "en", abstained: "pa", live_verdict: "en", live_none: "en", similar: "en", similar_unrated: "en" };
+  not_a_claim: "en", abstained: "pa", live_verdict: "en", live_none: "en", similar: "en", similar_unrated: "en", forced_greeting: "en", live_similar: "en" };
 for (const r of data.responses) {
   const html = api.render(r.body);
   const got = (html.match(/<div class="card[^"]*" (?:id="[^"]*" )?lang="(\w+)"/) || [])[1];

@@ -3126,3 +3126,16 @@ now uses `FactCheckMatcher.similar` (new; `top1` and all evaluation untouched) a
 via a matched fact-check rated true or the Lahore-style lean; Supported was never said in 350 claims. Result on the 30 hoaxes
 through the real preprocess, claim gate, extraction and matcher (CPU): 1 fast-path verdict + 6 similar cards = 7 of 30
 get a real source, 22 get the careful warning, 1 is refused by the gate. New hi/pa strings await review.
+
+### Two card fixes from the owner's own questions (2026-10-05, approved)
+
+1. **"Check it anyway" on a greeting no longer says "Be careful".** The claim gate had refused "Good morning, stay blessed", the reader overruled it,
+   and the offline guess (which leans false for nearly everything) produced the warning. A checked-anyway card now says "Hard to say"; the
+   "Look this up online" button on it also sends `force_claim` (before, it asked for the same message without the flag, got "not a claim" back,
+   and said "Online search isn't available right now").
+2. **A similar fact-check keeps leading the card after a live look-up that still cannot decide.** Pineapple juice in Roman Hindi scored 0.722
+   against the newsmeter fact-check (the English wording scored 0.919, above the 0.90 fast-path bar), so there was no verdict; the live look-up
+   found nothing decisive and the card fell back to "still hard to say" with the fact-check only as a listed link. Now the title, reason and
+   "Copy a reply" say "newsmeter looked at something similar ...", and the fact-check is not listed twice. Frontend only (`app/static/app.js`,
+   `showsSim`, `_forced`); no backend, threshold or number changed. Checks added to `scripts/ui_plain_check.js` (`forced_greeting`, `live_similar`).
+   Not done, and not approved: lowering the fast-path bar for Roman script (needs a new pre-registered measurement on fresh Roman-Hindi claims).

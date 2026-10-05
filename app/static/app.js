@@ -279,7 +279,7 @@ function plainCase(r) {
   // everything (122 of 125 TRUE claims in the pre-registered test; Paris is the capital of France too),
   // because it mostly reflects "forwarded claims are usually false". A verdict is shown only when it is
   // earned: a matched published fact-check (fast) or a live check that passed its test.
-  if (!live) return { kind: "lean", v: r.verdict, live };
+  if (!live) return { kind: "lean", v: r.verdict, live, forced: !!r._forced };
   return { kind: "verdict", v: r.verdict, live };
 }
 
@@ -296,11 +296,19 @@ function similarRating(sim, lang) {
 /* The offline guess leaned "false" (it does for almost everything: most forwards ARE false). That is
  * not a finding about THIS message, so it is shown as a warning, not as a verdict. */
 function isCareful(c) {
-  return c.kind === "lean" && c.v === "Refuted";
+  // Not for a message the claim gate refused and the reader checked anyway ("Good morning"): the
+  // "most messages like this are false" reasoning is about forwarded claims, not about a greeting.
+  return c.kind === "lean" && c.v === "Refuted" && !c.forced;
+}
+
+/* The similar fact-check leads the card when there is no verdict of any kind: before a live look-up,
+ * and after a live look-up that still could not decide (it is the best thing we have found). */
+function showsSim(c, sim) {
+  return !!sim && (!c.live || c.kind === "abstained");
 }
 
 function plainTitle(c, lang, sim) {
-  if (sim && !c.live) return tl(lang, "plain.title.similar");
+  if (showsSim(c, sim)) return tl(lang, "plain.title.similar");
   if (isCareful(c)) return tl(lang, "plain.title.careful");
   if (c.kind === "fast") return tl(lang, `plain.fast_title.${c.v}`);
   if (c.kind === "abstained" || c.kind === "lean") return tl(lang, "plain.title.abstained");
@@ -308,7 +316,7 @@ function plainTitle(c, lang, sim) {
 }
 
 function plainReason(c, r, lang, sim) {
-  if (sim && !c.live) {
+  if (showsSim(c, sim)) {
     // A fact-check whose rating cannot be mapped is still offered, without "rated it ...".
     return sim.verdict
       ? tl(lang, "plain.similar.reason", { publisher: sim.publisher || "", rating: similarRating(sim, lang) })
@@ -327,7 +335,7 @@ function plainReason(c, r, lang, sim) {
 }
 
 function plainAction(c, lang, sim) {
-  if (sim && !c.live) return tl(lang, "plain.similar.action");
+  if (showsSim(c, sim)) return tl(lang, "plain.similar.action");
   const v = c.kind === "abstained" || c.kind === "lean" ? null : c.v;
   return tl(lang, v === "Refuted" || v === "Supported" ? `plain.action.${v}` : "plain.action.check");
 }
@@ -357,7 +365,7 @@ function plainFlags(r, lang) {
 }
 
 function replyText(c, sources, lang, sim) {
-  if (sim && !c.live) {
+  if (showsSim(c, sim)) {
     let text = sim.verdict ? tl(lang, "plain.reply.similar", { rating: similarRating(sim, lang) })
       : tl(lang, "plain.reply.similar_unrated");
     text += `\n${tl(lang, "plain.reply.source", { url: sim.url })}`;
@@ -391,12 +399,13 @@ function plainCard(r, inp, idx) {
   const title = plainTitle(c, lang, sim);
   const chipClass = isCareful(c) ? "Conflicting" : c.kind === "abstained" || c.kind === "lean" ? "abstained" : (c.v === "Conflicting" || c.v === "NEI" || c.v === "Refuted"
     || c.v === "Supported" ? c.v : "NEI");
-  const icon = sim && !c.live ? (icons.similar || "\u2248")
+  const icon = showsSim(c, sim) ? (icons.similar || "\u2248")
     : (isCareful(c) ? (icons.careful || "\u26a0")
       : (c.kind === "abstained" || c.kind === "lean" ? icons.abstained : icons[c.v]));
   const reason = plainReason(c, r, lang, sim);
   const action = plainAction(c, lang, sim);
-  const sources = sim && !c.live && c.kind === "lean" ? [] : plainSources(c, r);   // the fact-check IS the source
+  const sources = showsSim(c, sim) && c.kind === "lean" ? []
+    : plainSources(c, r).filter((x) => !(showsSim(c, sim) && sim.url === x.url));   // the fact-check IS the source
   const simHtml = sim ? `<p class="src-label">${esc(tl(lang, "plain.similar.label"))}</p>
       <ul class="plain-sources"><li><a href="${esc(sim.url)}" target="_blank" rel="noopener">${esc(sim.title)}</a>${
     domainOf(sim.url) ? ` <span class="domain">· ${esc(domainOf(sim.url))}</span>` : ""}</li></ul>` : "";
@@ -433,7 +442,7 @@ function plainCard(r, inp, idx) {
   if (!liveUsed && LIVE && r.path !== "fast" && r.claim?.text
       && (c.kind === "lean" || r.abstained || bandName !== "High")) {
     if (c.kind === "lean") html += `<p class="action">${esc(tl(lang, "plain.try_online"))}</p>`;
-    html += `<button type="button" class="live-btn" data-card="${id}" data-claim="${esc(r.claim.text)}" data-idx="${idx}">
+    html += `<button type="button" class="live-btn" data-card="${id}" data-claim="${esc(r.claim.text)}" data-idx="${idx}"${r._forced ? ' data-forced="1"' : ""}>
       <span aria-hidden="true">🌐</span> ${esc(tl(lang, "live_button"))}</button>
       <p class="note live-privacy">${esc(tl(lang, "live_privacy"))}</p>`;
   }
@@ -589,7 +598,8 @@ async function searchLive(btn) {
     const res = await fetch("/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: btn.dataset.claim, include_trace: false, live_search: true }),
+      body: JSON.stringify({ text: btn.dataset.claim, include_trace: false, live_search: true,
+        ...(btn.dataset.forced ? { force_claim: true } : {}) }),
     });
     if (res.ok) body = await res.json();
   } catch (e) { /* handled below: the card keeps its answer */ }
@@ -602,6 +612,7 @@ async function searchLive(btn) {
     if (note) note.textContent = tl(lang, "live_unavailable");
     return;
   }
+  if (btn.dataset.forced) result._forced = true;
   if (bubble && bubble._state) {
     bubble._state.live[idx] = { result, input: body.input || {} };
     renderBubble(bubble);
@@ -632,6 +643,7 @@ async function checkAnyway(btn) {
     if (note) { note.textContent = t("error_server"); note.hidden = false; }
     return;
   }
+  result._forced = true;
   bubble._state.live[idx] = { result, input: body.input || {} };
   renderBubble(bubble);
 }
