@@ -1,0 +1,540 @@
+{
+  "config_hash": "80932a36cbf2",
+  "created_utc": "2026-10-05T11:25:33+00:00",
+  "env": {
+    "packages": {
+      "faiss-cpu": "1.15.1",
+      "jsonschema": "4.26.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.6",
+      "pyyaml": "6.0.3",
+      "rank-bm25": "0.2.2",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.17.1",
+      "sentence-transformers": "6.1.0",
+      "torch": "2.9.1+cu128",
+      "torch.cuda_available": "True",
+      "transformers": "5.17.0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "python": "3.11.16",
+    "python_executable": "D:\\Project work\\TruthLens\\.venv\\Scripts\\python.exe"
+  },
+  "errors_A1_B_D": {
+    "A1": [],
+    "B": [
+      {
+        "decider": "wikipedia",
+        "gold": "T",
+        "shown": "Refuted",
+        "text": "India ka Constitution zyadatar provisions ke saath 26 January 1950 ko lagu hua.",
+        "uid": "rcb:97"
+      },
+      {
+        "decider": "wikipedia",
+        "gold": "T",
+        "shown": "Refuted",
+        "text": "Cyber fraud ho jaye to 1930 par turant report karna chahiye.",
+        "uid": "rcb:140"
+      }
+    ],
+    "D": [
+      {
+        "decider": "wikipedia",
+        "gold": "T",
+        "shown": "Refuted",
+        "text": "Please check kar ke dasyo: UIDAI da VID use karke kai cases ch Aadhaar number direct share karan di lod ni hundi. official source hove ta bhejo ji.",
+        "uid": "rcd:51"
+      }
+    ]
+  },
+  "experiment": "p9_real_claims",
+  "git": {
+    "branch": "main",
+    "dirty": false,
+    "sha": "81eaff7eac7f6e6aec2a553c3e170378986a854e"
+  },
+  "inputs": {
+    "config": {
+      "experiment": "p9_real_claims",
+      "protocol": "docs/real-claims-protocol.md",
+      "seed": 42,
+      "task": "real_claims"
+    },
+    "protocol_sha256": "e5acd9e0911bfd580a5fdf4f5f3d04be0a55b4e44c384c7a9e422261ae2ed466"
+  },
+  "metrics": {
+    "A": {
+      "all": {
+        "correct": 56,
+        "coverage": 0.122,
+        "decidable_shown": 56,
+        "false_supported": 0,
+        "false_supported_rate": 0.0,
+        "false_supported_wilson95": [
+          0.0,
+          0.01243828757709785
+        ],
+        "gold_false": 305,
+        "n": 500,
+        "precision": 1.0,
+        "precision_wilson95": [
+          0.9358060623335392,
+          1.0
+        ],
+        "shown": 61,
+        "shown_on_unverifiable": 5
+      },
+      "by_decider": {
+        "factcheck": {
+          "correct": 50,
+          "coverage": 1.0,
+          "decidable_shown": 50,
+          "false_supported": 0,
+          "false_supported_rate": 0.0,
+          "false_supported_wilson95": [
+            0.0,
+            0.09180986954097846
+          ],
+          "gold_false": 38,
+          "n": 55,
+          "precision": 1.0,
+          "precision_wilson95": [
+            0.9286523998213857,
+            0.9999999999999999
+          ],
+          "shown": 55,
+          "shown_on_unverifiable": 5
+        },
+        "wikipedia": {
+          "correct": 6,
+          "coverage": 1.0,
+          "decidable_shown": 6,
+          "false_supported": 0,
+          "false_supported_rate": 0.0,
+          "false_supported_wilson95": [
+            0.0,
+            0.4898908403969213
+          ],
+          "gold_false": 4,
+          "n": 6,
+          "precision": 1.0,
+          "precision_wilson95": [
+            0.6096657083436265,
+            1.0
+          ],
+          "shown": 6,
+          "shown_on_unverifiable": 0
+        }
+      },
+      "transfers": "transfers"
+    },
+    "A1": {
+      "all": {
+        "correct": 28,
+        "coverage": 0.12,
+        "decidable_shown": 28,
+        "false_supported": 0,
+        "false_supported_rate": 0.0,
+        "false_supported_wilson95": [
+          1.734723475976807e-18,
+          0.024970244752164417
+        ],
+        "gold_false": 150,
+        "n": 250,
+        "precision": 1.0,
+        "precision_wilson95": [
+          0.8793566935605293,
+          1.0
+        ],
+        "shown": 30,
+        "shown_on_unverifiable": 2
+      },
+      "by_decider": {
+        "factcheck": {
+          "correct": 25,
+          "coverage": 1.0,
+          "decidable_shown": 25,
+          "false_supported": 0,
+          "false_supported_rate": 0.0,
+          "false_supported_wilson95": [
+            0.0,
+            0.17587922593328437
+          ],
+          "gold_false": 18,
+          "n": 27,
+          "precision": 1.0,
+          "precision_wilson95": [
+            0.866807747239609,
+            1.0
+          ],
+          "shown": 27,
+          "shown_on_unverifiable": 2
+        },
+        "wikipedia": {
+          "correct": 3,
+          "coverage": 1.0,
+          "decidable_shown": 3,
+          "false_supported": 0,
+          "false_supported_rate": 0.0,
+          "false_supported_wilson95": [
+            0.0,
+            0.6576197760453506
+          ],
+          "gold_false": 2,
+          "n": 3,
+          "precision": 1.0,
+          "precision_wilson95": [
+            0.43850296436068037,
+            1.0
+          ],
+          "shown": 3,
+          "shown_on_unverifiable": 0
+        }
+      },
+      "transfers": "transfers"
+    },
+    "A2": {
+      "all": {
+        "correct": 28,
+        "coverage": 0.124,
+        "decidable_shown": 28,
+        "false_supported": 0,
+        "false_supported_rate": 0.0,
+        "false_supported_wilson95": [
+          0.0,
+          0.024184233186669263
+        ],
+        "gold_false": 155,
+        "n": 250,
+        "precision": 1.0,
+        "precision_wilson95": [
+          0.8793566935605293,
+          1.0
+        ],
+        "shown": 31,
+        "shown_on_unverifiable": 3
+      },
+      "by_decider": {
+        "factcheck": {
+          "correct": 25,
+          "coverage": 1.0,
+          "decidable_shown": 25,
+          "false_supported": 0,
+          "false_supported_rate": 0.0,
+          "false_supported_wilson95": [
+            0.0,
+            0.16112516018512965
+          ],
+          "gold_false": 20,
+          "n": 28,
+          "precision": 1.0,
+          "precision_wilson95": [
+            0.866807747239609,
+            1.0
+          ],
+          "shown": 28,
+          "shown_on_unverifiable": 3
+        },
+        "wikipedia": {
+          "correct": 3,
+          "coverage": 1.0,
+          "decidable_shown": 3,
+          "false_supported": 0,
+          "false_supported_rate": 0.0,
+          "false_supported_wilson95": [
+            0.0,
+            0.6576197760453506
+          ],
+          "gold_false": 2,
+          "n": 3,
+          "precision": 1.0,
+          "precision_wilson95": [
+            0.43850296436068037,
+            1.0
+          ],
+          "shown": 3,
+          "shown_on_unverifiable": 0
+        }
+      },
+      "transfers": "transfers"
+    },
+    "B": {
+      "all": {
+        "correct": 4,
+        "coverage": 0.04,
+        "decidable_shown": 6,
+        "false_supported": 0,
+        "false_supported_rate": 0.0,
+        "false_supported_wilson95": [
+          3.469446951953614e-18,
+          0.04872384321400895
+        ],
+        "gold_false": 75,
+        "n": 150,
+        "precision": 0.6666666666666666,
+        "precision_wilson95": [
+          0.29999331299474324,
+          0.9032285897864654
+        ],
+        "shown": 6,
+        "shown_on_unverifiable": 0
+      },
+      "by_decider": {
+        "factcheck": {
+          "correct": 1,
+          "coverage": 1.0,
+          "decidable_shown": 1,
+          "false_supported": 0,
+          "false_supported_rate": 0.0,
+          "false_supported_wilson95": [
+            0.0,
+            0.7934506882081973
+          ],
+          "gold_false": 1,
+          "n": 1,
+          "precision": 1.0,
+          "precision_wilson95": [
+            0.2065493117918027,
+            1.0
+          ],
+          "shown": 1,
+          "shown_on_unverifiable": 0
+        },
+        "wikipedia": {
+          "correct": 3,
+          "coverage": 1.0,
+          "decidable_shown": 5,
+          "false_supported": 0,
+          "false_supported_rate": 0.0,
+          "false_supported_wilson95": [
+            0.0,
+            0.5614970356393196
+          ],
+          "gold_false": 3,
+          "n": 5,
+          "precision": 0.6,
+          "precision_wilson95": [
+            0.23072427940911855,
+            0.8823792268590028
+          ],
+          "shown": 5,
+          "shown_on_unverifiable": 0
+        }
+      },
+      "cluster_rates": {
+        "clusters": 25,
+        "false_supported_ci95": [
+          0.0,
+          0.0
+        ],
+        "false_supported_rate": 0.0,
+        "precision": 0.6666666666666666,
+        "precision_ci95": [
+          0.25,
+          1.0
+        ]
+      },
+      "transfers": "partly transfers",
+      "transfers_conservative": "partly transfers"
+    },
+    "D": {
+      "all": {
+        "correct": 5,
+        "coverage": 0.05263157894736842,
+        "decidable_shown": 6,
+        "false_supported": 0,
+        "false_supported_rate": 0.0,
+        "false_supported_wilson95": [
+          0.0,
+          0.0631388357861509
+        ],
+        "gold_false": 57,
+        "n": 114,
+        "precision": 0.8333333333333334,
+        "precision_wilson95": [
+          0.4364971749742326,
+          0.969946630588185
+        ],
+        "shown": 6,
+        "shown_on_unverifiable": 0
+      },
+      "by_decider": {
+        "factcheck": {
+          "correct": 2,
+          "coverage": 1.0,
+          "decidable_shown": 2,
+          "false_supported": 0,
+          "false_supported_rate": null,
+          "false_supported_wilson95": [
+            0.0,
+            1.0
+          ],
+          "gold_false": 0,
+          "n": 2,
+          "precision": 1.0,
+          "precision_wilson95": [
+            0.3423802239546494,
+            1.0
+          ],
+          "shown": 2,
+          "shown_on_unverifiable": 0
+        },
+        "wikipedia": {
+          "correct": 3,
+          "coverage": 1.0,
+          "decidable_shown": 4,
+          "false_supported": 0,
+          "false_supported_rate": 0.0,
+          "false_supported_wilson95": [
+            0.0,
+            0.7934506882081973
+          ],
+          "gold_false": 1,
+          "n": 4,
+          "precision": 0.75,
+          "precision_wilson95": [
+            0.3006418400969081,
+            0.954412739704631
+          ],
+          "shown": 4,
+          "shown_on_unverifiable": 0
+        }
+      },
+      "transfers": "partly transfers"
+    }
+  },
+  "rcd_triplets": {
+    "by_language": {
+      "English": {
+        "correct": 0,
+        "coverage": 0.0,
+        "decidable_shown": 0,
+        "false_supported": 0,
+        "false_supported_rate": 0.0,
+        "false_supported_wilson95": [
+          0.0,
+          0.15463902098714374
+        ],
+        "gold_false": 21,
+        "n": 40,
+        "precision": null,
+        "precision_wilson95": [
+          0.0,
+          1.0
+        ],
+        "shown": 0,
+        "shown_on_unverifiable": 0
+      },
+      "Hindi — Devanagari": {
+        "correct": 2,
+        "coverage": 0.2,
+        "decidable_shown": 2,
+        "false_supported": 0,
+        "false_supported_rate": 0.0,
+        "false_supported_wilson95": [
+          0.0,
+          0.43448246865939283
+        ],
+        "gold_false": 5,
+        "n": 10,
+        "precision": 1.0,
+        "precision_wilson95": [
+          0.3423802239546494,
+          1.0
+        ],
+        "shown": 2,
+        "shown_on_unverifiable": 0
+      },
+      "Hindi — Roman": {
+        "correct": 2,
+        "coverage": 0.05555555555555555,
+        "decidable_shown": 2,
+        "false_supported": 0,
+        "false_supported_rate": 0.0,
+        "false_supported_wilson95": [
+          0.0,
+          0.18431813738065556
+        ],
+        "gold_false": 17,
+        "n": 36,
+        "precision": 1.0,
+        "precision_wilson95": [
+          0.3423802239546494,
+          1.0
+        ],
+        "shown": 2,
+        "shown_on_unverifiable": 0
+      },
+      "Punjabi — Gurmukhi": {
+        "correct": 1,
+        "coverage": 0.1,
+        "decidable_shown": 1,
+        "false_supported": 0,
+        "false_supported_rate": 0.0,
+        "false_supported_wilson95": [
+          0.0,
+          0.4898908403969213
+        ],
+        "gold_false": 4,
+        "n": 10,
+        "precision": 1.0,
+        "precision_wilson95": [
+          0.2065493117918027,
+          1.0
+        ],
+        "shown": 1,
+        "shown_on_unverifiable": 0
+      },
+      "Punjabi — Roman": {
+        "correct": 0,
+        "coverage": 0.05555555555555555,
+        "decidable_shown": 1,
+        "false_supported": 0,
+        "false_supported_rate": 0.0,
+        "false_supported_wilson95": [
+          0.0,
+          0.2775328030260577
+        ],
+        "gold_false": 10,
+        "n": 18,
+        "precision": 0.0,
+        "precision_wilson95": [
+          0.0,
+          0.7934506882081973
+        ],
+        "shown": 1,
+        "shown_on_unverifiable": 0
+      }
+    },
+    "consistency": {
+      "all_shown_agree": 0,
+      "all_silent": 35,
+      "clusters": 40,
+      "mixed_silent_and_shown": 5,
+      "shown_but_disagree": 0
+    },
+    "rates_cluster_bootstrap95": {
+      "clusters": 40,
+      "false_supported_ci95": [
+        0.0,
+        0.0
+      ],
+      "false_supported_rate": 0.0,
+      "precision": 0.8333333333333334,
+      "precision_ci95": [
+        0.38833333333333353,
+        1.0
+      ]
+    }
+  },
+  "seed": 42,
+  "seeded_libraries": {
+    "numpy": true,
+    "random": true,
+    "torch": true,
+    "transformers": true
+  },
+  "task": "real_claims"
+}

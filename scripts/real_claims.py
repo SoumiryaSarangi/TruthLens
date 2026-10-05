@@ -174,14 +174,107 @@ def report() -> int:
     return 0
 
 
+def _diag_claims(which: str) -> list[dict]:
+    """B (all 150) or the 100 random A1 claims that were silent in the first run (docs/silence-diagnosis-protocol.md)."""
+    if which == "b":
+        return rcb_claims()
+    first = {r["uid"]: r for r in read_jsonl(OUT / "rca.collect.jsonl")}
+    silent = [c for c in rca_claims() if c["part"] == "A1" and first.get(c["uid"], {}).get("final", {}).get("shown") is None]
+    random.Random(SEED).shuffle(silent)
+    return silent[:100]
+
+
+def detail(body: dict) -> dict:
+    r = (body.get("results") or [{}])[0]
+    notes = [e.get("note") or "" for e in (body.get("trace") or {}).get("events", []) if e.get("note")]
+    return {"claim_en": r.get("claim_en"), "path": r.get("path"), "verdict": r.get("verdict"), "abstained": r.get("abstained"),
+            "confidence": r.get("confidence"), "live_sources": r.get("live_sources") or [], "sources_disagree": r.get("sources_disagree"),
+            "similar": bool(r.get("similar_match")), "notes": notes,
+            "passages": [{"source": p.get("source"), "title": p.get("title"), "retrieval": p.get("retrieval_score"), "stance": p.get("stance"),
+                          "stance_prob": p.get("stance_prob")} for p in (r.get("passages") or [])]}
+
+
+def diagnose(which: str) -> int:
+    claims = _diag_claims(which)
+    path = OUT / f"diag_{which}.jsonl"
+    done = {r["uid"] for r in read_jsonl(path)}
+    print(f"diagnose {which}: {len(claims)} claims, {len(done)} done", flush=True)
+    for i, c in enumerate(claims, 1):
+        if c["uid"] in done:
+            continue
+        d = None
+        for _attempt in (1, 2):
+            try:
+                d = detail(post(c["text"]))
+            except Exception as exc:
+                d = {"error": f"{type(exc).__name__}: {exc}"[:200], "notes": ["degraded: error"], "passages": []}
+            if not any(n.startswith("degraded") for n in d["notes"]):
+                break
+            time.sleep(8)
+        with path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps({**c, "diag": d}, ensure_ascii=False) + "\n")
+        print(f"  {i}/{len(claims)} gold={c['gold']}", flush=True)
+    return 0
+
+
+def category(d: dict) -> str:
+    """The mechanical taxonomy of docs/silence-diagnosis-protocol.md; the first matching rule wins."""
+    if d.get("error") or any(n.startswith("degraded") for n in d.get("notes", [])):
+        return "INFRA"
+    live = [p for p in (d.get("passages") or []) if p.get("source") in ("wikipedia", "factcheck_live")]
+    if not live:
+        return "NO_SOURCE"
+    judged = [p for p in live if p.get("stance")]
+    if not judged:
+        return "NOT_JUDGED"
+    if d.get("sources_disagree"):
+        return "SOURCES_DISAGREE"
+    if all(p["stance"] == "Neutral" for p in judged):
+        return "BOTH_NEI"
+    if any(p["stance"] in ("Supports", "Refutes") for p in judged):
+        return "ONE_SIDED"
+    return "OTHER"
+
+
+def _is_shown(d: dict) -> bool:
+    return d.get("verdict") in ("Supported", "Refuted") and not d.get("abstained") and (bool(d.get("live_sources")) or d.get("path") == "fast")
+
+
+def tally() -> int:
+    import collections
+    for which in ("b", "a1"):
+        rows = read_jsonl(OUT / f"diag_{which}.jsonl")
+        if not rows:
+            continue
+        first = {r["uid"]: r for r in read_jsonl(OUT / ("rcb.collect.jsonl" if which == "b" else "rca.collect.jsonl"))}
+        silent = [r for r in rows if not _is_shown(r["diag"])]
+        print(f"\n== {which.upper()}: {len(rows)} re-run, {len(silent)} silent in the diagnosis run")
+        cats = collections.Counter(category(r["diag"]) for r in silent)
+        for k, v in cats.most_common():
+            dec = sum(1 for r in silent if category(r["diag"]) == k and r["gold"] in ("T", "F"))
+            print(f"  {k:17s} {v:4d} ({v / len(silent):.0%})   of which gold T/F: {dec}")
+        flips = sum(1 for r in rows if (first[r["uid"]]["final"].get("shown") is not None) != _is_shown(r["diag"]))
+        print(f"  shown/silent status differs from the first run: {flips} of {len(rows)}")
+        print("  by gold:", dict(collections.Counter(r["gold"] for r in silent)))
+        if which == "b":
+            print("  by language:", dict(collections.Counter(r.get("lang") for r in silent)))
+        print("  silent with a similar-fact-check suggestion:", sum(1 for r in silent if r["diag"].get("similar")))
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
     c = sub.add_parser("collect")
     c.add_argument("--set", choices=("a", "b", "d"), required=True)
     sub.add_parser("report")
+    g = sub.add_parser("diagnose")
+    g.add_argument("--set", choices=("b", "a1"), required=True)
+    sub.add_parser("tally")
     args = ap.parse_args()
-    return collect(args.set) if args.cmd == "collect" else report()
+    if args.cmd == "diagnose":
+        return diagnose(args.set)
+    return collect(args.set) if args.cmd == "collect" else tally() if args.cmd == "tally" else report()
 
 
 if __name__ == "__main__":
