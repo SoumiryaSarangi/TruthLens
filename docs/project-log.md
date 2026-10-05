@@ -3236,3 +3236,5 @@ direction contract (`.impeccable/surfaces/app-static-index-html.md`; the owner's
 overflow at any width), `impeccable-finish-reviewer` (disposition fix: Indic leading, glyph icons, verdict scale, nested frames, microtext, proof-sheet placeholders, sticky
 forward; all applied, one regression it found, a sticky quote overlapping the card in the stacked layout, fixed), `impeccable-documenter` (`DESIGN.md`, `.impeccable/design.json`).
 Not done: the phone world was not moved to the cobalt identity (owner pinned it), and `/review-animations` can only be run by the owner. `make lint` and `make test` (875 passed) pass.
+
+Fix (2026-10-05): the sticky forward quote added after the finish review made forwarded messages pile up on each other once several checks were on the desk (owner screenshot). Removed the sticky rule entirely; verified six sends against the live page with a mocked /verify, 0 overlapping forwards at 1920x1000.

@@ -571,7 +571,3 @@ details.more .technical { margin-top: .35rem; }
   .src, .passage, .trail-toggle, details.more > summary { font-size: .95rem; }
 }
 
-/* Two panes (1360 px and up): the forward stays beside a tall answer. In the stacked layout it is plain flow. */
-@media (min-width: 1360px) {
-  .bubble.out { position: sticky; top: 1.5rem; }
-}
