@@ -34,3 +34,11 @@ Cluster-bootstrap intervals (a cluster is a source) are reported beside the rate
 
 ## Limits stated now
 Hindi and Punjabi matched texts depend on NLLB's translation; other-language fact-checks are unchecked; the guard handles polarity, not a different number, place or date; RC-G covers topics fact-checkers published and Roman Hindi/English only; only 8 True-rated sources.
+
+## Correction 1 (2026-10-06; RC-G received; written BEFORE any RC-G sentence is run)
+**RC-G as received:** `rcg_for_owner_filled.csv` (git-ignored in `data/private/`), 39 sources, every row filled, none skipped, none a verbatim copy; converted mechanically (`data/private/rcg_claims.csv`) to **78 sentences: 39 paraphrases and 39 negations**; all typed in Latin
+letters (the language column says English for many Roman Hindi sentences and is not used). Written without sight of any system output.
+**One labelling defect of the SOURCE LIST, found by reading the sources before any run:** source 33 is the fact-checker's debunk headline "Fact Check: Indian Railways Has Not Restored Senior Citizen Concessions on Train Ticket Fares", whose rating False applies to the claim it debunks
+(that the concessions were restored). The owner's paraphrase restates the headline, which is TRUE; the mechanical rule (paraphrase gold = the source's rating) would label it False. **For this one pair the gold is flipped (paraphrase T, negation F)**, a labelling fix made before any run and independent of any output.
+Result: **paraphrases 31 gold F and 8 gold T; negations 31 gold T and 8 gold F.** Sources 29, 32 and 34 also contain a negative word but are themselves the false claims, so their mapping is unchanged.
+**Run procedure and files:** `diagnose --set g --suffix _A` (guard off) and `--suffix _B` (guard on) write `diag_g_A.jsonl` and `diag_g_B.jsonl`; the retention arm is `collect --set a --only A2 --suffix _guard` and `collect --set e --suffix _guard`; `scripts/polarity_guard_v2_check.py` computes the rule once.
