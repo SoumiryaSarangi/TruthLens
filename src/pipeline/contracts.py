@@ -102,6 +102,9 @@ class Passage(BaseModel):
     # "wikipedia" or "factcheck_live" (post-test Phase 7). None = the offline
     # corpus or an AVeriTeC pool. The UI badges live sources and attributes them.
     source: str | None = None
+    # The text the NLI models actually read for a live passage (the two sentences nearest the claim), kept so
+    # the optional word view can re-read exactly it. None for offline passages.
+    premise: str | None = None
 
 
 class ClaimResult(BaseModel):
@@ -128,6 +131,8 @@ class ClaimResult(BaseModel):
     similar_match: SimilarMatch | None = None
     # Why the claim gate refused this text ("greeting", "too_short", "no_content"); only on NotAClaim.
     gate_reason: Literal["greeting", "too_short", "no_content"] | None = None
+    # The English claim a live verdict was judged on (the translation, for Hindi, Punjabi and Roman input).
+    claim_en: str | None = None
 
     @field_validator("explanation_source")
     @classmethod

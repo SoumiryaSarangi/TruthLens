@@ -73,6 +73,9 @@ class PipelineConfig:
     # meaningful with live_verdict. Left out of describe() unless on, so no
     # existing config hash moves.
     live_translate: bool = False
+    # Offer the on-demand "which words mattered" view for a live verdict (docs/word-highlight-protocol.md).
+    # Off until that protocol's faithfulness rule passes. Left out of describe() unless on.
+    word_view: bool = False
     stages: dict[str, str] | None = None
     stage_args: dict[str, dict[str, Any]] | None = None
 
@@ -110,6 +113,8 @@ class PipelineConfig:
             out["live_translate"] = True
         if self.tau_similar is not None:
             out["tau_similar"] = self.tau_similar
+        if self.word_view:
+            out["word_view"] = True
         return out
 
 
@@ -449,13 +454,24 @@ class Orchestrator:
             claim=claim, path="evidence", match=None, passages=shown, verdict=verdict,
             confidence=min(max(confidence, 0.0), 1.0), abstained=abstained, verdict_probs=dist,
             explanation=explanation, explanation_source="template", explanation_lang="en",
-            cited=cited, live_sources=found.sources_used,
+            cited=cited, live_sources=found.sources_used, claim_en=hypothesis,
         )
+
+    def explain_words(self, hypothesis: str, premise: str, verdict: str) -> dict:
+        """Which words of the claim, and which source sentence, the two live NLI models leaned on.
+
+        On demand only; the same two models and premise as the live verdict. Never changes a verdict.
+        """
+        from explain.words import explain_words
+
+        if not self.cfg.word_view:
+            raise LookupError("the word view is not enabled")
+        return explain_words([self._live_stance(), self._live_partner()], hypothesis, premise, verdict)
 
     @staticmethod
     def _live_passage(i: int, p) -> Passage:
         return Passage(passage_id=f"e{i}", doc_id=p.url, text=p.text, url=p.url, title=p.title,
-                       retrieval_score=max(0.0, p.cosine), source=p.source)
+                       retrieval_score=max(0.0, p.cosine), source=p.source, premise=p.premise or None)
 
     def _decide(self, text: str, claim_idx: int | None, force_claim: bool = False) -> Trace:
         trace = Trace(request_id=uuid.uuid4().hex[:12])

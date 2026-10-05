@@ -136,6 +136,26 @@ def verify(req: VerifyRequest, claim_idx: int | None = Query(default=None)) -> d
     return body
 
 
+class ExplainRequest(BaseModel):
+    claim: str = Field(min_length=1, max_length=MAX_CHARS)
+    premise: str = Field(min_length=1, max_length=4000)
+    verdict: str
+
+
+@app.post("/explain_words")
+def explain_words(req: ExplainRequest) -> dict[str, Any]:
+    """The optional "which words mattered" view for a live Supported/Refuted verdict (never changes it)."""
+    if req.verdict not in ("Supported", "Refuted"):
+        raise HTTPException(status_code=422, detail="A word view exists only for a Supported or Refuted verdict")
+    orch = get_orchestrator()
+    try:
+        return orch.explain_words(unicodedata.normalize("NFC", req.claim), req.premise, req.verdict)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="The word view is unavailable right now") from exc
+
+
 @app.get("/health")
 def health() -> dict[str, Any]:
     orch = get_orchestrator()

@@ -662,3 +662,33 @@ def normalization_metrics(
     return {"chrf": sum(scores) / len(scores),
             "exact_match": exact / len(references),
             "n": float(len(references))}
+
+
+def word_faithfulness_metrics(drop_top: Sequence[float], drop_random: Sequence[float],
+                              drop_bottom: Sequence[float], *, win_rate_bar: float = 0.80,
+                              ratio_bar: float = 2.0, n_boot: int = 1000, seed: int = 42) -> dict[str, Any]:
+    """The three gates of docs/word-highlight-protocol.md, over per-claim probability drops.
+
+    drop_*: for each claim, the fall in P(verdict) when the 3 top words / 3 random words (already
+    averaged over draws) / 3 bottom words are deleted. The word view ships only if all three gates hold.
+    """
+    n = len(drop_top)
+    if not (n == len(drop_random) == len(drop_bottom)) or n == 0:
+        raise ValueError("drop_top, drop_random and drop_bottom must be the same non-zero length")
+    import numpy as np
+
+    top, rnd, bot = (np.asarray(x, dtype=float) for x in (drop_top, drop_random, drop_bottom))
+    wins = int((top > rnd).sum())
+    mean_top, mean_rnd, mean_bot = float(top.mean()), float(rnd.mean()), float(bot.mean())
+    rng = np.random.default_rng(seed)
+    idx = rng.integers(0, n, size=(n_boot, n))
+    diffs = (top - rnd)[idx].mean(axis=1)
+    ratio = mean_top / mean_rnd if mean_rnd > 0 else float("inf")
+    gates = {"win_rate": wins / n >= win_rate_bar, "mean_ratio": ratio >= ratio_bar,
+             "bottom_not_above_random": mean_bot <= mean_rnd}
+    return {
+        "n": n, "wins": wins, "win_rate": wins / n, "mean_drop_top": mean_top,
+        "mean_drop_random": mean_rnd, "mean_drop_bottom": mean_bot, "mean_ratio": ratio,
+        "mean_diff_ci95": [float(np.percentile(diffs, 2.5)), float(np.percentile(diffs, 97.5))],
+        "gates": gates, "passes": all(gates.values()),
+    }
