@@ -160,3 +160,13 @@ def test_a_matched_claim_that_is_itself_a_question_is_not_checked_and_stands():
     orch = make(match(text="Can Turmeric Ghee Shot Detox Liver In Two to Three weeks?"))
     res, trace = verify(orch, text="Turmeric and ghee shot can detox the liver in 2-3 weeks.")
     assert (res.path, res.verdict) == ("fast", "Refuted") and "the matched claim is a question" in notes(trace) and orch.stance.pairs == []
+
+
+def test_a_middling_contradiction_such_as_a_number_mismatch_does_not_block_only_a_confident_one_does():
+    """500 times vs 500% scored 0.77 and blocked the right fact-check of the pineapple forward; true negations score 0.94 and up (post hoc threshold 0.9)."""
+    middling = {"Supports": 0.10, "Refutes": 0.77, "Neutral": 0.13}
+    res, trace = verify(make(match(), probs=middling))
+    assert res.path == "fast" and "kept" in notes(trace)
+    confident = {"Supports": 0.01, "Refutes": 0.95, "Neutral": 0.04}
+    res, trace = verify(make(match(), probs=confident))
+    assert res.path != "fast" and "BLOCKED" in notes(trace)

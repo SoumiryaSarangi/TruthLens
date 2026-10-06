@@ -137,7 +137,7 @@ class PipelineConfig:
 
 
 LIVE_NLI_MODEL = "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli"
-LIVE_MATCH_GUARD_P = 0.5     # docs/polarity-guard-v2-protocol.md: block a fact-check match at P(Contradiction) >= this
+LIVE_MATCH_GUARD_P = 0.9     # POST HOC (docs/polarity-guard-v2-protocol.md, "A second false block"): block at P(Contradiction) >= this; was 0.5
 LIVE_PARTNER_MODEL = "facebook/bart-large-mnli"
 
 
