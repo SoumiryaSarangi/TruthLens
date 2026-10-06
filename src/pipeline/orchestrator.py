@@ -11,6 +11,7 @@ registry and import their own dependencies lazily.
 from __future__ import annotations
 
 import concurrent.futures
+import re
 import threading
 import time
 import uuid
@@ -279,6 +280,14 @@ class Orchestrator:
         if not hypothesis or not text:
             trace.record("guard", "match_polarity", 0.0, "fact-check match not checked (no claim text to compare)")
             return False
+        # POST HOC refinement (docs/polarity-guard-v2-protocol.md, "A false block"): the premise is the FIRST SENTENCE of the matched claim, and a first
+        # sentence that is itself a question is not checked. An NLI model does not read a question, or a headline followed by a question, as an assertion,
+        # and blocked the right fact-check of "Pineapple juice is 500 times more effective than cough syrup".
+        first = re.split(r"(?<=[.!?।])\s+", text, maxsplit=1)[0].strip()
+        if first.endswith("?"):
+            trace.record("guard", "match_polarity", 0.0, "fact-check match not checked (the matched claim is a question)")
+            return False
+        text = first
         try:
             if match.lang in ("hi", "pa"):
                 text = self._get_translator().translate(text, match.lang, "en")

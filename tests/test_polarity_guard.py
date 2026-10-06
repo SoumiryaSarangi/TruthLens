@@ -145,3 +145,18 @@ def test_the_guard_is_off_by_default_in_the_config_class_and_the_served_key_is_a
     # and stays on only if the rule passes, so the test pins that the key exists and is a bool, not a value.
     assert isinstance(PipelineConfig.load("configs/pipeline/dev.yaml").live_match_guard, bool)
     assert PipelineConfig(live_match_guard=True).describe()["live_match_guard"] is True
+
+
+def test_only_the_first_sentence_of_the_matched_claim_is_the_premise_a_trailing_question_cannot_block_a_right_match():
+    """'Pineapple juice is 500% more effective than cough syrup. Is pineapple juice "500%" ...?' blocked the right fact-check of the claim
+    (P(contradiction) 0.62 over the whole text): the premise is now the first sentence only."""
+    orch = make(match(text="Pineapple juice is 500% more effective than cough syrup. Is pineapple juice '500%' really better?"), probs=ENTAILS)
+    res, trace = verify(orch, text="Pineapple juice is 500 times more effective than cough syrup.")
+    assert orch.stance.pairs == [("Pineapple juice is 500 times more effective than cough syrup.", "Pineapple juice is 500% more effective than cough syrup.")]
+    assert (res.path, res.verdict) == ("fast", "Refuted") and "kept" in notes(trace)
+
+
+def test_a_matched_claim_that_is_itself_a_question_is_not_checked_and_stands():
+    orch = make(match(text="Can Turmeric Ghee Shot Detox Liver In Two to Three weeks?"))
+    res, trace = verify(orch, text="Turmeric and ghee shot can detox the liver in 2-3 weeks.")
+    assert (res.path, res.verdict) == ("fast", "Refuted") and "the matched claim is a question" in notes(trace) and orch.stance.pairs == []
