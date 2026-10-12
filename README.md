@@ -89,7 +89,7 @@ flowchart TD
     J --> K{Confident?}
     K -- no --> L[Hard to say / Be careful]
     K -- yes --> M[Answer with sources]
-    L -. reader presses "search online" .-> N[Live look-up<br/>Wikipedia + Google Fact Check]
+    L -.->|Reader presses search online| N["Live look-up<br/>Wikipedia + Google Fact Check"]
     N --> O{Two NLI models agree?}
     O -- yes --> M
     O -- no --> L
