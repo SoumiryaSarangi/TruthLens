@@ -93,3 +93,6 @@ data/private/
 .env
 .env.*
 !.env.example
+
+# npm (the UI-lab libraries; reinstall with `npm install`)
+node_modules/

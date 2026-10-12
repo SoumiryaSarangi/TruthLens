@@ -1,0 +1,14 @@
+{
+  "name": "truthlens-ui-lab",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Frontend libraries the TruthLens UI skills can draw on. The shipped app (app/static) is vanilla JS and CSS and does not import any of these; nothing here is bundled into it.",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@react-three/fiber": "^9.8.1",
+    "@shadergradient/react": "^2.4.20",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "three": "^0.186.1"
+  }
+}
