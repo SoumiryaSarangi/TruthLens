@@ -75,24 +75,29 @@ be traced to the run that produced it.
 ## How it works
 
 ```mermaid
-flowchart TD
-    A[Forwarded message] --> B[Normalize + language and script ID]
-    B --> C[Transliterate Roman Hindi / Punjabi]
-    C --> D{Check-worthy?}
-    D -- no --> Z0[Not a claim<br/>greeting, blessing, too short]
-    D -- yes --> E[Extract up to 3 claims]
-    E --> F[Match against the fact-check index<br/>BGE-M3]
-    F -- close enough --> G[Fast path<br/>Already checked by X]
-    F -- no match --> H[Retrieve evidence<br/>BM25 + dense, RRF]
-    H --> I[Stance per passage<br/>NLI]
-    I --> J[Aggregate, calibrate]
-    J --> K{Confident?}
-    K -- no --> L[Hard to say / Be careful]
-    K -- yes --> M[Answer with sources]
-    L -.->|Reader presses search online| N["Live look-up<br/>Wikipedia + Google Fact Check"]
-    N --> O{Two NLI models agree?}
-    O -- yes --> M
-    O -- no --> L
+   flowchart LR
+    A["Forwarded message"] --> B["Normalize language + script ID"]
+    B --> C["Transliterate Roman Hindi / Punjabi"]
+    C --> D{"Check-worthy?"}
+
+    D -->|No| Z0["Skip: greeting, blessing, too short"]
+    D -->|Yes| E["Extract up to 3 claims"]
+
+    E --> F["Match fact-check index<br/>BGE-M3"]
+    F -->|Close enough| G["Fast path<br/>Already checked by X"]
+    F -->|No match| H["Retrieve evidence<br/>BM25 + dense + RRF"]
+
+    H --> I["Stance per passage<br/>NLI"]
+    I --> J["Aggregate + calibrate"]
+    J --> K{"Confident?"}
+
+    K -->|Yes| M["Answer with sources"]
+    K -->|No| L["Hard to say / Be careful"]
+
+    L -.->|Search online| N["Live lookup<br/>Wikipedia + Google Fact Check"]
+    N --> O{"Two NLI models agree?"}
+    O -->|Yes| M
+    O -->|No| L
 ```
 
 Two tracks, one served system. The **fast path** answers when a published fact-check matches closely. The **evidence
