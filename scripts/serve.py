@@ -24,4 +24,8 @@ os.environ.setdefault("PYTHONIOENCODING", "utf-8")
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("app.main:app", host="127.0.0.1", port=8000)
+    # Local by default. A deployment sets TRUTHLENS_HOST (0.0.0.0 inside a container or behind a reverse proxy on the same machine
+    # should still use 127.0.0.1 and let the proxy face the network) and PORT. There is no authentication: see SECURITY.md.
+    host = os.environ.get("TRUTHLENS_HOST", "127.0.0.1")
+    port = int(os.environ.get("PORT", "8000"))
+    uvicorn.run("app.main:app", host=host, port=port)
