@@ -145,6 +145,65 @@ function applyStaticStrings() {
 
 /* ------------------------------------------------------------------- boot */
 
+/* The example chips sit open in the rail whenever the window is wide and tall enough (a laptop, a tablet), and fold away on a
+ * phone or a short window; they follow the window as it is resized, so making it smaller never leaves a stale layout. */
+function keepExamplesOpenWhenThereIsRoom() {
+  const room = window.matchMedia("(min-width: 760px) and (min-height: 700px)");
+  const sync = () => { const d = document.querySelector("details.examples"); if (d && room.matches) d.open = true; };
+  sync();
+  room.addEventListener("change", sync);
+}
+
+/* The living rail (docs/specs/UI_UX.md, "The living rail"): the shader is a self-hosted bundle, loaded after first paint, only on a
+ * tablet or laptop width, only when the reader allows motion, and only if the browser can make a WebGL context. Anything else keeps the
+ * CSS gradient, which is always there. It never touches the network and never blocks typing. */
+let railHandle = null;
+let railBusy = false;
+/* While a request is in flight the shader drops to a low frame rate: the browser shares the GPU with the models the page is waiting on
+ * (measured: a fast check took 2.6 s with the shader at full rate and 1.1 s without it). Counted, so overlapping requests stay correct. */
+let inFlight = 0;
+function checking(on) {
+  inFlight = Math.max(0, inFlight + (on ? 1 : -1));
+  if (railHandle) railHandle.setBusy(inFlight > 0);
+}
+function webglAvailable() {
+  try {
+    const c = document.createElement("canvas");
+    return !!(c.getContext("webgl2") || c.getContext("webgl"));
+  } catch (e) { return false; }
+}
+function railWanted() {
+  const mq = (q) => window.matchMedia(q).matches;
+  return mq("(min-width: 760px)") && mq("(prefers-reduced-motion: no-preference)") && !mq("(prefers-contrast: more)")
+    && !mq("(forced-colors: active)") && webglAvailable();
+}
+function stopRailShader() {
+  if (railHandle) { try { railHandle.destroy(); } catch (e) { /* the CSS gradient stays */ } railHandle = null; }
+  $("rail-bg").classList.remove("live");
+}
+async function syncRailShader() {
+  if (railBusy) return;
+  const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  if (!railWanted()) { stopRailShader(); return; }
+  if (railHandle) { railHandle.setDark(dark); return; }
+  railBusy = true;
+  try {
+    const mod = await import("/static/vendor/rail-shader.js");
+    railHandle = mod.mount($("rail-shader"), { dark, onFail: stopRailShader });
+    railHandle.setBusy(inFlight > 0);
+    setTimeout(() => { if (railHandle) $("rail-bg").classList.add("live"); }, 400);
+  } catch (e) {
+    stopRailShader();     // a missing bundle or a failing GPU is not an error the reader needs to see
+  } finally { railBusy = false; }
+}
+function scheduleRailShader() {
+  const start = () => syncRailShader();
+  if ("requestIdleCallback" in window) window.requestIdleCallback(start, { timeout: 2500 }); else setTimeout(start, 800);
+  for (const q of ["(min-width: 760px)", "(prefers-reduced-motion: no-preference)", "(prefers-color-scheme: dark)", "(prefers-contrast: more)"]) {
+    window.matchMedia(q).addEventListener("change", syncRailShader);
+  }
+}
+
 async function boot() {
   // ?lang=hi|pa forces the interface language for a demo; otherwise the browser's.
   const forced = new URLSearchParams(location.search).get("lang");
@@ -154,7 +213,8 @@ async function boot() {
   S = STR[UI_LANG];
   document.documentElement.lang = S._lang || "en";
   applyStaticStrings();
-  if (window.matchMedia("(min-width: 1100px)").matches) document.querySelector("details.examples").open = true;
+  keepExamplesOpenWhenThereIsRoom();
+  scheduleRailShader();
 
   fetch("/health").then((r) => r.json()).then((h) => {
     const ok = h.status === "ok";
@@ -227,6 +287,7 @@ async function send(text, { echo = true } = {}) {
   const pending = bubble("in",
     `<span class="checking"><span class="spinner" aria-hidden="true"></span>${esc(t("checking"))}</span>`);
   $("send").disabled = true;
+  checking(true);
 
   let res, body;
   try {
@@ -240,6 +301,7 @@ async function send(text, { echo = true } = {}) {
     res = null;
   } finally {
     $("send").disabled = false;
+    checking(false);
   }
 
   if (res && res.status === 422) {
@@ -260,7 +322,9 @@ async function send(text, { echo = true } = {}) {
   }
   pending._state = { body, live: {} };
   renderBubble(pending);
-  pending.scrollIntoView({ block: "start" });
+  // The forward and its answer read as one unit: bring the forward (the quote above the verdict) to the top, not the card alone.
+  const forward = pending.previousElementSibling;
+  (forward && forward.classList.contains("out") ? forward : pending).scrollIntoView({ block: "start" });
 }
 
 /* ----------------------------------------------------------------- render */
@@ -493,6 +557,7 @@ async function showWords(btn) {
   view.hidden = false;
   view.textContent = tl(lang, "plain.words.loading");
   let out = null;
+  checking(true);
   try {
     const res = await fetch("/explain_words", {
       method: "POST",
@@ -500,7 +565,7 @@ async function showWords(btn) {
       body: JSON.stringify({ claim: btn.dataset.claim, premise: btn.dataset.premise, verdict: btn.dataset.verdict }),
     });
     if (res.ok) out = await res.json();
-  } catch (e) { /* shown below */ }
+  } catch (e) { /* shown below */ } finally { checking(false); }
   btn.disabled = false;
   if (!out) { view.innerHTML = `<p class="note">${esc(tl(lang, "plain.words.unavailable"))}</p>`; return; }
   view.innerHTML = wordsHtml(out, lang, btn.dataset.shown);
@@ -763,6 +828,7 @@ async function searchLive(btn) {
   btn.disabled = true;
   btn.textContent = tl(lang, "live_checking");
   let body = null;
+  checking(true);
   try {
     const res = await fetch("/verify", {
       method: "POST",
@@ -771,7 +837,7 @@ async function searchLive(btn) {
         ...(btn.dataset.forced ? { force_claim: true } : {}) }),
     });
     if (res.ok) body = await res.json();
-  } catch (e) { /* handled below: the card keeps its answer */ }
+  } catch (e) { /* handled below: the card keeps its answer */ } finally { checking(false); }
   const result = body && body.results && body.results[0];
   if (!result || !(result.live_sources || []).length) {
     // A source was down, or the server refused: the earlier answer stays, visibly.
@@ -872,6 +938,8 @@ async function copyReply(btn) {
   if (ok) {
     const label = btn.innerHTML;
     btn.innerHTML = `${ico("check")}${esc(tl(lang, "plain.copied"))}`;
+    const announce = $("announce");
+    if (announce) { announce.textContent = tl(lang, "plain.copied"); setTimeout(() => { announce.textContent = ""; }, 2500); }
     setTimeout(() => { btn.innerHTML = label; }, 2000);
     if (note) note.hidden = true;
   } else if (note) {

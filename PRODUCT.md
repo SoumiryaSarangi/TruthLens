@@ -26,7 +26,7 @@ A verifier built for the input people actually receive (forwards, mixed language
 
 - Served by FastAPI at `/`; a single static page (`app/static/index.html`, `app.js`, `styles.css`), vanilla JavaScript, no framework, no build step. It calls `POST /verify` and renders the JSON; copy lives in `app/static/i18n/{en,hi,pa}.json`.
 - Must work fully offline (system font stack only, no CDN, no web fonts). On Windows, `Nirmala UI` covers Devanagari and Gurmukhi.
-- Looks like the chat app the forward came from: a phone-width centred column (max 440 px), chat bubbles, sample chips, a composer. Used live on a projector in a demo, and by relatives on a phone.
+- One responsive design, the proof desk, from a phone to a wide laptop (breakpoints 760, 1100 and 1360 px): on a phone a cobalt band on top, the desk, and a composer dock along the bottom; from a tablet up a cobalt rail beside the desk. Used live on a projector in a demo, and by relatives on a phone. The earlier WhatsApp-styled phone column was retired on 2026-10-12 at the owner's request.
 - Optional online look-up (Wikipedia, Google Fact Check) only when the reader presses a button, saying exactly what it sends.
 
 ## Capabilities and Constraints
@@ -39,7 +39,7 @@ A verifier built for the input people actually receive (forwards, mixed language
 
 ## Brand Commitments
 
-- Name: TruthLens. Tone: calm, plain, honest about uncertainty; the owner explicitly did not want the enlarged type or extra language buttons (15 px base, 440 px column, answers follow the message's script, no language switcher).
+- Name: TruthLens. Tone: calm, plain, honest about uncertainty; the owner explicitly did not want the enlarged type or extra language buttons (15 px base, no change to the type scale, answers follow the message's script, no language switcher).
 - The owner's instruction for the restyle: do NOT use `delight` or `overdrive` (they clash with the calm tone).
 
 ## Evidence on Hand

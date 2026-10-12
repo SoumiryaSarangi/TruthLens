@@ -2,18 +2,28 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#1636a8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1f66" media="(prefers-color-scheme: dark)">
 <title>TruthLens</title>
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/static/favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+<link rel="manifest" href="/static/manifest.webmanifest">
 <link rel="stylesheet" href="/static/styles.css">
 <!--
-  The WhatsApp-styled page of UI_UX.md §3-§9. Markup here, style in
-  styles.css, behaviour in app.js, every visible string in i18n/*.json
-  (SYSTEM_DESIGN.md §5). No framework, no build step, no web fonts: the demo
-  has to work offline (UI_UX.md §2).
+  The proof desk (DESIGN.md, UI_UX.md): one design from a phone to a wide laptop. Markup here, style in
+  styles.css, behaviour in app.js, every visible string in i18n/*.json (SYSTEM_DESIGN.md §5). No framework, no
+  web fonts, nothing loaded from the network: the demo has to work offline (UI_UX.md §2). The only built file is
+  vendor/rail-shader.js (the living gradient behind the rail, from ui-src/ by `npm run build:rail`), loaded
+  after first paint on a tablet or laptop when motion is allowed.
 -->
 </head>
 <body>
 <div class="phone">
+  <!-- The rail's background: a CSS gradient always, the shader canvas on top of it when it can run (app.js). Decorative. -->
+  <div class="rail-bg" id="rail-bg" aria-hidden="true"><div class="rail-shader" id="rail-shader"></div></div>
   <header class="topbar">
     <span class="brand">
       <svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 5 5"/><path d="M8.5 11l1.8 1.8 3.4-3.6"/></svg>
@@ -24,7 +34,7 @@
     </span>
   </header>
 
-  <!-- Desktop only (styles.css, 1100 px and up): the product sentence, set large in the rail. -->
+  <!-- The product sentence, set large in the rail (on a phone it steps aside once the first answer is on the desk). -->
   <section class="hero" aria-labelledby="hero-lead">
     <h1 class="hero-lead" id="hero-lead"></h1>
     <p class="hero-rest" id="hero-rest"></p>
@@ -55,12 +65,14 @@
     <p class="composer-error" id="composer-error" role="alert" hidden></p>
   </footer>
 </div>
-<!-- Laptop only: the same "what this is for" text from a corner link, over the desk at any time. -->
+<!-- From 760 px: the same "what this is for" text from a corner link, over the desk at any time. -->
 <button type="button" class="scope-link" popovertarget="scope-pop">
   <svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1.1.9-1.1 1.7M12 17h.01"/></svg>
   <span id="scope-link-text"></span>
 </button>
 <div class="scope-pop" id="scope-pop" popover><div class="scope-cols" id="scope-pop-body"></div></div>
+<!-- Short confirmations for screen readers ("Copied"); visually hidden. -->
+<div id="announce" class="sr-only" role="status" aria-live="polite"></div>
 <script src="/static/app.js"></script>
 </body>
 </html>

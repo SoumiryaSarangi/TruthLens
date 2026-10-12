@@ -7,7 +7,7 @@ related_targets: []
 
 # TruthLens desktop workspace
 
-**Scope and mode:** Operate. The whole `app/static` surface at laptop and desktop widths (1100 px and up); phone widths keep the single chat column built earlier. Visitor: a reader checking a forwarded message, often a parent or grandparent, plus an evaluator with five minutes.
+**Scope and mode:** Operate. The whole `app/static` surface at every width: a phone (under 760 px), a tablet and small window (760 px and up), a laptop (1100 px and up) and a wide desk (1360 px and up). Amended 2026-10-12: the earlier phone column was retired. Visitor: a reader checking a forwarded message, often a parent or grandparent, plus an evaluator with five minutes.
 
 **Audience, job, proof, constraints:** paste a forward, understand the answer in five seconds, see where it comes from, know when the system cannot decide. Every verdict keeps an icon and a word; abstained is grey, dashed, with a "Leaning" line in Details; confidence is a band from `/version`; no fake progress ("Checking…" only); no exclamation marks. System fonts only, vanilla JS, offline, strings only from `app/static/i18n/*.json` (hi and pa were reviewed and are frozen). The layout was pinned by the owner on 2026-10-05: a full desktop workspace (not a phone frame), confident and editorial, replace in place on branch `ui-restyle`. The owner's pinned direction beats the concept roll (seed key c4ac5c88, assigned index 3 was not used).
 
@@ -29,3 +29,8 @@ FIRST VIEWPORT: at 1440 x 900, a cobalt rail 480 px wide holds the brand and hea
 FORM: Operate shell with a signature move; position 3 of the grounded list was set aside because the owner pinned the direction; seed key c4ac5c88.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+
+## Owner amendment, 2026-10-12 (supersedes the phone pin and the "flat rail")
+
+The owner chose, in this order: (1) a living gradient behind the left rail, built with the ShaderGradient WebGL library (Impeccable had recommended a CSS-only gradient; the owner's choice stands, built as a self-hosted lazy bundle over an always-present CSS gradient, so every width and every reader keeps a good rail); (2) a judgement on dark versus light: the page follows the reader's own theme and both are designed, the dark desk is the near-black original with a faint static cobalt wash in its far corners and no motion, because the desk is the reading surface and the rail is the only thing that may move; (3) every audit fix; (4) that narrowing or minimising a window never drops the page into the old WhatsApp look; (5) a real phone UI in the same design language; (6) a favicon. The WhatsApp world, its tokens, the 440 px column and the "do not edit the phone column" rule are retired. The direction contract above stands for the rail and the desk; the phone is the same two parts stacked (band, desk, dock).
+

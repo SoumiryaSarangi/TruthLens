@@ -32,9 +32,16 @@ colors:
   abstained-bg: "#f4f5f6"
   error-fg: "#a1190f"
   error-bg: "#fdeceb"
-  phone-teal: "#075e54"
-  phone-ground: "#efeae2"
-  phone-out-bubble: "#d9fdd3"
+  rail-deep: "#0f2373"
+  rail-deep-dark: "#081650"
+  rail-glow: "#3a64d6"
+  rail-glow-dark: "#2c4fb8"
+  paper-ink: "#0e1520"
+  paper-muted: "#46525e"
+  health-idle: "#9aa5ab"
+  health-ok: "#25d366"
+  health-degraded: "#f5a623"
+  health-down: "#e5484d"
 typography:
   display:
     fontFamily: "Iowan Old Style, Palatino Linotype, Palatino, Book Antiqua, Georgia, Nirmala UI, serif"
@@ -44,13 +51,13 @@ typography:
     letterSpacing: "-0.02em"
   verdict:
     fontFamily: "Iowan Old Style, Palatino Linotype, Palatino, Book Antiqua, Georgia, Nirmala UI, serif"
-    fontSize: "clamp(2rem, 2.5vw, 2.6rem)"
+    fontSize: "clamp(2rem, 2.5vw, 2.625rem)"
     fontWeight: 700
     lineHeight: 1.12
     letterSpacing: "-0.01em"
   quote:
     fontFamily: "Iowan Old Style, Palatino Linotype, Palatino, Book Antiqua, Georgia, Nirmala UI, serif"
-    fontSize: "1.2rem"
+    fontSize: "1.25rem"
     fontWeight: 400
     lineHeight: 1.5
   body:
@@ -60,12 +67,12 @@ typography:
     lineHeight: 1.5
   reason:
     fontFamily: "system-ui, Segoe UI, Nirmala UI, Noto Sans Devanagari, Noto Sans Gurmukhi, sans-serif"
-    fontSize: "1.08rem"
+    fontSize: "1.0625rem"
     fontWeight: 400
     lineHeight: 1.5
   label:
     fontFamily: "system-ui, Segoe UI, Nirmala UI, sans-serif"
-    fontSize: "0.88rem"
+    fontSize: "0.875rem"
     fontWeight: 400
     lineHeight: 1.5
   indic:
@@ -73,10 +80,51 @@ typography:
     fontSize: "inherit"
     lineHeight: 1.7
     letterSpacing: "0"
+  micro:
+    fontFamily: "system-ui, Segoe UI, Nirmala UI, sans-serif"
+    fontSize: "0.75rem"
+    fontWeight: 700
+    lineHeight: 1.4
+  small:
+    fontFamily: "system-ui, Segoe UI, Nirmala UI, sans-serif"
+    fontSize: "0.8rem"
+    fontWeight: 400
+    lineHeight: 1.5
+  base:
+    fontFamily: "system-ui, Segoe UI, Nirmala UI, sans-serif"
+    fontSize: "1rem"
+    fontWeight: 400
+    lineHeight: 1.5
+  serif-body:
+    fontFamily: "Iowan Old Style, Palatino Linotype, Palatino, Book Antiqua, Georgia, Nirmala UI, serif"
+    fontSize: "1.125rem"
+    fontWeight: 400
+    lineHeight: 1.5
+  brand:
+    fontFamily: "Iowan Old Style, Palatino Linotype, Palatino, Book Antiqua, Georgia, Nirmala UI, serif"
+    fontSize: "1.375rem"
+    fontWeight: 700
+    lineHeight: 1.2
+  display-s:
+    fontFamily: "Iowan Old Style, Palatino Linotype, Palatino, Book Antiqua, Georgia, Nirmala UI, serif"
+    fontSize: "clamp(1.75rem, 3.4vw, 2.625rem)"
+    fontWeight: 700
+    lineHeight: 1.12
+  display-indic:
+    fontFamily: "system-ui, Segoe UI, Nirmala UI, Noto Sans Devanagari, Noto Sans Gurmukhi, sans-serif"
+    fontSize: "clamp(1.75rem, 2.1vw, 2.25rem)"
+    fontWeight: 700
+    lineHeight: 1.5
+    letterSpacing: "0"
 rounded:
+  micro: "0.15rem"
+  tick: "0.2rem"
   hairline: "0.25rem"
+  tag: "0.35rem"
   sm: "0.5rem"
+  panel: "0.6rem"
   md: "0.8rem"
+  field: "1rem"
   lg: "1.1rem"
   pill: "1.4rem"
   round: "50%"
@@ -154,22 +202,22 @@ components:
 
 **Creative North Star: "The Proof Desk"**
 
-A check is a proof being marked, not a chat. On a laptop (1100 px and up) the page is two panes: a saturated cobalt rail on the left where you paste and try an example, and a cool newsprint desk on the right where every answer sits beside the forward it answers. The world is a newspaper proof sheet read by an editor. It lends type (a system serif for display and quoted text), palette, density and one signature move. It never supplies the navigation or controls, which stay standard: a textarea, pill buttons, details folds.
+A check is a proof being marked, not a chat. From a tablet (760 px) up the page is two panes: a saturated cobalt rail on the left where you paste and try an example, and a cool newsprint desk on the right where every answer sits with the forward it answers. On a phone the same two parts stack: the rail is a band on top and a dock for the composer along the bottom, with the desk between them. The world is a newspaper proof sheet read by an editor. It lends type (a system serif for display and quoted text), palette, density and one signature move. It never supplies the navigation or controls, which stay standard: a textarea, pill buttons, details folds.
 
 The reader is often a parent or grandparent, so the system is calm and plain. One word, one pencil stroke under it, one sentence of why, the source quoted, what to do. When the system cannot decide, the card looks different (grey, dashed) so unsureness is visible without reading.
 
-Below 1100 px the earlier single-column chat (WhatsApp-style: teal header, beige ground, 440 px column, white and pale-green bubbles) is deliberately unchanged because the owner pinned it. It is a separate, frozen world; do not mix its tokens into the desk.
+There is one world at every width. The earlier WhatsApp-styled phone column (teal header, beige ground, green bubbles) was retired on 2026-10-12 at the owner's request, after narrowing a window dropped them into it and a phone had no real UI of its own. Do not bring it back, and do not let any width fall back to a different look.
 
 **Key Characteristics:**
 - Cobalt rail, grey desk, near-black ink; verdict colours are state roles only, never decoration.
 - System serif for the rail headline, the forwarded quote and the verdict word; system sans for everything operable.
 - One signature: the markup, a hand-drawn stroke under the verdict word.
-- Flat tonal surfaces; one soft shadow for the answer card.
-- Offline, system fonts only, no web fonts, no images.
+- A living cobalt rail: a gradient with a slow shader on a tablet or laptop, a CSS gradient everywhere else; tonal surfaces and one soft shadow for the answer card on the desk.
+- Offline, system fonts only, no web fonts, no raster images in the page (the favicon and home-screen icons are the only rasters).
 
 ## Colors
 
-A restrained palette: one cobalt, cool neutrals, and five verdict colour pairs that only ever signal state. Every text-on-background pair is a token; the light and dark pairs are defined in styles.css (a first light block, a first dark block, then a desktop override pair that comes after on purpose, because tests/test_ui_static.py reads only the first light and first dark block). Desktop values are therefore AA-checked by script, not by that test.
+A restrained palette: one cobalt, cool neutrals, and five verdict colour pairs that only ever signal state. Every text-on-background pair is a token; the light and dark pairs are defined once, in the first light block and the first dark block of styles.css, and tests/test_ui_static.py checks every listed pair against AA in both, at every width (there are no per-width colour overrides). Text on the rail sits on a moving gradient, so it is measured on the real animation instead (see "The living rail" in docs/specs/UI_UX.md).
 
 ### Primary
 - **Proofreader's Cobalt** (`cobalt-rail`): the rail background, links, focus ring, button text, the send arrow. Dark mode deepens the rail to `cobalt-rail-dark` and lightens links and focus to `link-cobalt-dark`.
@@ -185,13 +233,15 @@ A restrained palette: one cobalt, cool neutrals, and five verdict colour pairs t
 - **Supported green**, **Refuted red**, **Conflicting amber**, **Not-enough-evidence grey** (`nei-*`), **Abstained grey** (`abstained-*`): each a foreground and a tinted background. Each also has a dark-mode pair. They colour the verdict word, its icon badge, stance tags and the proof-sheet marks. Colour is never the only signal.
 - **Error** (`error-fg`, `error-bg`): error bubble and composer error only.
 
-### Phone world (frozen, below 1100 px)
-- `phone-teal`, `phone-ground`, `phone-out-bubble`: the WhatsApp-style chat. Not for desk surfaces.
+### The rail's light
+- **Rail deep** (`rail-deep`) and **Rail glow** (`rail-glow`), with dark twins: the gradient's deep end and its light, drawn by the CSS fallback and by the shader. The legibility scrim over the shader is `rail-deep` at 34 to 48 percent.
+- **Paper ink** and **Paper muted**: text on the composer's pale paper (the field stays pale in both themes).
+- **Health dots** (`health-idle`, `health-ok`, `health-degraded`, `health-down`): the status dot beside the health text; the word carries the meaning.
 
 ### Named Rules
 **The Colour-Is-State Rule.** Green, red, amber and grey mean a verdict and nothing else. Cobalt is the only brand colour; it never stands for a verdict.
 
-**The Two-Pair Rule.** A new text and background pair is added as a token in light and dark and checked for 4.5:1 in both, desktop included.
+**The Two-Pair Rule.** A new text and background pair is added as a token in light and dark and checked for 4.5:1 in both, at every width.
 
 ## Typography
 
@@ -215,18 +265,18 @@ A restrained palette: one cobalt, cool neutrals, and five verdict colour pairs t
 
 ## Layout
 
-Two modes, split at 1100 px. At 1100 px and up, `.phone` becomes a grid: a rail column of clamp(27rem, 34vw, 35rem) and a desk filling the rest. The rail stacks topbar, hero (headline plus one short line), then the bottombar (composer, examples open as a wrapped chip grid), with 2.5rem side padding. The desk (padding 2.5rem 3rem 3rem) is a two-column grid, 20rem forward beside 42rem answer, 3rem column gap and 2.25rem row gap, centred.
+Mobile-first, four tiers, one grid. **Phone (under 760 px, the base rules):** a single column of three bands: the rail band on top (brand and health pill, then the headline in serif), the desk (scrolling, forward above answer, the proof sheet when empty, "what this is for" as a closed fold), and the composer dock along the bottom (the example chips as a horizontal strip, the paper field at 16 px so a phone does not zoom, a 3.4rem send). Once an answer is on the desk the headline steps aside so the answer has the room; in a short landscape window the headline and the examples fold away. Safe-area insets and `100dvh` keep the dock above a phone's home bar and keyboard.
 
-Between 1100 and 1359 px the desk is one column of 42rem: the forward sits above its answer (row gap 1rem). From 1360 px the forward is sticky (top 1.5rem) beside a tall answer. Layout breakpoints are 1100 and 1360, and nothing else.
+**Tablet (760 px and up):** two panes. The rail is the left pane, clamp(19rem, 31vw, 24rem), holding brand, headline, examples and composer; the desk is one column of 42rem with the forward above its answer, and the corner "What this is for" link opens a popover. **Laptop (1100 px and up):** the rail widens to clamp(27rem, 34vw, 35rem) and the type grows. **Wide (1360 px and up):** the desk becomes two columns, 20rem forward beside 42rem answer, 3rem column gap and 2.25rem row gap. The desk reserves 4.75rem at its top so the corner link never overlaps the first answer. A window shorter than 780 px trims the rail's rhythm (a 5.5rem field, a smaller headline) so the composer never leaves the screen.
 
-Below 1100 px: one 440 px column, full width on phones, header, scrolling chat, bottom composer. Rhythm in both is rem-based, steps of about .25 to .5rem inside components and .75 to 2.25rem between them. Tap targets are at least 2.5rem, buttons 2.75rem.
+Breakpoints are 760, 1100 and 1360 px (and the height cuts at 520, 620 and 780 px); nothing else. Resizing a window moves between tiers live; nothing is reloaded and no tier is a different design. Rhythm is rem-based, steps of about .25 to .5rem inside components and .75 to 2.25rem between them. Tap targets are at least 2.5rem, buttons 2.75rem.
 
 ## Elevation & Depth
 
 Mostly flat, tonal layering: rail, desk and sheet are three flat tints. The only lift is the answer card (`0 1px 2px rgba(14,21,32,.08), 0 12px 24px -10px rgba(14,21,32,.24)`, dark variant darker) and, on the empty desk, a soft drop shadow under the proof sheet. The composer has a small soft shadow on the rail so it reads as paper. Shadows are soft and ambient, never offset or hard. An abstained answer drops its shadow and takes a 2px dashed edge instead.
 
 ### Named Rules
-**The Flat-Rail Rule.** The rail has no shadow and no border; depth is the contrast of cobalt against newsprint.
+**The Living-Rail Rule.** The rail has no shadow and no border; its depth is light. A deep-to-glow cobalt gradient with a fine paper grain, slow enough that it reads as atmosphere, never as progress. It carries no meaning, never reacts to a check, and keeps AA for its text at every moment of its cycle. The desk beside it stays calm: a faint, static cobalt wash in its far corners, no motion.
 
 ## Shapes
 
@@ -264,6 +314,9 @@ Error bubble: tinted red surface, inset 1px red edge, a drawn icon, a message an
 ### Proof-sheet empty state
 Before any check the desk shows one large authored SVG (aria-hidden, no copy): a back sheet rotated slightly, a paper sheet with a dashed margin, crop marks, ruled lines, six editor's marks in the six verdict colours (tick, cross, double arrow, query, dashed ring, wavy) each with a pencil underline. The marks draw in sequence on load under no-preference motion. The phone column keeps its icon and one sentence instead.
 
+### The living rail
+Three layers, one rule: a CSS gradient that always exists (it is all a phone, a reduced-motion reader or a browser without WebGL gets; its glow drifts on one transform-only layer over a 48 s cycle); on a tablet or laptop with motion allowed, a ShaderGradient canvas (self-hosted, `app/static/vendor/rail-shader.js`, built from `ui-src/` by `npm run build:rail`, loaded after first paint, `lightType` "3d" so it never fetches a file, rendering throttled to about 20 frames a second and 5 while a check is in flight so it does not compete with the models for the GPU) fading in over it; and a legibility scrim of `rail-deep` over the shader. It is mounted and unmounted as the window crosses 760 px or the reader's motion, contrast or theme settings change. It never loads on a phone.
+
 ### Motion
 One easing token, `--ease-out: cubic-bezier(.23, 1, .32, 1)`, critically damped, no overshoot. Motion only under `prefers-reduced-motion: no-preference`: reply arrival (.22s to .28s), stamp, stroke draw, fold open, press scale, and on desktop a rise-in of rail parts and proof-sheet rows. Under `reduce`: the spinner is hidden ("Checking…" text only) and every entrance becomes a .15s opacity fade; nothing moves.
 
@@ -280,11 +333,11 @@ One easing token, `--ease-out: cubic-bezier(.23, 1, .32, 1)`, critically damped,
 - **Do** keep verdict colours as state roles and add new colour pairs as tokens checked at 4.5:1 in light and dark.
 
 ### Don't:
-- **Don't** float the phone column in a desktop browser, or turn the desk into a dashboard of tiles.
+- **Don't** turn the desk into a dashboard of tiles, or let any width fall back to a different design.
 - **Don't** use exclamation marks in any string.
 - **Don't** add fake progress (bars, percentages, rotating messages).
 - **Don't** invent a verdict colour or use cobalt for a verdict.
-- **Don't** use web fonts, images or network assets; the demo must run offline.
-- **Don't** put desk tokens into the phone world below 1100 px, or edit the phone column's look; the owner pinned it.
-- **Don't** put desktop tokens inside the first light or first dark block; the desktop overrides stay after them.
+- **Don't** use web fonts or network assets; the demo must run offline. The shader is a local bundle, never a CDN script, and its environment lights (which would fetch HDR files from a third party) stay off.
+- **Don't** add a colour token to the first light block without its dark twin in the first dark block and a pair in tests/test_ui_static.py.
+- **Don't** let the rail's gradient react to a check, signal a verdict, or move faster than a slow drift.
 - **Don't** add hard offset shadows or typed glyph icons or chevrons.

@@ -1,3 +1,10 @@
 {
-  "buildPath": "code"
+  "buildPath": "code",
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [
+      "app/static/vendor/**"
+    ],
+    "ignoreValues": []
+  }
 }

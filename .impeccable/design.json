@@ -116,7 +116,7 @@
   ],
   "narrative": {
     "northStar": "The Proof Desk",
-    "overview": "A check is a proof being marked, not a chat. On a laptop (1100 px and up) the page is two panes: a saturated cobalt rail on the left where you paste and try an example, and a cool newsprint desk on the right where every answer sits beside the forward it answers. The world is a newspaper proof sheet read by an editor. It lends type (a system serif for display and quoted text), palette, density and one signature move. It never supplies the navigation or controls, which stay standard: a textarea, pill buttons, details folds. Below 1100 px the earlier single-column chat (WhatsApp-style, teal header, beige ground, 440 px column) is deliberately unchanged because the owner pinned it.",
+    "overview": "A check is a proof being marked, not a chat. From a tablet (760 px) up the page is two panes: a saturated cobalt rail on the left where you paste and try an example, and a cool newsprint desk on the right where every answer sits beside the forward it answers. The world is a newspaper proof sheet read by an editor. It lends type (a system serif for display and quoted text), palette, density and one signature move. It never supplies the navigation or controls, which stay standard: a textarea, pill buttons, details folds. Below 1100 px the earlier single-column chat (WhatsApp-style, teal header, beige ground, 440 px column) is deliberately unchanged because the owner pinned it.",
     "keyCharacteristics": [
       "Cobalt rail, grey desk, near-black ink; verdict colours are state roles only, never decoration.",
       "System serif for the rail headline, the forwarded quote and the verdict word; system sans for everything operable.",
@@ -142,13 +142,13 @@
       "Do keep verdict colours as state roles and add new colour pairs as tokens checked at 4.5:1 in light and dark."
     ],
     "donts": [
-      "Don't float the phone column in a desktop browser, or turn the desk into a dashboard of tiles.",
+      "Don't turn the desk into a dashboard of tiles, or let any width fall back to a different design.",
       "Don't use exclamation marks in any string.",
       "Don't add fake progress (bars, percentages, rotating messages).",
       "Don't invent a verdict colour or use cobalt for a verdict.",
       "Don't use web fonts, images or network assets; the demo must run offline.",
-      "Don't put desk tokens into the phone world below 1100 px, or edit the phone column's look; the owner pinned it.",
-      "Don't put desktop tokens inside the first light or first dark block; the desktop overrides stay after them.",
+      "Don't let the rail's gradient react to a check, signal a verdict, or move faster than a slow drift.",
+      "Don't add a colour token to the first light block without its dark twin in the first dark block and a pair in tests/test_ui_static.py.",
       "Don't add hard offset shadows or typed glyph icons or chevrons."
     ]
   }

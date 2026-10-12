@@ -2,7 +2,7 @@
   "name": "truthlens-ui-lab",
   "private": true,
   "version": "0.0.0",
-  "description": "Frontend libraries the TruthLens UI skills can draw on. The shipped app (app/static) is vanilla JS and CSS and does not import any of these; nothing here is bundled into it.",
+  "description": "Front-end build tooling and libraries for TruthLens. The shipped app (app/static) is vanilla JS and CSS; the only built file is app/static/vendor/rail-shader.js (the living gradient behind the rail), produced from ui-src/ by `npm run build:rail` and committed.",
   "license": "UNLICENSED",
   "dependencies": {
     "@react-three/fiber": "^9.8.1",
@@ -10,5 +10,11 @@
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  },
+  "scripts": {
+    "build:rail": "esbuild ui-src/rail-shader.jsx --bundle --minify --format=esm --jsx=automatic --define:process.env.NODE_ENV=\\\"production\\\" --outfile=app/static/vendor/rail-shader.js --log-level=warning"
   }
 }

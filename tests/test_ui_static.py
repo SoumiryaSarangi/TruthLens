@@ -33,6 +33,8 @@ PAIRS = [
     ("conflicting-fg", "bubble-in"), ("conflicting-fg", "abstained-bg"),
     ("abstained-fg", "abstained-bg"),
     ("chip-fg", "chip-bg"),
+    ("paper-ink", "chip-bg"), ("paper-muted", "chip-bg"),
+    ("bar-fg", "rail-a"), ("bar-fg", "rail-b"), ("bar-fg", "rail-c"),     # the rail's CSS gradient, light and dark
 ]
 
 
@@ -198,3 +200,76 @@ def test_samples_cover_the_six_demo_paths():
         "fast_path", "romanized_hindi", "gurmukhi", "claim_extraction",
         "not_a_claim", "abstained"}
     assert all(c["text"].strip() for c in chips)
+
+
+
+# -- the responsive proof desk and the living rail (docs/specs/UI_UX.md, 2026-10-12) -------------------------------------------------
+
+HTML = (STATIC / "index.html").read_text(encoding="utf-8")
+
+
+def test_one_design_at_every_width_the_whatsapp_world_is_retired():
+    """Narrowing a window used to drop the page into a WhatsApp-styled column. The base rules are the phone, and min-width tiers layer the rest."""
+    for token in ("#075e54", "#efeae2", "#d9fdd3", "phone-teal", "max-width: 440px", "max-width: 460px"):
+        assert token not in CSS, f"the retired WhatsApp layout is back: {token}"
+    for width in ("760px", "1100px", "1360px"):
+        assert f"@media (min-width: {width})" in CSS
+    assert not re.search(r"@media \(max-width: (?!759)", CSS.replace("@media (max-width: 759.98px)", ""))    # mobile-first: no desktop-first cuts
+
+
+def test_there_are_no_per_width_colour_overrides_so_the_pair_tests_cover_every_width():
+    """The desktop token overrides used to sit after the first light/dark pair and escaped tests/test_ui_static.py; colours now live only in those two blocks."""
+    outside = CSS.split("/* ------------------------------------------------------------------ base */")[1]
+    outside = re.sub(r"@media \(prefers-contrast: more\) \{.*?\n\}\n", "", outside, flags=re.S)    # the high-contrast preference may set its own line colours
+    assert not re.search(r"--[\w-]+:\s*#[0-9a-fA-F]{6}", outside), "a colour token is defined outside the first light and dark blocks"
+
+
+def test_the_head_serves_a_phone_a_favicon_a_manifest_and_a_theme_colour():
+    assert "viewport-fit=cover" in HTML and "interactive-widget=resizes-content" in HTML
+    assert HTML.count('name="theme-color"') == 2 and 'prefers-color-scheme: dark' in HTML
+    for href in ("/static/favicon.svg", "/static/favicon.ico", "/static/apple-touch-icon.png", "/static/manifest.webmanifest"):
+        assert f'href="{href}"' in HTML, href
+        assert (STATIC / href.removeprefix("/static/")).is_file(), href
+
+
+def test_the_icons_and_the_manifest_are_real_files_of_the_right_size():
+    from PIL import Image
+
+    assert Image.open(STATIC / "apple-touch-icon.png").size == (180, 180)
+    assert Image.open(STATIC / "icon-192.png").size == (192, 192) and Image.open(STATIC / "icon-512.png").size == (512, 512)
+    assert {s for s in Image.open(STATIC / "favicon.ico").info.get("sizes", set())} >= {(16, 16), (32, 32), (48, 48)}
+    manifest = json.loads((STATIC / "manifest.webmanifest").read_text(encoding="utf-8"))
+    assert manifest["name"] == "TruthLens" and manifest["display"] == "standalone"
+    for icon in manifest["icons"]:
+        assert (STATIC / icon["src"].removeprefix("/static/")).is_file(), icon["src"]
+
+
+def test_the_shader_is_local_motion_gated_and_never_fetches_anything():
+    src = Path("ui-src/rail-shader.jsx").read_text(encoding="utf-8")
+    assert 'lightType="3d"' in src and 'control="props"' in src          # "env" lights fetch HDR files from a third-party host; "query" ignores props
+    bundle = STATIC / "vendor" / "rail-shader.js"
+    assert bundle.is_file() and bundle.stat().st_size > 100_000
+    mount = JS[JS.index("The living rail"):JS.index("function scheduleRailShader")]
+    assert "http://" not in mount and "https://" not in mount and 'import("/static/vendor/rail-shader.js")' in mount
+    for guard in ("prefers-reduced-motion: no-preference", "prefers-contrast: more", "forced-colors: active", "min-width: 760px", "webglAvailable()"):
+        assert guard in mount, guard
+    assert "requestIdleCallback" in JS                                      # after first paint, never blocking typing
+    assert "rail-drift" in CSS and ".rail-bg:not(.live)::before { animation" in CSS
+    assert ".rail-shader::after" in CSS                                     # the legibility scrim measured in UI_UX.md
+    assert 'frameloop="demand"' in src and "FPS" in src and "setBusy" in src          # throttled: on a real GPU the unthrottled canvas slowed answers 2.4x
+    assert "railHandle.setBusy" in JS and JS.count("checking(true)") >= 3 and JS.count("checking(false)") >= 3
+
+
+def test_the_rail_keeps_a_flat_colour_for_high_contrast_and_forced_colours():
+    assert re.search(r"prefers-contrast: more\)[^@]*\.rail-bg \{ background: var\(--rail-a\); \}", CSS, re.S)
+    assert re.search(r"forced-colors: active\)[^@]*\.rail-shader \{ display: none; \}", CSS, re.S)
+
+
+def test_the_audit_fixes_are_in():
+    assert "scroll-padding-top: 4.75rem" in CSS and "padding: 4.75rem 2rem 3rem" in CSS            # the corner link never overlaps the first answer
+    assert ".scope-pop:popover-open { display: block; opacity: 1; transform: none; }" in CSS and "@starting-style" in CSS
+    at = CSS.index(".chat { scroll-behavior: smooth; }")
+    assert "prefers-reduced-motion: no-preference" in CSS[CSS.rindex("@media", 0, at):at]                  # smooth scroll, gated by reduced motion
+    assert 'id="announce"' in HTML and 'role="status"' in HTML and "announce.textContent" in JS     # the copy confirmation is announced
+    assert "ease-out .1" not in CSS and "ease-out .2" not in CSS                                    # entrances use the one token, not the keyword
+    assert "previousElementSibling" in JS                                                           # the forward and its answer scroll in as one unit

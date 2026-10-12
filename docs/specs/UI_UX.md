@@ -45,33 +45,36 @@ Fonts: system stack only, no web fonts, because the demo must work offline. On W
 └──────────────────────────────────────┘
 ```
 
-Desktop: a centred phone-width column, max 440 px, so it reads as a phone in a projector demo. Mobile: full width.
+Layout (amended 2026-10-12): one responsive proof desk from a phone to a wide laptop; see "The responsive proof desk" below. The centred 440 px phone column of the original design is retired.
 
 **Sample chips** fill the composer with a canned forward, one per path in §11. They exist so a live demo never depends on typing Hindi on a projector keyboard.
 
-### Desktop workspace (2026-10-05, owner's request; supersedes "a centred phone-width column" at 1100 px and up)
+### The responsive proof desk (2026-10-05 desktop; 2026-10-12 every width; owner's requests)
 
-On a laptop or desktop (1100 px and wider) the page is a two-pane **proof desk**, not a phone floated in a browser. Below 1100 px nothing changes: the
-single 440 px chat column above is the page, and it stays WhatsApp-styled on purpose (the owner pinned it). Layout, tokens and rules, all in `styles.css`
-(the desktop block and its overrides at the end of the file):
+The page is a **proof desk** at every width, never a phone column floated in a browser and never a different look when a window is made smaller. Layout, tokens and rules are all in `styles.css`, written mobile-first: the base rules are the phone and min-width queries layer the rest.
 
-- **Rail (left, 27 to 35 rem, cobalt):** brand and health pill, the product sentence set large in the serif (the first sentence of `intro` is the
-  headline, the rest a short line; set by `app.js` from the existing string, no new copy), the composer (large textarea, round send button) and the
-  examples, open by default on a laptop.
-- **Desk (right, cool newsprint):** each check is a row. At 1360 px and up the forward is a serif quote in a narrow column (sticky beside a tall answer)
-  and the plain card is in the wide column; from 1100 to 1359 px the quote sits above the card, one column. Before the first check the desk shows an
-  authored proof sheet (decorative SVG, no copy): six editor's marks in the six verdict colours against ruled columns.
-- **The answer at desk scale:** the verdict word is the headline of the proof (serif, about 2.5 rem) with its icon badge, no box around it. An abstained
-  answer has ONE dashed edge, on the answer card itself. Quotes from sources are hairline-rule quotes. Small print is at least .9 rem.
-- **Signature move, the markup:** when an answer arrives the banner settles (about 0.3 s, no bounce) and a pencil stroke is drawn under the verdict word
-  (about 0.5 s). Abstained gets a dashed stroke that is never animated. Only under `prefers-reduced-motion: no-preference`; under reduce it is a short fade.
-- **Colour:** the desktop token pair (`--bar-bg` cobalt, `--app-bg` newsprint, `--serif`) comes after the first light and dark blocks because
-  `tests/test_ui_static.py` reads those only. The desktop values were checked for WCAG AA by script on 2026-10-05: every test pair plus the new
-  pairs (verdict colours on the card and on the abstained ground, links and muted text on the quote ground, the 88% white rail text on cobalt at 8.07:1 light
-  and 11.62:1 dark) pass in light and dark. A change to a desktop token must repeat that check.
-- **"What this is for":** the same `scope.*` text in two placements. On a laptop only a "What this is for" link in the top-right corner of the desk opens it, as a popover over the desk (native `popover`, two columns, closes on Esc or outside click); the empty desk itself is just the proof sheet. On a phone it is a closed fold in the empty chat. Contents: built for short forwarded claims in en, hi, pa including Roman script, best when a fact-checker has seen the claim or Wikipedia can settle it; not built for recent events, private or local events, opinions and predictions, very short fragments, or anything with no source (it says "Hard to say" and does not guess). Questions are NOT excluded: they are checked like claims. hi/pa are machine-drafted (`docs/i18n-review.md`).
-- **Unchanged rules:** an icon and a word for every verdict, abstained looks different from NEI, bands come from `/version`, no fake progress, no
-  exclamation marks, Hindi and Punjabi strings untouched. Detector: `impeccable detect app/static` returns no findings. The design record is `DESIGN.md`.
+| Tier | Layout |
+| --- | --- |
+| Phone, under 760 px | Three bands in one column. A cobalt rail band on top (brand and health pill, then the product sentence in serif; it steps aside once an answer is on the desk, and in a short landscape window). The desk in the middle (forward above answer; the authored proof sheet and a closed "what this is for" fold when empty). A cobalt composer dock along the bottom: the examples as a horizontal strip, a paper field at 16 px (a phone does not zoom on focus), a 3.4 rem send. Safe-area insets, `100dvh`, `viewport-fit=cover` and `interactive-widget=resizes-content` keep the dock above the home bar and keyboard. |
+| Tablet, 760 px and up | Two panes: the rail on the left (19 to 24 rem: brand, headline, examples, composer), the desk on the right as one 42 rem column, the forward above its answer, with a corner "What this is for" link and popover. |
+| Laptop, 1100 px and up | The rail widens to 27 to 35 rem and the type grows. |
+| Wide, 1360 px and up | The desk becomes two columns: the forward as a serif quote beside its tall answer. |
+| Short window, under 780 px tall | The rail trims its rhythm (a 5.5 rem field, a smaller headline; under 620 px no supporting line) so the composer never leaves the screen. |
+
+Resizing a window moves between tiers live (checked below); nothing reloads and no tier is a different design. The old WhatsApp-styled column (teal header, beige ground, green bubbles) is retired.
+
+- **The answer:** the verdict word is the headline of the proof (serif, 1.75 to 2.6 rem by width) with its icon badge, no box around it. An abstained answer has ONE dashed edge, on the answer card itself. Quotes from sources are hairline-rule quotes. Small print is at least .8 rem on a phone and .9375 rem from a tablet up.
+- **Signature move, the markup:** when an answer arrives the banner settles (about 0.3 s, no bounce) and a pencil stroke is drawn under the verdict word (about 0.5 s). Abstained gets a dashed stroke that is never animated. Only under `prefers-reduced-motion: no-preference`; under reduce it is a short fade. New answers scroll into view smoothly with the forward quote and its verdict as one unit (reduced motion: instantly).
+- **Colour:** one token set, defined once in the first light and first dark block (no per-width overrides), so `tests/test_ui_static.py` checks every pair in both themes at every width. The theme follows the reader's system setting; both are designed. The desk is cool newsprint in light and the near-black original in dark, with a faint static cobalt wash in its far corners (no motion: the desk is the reading surface).
+- **"What this is for":** the same `scope.*` text in two placements. From a tablet up a corner link opens it as a popover over the desk (native `popover`, closes on Esc or outside click; it opens from its own top-right corner in about 160 ms with a scale from .97 and opacity, instantly under reduced motion except a short fade); the desk reserves 4.75 rem at its top so the link never sits over the first answer. On a phone it is a closed fold in the empty desk.
+- **Home screen and tab:** a favicon (SVG, ICO, and a 180 px apple-touch icon; generated from `favicon.svg` by `scripts/make_icons.js`), a web manifest, and a theme colour that follows the reader's theme.
+- **Unchanged rules:** an icon and a word for every verdict, abstained looks different from NEI, bands come from `/version`, no fake progress, no exclamation marks, Hindi and Punjabi strings untouched. Detector: `impeccable detect app/static` returns no findings and no advisory notes. The design record is `DESIGN.md`.
+
+#### The living rail
+
+The rail's background is three layers. A **CSS gradient** (cobalt, with a slow glow drifting on one transform-only layer over 48 s) always exists, and is all a phone, a reduced-motion reader, a high-contrast reader or a browser without WebGL gets. On a tablet or laptop with motion allowed, a **ShaderGradient** (the `@shadergradient/react` library) fades in over it after first paint, from a self-hosted bundle (`app/static/vendor/rail-shader.js`, 1.39 MB minified, built from `ui-src/rail-shader.jsx` by `npm run build:rail`, committed). It uses `lightType` "3d" so it never fetches the environment files the library would otherwise take from a third-party host; the library's own canvas renders at the display's refresh rate, and on a laptop the browser shares the GPU with the models the page is waiting on (measured on a real GPU, headless Chrome on the owner's RTX 4050: a fast check took 2.6 s with that canvas running against 1.1 s without a shader), so the bundle builds its own canvas with the render loop on demand, throttled to about 20 frames a second and 5 while a check is in flight, antialiasing off, pixel density 0.7 and the low-power preference; with that a fast check takes 1.25 s (the shader cost is about 0.2 s). A **legibility scrim** (the rail's deep colour at 34 to 48 percent) lies over it. `app.js` mounts it only when the window is 760 px or wider, motion is allowed, contrast is not "more", forced colours are off and WebGL exists, and unmounts it when any of those changes; a failing GPU or a missing bundle leaves the CSS gradient, silently.
+
+Evidence (2026-10-12, headless Chrome with software GL, the page served by the real server): text on the rail was measured against the real animation at four moments, in light and dark. **Without the scrim the supporting line fell to 3.6:1 at the lightest moment (AA needs 4.5); with it the worst case is 7.1:1 on a laptop in light, 7.8:1 on a tablet, 8.7:1 in dark, and 5.9:1 on a phone's CSS gradient** (brand, headline, health pill and "Try an example" all higher). A live resize 1440 to 1000 to 700 to 390 to 1280 px, with no reload, moved between tiers and mounted and unmounted the shader as expected with no horizontal scroll; under reduced motion the shader never loaded and nothing animated; the page made 13 requests, all to its own server, with no page errors. **Not tested here:** a real GPU's frame rate and battery cost, real phones (touch, iOS Safari, the on-screen keyboard), and screen readers.
 
 ## 4. Flow and states
 

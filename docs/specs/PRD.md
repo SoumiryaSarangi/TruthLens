@@ -49,7 +49,7 @@ Professional fact-checkers do not verify every claim from scratch. They first ch
 
 - Image, video, audio or link-content claims. Text only.
 - Adjudicating political opinions, predictions or value judgements. These route to NotAClaim.
-- A real WhatsApp bot. The UI is a WhatsApp-styled web demo (see `UI_UX.md`).
+- A real WhatsApp bot. The UI is a responsive web demo, the proof desk (see `UI_UX.md`).
 - Deployment readiness, multi-user serving, authentication, scaling.
 - Redistributing any licensed dataset. The repo holds ID manifests only.
 
