@@ -273,3 +273,16 @@ def test_the_audit_fixes_are_in():
     assert 'id="announce"' in HTML and 'role="status"' in HTML and "announce.textContent" in JS     # the copy confirmation is announced
     assert "ease-out .1" not in CSS and "ease-out .2" not in CSS                                    # entrances use the one token, not the keyword
     assert "previousElementSibling" in JS                                                           # the forward and its answer scroll in as one unit
+
+
+def test_the_server_tells_browsers_to_revalidate_the_page_and_its_files():
+    """A browser kept the old stylesheet for hours after the redesign shipped; no-cache makes it ask again (one 304 when unchanged)."""
+    from app.main import app
+    from fastapi.testclient import TestClient
+
+    client = TestClient(app)
+    for url in ("/", "/static/styles.css", "/static/app.js", "/static/favicon.svg"):
+        response = client.get(url)
+        assert response.status_code == 200, url
+        assert response.headers.get("cache-control") == "no-cache", url
+    assert "styles.css?v=" in HTML and "app.js?v=" in HTML

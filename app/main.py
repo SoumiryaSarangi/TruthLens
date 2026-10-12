@@ -191,13 +191,26 @@ def _git_sha() -> str | None:
     return out.stdout.strip() or None
 
 
+# The page is a handful of small local files that change when the design does, so a browser must ask again each time
+# (`no-cache` means "revalidate", not "never store": an unchanged file costs one 304). Without this a browser keeps the
+# stylesheet and script it saw first for hours and shows an old design after an upgrade.
+NO_CACHE = {"Cache-Control": "no-cache"}
+
+
 @app.get("/")
 def index() -> FileResponse:
-    return FileResponse(STATIC / "index.html")
+    return FileResponse(STATIC / "index.html", headers=NO_CACHE)
+
+
+class RevalidatedStatic(StaticFiles):
+    async def get_response(self, path, scope):
+        response = await super().get_response(path, scope)
+        response.headers["Cache-Control"] = "no-cache"
+        return response
 
 
 if STATIC.is_dir():
-    app.mount("/static", StaticFiles(directory=STATIC), name="static")
+    app.mount("/static", RevalidatedStatic(directory=STATIC), name="static")
 
 
 if __name__ == "__main__":       # pragma: no cover
