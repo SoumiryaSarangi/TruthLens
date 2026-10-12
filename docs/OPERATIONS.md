@@ -15,8 +15,13 @@ that actually happened while building this project.
 
 ## Starting and stopping
 
+```powershell
+.\.venv\Scripts\python.exe scripts\serve.py     # Windows: works in every shell
+```
+
 ```bash
-make serve                                   # or:  .venv\Scripts\python.exe scripts\serve.py
+.venv/bin/python scripts/serve.py                # Linux / macOS
+make serve                                       # the same launcher, where make works
 ```
 
 - `scripts/serve.py` listens on `127.0.0.1:8000`; running `python -m app.main` instead honours the `PORT` variable. Ready for offline checks after about a minute (a warm-up request

@@ -54,9 +54,9 @@ Python 3.11. Edit the `.in`, never the `.txt`.
 
 | Lock | Contents | Installed when |
 | --- | --- | --- |
-| `requirements.txt` | pyyaml, jsonschema, numpy | always — the harness runs on this alone |
-| `requirements-dev.txt` | pytest, ruff, pre-commit, scikit-learn | always |
-| `requirements-ml.txt` | transformers, sentence-transformers, faiss, fastText, FastAPI | Phase 1 (`make setup-ml`) |
+| `requirements/core.txt` | pyyaml, jsonschema, numpy | always — the harness runs on this alone |
+| `requirements/dev.txt` | pytest, ruff, pre-commit, scikit-learn | always |
+| `requirements/ml.txt` | transformers, sentence-transformers, faiss, fastText, FastAPI | Phase 1 (`make setup-ml`) |
 
 The core lock is kept tiny on purpose: CI and `make leakage` install in
 seconds, so there is never a reason to skip the leakage check.
@@ -69,9 +69,9 @@ is not checked.
 To re-resolve after editing a `.in`:
 
 ```bash
-uv pip compile requirements.in     -o requirements.txt     --generate-hashes --python-version 3.11
-uv pip compile requirements-dev.in -o requirements-dev.txt --generate-hashes --python-version 3.11
-uv pip compile requirements-ml.in  -o requirements-ml.txt  --generate-hashes --python-version 3.11
+uv pip compile requirements/core.in     -o requirements/core.txt     --generate-hashes --python-version 3.11
+uv pip compile requirements/dev.in -o requirements/dev.txt --generate-hashes --python-version 3.11
+uv pip compile requirements/ml.in  -o requirements/ml.txt  --generate-hashes --python-version 3.11 --no-emit-package torch
 ```
 
 ## torch: install the CUDA build
@@ -112,19 +112,19 @@ builds. Pinning one would mean this laptop and CI run different software under
 the same version string — and CI deliberately has no torch at all, since the
 fast job installs the core lock only.
 
-This was **not actually true until 21 Sep 2026**: `requirements-ml.txt` pinned
+This was **not actually true until 21 Sep 2026**: `requirements/ml.txt` pinned
 `torch==2.14.0`, pulled in as a dependency of `sentence-transformers` and
 `transformers`. On Windows the PyPI wheel is CPU-only, so `uv pip install -r
-requirements-ml.txt` would have silently replaced the CUDA build with a CPU one
+requirements/ml.txt` would have silently replaced the CUDA build with a CPU one
 — the exact failure this section warns about, sitting inside the lock that was
 supposed to prevent it. The lock is now compiled with:
 
 ```bash
-uv pip compile requirements-ml.in -o requirements-ml.txt     --generate-hashes --python-version 3.11 --no-emit-package torch
+uv pip compile requirements/ml.in -o requirements/ml.txt     --generate-hashes --python-version 3.11 --no-emit-package torch
 ```
 
 Keep the `--no-emit-package torch` flag on every recompile. After any
-`uv pip install -r requirements-ml.txt`, check that torch is still a `+cu` build:
+`uv pip install -r requirements/ml.txt`, check that torch is still a `+cu` build:
 
 ```bash
 python -c "import torch; assert '+cu' in torch.__version__, torch.__version__"

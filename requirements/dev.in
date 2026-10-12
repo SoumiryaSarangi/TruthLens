@@ -1,6 +1,6 @@
-# Development and CI. Installed alongside requirements.txt.
+# Development and CI. Installed alongside core.txt.
 
--c requirements.txt
+-c core.txt
 
 pytest>=8.0
 pytest-cov>=5.0

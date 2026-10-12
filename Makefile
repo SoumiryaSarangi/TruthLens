@@ -40,14 +40,14 @@ help:
 setup:
 	uv python install 3.11
 	uv venv --python 3.11
-	uv pip sync requirements.txt requirements-dev.txt
+	uv pip sync requirements/core.txt requirements/dev.txt
 	uv pip install -e . --no-deps
 	$(PY) -m pre_commit install
 
 # Phase 1+. torch is installed separately so the CPU and CUDA builds stay explicit.
 setup-ml:
 	uv pip install "torch==2.9.1" --index-url https://download.pytorch.org/whl/cu128
-	uv pip install -r requirements-ml.txt
+	uv pip install -r requirements/ml.txt
 	$(PY) -c "import torch; assert '+cu' in torch.__version__, 'CPU torch got installed: ' + torch.__version__; print('OK', torch.__version__, 'cuda', torch.cuda.is_available())"
 
 eval:

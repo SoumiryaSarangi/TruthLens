@@ -8,7 +8,7 @@
 # The resolved build string is recorded in docs/environment.md and stamped into
 # every results JSON by src/common/provenance.py.
 
--c requirements.txt
+-c core.txt
 
 transformers>=4.44
 sentence-transformers>=3.0   # BGE-M3, LaBSE, MuRIL

@@ -188,6 +188,9 @@ your-domain.example {
 sudo systemctl reload caddy
 ```
 
+If you will also connect a messaging app (see [`MESSAGING.md`](MESSAGING.md)), do **not** put this password in front of the
+webhook path: the provider's calls cannot supply it. That file shows a Caddyfile that exempts only the bridge's path.
+
 Caddy obtains and renews the certificate itself. Now only the proxy is reachable from outside, and it asks for a
 password. Share the password only with the people who should have it.
 

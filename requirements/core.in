@@ -2,7 +2,7 @@
 # more. Kept tiny on purpose so CI installs in seconds and `make leakage` is
 # cheap enough to run after every data change, as CLAUDE.md requires.
 #
-# NO model libraries here. torch/transformers/faiss live in requirements-ml.in.
+# NO model libraries here. torch/transformers/faiss live in ml.in.
 
 pyyaml>=6.0        # eval config files
 jsonschema>=4.21   # validate every config before a single metric is computed

@@ -157,23 +157,53 @@ verifies the report against those files. Accuracy is deliberately not the headli
 
 ### Install
 
+**With `make`** (Linux, macOS, or Windows with GNU Make on PATH):
+
 ```bash
 git clone https://github.com/SoumiryaSarangi/TruthLens.git
 cd TruthLens
 make setup            # uv provisions Python 3.11, installs the hash-pinned locks, wires pre-commit
-make setup-ml         # the ML stack (PyTorch, transformers, FAISS), if you will run the models
+make setup-ml         # the ML stack (PyTorch CUDA build, transformers, FAISS)
 ```
 
-Environment details, the GPU notes and Windows pitfalls are in [`docs/environment.md`](docs/environment.md).
+**Without `make`** (Windows PowerShell; `make` is often missing or fails in a plain Windows terminal, so these are the
+same steps spelled out):
+
+```powershell
+git clone https://github.com/SoumiryaSarangi/TruthLens.git
+cd TruthLens
+uv python install 3.11
+uv venv --python 3.11
+uv pip sync requirements/core.txt requirements/dev.txt
+uv pip install -e . --no-deps
+uv pip install "torch==2.9.1" --index-url https://download.pytorch.org/whl/cu128
+uv pip install -r requirements/ml.txt
+```
+
+Which requirements file is for what: [`requirements/README.md`](requirements/README.md). Environment details, the GPU
+notes and Windows pitfalls: [`docs/environment.md`](docs/environment.md).
 
 ### Run
 
-```bash
-make serve            # http://127.0.0.1:8000  (or: .venv/Scripts/python scripts/serve.py on Windows)
+Start the server with the project's own launcher. **This is the command that works in every shell; use it if `make serve`
+does nothing or errors.**
+
+```powershell
+# Windows (PowerShell or cmd), from the repository root
+.\.venv\Scripts\python.exe scripts\serve.py
 ```
 
+```bash
+# Linux / macOS
+.venv/bin/python scripts/serve.py
+```
+
+Then open **http://127.0.0.1:8000**. (`make serve` runs the same launcher, where `make` works.)
+
 The server is ready after about a minute; the live-check models load in the background about 40 seconds later and
-the first online check pays for any that are still loading. Models are downloaded from Hugging Face on first use.
+the first online check pays for any that are still loading. Models are downloaded from Hugging Face on first use, so the
+first start needs internet. Stop it with Ctrl+C. Change the port or bind address with the `PORT` and `TRUTHLENS_HOST`
+environment variables ([`docs/OPERATIONS.md`](docs/OPERATIONS.md)).
 
 To enable the live look-up, copy `.env.example` to `.env` and set `GOOGLE_FACTCHECK_API_KEY`. The file is git-ignored;
 **never commit the key**.
@@ -181,9 +211,9 @@ To enable the live look-up, copy `.env.example` to `.env` and set `GOOGLE_FACTCH
 ### Verify the install
 
 ```bash
-make lint             # ruff
-make test             # the suite; ML tests skip without the models
-python scripts/demo_check.py     # end-to-end on the demo chips; run with the server STOPPED; must print OK
+make lint             # ruff        (or: .venv/Scripts/python -m ruff check src tests scripts)
+make test             # the suite   (or: .venv/Scripts/python -m pytest tests -q)
+.venv/Scripts/python scripts/demo_check.py     # end-to-end on the demo chips; server STOPPED; must print OK
 ```
 
 ## Using it
@@ -243,6 +273,7 @@ TruthLens/
 ├── src/                 pipeline stages (preprocess, claims, matching, retrieval, stance,
 │                        aggregation, generation, faithfulness, manipulation, live) and the harness (eval/)
 ├── configs/             one YAML per experiment; pipeline/dev.yaml is the served configuration
+├── requirements/        hash-pinned Python locks: core, dev, ml (see requirements/README.md)
 ├── data/splits/         frozen splits (never regenerated); raw dataset text is local and git-ignored
 ├── docs/                report, specs, protocols, model card, API, architecture, operations
 ├── scripts/             measurement, plotting, demo checks, live-verdict tooling
@@ -278,7 +309,9 @@ npm install && npm run build:rail # only when ui-src/ changes (rebuilds app/stat
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Components, data flow and the live check, in one place. |
 | [`docs/API.md`](docs/API.md) | HTTP reference. |
 | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Deploying it: what to ship, GPU machine or tunnel, service, HTTPS, security checklist. |
+| [`docs/MESSAGING.md`](docs/MESSAGING.md) | Connecting it to WhatsApp (Meta Cloud API), with Twilio and Telegram fallbacks; VM and tunnel cases. A plan, not yet built. |
 | [`docs/OPERATIONS.md`](docs/OPERATIONS.md) | Running, resources, troubleshooting. |
+| [`requirements/README.md`](requirements/README.md) | Which requirements file is for what, and how to regenerate the locks. |
 | [`docs/specs/`](docs/specs/) | PRD, SRS, system design, UI/UX. |
 | [`docs/project-log.md`](docs/project-log.md) | The running record of what was built, decided and corrected. |
 | [`docs/acceptance.md`](docs/acceptance.md) | Every requirement, how it was verified, and its status. |

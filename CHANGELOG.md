@@ -9,8 +9,14 @@ Entries marked **post hoc** were decided after seeing numbers and are not valida
 ## [Unreleased]
 
 ### Added
+- `docs/MESSAGING.md`: a researched plan for connecting WhatsApp (Meta Cloud API), with Twilio sandbox and Telegram fallbacks, for a VM or a GPU machine plus tunnel. Not built.
+- `requirements/README.md`.
 - `docs/DEPLOYMENT.md`, and `scripts/package_runtime.py` to pack the git-ignored runtime data (2.1 GB) for a deployment.
 - `TRUTHLENS_HOST` and `PORT` for `scripts/serve.py`, and a `TRUTHLENS_GIT_SHA` fallback for `/version` when there is no `.git`.
+
+### Changed
+- The Python lock files moved from the repository root into `requirements/` as `core`, `dev` and `ml` (contents and hashes unchanged; Makefile, CI and docs updated).
+- README: how to start the server without `make` (Windows PowerShell commands) and how to install without `make`.
 
 ### Fixed
 - CI: the icon and cache-header tests no longer require Pillow or FastAPI, which the slim CI lock does not install.
