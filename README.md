@@ -277,6 +277,7 @@ npm install && npm run build:rail # only when ui-src/ changes (rebuilds app/stat
 | [`docs/MODEL_CARD.md`](docs/MODEL_CARD.md) | Intended use, performance, limits and ethics of the system. |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Components, data flow and the live check, in one place. |
 | [`docs/API.md`](docs/API.md) | HTTP reference. |
+| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Deploying it: what to ship, GPU machine or tunnel, service, HTTPS, security checklist. |
 | [`docs/OPERATIONS.md`](docs/OPERATIONS.md) | Running, resources, troubleshooting. |
 | [`docs/specs/`](docs/specs/) | PRD, SRS, system design, UI/UX. |
 | [`docs/project-log.md`](docs/project-log.md) | The running record of what was built, decided and corrected. |

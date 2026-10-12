@@ -8,7 +8,12 @@ Entries marked **post hoc** were decided after seeing numbers and are not valida
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+- `docs/DEPLOYMENT.md`, and `scripts/package_runtime.py` to pack the git-ignored runtime data (2.1 GB) for a deployment.
+- `TRUTHLENS_HOST` and `PORT` for `scripts/serve.py`, and a `TRUTHLENS_GIT_SHA` fallback for `/version` when there is no `.git`.
+
+### Fixed
+- CI: the icon and cache-header tests no longer require Pillow or FastAPI, which the slim CI lock does not install.
 
 ## [1.0.0] - 2026-10-12
 

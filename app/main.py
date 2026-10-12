@@ -183,12 +183,14 @@ def version() -> dict[str, Any]:
 
 
 def _git_sha() -> str | None:
+    """The running build. From git when there is a checkout; a deployment without `.git` sets TRUTHLENS_GIT_SHA."""
     try:
         out = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True,
                              text=True, timeout=5, check=False)
+        sha = out.stdout.strip()
     except (OSError, subprocess.SubprocessError):
-        return None
-    return out.stdout.strip() or None
+        sha = ""
+    return sha or os.environ.get("TRUTHLENS_GIT_SHA") or None
 
 
 # The page is a handful of small local files that change when the design does, so a browser must ask again each time
