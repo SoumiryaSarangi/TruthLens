@@ -232,12 +232,28 @@ def test_the_head_serves_a_phone_a_favicon_a_manifest_and_a_theme_colour():
         assert (STATIC / href.removeprefix("/static/")).is_file(), href
 
 
-def test_the_icons_and_the_manifest_are_real_files_of_the_right_size():
-    from PIL import Image
+def _png_size(path: Path) -> tuple[int, int]:
+    """Width and height from the PNG header, so the test needs no imaging library (CI installs the slim lock)."""
+    import struct
 
-    assert Image.open(STATIC / "apple-touch-icon.png").size == (180, 180)
-    assert Image.open(STATIC / "icon-192.png").size == (192, 192) and Image.open(STATIC / "icon-512.png").size == (512, 512)
-    assert {s for s in Image.open(STATIC / "favicon.ico").info.get("sizes", set())} >= {(16, 16), (32, 32), (48, 48)}
+    head = path.read_bytes()[:24]
+    assert head[1:4] == b"PNG" and head[12:16] == b"IHDR", path
+    return struct.unpack(">II", head[16:24])
+
+
+def _ico_sizes(path: Path) -> set[tuple[int, int]]:
+    import struct
+
+    data = path.read_bytes()
+    reserved, kind, count = struct.unpack("<HHH", data[:6])
+    assert (reserved, kind) == (0, 1), "not an ICO file"
+    return {(data[6 + 16 * i] or 256, data[7 + 16 * i] or 256) for i in range(count)}
+
+
+def test_the_icons_and_the_manifest_are_real_files_of_the_right_size():
+    assert _png_size(STATIC / "apple-touch-icon.png") == (180, 180)
+    assert _png_size(STATIC / "icon-192.png") == (192, 192) and _png_size(STATIC / "icon-512.png") == (512, 512)
+    assert _ico_sizes(STATIC / "favicon.ico") >= {(16, 16), (32, 32), (48, 48)}
     manifest = json.loads((STATIC / "manifest.webmanifest").read_text(encoding="utf-8"))
     assert manifest["name"] == "TruthLens" and manifest["display"] == "standalone"
     for icon in manifest["icons"]:
@@ -275,8 +291,21 @@ def test_the_audit_fixes_are_in():
     assert "previousElementSibling" in JS                                                           # the forward and its answer scroll in as one unit
 
 
+def test_the_server_is_written_to_revalidate_the_page_and_its_files():
+    """A browser kept the old stylesheet for hours after the redesign shipped. Read from the source so CI (which has no FastAPI) checks it too."""
+    main = Path("app/main.py").read_text(encoding="utf-8")
+    assert 'NO_CACHE = {"Cache-Control": "no-cache"}' in main
+    assert 'headers=NO_CACHE' in main and 'response.headers["Cache-Control"] = "no-cache"' in main
+    assert 'app.mount("/static", RevalidatedStatic(' in main
+    assert "styles.css?v=" in HTML and "app.js?v=" in HTML
+
+
 def test_the_server_tells_browsers_to_revalidate_the_page_and_its_files():
-    """A browser kept the old stylesheet for hours after the redesign shipped; no-cache makes it ask again (one 304 when unchanged)."""
+    """The same, against the running application (needs FastAPI, so it is skipped in the slim CI lock)."""
+    pytest.importorskip("fastapi", reason="FastAPI lives in the ML lock")
+    import sys
+
+    sys.path.insert(0, str(Path().resolve()))
     from app.main import app
     from fastapi.testclient import TestClient
 
@@ -285,4 +314,3 @@ def test_the_server_tells_browsers_to_revalidate_the_page_and_its_files():
         response = client.get(url)
         assert response.status_code == 200, url
         assert response.headers.get("cache-control") == "no-cache", url
-    assert "styles.css?v=" in HTML and "app.js?v=" in HTML
