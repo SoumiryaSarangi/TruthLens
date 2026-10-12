@@ -63,7 +63,7 @@ async def lifespan(_app: FastAPI):
     yield
 
 
-app = FastAPI(title="TruthLens", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="TruthLens", version="1.0.0", lifespan=lifespan)
 
 _orchestrator: Orchestrator | None = None
 _config: PipelineConfig | None = None

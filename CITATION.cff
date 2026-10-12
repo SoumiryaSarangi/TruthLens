@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software or its measurements, please cite it as below."
+title: "TruthLens: multilingual claim verification for forwarded messages in English, Hindi and Punjabi"
+type: software
+authors:
+  - family-names: "Sarangi"
+    given-names: "Soumirya"
+repository-code: "https://github.com/SoumiryaSarangi/TruthLens"
+license: MIT
+version: 1.0.0
+date-released: "2026-10-12"
+keywords:
+  - fact-checking
+  - misinformation
+  - multilingual NLP
+  - Hindi
+  - Punjabi
+  - romanization
+abstract: >-
+  A claim-verification system for WhatsApp-style forwards in English, Hindi and
+  Punjabi, native or Roman script. It looks for a published fact-check first, then
+  retrieves and reasons over evidence, abstains when unsure, and shows its sources.
+  Includes a measurement of the romanization penalty.
